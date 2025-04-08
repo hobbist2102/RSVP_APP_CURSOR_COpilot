@@ -29,6 +29,7 @@ export interface IStorage {
   getEventsByUser(userId: number): Promise<WeddingEvent[]>;
   createEvent(event: InsertWeddingEvent): Promise<WeddingEvent>;
   updateEvent(id: number, event: Partial<InsertWeddingEvent>): Promise<WeddingEvent | undefined>;
+  deleteEvent(id: number): Promise<boolean>;
   
   // Guest operations
   getGuest(id: number): Promise<Guest | undefined>;
@@ -692,6 +693,75 @@ export class MemStorage implements IStorage {
     return updatedEvent;
   }
   
+  async deleteEvent(id: number): Promise<boolean> {
+    // First, delete all related data for this event
+    // Find all guests for this event
+    const eventGuests = Array.from(this.guestsMap.values()).filter(guest => guest.eventId === id);
+    
+    // Delete all guests and their related data
+    for (const guest of eventGuests) {
+      // Delete guest ceremonies
+      const guestCeremonies = Array.from(this.guestCeremoniesMap.values()).filter(gc => gc.guestId === guest.id);
+      for (const gc of guestCeremonies) {
+        this.guestCeremoniesMap.delete(gc.id);
+      }
+      
+      // Delete travel info
+      const travelInfo = Array.from(this.travelInfoMap.values()).find(ti => ti.guestId === guest.id);
+      if (travelInfo) {
+        this.travelInfoMap.delete(travelInfo.id);
+      }
+      
+      // Delete room allocations
+      const roomAllocations = Array.from(this.roomAllocationsMap.values()).filter(ra => ra.guestId === guest.id);
+      for (const ra of roomAllocations) {
+        this.roomAllocationsMap.delete(ra.id);
+      }
+      
+      // Delete meal selections
+      const mealSelections = Array.from(this.guestMealSelectionsMap.values()).filter(ms => ms.guestId === guest.id);
+      for (const ms of mealSelections) {
+        this.guestMealSelectionsMap.delete(ms.id);
+      }
+      
+      // Delete couple messages
+      const coupleMessages = Array.from(this.coupleMessagesMap.values()).filter(cm => cm.guestId === guest.id);
+      for (const cm of coupleMessages) {
+        this.coupleMessagesMap.delete(cm.id);
+      }
+      
+      // Finally delete the guest
+      this.guestsMap.delete(guest.id);
+    }
+    
+    // Delete ceremonies
+    const ceremonies = Array.from(this.ceremoniesMap.values()).filter(ceremony => ceremony.eventId === id);
+    for (const ceremony of ceremonies) {
+      // Delete meal options for this ceremony
+      const mealOptions = Array.from(this.mealOptionsMap.values()).filter(mo => mo.ceremonyId === ceremony.id);
+      for (const mo of mealOptions) {
+        this.mealOptionsMap.delete(mo.id);
+      }
+      
+      this.ceremoniesMap.delete(ceremony.id);
+    }
+    
+    // Delete accommodations
+    const accommodations = Array.from(this.accommodationsMap.values()).filter(accommodation => accommodation.eventId === id);
+    for (const accommodation of accommodations) {
+      this.accommodationsMap.delete(accommodation.id);
+    }
+    
+    // Delete whatsapp templates
+    const templates = Array.from(this.whatsappTemplatesMap.values()).filter(template => template.eventId === id);
+    for (const template of templates) {
+      this.whatsappTemplatesMap.delete(template.id);
+    }
+    
+    // Finally, delete the event itself
+    return this.eventsMap.delete(id);
+  }
+  
   // Guest methods
   async getGuest(id: number): Promise<Guest | undefined> {
     return this.guestsMap.get(id);
@@ -1112,6 +1182,54 @@ export class DatabaseStorage implements IStorage {
       .where(eq(weddingEvents.id, id))
       .returning();
     return result[0];
+  }
+  
+  async deleteEvent(id: number): Promise<boolean> {
+    // Delete in cascade order - first delete all related data
+    
+    // Get all guests for this event
+    const eventGuests = await db.select().from(guests).where(eq(guests.eventId, id));
+    
+    for (const guest of eventGuests) {
+      // Delete guest ceremonies
+      await db.delete(guestCeremonies).where(eq(guestCeremonies.guestId, guest.id));
+      
+      // Delete guest travel info
+      await db.delete(travelInfo).where(eq(travelInfo.guestId, guest.id));
+      
+      // Delete guest room allocations
+      await db.delete(roomAllocations).where(eq(roomAllocations.guestId, guest.id));
+      
+      // Delete guest meal selections
+      await db.delete(guestMealSelections).where(eq(guestMealSelections.guestId, guest.id));
+      
+      // Delete guest couple messages
+      await db.delete(coupleMessages).where(eq(coupleMessages.guestId, guest.id));
+    }
+    
+    // Delete all guests
+    await db.delete(guests).where(eq(guests.eventId, id));
+    
+    // Get all ceremonies for this event
+    const eventCeremonies = await db.select().from(ceremonies).where(eq(ceremonies.eventId, id));
+    
+    // Delete meal options for each ceremony
+    for (const ceremony of eventCeremonies) {
+      await db.delete(mealOptions).where(eq(mealOptions.ceremonyId, ceremony.id));
+    }
+    
+    // Delete all ceremonies
+    await db.delete(ceremonies).where(eq(ceremonies.eventId, id));
+    
+    // Delete accommodations
+    await db.delete(accommodations).where(eq(accommodations.eventId, id));
+    
+    // Delete WhatsApp templates
+    await db.delete(whatsappTemplates).where(eq(whatsappTemplates.eventId, id));
+    
+    // Finally delete the event itself
+    const result = await db.delete(weddingEvents).where(eq(weddingEvents.id, id));
+    return !!result;
   }
 
   // Guest operations

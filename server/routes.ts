@@ -182,6 +182,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.delete('/api/events/:id', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verify the event exists first
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Verify the user has permission to delete this event
+      if (req.user && req.user.id !== event.createdBy && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized to delete this event' });
+      }
+      
+      const success = await storage.deleteEvent(eventId);
+      if (!success) {
+        return res.status(404).json({ message: 'Event not found or could not be deleted' });
+      }
+      
+      res.json({ message: 'Event and all related data successfully deleted' });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      res.status(500).json({ message: 'Failed to delete event' });
+    }
+  });
+  
   // API route for current event, used by event selector
   app.get('/api/current-event', isAuthenticated, async (req, res) => {
     try {

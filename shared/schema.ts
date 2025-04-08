@@ -25,7 +25,9 @@ export const weddingEvents = pgTable("wedding_events", {
   coupleNames: text("couple_names").notNull(),
   brideName: text("bride_name").notNull(),
   groomName: text("groom_name").notNull(),
-  date: date("date").notNull(),
+  startDate: date("start_date").notNull(), // Start date of the wedding events
+  endDate: date("end_date").notNull(),     // End date of the wedding events
+  date: date("date"),                      // Keeping for backward compatibility
   location: text("location").notNull(),
   description: text("description"),
   // WhatsApp Business API Integration

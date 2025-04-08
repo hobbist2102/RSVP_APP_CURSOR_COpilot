@@ -36,7 +36,8 @@ import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { formatDate, getDaysDifference } from "@/lib/utils";
 import { 
-  AlertCircle, 
+  AlertCircle,
+  AlertTriangle,
   CalendarClock, 
   MapPin, 
   Users, 
@@ -44,7 +45,8 @@ import {
   Clock,
   PlusCircle,
   Edit,
-  Trash
+  Trash,
+  ChevronLeft
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -83,11 +85,14 @@ export default function Events() {
     updateEvent,
     isUpdatingEvent,
     getCeremonies,
+    deleteEvent,
+    isDeletingEvent
   } = useEvents();
   
   // State for modals
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
   const [showEditEventDialog, setShowEditEventDialog] = useState(false);
+  const [showDeleteEventDialog, setShowDeleteEventDialog] = useState(false);
   const [showAddCeremonyDialog, setShowAddCeremonyDialog] = useState(false);
   const [showEditCeremonyDialog, setShowEditCeremonyDialog] = useState(false);
   const [showDeleteCeremonyDialog, setShowDeleteCeremonyDialog] = useState(false);
@@ -300,6 +305,12 @@ export default function Events() {
     setShowDeleteCeremonyDialog(true);
   };
   
+  // Open delete event dialog
+  const handleDeleteEvent = (event: any) => {
+    setCurrentEvent(event);
+    setShowDeleteEventDialog(true);
+  };
+  
   // Ceremony details table columns
   const ceremonyColumns = [
     {
@@ -396,13 +407,23 @@ export default function Events() {
               <CardHeader className="bg-primary/10 pb-2">
                 <div className="flex justify-between">
                   <CardTitle className="text-xl font-playfair">{event.title}</CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleEditEvent(event)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleEditEvent(event)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDeleteEvent(event)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription className="font-script text-lg text-primary">
                   {event.coupleNames}
@@ -868,6 +889,66 @@ export default function Events() {
               disabled={deleteCeremonyMutation.isPending}
             >
               {deleteCeremonyMutation.isPending ? "Deleting..." : "Delete Ceremony"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Event Dialog */}
+      <Dialog 
+        open={showDeleteEventDialog} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteEventDialog(false);
+            setCurrentEvent(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Wedding Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this wedding event? This action cannot be undone and will 
+              delete all associated data including guests, ceremonies, accommodations, meal options, etc.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4">
+              <p className="flex items-center">
+                <AlertTriangle className="h-5 w-5 mr-2 shrink-0" />
+                <span><strong>Warning:</strong> This is a permanent action that cannot be recovered.</span>
+              </p>
+            </div>
+            
+            {currentEvent && (
+              <div className="border rounded-md p-4 space-y-2">
+                <p className="mb-2"><strong>Event:</strong> {currentEvent.title}</p>
+                <p className="mb-2"><strong>Couple:</strong> {currentEvent.coupleNames}</p>
+                <p className="mb-2"><strong>Date:</strong> {formatDate(currentEvent.date)}</p>
+                <p><strong>Location:</strong> {currentEvent.location}</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteEventDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                if (currentEvent) {
+                  deleteEvent(currentEvent.id);
+                  setShowDeleteEventDialog(false);
+                }
+              }}
+              disabled={isDeletingEvent}
+            >
+              {isDeletingEvent ? "Deleting..." : "Delete Wedding Event"}
             </Button>
           </DialogFooter>
         </DialogContent>

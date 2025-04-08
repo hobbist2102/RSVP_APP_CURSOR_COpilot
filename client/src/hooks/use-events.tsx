@@ -74,6 +74,29 @@ export function useEvents() {
       enabled: !!eventId,
     });
   };
+  
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/events/${id}`, {});
+      return await response.json();
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      
+      toast({
+        title: "Event Deleted",
+        description: "The wedding event and all its related data have been successfully deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to Delete Event",
+        description: error instanceof Error ? error.message : "An error occurred while deleting the event.",
+      });
+    },
+  });
 
   return {
     events,
@@ -85,6 +108,8 @@ export function useEvents() {
     isCreatingEvent: createEventMutation.isPending,
     updateEvent: updateEventMutation.mutate,
     isUpdatingEvent: updateEventMutation.isPending,
+    deleteEvent: deleteEventMutation.mutate,
+    isDeletingEvent: deleteEventMutation.isPending,
     getCeremonies,
   };
 }
