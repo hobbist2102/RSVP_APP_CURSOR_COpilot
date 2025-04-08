@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const eventData = currentEvent ? {
     title: currentEvent.title,
-    date: formatDate(currentEvent.date)
+    date: `${formatDate(currentEvent.startDate)} - ${formatDate(currentEvent.endDate)}`
   } : undefined;
   
   const toggleSidebar = () => {

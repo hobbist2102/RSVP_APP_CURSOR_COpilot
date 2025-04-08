@@ -78,12 +78,18 @@ export function calculateRsvpProgress(confirmed: number, declined: number, pendi
   return Math.round(((confirmed + declined) / total) * 100);
 }
 
-export function getDaysDifference(date: Date | string): number {
-  const targetDate = typeof date === 'string' ? new Date(date) : date;
-  const today = new Date();
+export function getDaysDifference(date: Date | string | null | undefined): number {
+  if (!date) return 0;
   
-  const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
+  try {
+    const targetDate = typeof date === 'string' ? new Date(date) : date;
+    const today = new Date();
+    
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  } catch (e) {
+    return 0;
+  }
 }

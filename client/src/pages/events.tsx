@@ -59,7 +59,10 @@ import DataTable from "@/components/ui/data-table";
 const eventFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   coupleNames: z.string().min(1, "Couple names are required"),
-  date: z.string().min(1, "Date is required"),
+  brideName: z.string().min(1, "Bride's name is required"),
+  groomName: z.string().min(1, "Groom's name is required"),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
   location: z.string().min(1, "Location is required"),
   description: z.string().optional(),
 });
@@ -105,7 +108,10 @@ export default function Events() {
     defaultValues: {
       title: "",
       coupleNames: "",
-      date: "",
+      brideName: "",
+      groomName: "",
+      startDate: "",
+      endDate: "",
       location: "",
       description: "",
     },
@@ -226,14 +232,16 @@ export default function Events() {
         id: currentEvent.id,
         data: {
           ...data,
-          date: new Date(data.date),
+          startDate: data.startDate,
+          endDate: data.endDate,
         },
       });
     } else {
       // Create new event
       createEvent({
         ...data,
-        date: new Date(data.date),
+        startDate: data.startDate,
+        endDate: data.endDate,
         createdBy: 1, // Assuming the current user ID
       });
     }
@@ -262,7 +270,10 @@ export default function Events() {
     eventForm.reset({
       title: event.title,
       coupleNames: event.coupleNames,
-      date: event.date ? format(new Date(event.date), "yyyy-MM-dd") : "",
+      brideName: event.brideName || "",
+      groomName: event.groomName || "",
+      startDate: event.startDate || "",
+      endDate: event.endDate || "",
       location: event.location,
       description: event.description || "",
     });
@@ -381,7 +392,10 @@ export default function Events() {
             eventForm.reset({
               title: "",
               coupleNames: "",
-              date: "",
+              brideName: "",
+              groomName: "",
+              startDate: "",
+              endDate: "",
               location: "",
               description: "",
             });
@@ -434,10 +448,13 @@ export default function Events() {
                 <div className="flex items-start space-x-2">
                   <CalendarClock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium">{formatDate(event.date)}</div>
+                    <div className="font-medium">
+                      {formatDate(event.startDate)}
+                      {event.startDate !== event.endDate && ` - ${formatDate(event.endDate)}`}
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      {getDaysDifference(event.date) > 0 
-                        ? `${getDaysDifference(event.date)} days to go` 
+                      {getDaysDifference(event.startDate) > 0 
+                        ? `${getDaysDifference(event.startDate)} days to go` 
                         : "Event has passed"}
                     </div>
                   </div>
@@ -478,7 +495,16 @@ export default function Events() {
             <Button 
               onClick={() => {
                 setCurrentEvent(null);
-                eventForm.reset();
+                eventForm.reset({
+                  title: "",
+                  coupleNames: "",
+                  brideName: "",
+                  groomName: "",
+                  startDate: "",
+                  endDate: "",
+                  location: "",
+                  description: "",
+                });
                 setShowAddEventDialog(true);
               }}
               className="gold-gradient"
@@ -518,8 +544,12 @@ export default function Events() {
                     <h3 className="text-lg font-medium mb-2">Event Details</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Date</p>
-                        <p className="font-medium">{formatDate(events.find(e => e.id === selectedEventId)?.date)}</p>
+                        <p className="text-sm text-muted-foreground">Event Dates</p>
+                        <p className="font-medium">
+                          {formatDate(events.find(e => e.id === selectedEventId)?.startDate)} 
+                          {" - "} 
+                          {formatDate(events.find(e => e.id === selectedEventId)?.endDate)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Location</p>
@@ -656,19 +686,65 @@ export default function Events() {
                 )}
               />
               
-              <FormField
-                control={eventForm.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={eventForm.control}
+                  name="brideName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bride's Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Sarah" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={eventForm.control}
+                  name="groomName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Groom's Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Michael" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={eventForm.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={eventForm.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={eventForm.control}
@@ -925,7 +1001,9 @@ export default function Events() {
               <div className="border rounded-md p-4 space-y-2">
                 <p className="mb-2"><strong>Event:</strong> {currentEvent.title}</p>
                 <p className="mb-2"><strong>Couple:</strong> {currentEvent.coupleNames}</p>
-                <p className="mb-2"><strong>Date:</strong> {formatDate(currentEvent.date)}</p>
+                <p className="mb-2">
+                  <strong>Dates:</strong> {formatDate(currentEvent.startDate)} - {formatDate(currentEvent.endDate)}
+                </p>
                 <p><strong>Location:</strong> {currentEvent.location}</p>
               </div>
             )}
