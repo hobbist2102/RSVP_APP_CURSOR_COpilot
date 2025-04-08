@@ -13,6 +13,8 @@ import {
   relationshipTypes, type RelationshipType, type InsertRelationshipType,
   whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -1063,4 +1065,373 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(user).returning();
+    return result[0];
+  }
+
+  // Event operations
+  async getEvent(id: number): Promise<WeddingEvent | undefined> {
+    const result = await db.select().from(weddingEvents).where(eq(weddingEvents.id, id));
+    return result[0];
+  }
+
+  async getAllEvents(): Promise<WeddingEvent[]> {
+    return await db.select().from(weddingEvents);
+  }
+
+  async getEventsByUser(userId: number): Promise<WeddingEvent[]> {
+    return await db.select().from(weddingEvents).where(eq(weddingEvents.createdBy, userId));
+  }
+
+  async createEvent(event: InsertWeddingEvent): Promise<WeddingEvent> {
+    const result = await db.insert(weddingEvents).values(event).returning();
+    return result[0];
+  }
+
+  async updateEvent(id: number, event: Partial<InsertWeddingEvent>): Promise<WeddingEvent | undefined> {
+    const result = await db.update(weddingEvents)
+      .set(event)
+      .where(eq(weddingEvents.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Guest operations
+  async getGuest(id: number): Promise<Guest | undefined> {
+    const result = await db.select().from(guests).where(eq(guests.id, id));
+    return result[0];
+  }
+
+  async getGuestsByEvent(eventId: number): Promise<Guest[]> {
+    return await db.select().from(guests).where(eq(guests.eventId, eventId));
+  }
+
+  async getGuestByEmail(eventId: number, email: string): Promise<Guest | undefined> {
+    const result = await db.select().from(guests)
+      .where(and(
+        eq(guests.eventId, eventId),
+        eq(guests.email, email)
+      ));
+    return result[0];
+  }
+
+  async createGuest(guest: InsertGuest): Promise<Guest> {
+    const result = await db.insert(guests).values(guest).returning();
+    return result[0];
+  }
+
+  async updateGuest(id: number, guest: Partial<InsertGuest>): Promise<Guest | undefined> {
+    const result = await db.update(guests)
+      .set(guest)
+      .where(eq(guests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteGuest(id: number): Promise<boolean> {
+    const result = await db.delete(guests).where(eq(guests.id, id));
+    return !!result;
+  }
+
+  async bulkCreateGuests(guests: InsertGuest[]): Promise<Guest[]> {
+    if (guests.length === 0) return [];
+    const result = await db.insert(guests).values(guests).returning();
+    return result;
+  }
+
+  // Ceremony operations
+  async getCeremony(id: number): Promise<Ceremony | undefined> {
+    const result = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
+    return result[0];
+  }
+
+  async getCeremoniesByEvent(eventId: number): Promise<Ceremony[]> {
+    return await db.select().from(ceremonies).where(eq(ceremonies.eventId, eventId));
+  }
+
+  async createCeremony(ceremony: InsertCeremony): Promise<Ceremony> {
+    const result = await db.insert(ceremonies).values(ceremony).returning();
+    return result[0];
+  }
+
+  async updateCeremony(id: number, ceremony: Partial<InsertCeremony>): Promise<Ceremony | undefined> {
+    const result = await db.update(ceremonies)
+      .set(ceremony)
+      .where(eq(ceremonies.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCeremony(id: number): Promise<boolean> {
+    const result = await db.delete(ceremonies).where(eq(ceremonies.id, id));
+    return !!result;
+  }
+
+  // Guest Ceremony operations
+  async getGuestCeremony(guestId: number, ceremonyId: number): Promise<GuestCeremony | undefined> {
+    const result = await db.select().from(guestCeremonies)
+      .where(and(
+        eq(guestCeremonies.guestId, guestId),
+        eq(guestCeremonies.ceremonyId, ceremonyId)
+      ));
+    return result[0];
+  }
+
+  async getGuestCeremoniesByGuest(guestId: number): Promise<GuestCeremony[]> {
+    return await db.select().from(guestCeremonies).where(eq(guestCeremonies.guestId, guestId));
+  }
+
+  async getGuestCeremoniesByCeremony(ceremonyId: number): Promise<GuestCeremony[]> {
+    return await db.select().from(guestCeremonies).where(eq(guestCeremonies.ceremonyId, ceremonyId));
+  }
+
+  async createGuestCeremony(guestCeremony: InsertGuestCeremony): Promise<GuestCeremony> {
+    const result = await db.insert(guestCeremonies).values(guestCeremony).returning();
+    return result[0];
+  }
+
+  async updateGuestCeremony(id: number, guestCeremony: Partial<InsertGuestCeremony>): Promise<GuestCeremony | undefined> {
+    const result = await db.update(guestCeremonies)
+      .set(guestCeremony)
+      .where(eq(guestCeremonies.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Travel operations
+  async getTravelInfo(id: number): Promise<TravelInfo | undefined> {
+    const result = await db.select().from(travelInfo).where(eq(travelInfo.id, id));
+    return result[0];
+  }
+
+  async getTravelInfoByGuest(guestId: number): Promise<TravelInfo | undefined> {
+    const result = await db.select().from(travelInfo).where(eq(travelInfo.guestId, guestId));
+    return result[0];
+  }
+
+  async createTravelInfo(info: InsertTravelInfo): Promise<TravelInfo> {
+    const result = await db.insert(travelInfo).values(info).returning();
+    return result[0];
+  }
+
+  async updateTravelInfo(id: number, info: Partial<InsertTravelInfo>): Promise<TravelInfo | undefined> {
+    const result = await db.update(travelInfo)
+      .set(info)
+      .where(eq(travelInfo.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Accommodation operations
+  async getAccommodation(id: number): Promise<Accommodation | undefined> {
+    const result = await db.select().from(accommodations).where(eq(accommodations.id, id));
+    return result[0];
+  }
+
+  async getAccommodationsByEvent(eventId: number): Promise<Accommodation[]> {
+    return await db.select().from(accommodations).where(eq(accommodations.eventId, eventId));
+  }
+
+  async createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation> {
+    const result = await db.insert(accommodations).values(accommodation).returning();
+    return result[0];
+  }
+
+  async updateAccommodation(id: number, accommodation: Partial<InsertAccommodation>): Promise<Accommodation | undefined> {
+    const result = await db.update(accommodations)
+      .set(accommodation)
+      .where(eq(accommodations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Room Allocation operations
+  async getRoomAllocation(id: number): Promise<RoomAllocation | undefined> {
+    const result = await db.select().from(roomAllocations).where(eq(roomAllocations.id, id));
+    return result[0];
+  }
+
+  async getRoomAllocationsByAccommodation(accommodationId: number): Promise<RoomAllocation[]> {
+    return await db.select().from(roomAllocations).where(eq(roomAllocations.accommodationId, accommodationId));
+  }
+
+  async getRoomAllocationsByGuest(guestId: number): Promise<RoomAllocation[]> {
+    return await db.select().from(roomAllocations).where(eq(roomAllocations.guestId, guestId));
+  }
+
+  async createRoomAllocation(roomAllocation: InsertRoomAllocation): Promise<RoomAllocation> {
+    const result = await db.insert(roomAllocations).values(roomAllocation).returning();
+    return result[0];
+  }
+
+  async updateRoomAllocation(id: number, roomAllocation: Partial<InsertRoomAllocation>): Promise<RoomAllocation | undefined> {
+    const result = await db.update(roomAllocations)
+      .set(roomAllocation)
+      .where(eq(roomAllocations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Meal operations
+  async getMealOption(id: number): Promise<MealOption | undefined> {
+    const result = await db.select().from(mealOptions).where(eq(mealOptions.id, id));
+    return result[0];
+  }
+
+  async getMealOptionsByCeremony(ceremonyId: number): Promise<MealOption[]> {
+    return await db.select().from(mealOptions).where(eq(mealOptions.ceremonyId, ceremonyId));
+  }
+
+  async createMealOption(mealOption: InsertMealOption): Promise<MealOption> {
+    const result = await db.insert(mealOptions).values(mealOption).returning();
+    return result[0];
+  }
+
+  async updateMealOption(id: number, mealOption: Partial<InsertMealOption>): Promise<MealOption | undefined> {
+    const result = await db.update(mealOptions)
+      .set(mealOption)
+      .where(eq(mealOptions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Guest Meal operations
+  async getGuestMealSelection(id: number): Promise<GuestMealSelection | undefined> {
+    const result = await db.select().from(guestMealSelections).where(eq(guestMealSelections.id, id));
+    return result[0];
+  }
+
+  async getGuestMealSelectionsByGuest(guestId: number): Promise<GuestMealSelection[]> {
+    return await db.select().from(guestMealSelections).where(eq(guestMealSelections.guestId, guestId));
+  }
+
+  async getGuestMealSelectionsByCeremony(ceremonyId: number): Promise<GuestMealSelection[]> {
+    return await db.select().from(guestMealSelections).where(eq(guestMealSelections.ceremonyId, ceremonyId));
+  }
+
+  async createGuestMealSelection(guestMealSelection: InsertGuestMealSelection): Promise<GuestMealSelection> {
+    const result = await db.insert(guestMealSelections).values(guestMealSelection).returning();
+    return result[0];
+  }
+
+  async updateGuestMealSelection(id: number, guestMealSelection: Partial<InsertGuestMealSelection>): Promise<GuestMealSelection | undefined> {
+    const result = await db.update(guestMealSelections)
+      .set(guestMealSelection)
+      .where(eq(guestMealSelections.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Message operations
+  async getCoupleMessage(id: number): Promise<CoupleMessage | undefined> {
+    const result = await db.select().from(coupleMessages).where(eq(coupleMessages.id, id));
+    return result[0];
+  }
+
+  async getCoupleMessagesByEvent(eventId: number): Promise<CoupleMessage[]> {
+    return await db.select().from(coupleMessages).where(eq(coupleMessages.eventId, eventId));
+  }
+
+  async getCoupleMessagesByGuest(guestId: number): Promise<CoupleMessage[]> {
+    return await db.select().from(coupleMessages).where(eq(coupleMessages.guestId, guestId));
+  }
+
+  async createCoupleMessage(coupleMessage: InsertCoupleMessage): Promise<CoupleMessage> {
+    const result = await db.insert(coupleMessages).values(coupleMessage).returning();
+    return result[0];
+  }
+
+  // Relationship Type operations
+  async getRelationshipType(id: number): Promise<RelationshipType | undefined> {
+    const result = await db.select().from(relationshipTypes).where(eq(relationshipTypes.id, id));
+    return result[0];
+  }
+
+  async getAllRelationshipTypes(): Promise<RelationshipType[]> {
+    return await db.select().from(relationshipTypes);
+  }
+
+  async createRelationshipType(relationshipType: InsertRelationshipType): Promise<RelationshipType> {
+    const result = await db.insert(relationshipTypes).values(relationshipType).returning();
+    return result[0];
+  }
+
+  async updateRelationshipType(id: number, relationshipType: Partial<InsertRelationshipType>): Promise<RelationshipType | undefined> {
+    const result = await db.update(relationshipTypes)
+      .set(relationshipType)
+      .where(eq(relationshipTypes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteRelationshipType(id: number): Promise<boolean> {
+    const result = await db.delete(relationshipTypes).where(eq(relationshipTypes.id, id));
+    return !!result;
+  }
+
+  // WhatsApp Template operations
+  async getWhatsappTemplate(id: number): Promise<WhatsappTemplate | undefined> {
+    const result = await db.select().from(whatsappTemplates).where(eq(whatsappTemplates.id, id));
+    return result[0];
+  }
+
+  async getWhatsappTemplatesByEvent(eventId: number): Promise<WhatsappTemplate[]> {
+    return await db.select().from(whatsappTemplates).where(eq(whatsappTemplates.eventId, eventId));
+  }
+
+  async getWhatsappTemplatesByCategory(eventId: number, category: string): Promise<WhatsappTemplate[]> {
+    return await db.select().from(whatsappTemplates).where(
+      and(
+        eq(whatsappTemplates.eventId, eventId),
+        eq(whatsappTemplates.category, category)
+      )
+    );
+  }
+
+  async createWhatsappTemplate(template: InsertWhatsappTemplate): Promise<WhatsappTemplate> {
+    const result = await db.insert(whatsappTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateWhatsappTemplate(id: number, template: Partial<InsertWhatsappTemplate>): Promise<WhatsappTemplate | undefined> {
+    const result = await db.update(whatsappTemplates)
+      .set(template)
+      .where(eq(whatsappTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteWhatsappTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(whatsappTemplates).where(eq(whatsappTemplates.id, id));
+    return !!result;
+  }
+
+  async markWhatsappTemplateAsUsed(id: number): Promise<WhatsappTemplate | undefined> {
+    const result = await db.update(whatsappTemplates)
+      .set({ lastUsed: new Date() })
+      .where(eq(whatsappTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+}
+
+// Use DatabaseStorage for PostgreSQL database
+export const storage = new DatabaseStorage();
