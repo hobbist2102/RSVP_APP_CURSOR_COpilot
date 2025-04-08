@@ -2,7 +2,7 @@ import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
-import LoginPage from "@/pages/login";
+import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import GuestList from "@/pages/guest-list";
 import RsvpManagement from "@/pages/rsvp-management";
@@ -18,8 +18,14 @@ function App() {
   return (
     <AuthProvider>
       <Switch>
-        <Route path="/" component={LoginPage} />
-        <Route path="/login" component={LoginPage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/">
+          {() => (
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          )}
+        </Route>
         <Route path="/dashboard">
           {() => (
             <PrivateRoute>

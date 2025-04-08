@@ -99,6 +99,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
   
   // Auth routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+      
+      // Create new user
+      const user = await storage.createUser(userData);
+      
+      // Log the user in automatically
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login after registration failed:', err);
+          return res.status(500).json({ message: 'Registration successful but login failed' });
+        }
+        
+        console.log('Registration and login successful, user:', user);
+        console.log('Session after registration:', req.session);
+        res.status(201).json({ user });
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to register user' });
+    }
+  });
+  
   app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
     // Log the session after login to debug
     console.log('Login successful, session:', req.session);

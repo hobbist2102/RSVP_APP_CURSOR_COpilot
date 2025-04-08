@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 
 interface PrivateRouteProps {
@@ -23,10 +23,9 @@ export default function PrivateRoute({
     );
   }
   
-  // Redirect to login if not authenticated
+  // Redirect to auth page if not authenticated
   if (!user) {
-    setLocation("/login");
-    return null;
+    return <Redirect to="/auth" />;
   }
   
   // Check if user has required role

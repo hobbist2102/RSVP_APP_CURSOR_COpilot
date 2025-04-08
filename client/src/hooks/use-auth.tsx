@@ -99,8 +99,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await apiRequest("POST", "/api/auth/logout", {});
       setUser(null);
       
-      // Redirect to login page
-      setLocation("/login");
+      // Redirect to auth page
+      setLocation("/auth");
       
       toast({
         title: "Logged Out",
