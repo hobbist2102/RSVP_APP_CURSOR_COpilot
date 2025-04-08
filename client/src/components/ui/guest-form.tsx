@@ -48,6 +48,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
       email: initialData?.email || "",
       phone: initialData?.phone || "",
       address: initialData?.address || "",
+      side: initialData?.side || "bride", // Default to bride's side
       isFamily: initialData?.isFamily || false,
       relationship: initialData?.relationship || "",
       rsvpStatus: initialData?.rsvpStatus || "pending",
@@ -145,6 +146,34 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
               )}
             />
             
+            <FormField
+              control={form.control}
+              name="side"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Guest Side</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select side" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="bride">Bride's Side</SelectItem>
+                      <SelectItem value="groom">Groom's Side</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    This helps with seating arrangements and targeted communications
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+                        
             <div className="flex space-x-4">
               <FormField
                 control={form.control}
