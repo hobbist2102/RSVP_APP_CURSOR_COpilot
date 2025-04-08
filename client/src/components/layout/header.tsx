@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils";
+import EventSelector from "../event/event-selector";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -100,14 +101,21 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         </div>
       </div>
       
-      {currentEvent && (
-        <div className="bg-gray-50 px-4 py-1 text-sm">
-          <p className="text-gray-600">
-            Event: <span className="font-medium">{currentEvent.title}</span> | 
-            Date: <span className="font-medium">{currentEvent.date}</span>
-          </p>
+      <div className="bg-accent border-y border-secondary/20 px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center">
+          {currentEvent && (
+            <div className="px-2 text-gray-600 text-sm hidden md:block">
+              <p className="font-medium wedding-subheading">{currentEvent.title}</p>
+              <p className="text-xs">{currentEvent.date}</p>
+            </div>
+          )}
         </div>
-      )}
+        
+        {/* EventSelector loads here */}
+        <div className="flex-1 max-w-sm ml-auto">
+          <EventSelector />
+        </div>
+      </div>
     </header>
   );
 }

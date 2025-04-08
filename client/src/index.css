@@ -51,11 +51,11 @@
     --chart-5: 300 70% 50%;
     
     --sidebar-background: var(--royal-purple);
-    --sidebar-foreground: 0 0% 100%;
+    --sidebar-foreground: 45 100% 95%;
     --sidebar-primary: var(--gold);
     --sidebar-primary-foreground: 0 0% 20%;
     --sidebar-accent: 280 50% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-accent-foreground: 45 100% 95%;
     --sidebar-border: 280 30% 50%;
     --sidebar-ring: var(--gold);
   }

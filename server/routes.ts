@@ -182,6 +182,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API route for current event, used by event selector
+  app.get('/api/current-event', isAuthenticated, async (req, res) => {
+    try {
+      // This endpoint doesn't actually fetch from storage - it's used as a query key
+      // The current event is stored in the react-query cache by the EventSelector component
+      res.json({});
+    } catch (error) {
+      console.error(`Error with current event: ${error}`);
+      res.status(500).json({ message: 'Error processing current event' });
+    }
+  });
+  
   // Guest routes
   app.get('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
