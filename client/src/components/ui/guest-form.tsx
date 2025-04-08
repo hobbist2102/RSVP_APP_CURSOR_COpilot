@@ -35,7 +35,18 @@ const formSchema = insertGuestSchema.extend({
   numberOfChildren: z.union([
     z.number().min(0),
     z.string().transform((val) => parseInt(val) || 0)
-  ])
+  ]),
+  childrenDetails: z.array(
+    z.object({
+      name: z.string().optional(),
+      age: z.number().optional()
+    })
+  ).default([]),
+  childrenNotes: z.string().optional().nullable(),
+  plusOneEmail: z.string().email().optional().nullable(),
+  plusOnePhone: z.string().optional().nullable(),
+  plusOneRelationship: z.string().optional().nullable(),
+  plusOneRsvpContact: z.boolean().default(false)
 });
 
 export default function GuestForm({ eventId, initialData, onSubmit, isLoading = false }: GuestFormProps) {
@@ -54,8 +65,13 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
       rsvpStatus: initialData?.rsvpStatus || "pending",
       plusOneAllowed: initialData?.plusOneAllowed || false,
       plusOneName: initialData?.plusOneName || "",
+      plusOneEmail: initialData?.plusOneEmail || "",
+      plusOnePhone: initialData?.plusOnePhone || "",
+      plusOneRelationship: initialData?.plusOneRelationship || "",
+      plusOneRsvpContact: initialData?.plusOneRsvpContact || false,
       numberOfChildren: initialData?.numberOfChildren || 0,
-      childrenNames: initialData?.childrenNames || "",
+      childrenDetails: initialData?.childrenDetails || [],
+      childrenNotes: initialData?.childrenNotes || "",
       dietaryRestrictions: initialData?.dietaryRestrictions || "",
       tableAssignment: initialData?.tableAssignment || "",
       giftTracking: initialData?.giftTracking || "",
@@ -257,19 +273,86 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
             />
             
             {form.watch("plusOneAllowed") && (
-              <FormField
-                control={form.control}
-                name="plusOneName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plus One Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Jane Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4 border border-gray-200 p-4 rounded-md bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-800">Plus One Details</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="plusOneName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plus One Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Jane Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="plusOneEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plus One Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="jane.doe@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="plusOnePhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plus One Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(123) 456-7890" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="plusOneRelationship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Relationship to Main Guest</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Spouse, Partner, Friend, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="plusOneRsvpContact"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Allow Direct RSVP Contact</FormLabel>
+                        <FormDescription>
+                          If checked, we'll contact plus-one directly for RSVP updates
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
             )}
             
             <FormField
@@ -292,22 +375,66 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
             />
             
             {form.watch("numberOfChildren") > 0 && (
-              <FormField
-                control={form.control}
-                name="childrenNames"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Children Names</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Emma, Jack" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Separate names with commas
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4 border border-gray-200 p-4 rounded-md bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-800">Children Details</h4>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {Array.from({ length: form.watch("numberOfChildren") }).map((_, index) => (
+                    <div key={index} className="grid grid-cols-2 gap-4 p-3 border border-dashed border-gray-300 rounded-md">
+                      <FormField
+                        control={form.control}
+                        name={`childrenDetails.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Child {index + 1} Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Child's name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name={`childrenDetails.${index}.age`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Age</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="0"
+                                placeholder="Age" 
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="childrenNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Special Notes for Children</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Any dietary restrictions, allergies, or special needs"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             )}
             
             <FormField

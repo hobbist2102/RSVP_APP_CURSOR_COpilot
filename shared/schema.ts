@@ -54,6 +54,7 @@ export const guests = pgTable("guests", {
   whatsappNumber: text("whatsapp_number"),
   address: text("address"),
   side: text("side").notNull(), // "bride" or "groom"
+  isFamily: boolean("is_family").default(false), // is a family member
   relationship: text("relationship"),
   rsvpStatus: text("rsvp_status").default("pending"), // pending, confirmed, declined
   plusOneAllowed: boolean("plus_one_allowed").default(false),
@@ -64,6 +65,7 @@ export const guests = pgTable("guests", {
   plusOneRelationship: text("plus_one_relationship"), // relationship to main guest
   plusOneRsvpContact: boolean("plus_one_rsvp_contact").default(false), // allow direct RSVP contact with plus one
   childrenDetails: jsonb("children_details").default("[]"), // array of {name, age}
+  childrenNotes: text("children_notes"), // special notes about children
   dietaryRestrictions: text("dietary_restrictions"),
   allergies: text("allergies"),
   tableAssignment: text("table_assignment"),
