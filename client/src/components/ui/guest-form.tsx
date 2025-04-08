@@ -344,9 +344,9 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Switch RSVP Contact to Plus One</FormLabel>
+                        <FormLabel>Allow Direct RSVP Contact</FormLabel>
                         <FormDescription>
-                          If checked, we'll contact plus-one instead of the main guest for RSVP updates
+                          If checked, we'll contact plus-one directly for RSVP updates
                         </FormDescription>
                       </div>
                     </FormItem>
