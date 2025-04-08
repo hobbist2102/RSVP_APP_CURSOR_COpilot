@@ -154,11 +154,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/events', isAuthenticated, async (req, res) => {
     try {
+      console.log('Received event data:', req.body);
       const eventData = insertWeddingEventSchema.parse(req.body);
+      console.log('Parsed event data:', eventData);
       const event = await storage.createEvent(eventData);
       res.status(201).json(event);
     } catch (error) {
+      console.error('Error creating event:', error);
       if (error instanceof z.ZodError) {
+        console.error('Validation errors:', error.errors);
         return res.status(400).json({ message: error.errors });
       }
       res.status(500).json({ message: 'Failed to create event' });
