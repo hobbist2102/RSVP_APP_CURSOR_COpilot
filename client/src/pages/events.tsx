@@ -254,12 +254,12 @@ export default function Events() {
         return;
       }
       
+      // Let the server get the user ID from the session
       createEvent({
         ...data,
         startDate: data.startDate, // String dates that match the schema
         endDate: data.endDate,
-        date: data.startDate, // For backward compatibility 
-        createdBy: user.id,
+        date: data.startDate // For backward compatibility 
       });
     }
   };

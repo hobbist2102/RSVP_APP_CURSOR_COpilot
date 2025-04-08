@@ -165,9 +165,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events', isAuthenticated, async (req, res) => {
     try {
       console.log('Received event data:', req.body);
-      const eventData = insertWeddingEventSchema.parse(req.body);
-      console.log('Parsed event data:', eventData);
-      const event = await storage.createEvent(eventData);
+      // Get the authenticated user from the request
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      
+      // Create a complete event data object with the authenticated user's ID
+      const eventData = {
+        ...req.body,
+        createdBy: (req.user as any).id // Add the user ID from the session
+      };
+      
+      console.log('Complete event data with user ID:', eventData);
+      
+      // Validate the event data
+      const validatedData = insertWeddingEventSchema.parse(eventData);
+      console.log('Parsed event data:', validatedData);
+      
+      // Create the event
+      const event = await storage.createEvent(validatedData);
       res.status(201).json(event);
     } catch (error) {
       console.error('Error creating event:', error);
