@@ -35,8 +35,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const sessionStore = MemoryStore(session);
   app.use(session({
     secret: 'wedding-rsvp-secret',
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Changed to true to ensure session is saved
+    saveUninitialized: true, // Changed to true to create session for all users
     cookie: { 
       secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -152,7 +152,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Checking user authentication, session ID:', req.sessionID);
     if (req.isAuthenticated() && req.user) {
       console.log('User is authenticated:', req.user);
-      res.json({ user: req.user });
+      // Ensure we return a consistent user object
+      const user = {
+        id: (req.user as any).id,
+        username: (req.user as any).username,
+        name: (req.user as any).name || 'User',
+        email: (req.user as any).email || '',
+        role: (req.user as any).role || 'couple',
+      };
+      res.json({ user });
     } else {
       res.status(401).json({ message: 'Not authenticated' });
     }
@@ -256,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify the user has permission to delete this event
-      if (req.user && req.user.id !== event.createdBy && req.user.role !== 'admin') {
+      if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
         return res.status(403).json({ message: 'Unauthorized to delete this event' });
       }
       

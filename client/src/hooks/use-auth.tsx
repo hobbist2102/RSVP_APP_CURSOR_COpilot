@@ -51,7 +51,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (response.ok) {
           const data = await response.json();
           console.log("Auth check successful, user:", data.user);
-          setUser(data.user);
+          if (data.user) {
+            setUser(data.user);
+          }
         } else {
           console.log("Auth check failed, status:", response.status);
         }
