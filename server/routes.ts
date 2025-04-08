@@ -35,13 +35,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const sessionStore = MemoryStore(session);
   app.use(session({
     secret: 'wedding-rsvp-secret',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: { 
       secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     },
     store: new sessionStore({
       checkPeriod: 86400000 // prune expired entries every 24h
@@ -99,6 +100,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auth routes
   app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
+    // Log the session after login to debug
+    console.log('Login successful, session:', req.session);
+    console.log('User after login:', req.user);
     res.json({ user: req.user });
   });
   
@@ -112,7 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get('/api/auth/user', (req, res) => {
-    if (req.user) {
+    console.log('Checking user authentication, session ID:', req.sessionID);
+    if (req.isAuthenticated() && req.user) {
+      console.log('User is authenticated:', req.user);
       res.json({ user: req.user });
     } else {
       res.status(401).json({ message: 'Not authenticated' });

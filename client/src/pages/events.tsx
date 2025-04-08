@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Card, 
   CardContent, 
@@ -224,6 +225,9 @@ export default function Events() {
     },
   });
   
+  // Get the auth context once for the whole component
+  const { user } = useAuth();
+  
   // Handle event form submission
   const onSubmitEventForm = (data: z.infer<typeof eventFormSchema>) => {
     if (currentEvent) {
@@ -237,12 +241,25 @@ export default function Events() {
         },
       });
     } else {
-      // Create new event
+      // Create new event - convert the string dates to actual Date objects
+      console.log("Creating event with data:", data);
+      
+      // Check if user is authenticated
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You must be logged in to create an event.",
+        });
+        return;
+      }
+      
       createEvent({
         ...data,
-        startDate: data.startDate,
+        startDate: data.startDate, // String dates that match the schema
         endDate: data.endDate,
-        createdBy: 1, // Assuming the current user ID
+        date: data.startDate, // For backward compatibility 
+        createdBy: user.id,
       });
     }
   };
@@ -253,13 +270,13 @@ export default function Events() {
       // Update existing ceremony
       updateCeremonyMutation.mutate({
         ...data,
-        date: new Date(data.date),
+        date: data.date,
       });
     } else {
       // Create new ceremony
       createCeremonyMutation.mutate({
         ...data,
-        date: new Date(data.date),
+        date: data.date,
       });
     }
   };
