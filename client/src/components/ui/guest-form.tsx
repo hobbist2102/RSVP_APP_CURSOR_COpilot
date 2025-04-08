@@ -32,6 +32,12 @@ interface GuestFormProps {
 }
 
 const formSchema = insertGuestSchema.extend({
+  // Extended fields for guests
+  gender: z.string().optional().nullable(),
+  salutation: z.string().optional().nullable(),
+  whatsappAvailable: z.boolean().default(false),
+  
+  // Children handling
   numberOfChildren: z.union([
     z.number().min(0),
     z.string().transform((val) => parseInt(val) || 0)
@@ -39,14 +45,20 @@ const formSchema = insertGuestSchema.extend({
   childrenDetails: z.array(
     z.object({
       name: z.string().optional(),
-      age: z.number().optional()
+      age: z.number().optional(),
+      gender: z.string().optional(),
+      salutation: z.string().optional()
     })
   ).default([]),
   childrenNotes: z.string().optional().nullable(),
+  
+  // Plus one details
   plusOneEmail: z.string().email().optional().nullable(),
   plusOnePhone: z.string().optional().nullable(),
   plusOneRelationship: z.string().optional().nullable(),
-  plusOneRsvpContact: z.boolean().default(false)
+  plusOneRsvpContact: z.boolean().default(false),
+  plusOneGender: z.string().optional().nullable(),
+  plusOneSalutation: z.string().optional().nullable()
 });
 
 export default function GuestForm({ eventId, initialData, onSubmit, isLoading = false }: GuestFormProps) {
@@ -57,7 +69,10 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
+      gender: initialData?.gender || "",
+      salutation: initialData?.salutation || "",
       phone: initialData?.phone || "",
+      whatsappAvailable: initialData?.whatsappAvailable || false,
       address: initialData?.address || "",
       side: initialData?.side || "bride", // Default to bride's side
       isFamily: initialData?.isFamily || false,
@@ -67,6 +82,8 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
       plusOneName: initialData?.plusOneName || "",
       plusOneEmail: initialData?.plusOneEmail || "",
       plusOnePhone: initialData?.plusOnePhone || "",
+      plusOneGender: initialData?.plusOneGender || "",
+      plusOneSalutation: initialData?.plusOneSalutation || "",
       plusOneRelationship: initialData?.plusOneRelationship || "",
       plusOneRsvpContact: initialData?.plusOneRsvpContact || false,
       numberOfChildren: initialData?.numberOfChildren || 0,
@@ -120,6 +137,62 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
               />
             </div>
             
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="salutation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Salutation</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select salutation" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Mr.">Mr.</SelectItem>
+                        <SelectItem value="Mrs.">Mrs.</SelectItem>
+                        <SelectItem value="Ms.">Ms.</SelectItem>
+                        <SelectItem value="Dr.">Dr.</SelectItem>
+                        <SelectItem value="Prof.">Prof.</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <FormField
               control={form.control}
               name="email"
@@ -144,6 +217,27 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <Input placeholder="(123) 456-7890" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="whatsappAvailable"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value as boolean}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Available on WhatsApp</FormLabel>
+                    <FormDescription>
+                      Check if this guest can receive WhatsApp messages on their phone number
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />
@@ -318,6 +412,62 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   )}
                 />
                 
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="plusOneGender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="plusOneSalutation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Salutation</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select salutation" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Mr.">Mr.</SelectItem>
+                            <SelectItem value="Mrs.">Mrs.</SelectItem>
+                            <SelectItem value="Ms.">Ms.</SelectItem>
+                            <SelectItem value="Dr.">Dr.</SelectItem>
+                            <SelectItem value="Prof.">Prof.</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
                 <FormField
                   control={form.control}
                   name="plusOneRelationship"
@@ -344,9 +494,9 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Allow Direct RSVP Contact</FormLabel>
+                        <FormLabel>Switch RSVP Contact to Plus One</FormLabel>
                         <FormDescription>
-                          If checked, we'll contact plus-one directly for RSVP updates
+                          If checked, we'll contact plus-one directly for RSVP updates instead of the primary guest
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -380,40 +530,98 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 
                 <div className="grid grid-cols-1 gap-4">
                   {Array.from({ length: form.watch("numberOfChildren") }).map((_, index) => (
-                    <div key={index} className="grid grid-cols-2 gap-4 p-3 border border-dashed border-gray-300 rounded-md">
-                      <FormField
-                        control={form.control}
-                        name={`childrenDetails.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Child {index + 1} Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Child's name" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div key={index} className="flex flex-col space-y-4 p-3 border border-dashed border-gray-300 rounded-md">
+                      <h4 className="text-sm font-medium">Child {index + 1}</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`childrenDetails.${index}.name`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Child's name" {...field} value={field.value || ""} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`childrenDetails.${index}.age`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Age</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0"
+                                  placeholder="Age" 
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       
-                      <FormField
-                        control={form.control}
-                        name={`childrenDetails.${index}.age`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Age</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="0"
-                                placeholder="Age" 
-                                {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`childrenDetails.${index}.gender`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gender</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select gender" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="male">Male</SelectItem>
+                                  <SelectItem value="female">Female</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`childrenDetails.${index}.salutation`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Salutation</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select salutation" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Master">Master</SelectItem>
+                                  <SelectItem value="Miss">Miss</SelectItem>
+                                  <SelectItem value="Mr.">Mr.</SelectItem>
+                                  <SelectItem value="Ms.">Ms.</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -47,11 +47,14 @@ export const guests = pgTable("guests", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email"),
+  gender: text("gender"), // male, female, other
+  salutation: text("salutation"), // Mr, Mrs, Ms, Dr, etc.
   countryCode: text("country_code"),
   phone: text("phone"),
   whatsappSame: boolean("whatsapp_same").default(true),
   whatsappCountryCode: text("whatsapp_country_code"),
   whatsappNumber: text("whatsapp_number"),
+  whatsappAvailable: boolean("whatsapp_available").default(false),
   address: text("address"),
   side: text("side").notNull(), // "bride" or "groom"
   isFamily: boolean("is_family").default(false), // is a family member
@@ -63,8 +66,10 @@ export const guests = pgTable("guests", {
   plusOnePhone: text("plus_one_phone"),
   plusOneCountryCode: text("plus_one_country_code"),
   plusOneRelationship: text("plus_one_relationship"), // relationship to main guest
-  plusOneRsvpContact: boolean("plus_one_rsvp_contact").default(false), // allow direct RSVP contact with plus one
-  childrenDetails: jsonb("children_details").default("[]"), // array of {name, age}
+  plusOneRsvpContact: boolean("plus_one_rsvp_contact").default(false), // switch RSVP contact to plus one
+  plusOneGender: text("plus_one_gender"), // male, female, other
+  plusOneSalutation: text("plus_one_salutation"), // Mr, Mrs, Ms, Dr, etc.
+  childrenDetails: jsonb("children_details").default("[]"), // array of {name, age, gender, salutation}
   childrenNotes: text("children_notes"), // special notes about children
   dietaryRestrictions: text("dietary_restrictions"),
   allergies: text("allergies"),
