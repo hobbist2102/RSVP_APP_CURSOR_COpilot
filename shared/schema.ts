@@ -23,9 +23,16 @@ export const weddingEvents = pgTable("wedding_events", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   coupleNames: text("couple_names").notNull(),
+  brideName: text("bride_name").notNull(),
+  groomName: text("groom_name").notNull(),
   date: date("date").notNull(),
   location: text("location").notNull(),
   description: text("description"),
+  // WhatsApp Business API Integration
+  whatsappBusinessPhoneId: text("whatsapp_business_phone_id"),
+  whatsappBusinessNumber: text("whatsapp_business_number"),
+  whatsappBusinessAccountId: text("whatsapp_business_account_id"),
+  whatsappAccessToken: text("whatsapp_access_token"),
   createdBy: integer("created_by").notNull(),
 });
 
@@ -40,18 +47,28 @@ export const guests = pgTable("guests", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email"),
+  countryCode: text("country_code"),
   phone: text("phone"),
+  whatsappSame: boolean("whatsapp_same").default(true),
+  whatsappCountryCode: text("whatsapp_country_code"),
+  whatsappNumber: text("whatsapp_number"),
   address: text("address"),
-  isFamily: boolean("is_family").default(false),
+  side: text("side").notNull(), // "bride" or "groom"
   relationship: text("relationship"),
   rsvpStatus: text("rsvp_status").default("pending"), // pending, confirmed, declined
   plusOneAllowed: boolean("plus_one_allowed").default(false),
   plusOneName: text("plus_one_name"),
-  numberOfChildren: integer("number_of_children").default(0),
-  childrenNames: text("children_names"),
+  plusOneEmail: text("plus_one_email"),
+  plusOnePhone: text("plus_one_phone"),
+  plusOneCountryCode: text("plus_one_country_code"),
+  plusOneRelationship: text("plus_one_relationship"), // relationship to main guest
+  plusOneRsvpContact: boolean("plus_one_rsvp_contact").default(false), // allow direct RSVP contact with plus one
+  childrenDetails: jsonb("children_details").default("[]"), // array of {name, age}
   dietaryRestrictions: text("dietary_restrictions"),
+  allergies: text("allergies"),
   tableAssignment: text("table_assignment"),
   giftTracking: text("gift_tracking"),
+  needsAccommodation: boolean("needs_accommodation").default(false),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -133,9 +150,18 @@ export const roomAllocations = pgTable("room_allocations", {
   accommodationId: integer("accommodation_id").notNull(),
   guestId: integer("guest_id").notNull(),
   roomNumber: text("room_number"),
-  checkIn: date("check_in"),
-  checkOut: date("check_out"),
+  checkInDate: date("check_in_date"),
+  checkInStatus: text("check_in_status").default("pending"), // pending, confirmed, checked-in, no-show
+  checkInTime: text("check_in_time"),
+  checkOutDate: date("check_out_date"),
+  checkOutStatus: text("check_out_status").default("pending"), // pending, checked-out
+  checkOutTime: text("check_out_time"),
   specialRequests: text("special_requests"),
+  // For tracking accompanying guests in same room
+  includesPlusOne: boolean("includes_plus_one").default(false),
+  includesChildren: boolean("includes_children").default(false),
+  childrenCount: integer("children_count").default(0),
+  additionalGuestsInfo: text("additional_guests_info"),
 });
 
 export const insertRoomAllocationSchema = createInsertSchema(roomAllocations).omit({
@@ -186,6 +212,40 @@ export const insertCoupleMessageSchema = createInsertSchema(coupleMessages).omit
   createdAt: true,
 });
 
+// Relationship Types
+export const relationshipTypes = pgTable("relationship_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  category: text("category").notNull(), // family, friend, custom
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRelationshipTypeSchema = createInsertSchema(relationshipTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// WhatsApp Message Templates
+export const whatsappTemplates = pgTable("whatsapp_templates", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // invitation, rsvp, reminder, ceremony, travel, accommodation
+  templateId: text("template_id"), // WhatsApp Business API template ID
+  content: text("content").notNull(),
+  parameters: jsonb("parameters").default("[]"), // Array of parameters to fill in template
+  language: text("language").default("en_US"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsed: timestamp("last_used"),
+});
+
+export const insertWhatsappTemplateSchema = createInsertSchema(whatsappTemplates).omit({
+  id: true,
+  createdAt: true,
+  lastUsed: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -219,3 +279,9 @@ export type InsertGuestMealSelection = z.infer<typeof insertGuestMealSelectionSc
 
 export type CoupleMessage = typeof coupleMessages.$inferSelect;
 export type InsertCoupleMessage = z.infer<typeof insertCoupleMessageSchema>;
+
+export type RelationshipType = typeof relationshipTypes.$inferSelect;
+export type InsertRelationshipType = z.infer<typeof insertRelationshipTypeSchema>;
+
+export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
+export type InsertWhatsappTemplate = z.infer<typeof insertWhatsappTemplateSchema>;

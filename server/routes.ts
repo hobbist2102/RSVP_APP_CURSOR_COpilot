@@ -19,7 +19,9 @@ import {
   insertRoomAllocationSchema,
   insertMealOptionSchema,
   insertGuestMealSelectionSchema,
-  insertCoupleMessageSchema
+  insertCoupleMessageSchema,
+  insertRelationshipTypeSchema,
+  insertWhatsappTemplateSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -781,6 +783,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch statistics' });
+    }
+  });
+  
+  // Relationship Type routes
+  app.get('/api/relationship-types', isAuthenticated, async (req, res) => {
+    try {
+      const relationshipTypes = await storage.getAllRelationshipTypes();
+      res.json(relationshipTypes);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch relationship types' });
+    }
+  });
+  
+  app.get('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const relationshipType = await storage.getRelationshipType(id);
+      if (!relationshipType) {
+        return res.status(404).json({ message: 'Relationship type not found' });
+      }
+      res.json(relationshipType);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch relationship type' });
+    }
+  });
+  
+  app.post('/api/relationship-types', isAuthenticated, async (req, res) => {
+    try {
+      const data = insertRelationshipTypeSchema.parse(req.body);
+      const relationshipType = await storage.createRelationshipType(data);
+      res.status(201).json(relationshipType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create relationship type' });
+    }
+  });
+  
+  app.put('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertRelationshipTypeSchema.partial().parse(req.body);
+      const relationshipType = await storage.updateRelationshipType(id, data);
+      if (!relationshipType) {
+        return res.status(404).json({ message: 'Relationship type not found' });
+      }
+      res.json(relationshipType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to update relationship type' });
+    }
+  });
+  
+  app.delete('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteRelationshipType(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Relationship type not found' });
+      }
+      res.json({ message: 'Relationship type deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to delete relationship type' });
+    }
+  });
+  
+  // WhatsApp Template routes
+  app.get('/api/events/:eventId/whatsapp-templates', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const templates = await storage.getWhatsappTemplatesByEvent(eventId);
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch WhatsApp templates' });
+    }
+  });
+  
+  app.get('/api/events/:eventId/whatsapp-templates/category/:category', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const { category } = req.params;
+      const templates = await storage.getWhatsappTemplatesByCategory(eventId, category);
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch WhatsApp templates' });
+    }
+  });
+  
+  app.get('/api/whatsapp-templates/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getWhatsappTemplate(id);
+      if (!template) {
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch WhatsApp template' });
+    }
+  });
+  
+  app.post('/api/events/:eventId/whatsapp-templates', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const data = insertWhatsappTemplateSchema.parse({ ...req.body, eventId });
+      const template = await storage.createWhatsappTemplate(data);
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create WhatsApp template' });
+    }
+  });
+  
+  app.put('/api/whatsapp-templates/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertWhatsappTemplateSchema.partial().parse(req.body);
+      const template = await storage.updateWhatsappTemplate(id, data);
+      if (!template) {
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      res.json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to update WhatsApp template' });
+    }
+  });
+  
+  app.delete('/api/whatsapp-templates/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteWhatsappTemplate(id);
+      if (!success) {
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      res.json({ message: 'WhatsApp template deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to delete WhatsApp template' });
+    }
+  });
+  
+  app.post('/api/whatsapp-templates/:id/mark-used', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.markWhatsappTemplateAsUsed(id);
+      if (!template) {
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to mark WhatsApp template as used' });
     }
   });
   

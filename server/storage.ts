@@ -9,7 +9,9 @@ import {
   roomAllocations, type RoomAllocation, type InsertRoomAllocation,
   mealOptions, type MealOption, type InsertMealOption,
   guestMealSelections, type GuestMealSelection, type InsertGuestMealSelection,
-  coupleMessages, type CoupleMessage, type InsertCoupleMessage
+  coupleMessages, type CoupleMessage, type InsertCoupleMessage,
+  relationshipTypes, type RelationshipType, type InsertRelationshipType,
+  whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate
 } from "@shared/schema";
 
 export interface IStorage {
@@ -86,6 +88,22 @@ export interface IStorage {
   getCoupleMessagesByEvent(eventId: number): Promise<CoupleMessage[]>;
   getCoupleMessagesByGuest(guestId: number): Promise<CoupleMessage[]>;
   createCoupleMessage(coupleMessage: InsertCoupleMessage): Promise<CoupleMessage>;
+  
+  // Relationship Type operations
+  getRelationshipType(id: number): Promise<RelationshipType | undefined>;
+  getAllRelationshipTypes(): Promise<RelationshipType[]>;
+  createRelationshipType(relationshipType: InsertRelationshipType): Promise<RelationshipType>;
+  updateRelationshipType(id: number, relationshipType: Partial<InsertRelationshipType>): Promise<RelationshipType | undefined>;
+  deleteRelationshipType(id: number): Promise<boolean>;
+  
+  // WhatsApp Template operations
+  getWhatsappTemplate(id: number): Promise<WhatsappTemplate | undefined>;
+  getWhatsappTemplatesByEvent(eventId: number): Promise<WhatsappTemplate[]>;
+  getWhatsappTemplatesByCategory(eventId: number, category: string): Promise<WhatsappTemplate[]>;
+  createWhatsappTemplate(template: InsertWhatsappTemplate): Promise<WhatsappTemplate>;
+  updateWhatsappTemplate(id: number, template: Partial<InsertWhatsappTemplate>): Promise<WhatsappTemplate | undefined>;
+  deleteWhatsappTemplate(id: number): Promise<boolean>;
+  markWhatsappTemplateAsUsed(id: number): Promise<WhatsappTemplate | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -100,6 +118,8 @@ export class MemStorage implements IStorage {
   private mealOptionsMap: Map<number, MealOption>;
   private guestMealSelectionsMap: Map<number, GuestMealSelection>;
   private coupleMessagesMap: Map<number, CoupleMessage>;
+  private relationshipTypesMap: Map<number, RelationshipType>;
+  private whatsappTemplatesMap: Map<number, WhatsappTemplate>;
   
   private userIdCounter: number;
   private eventIdCounter: number;
@@ -112,6 +132,8 @@ export class MemStorage implements IStorage {
   private mealOptionIdCounter: number;
   private guestMealSelectionIdCounter: number;
   private coupleMessageIdCounter: number;
+  private relationshipTypeIdCounter: number;
+  private whatsappTemplateIdCounter: number;
 
   constructor() {
     this.usersMap = new Map();
@@ -125,6 +147,8 @@ export class MemStorage implements IStorage {
     this.mealOptionsMap = new Map();
     this.guestMealSelectionsMap = new Map();
     this.coupleMessagesMap = new Map();
+    this.relationshipTypesMap = new Map();
+    this.whatsappTemplatesMap = new Map();
     
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
@@ -137,6 +161,8 @@ export class MemStorage implements IStorage {
     this.mealOptionIdCounter = 1;
     this.guestMealSelectionIdCounter = 1;
     this.coupleMessageIdCounter = 1;
+    this.relationshipTypeIdCounter = 1;
+    this.whatsappTemplateIdCounter = 1;
     
     // Initialize with default admin user
     this.createUser({
@@ -442,6 +468,136 @@ export class MemStorage implements IStorage {
       guestId: guest1.id,
       message: "Congratulations! We are so happy to celebrate your special day with you!"
     });
+    
+    // Create default relationship types
+    this.createRelationshipType({
+      name: "Parent of Bride",
+      category: "Family",
+      side: "bride",
+      isCustom: false,
+      description: "Parent of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Parent of Groom",
+      category: "Family",
+      side: "groom",
+      isCustom: false,
+      description: "Parent of the groom"
+    });
+    
+    this.createRelationshipType({
+      name: "Sibling of Bride",
+      category: "Family",
+      side: "bride",
+      isCustom: false,
+      description: "Brother or sister of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Sibling of Groom",
+      category: "Family",
+      side: "groom",
+      isCustom: false,
+      description: "Brother or sister of the groom"
+    });
+    
+    this.createRelationshipType({
+      name: "Aunt/Uncle of Bride",
+      category: "Family",
+      side: "bride",
+      isCustom: false,
+      description: "Aunt or uncle of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Aunt/Uncle of Groom",
+      category: "Family",
+      side: "groom",
+      isCustom: false,
+      description: "Aunt or uncle of the groom"
+    });
+    
+    this.createRelationshipType({
+      name: "Cousin of Bride",
+      category: "Family",
+      side: "bride",
+      isCustom: false,
+      description: "Cousin of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Cousin of Groom",
+      category: "Family",
+      side: "groom",
+      isCustom: false,
+      description: "Cousin of the groom"
+    });
+    
+    this.createRelationshipType({
+      name: "Friend of Bride",
+      category: "Friend",
+      side: "bride",
+      isCustom: false,
+      description: "Friend of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Friend of Groom",
+      category: "Friend",
+      side: "groom",
+      isCustom: false,
+      description: "Friend of the groom"
+    });
+    
+    this.createRelationshipType({
+      name: "Colleague of Bride",
+      category: "Work",
+      side: "bride",
+      isCustom: false,
+      description: "Work colleague of the bride"
+    });
+    
+    this.createRelationshipType({
+      name: "Colleague of Groom",
+      category: "Work",
+      side: "groom",
+      isCustom: false,
+      description: "Work colleague of the groom"
+    });
+    
+    // Create sample WhatsApp templates
+    this.createWhatsappTemplate({
+      eventId,
+      name: "RSVP Reminder",
+      category: "rsvp",
+      content: "Hello {{guest_name}}, this is a friendly reminder to RSVP for {{event_name}} by {{due_date}}. Looking forward to your response!",
+      parameters: JSON.stringify(["guest_name", "event_name", "due_date"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId,
+      name: "Welcome Message",
+      category: "general",
+      content: "Welcome {{guest_name}}! We're delighted you'll be joining us for our wedding celebrations. Here's the event link: {{event_link}}",
+      parameters: JSON.stringify(["guest_name", "event_link"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId,
+      name: "Travel Information",
+      category: "travel",
+      content: "Hello {{guest_name}}, here are the travel details for {{event_name}}. Venue: {{venue}}. If you need any assistance with transportation, please let us know.",
+      parameters: JSON.stringify(["guest_name", "event_name", "venue"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId,
+      name: "Accommodation Confirmation",
+      category: "accommodation",
+      content: "Hello {{guest_name}}, your accommodation for {{event_name}} has been confirmed. You're staying at {{hotel_name}}, Room {{room_number}}, from {{check_in_date}} to {{check_out_date}}.",
+      parameters: JSON.stringify(["guest_name", "event_name", "hotel_name", "room_number", "check_in_date", "check_out_date"])
+    });
   }
 
   // User methods
@@ -488,6 +644,40 @@ export class MemStorage implements IStorage {
     const id = this.eventIdCounter++;
     const newEvent: WeddingEvent = { ...event, id };
     this.eventsMap.set(id, newEvent);
+    
+    // Create default WhatsApp templates for this event
+    this.createWhatsappTemplate({
+      eventId: id,
+      name: "RSVP Reminder",
+      category: "rsvp",
+      content: "Hello {{guest_name}}, this is a friendly reminder to RSVP for {{event_name}} by {{due_date}}. Looking forward to your response!",
+      parameters: JSON.stringify(["guest_name", "event_name", "due_date"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId: id,
+      name: "Welcome Message",
+      category: "general",
+      content: "Welcome {{guest_name}}! We're delighted you'll be joining us for our wedding celebrations. Here's the event link: {{event_link}}",
+      parameters: JSON.stringify(["guest_name", "event_link"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId: id,
+      name: "Travel Information",
+      category: "travel",
+      content: "Hello {{guest_name}}, here are the travel details for {{event_name}}. Venue: {{venue}}. If you need any assistance with transportation, please let us know.",
+      parameters: JSON.stringify(["guest_name", "event_name", "venue"])
+    });
+    
+    this.createWhatsappTemplate({
+      eventId: id,
+      name: "Accommodation Confirmation",
+      category: "accommodation",
+      content: "Hello {{guest_name}}, your accommodation for {{event_name}} has been confirmed. You're staying at {{hotel_name}}, Room {{room_number}}, from {{check_in_date}} to {{check_out_date}}.",
+      parameters: JSON.stringify(["guest_name", "event_name", "hotel_name", "room_number", "check_in_date", "check_out_date"])
+    });
+    
     return newEvent;
   }
   
@@ -785,6 +975,91 @@ export class MemStorage implements IStorage {
     const newCoupleMessage: CoupleMessage = { ...coupleMessage, id, createdAt };
     this.coupleMessagesMap.set(id, newCoupleMessage);
     return newCoupleMessage;
+  }
+  
+  // Relationship Type methods
+  async getRelationshipType(id: number): Promise<RelationshipType | undefined> {
+    return this.relationshipTypesMap.get(id);
+  }
+  
+  async getAllRelationshipTypes(): Promise<RelationshipType[]> {
+    return Array.from(this.relationshipTypesMap.values());
+  }
+  
+  async createRelationshipType(relationshipType: InsertRelationshipType): Promise<RelationshipType> {
+    const id = this.relationshipTypeIdCounter++;
+    const createdAt = new Date();
+    const newRelationshipType: RelationshipType = { ...relationshipType, id, createdAt };
+    this.relationshipTypesMap.set(id, newRelationshipType);
+    return newRelationshipType;
+  }
+  
+  async updateRelationshipType(id: number, relationshipType: Partial<InsertRelationshipType>): Promise<RelationshipType | undefined> {
+    const existingRelationshipType = this.relationshipTypesMap.get(id);
+    if (!existingRelationshipType) return undefined;
+    
+    const updatedRelationshipType = { ...existingRelationshipType, ...relationshipType };
+    this.relationshipTypesMap.set(id, updatedRelationshipType);
+    return updatedRelationshipType;
+  }
+  
+  async deleteRelationshipType(id: number): Promise<boolean> {
+    return this.relationshipTypesMap.delete(id);
+  }
+  
+  // WhatsApp Template methods
+  async getWhatsappTemplate(id: number): Promise<WhatsappTemplate | undefined> {
+    return this.whatsappTemplatesMap.get(id);
+  }
+  
+  async getWhatsappTemplatesByEvent(eventId: number): Promise<WhatsappTemplate[]> {
+    return Array.from(this.whatsappTemplatesMap.values()).filter(
+      (template) => template.eventId === eventId
+    );
+  }
+  
+  async getWhatsappTemplatesByCategory(eventId: number, category: string): Promise<WhatsappTemplate[]> {
+    return Array.from(this.whatsappTemplatesMap.values()).filter(
+      (template) => template.eventId === eventId && template.category === category
+    );
+  }
+  
+  async createWhatsappTemplate(template: InsertWhatsappTemplate): Promise<WhatsappTemplate> {
+    const id = this.whatsappTemplateIdCounter++;
+    const createdAt = new Date();
+    const newWhatsappTemplate: WhatsappTemplate = { 
+      ...template, 
+      id, 
+      createdAt,
+      lastUsed: null 
+    };
+    this.whatsappTemplatesMap.set(id, newWhatsappTemplate);
+    return newWhatsappTemplate;
+  }
+  
+  async updateWhatsappTemplate(id: number, template: Partial<InsertWhatsappTemplate>): Promise<WhatsappTemplate | undefined> {
+    const existingWhatsappTemplate = this.whatsappTemplatesMap.get(id);
+    if (!existingWhatsappTemplate) return undefined;
+    
+    const updatedWhatsappTemplate = { ...existingWhatsappTemplate, ...template };
+    this.whatsappTemplatesMap.set(id, updatedWhatsappTemplate);
+    return updatedWhatsappTemplate;
+  }
+  
+  async deleteWhatsappTemplate(id: number): Promise<boolean> {
+    return this.whatsappTemplatesMap.delete(id);
+  }
+  
+  async markWhatsappTemplateAsUsed(id: number): Promise<WhatsappTemplate | undefined> {
+    const existingWhatsappTemplate = this.whatsappTemplatesMap.get(id);
+    if (!existingWhatsappTemplate) return undefined;
+    
+    const updatedWhatsappTemplate = { 
+      ...existingWhatsappTemplate, 
+      lastUsed: new Date() 
+    };
+    this.whatsappTemplatesMap.set(id, updatedWhatsappTemplate);
+    return updatedWhatsappTemplate;
   }
 }
 
