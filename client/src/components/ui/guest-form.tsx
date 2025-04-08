@@ -98,7 +98,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input placeholder="John" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,7 +112,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input placeholder="Doe" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -127,7 +127,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john.doe@example.com" {...field} />
+                    <Input type="email" placeholder="john.doe@example.com" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,7 +141,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(123) 456-7890" {...field} />
+                    <Input placeholder="(123) 456-7890" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +155,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter full address" {...field} />
+                    <Textarea placeholder="Enter full address" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -170,7 +170,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   <FormLabel>Guest Side</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -198,7 +198,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={field.value as boolean} 
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -217,7 +217,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem>
                   <FormLabel>Relationship</FormLabel>
                   <FormControl>
-                    <Input placeholder="Friend of the bride" {...field} />
+                    <Input placeholder="Friend of the bride" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -236,7 +236,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                   <FormLabel>RSVP Status</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -261,7 +261,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value as boolean}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
@@ -283,7 +283,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <FormItem>
                       <FormLabel>Plus One Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Jane Doe" {...field} />
+                        <Input placeholder="Jane Doe" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -297,7 +297,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <FormItem>
                       <FormLabel>Plus One Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="jane.doe@example.com" {...field} />
+                        <Input type="email" placeholder="jane.doe@example.com" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -311,7 +311,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <FormItem>
                       <FormLabel>Plus One Phone</FormLabel>
                       <FormControl>
-                        <Input placeholder="(123) 456-7890" {...field} />
+                        <Input placeholder="(123) 456-7890" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -325,7 +325,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <FormItem>
                       <FormLabel>Relationship to Main Guest</FormLabel>
                       <FormControl>
-                        <Input placeholder="Spouse, Partner, Friend, etc." {...field} />
+                        <Input placeholder="Spouse, Partner, Friend, etc." {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -339,7 +339,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
                         <Checkbox
-                          checked={field.value}
+                          checked={field.value as boolean}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
@@ -388,7 +388,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                           <FormItem>
                             <FormLabel>Child {index + 1} Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Child's name" {...field} />
+                              <Input placeholder="Child's name" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -428,6 +428,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                         <Textarea 
                           placeholder="Any dietary restrictions, allergies, or special needs"
                           {...field} 
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -447,6 +448,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     <Textarea
                       placeholder="Vegetarian, gluten-free, allergies, etc."
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -461,7 +463,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                 <FormItem>
                   <FormLabel>Table Assignment</FormLabel>
                   <FormControl>
-                    <Input placeholder="Table 1" {...field} />
+                    <Input placeholder="Table 1" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -480,7 +482,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
               <FormItem>
                 <FormLabel>Gift Tracking</FormLabel>
                 <FormControl>
-                  <Input placeholder="Received gift details" {...field} />
+                  <Input placeholder="Received gift details" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -494,7 +496,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
               <FormItem>
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Additional notes about this guest" {...field} />
+                  <Textarea placeholder="Additional notes about this guest" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
