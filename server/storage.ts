@@ -14,7 +14,7 @@ import {
   whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -1197,51 +1197,85 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteEvent(id: number): Promise<boolean> {
-    // Delete in cascade order - first delete all related data
+    console.log(`START: Deleting event with ID ${id} and all associated data`);
     
-    // Get all guests for this event
-    const eventGuests = await db.select().from(guests).where(eq(guests.eventId, id));
-    
-    for (const guest of eventGuests) {
-      // Delete guest ceremonies
-      await db.delete(guestCeremonies).where(eq(guestCeremonies.guestId, guest.id));
-      
-      // Delete guest travel info
-      await db.delete(travelInfo).where(eq(travelInfo.guestId, guest.id));
-      
-      // Delete guest room allocations
-      await db.delete(roomAllocations).where(eq(roomAllocations.guestId, guest.id));
-      
-      // Delete guest meal selections
-      await db.delete(guestMealSelections).where(eq(guestMealSelections.guestId, guest.id));
-      
-      // Delete guest couple messages
-      await db.delete(coupleMessages).where(eq(coupleMessages.guestId, guest.id));
+    try {
+      // Use a transaction to ensure all data is deleted atomically
+      return await db.transaction(async (tx) => {
+        // Get all guests for this event (we need their IDs for related data)
+        console.log(`Fetching guests for event ${id}`);
+        const eventGuests = await tx.select().from(guests).where(eq(guests.eventId, id));
+        console.log(`Found ${eventGuests.length} guests to delete`);
+        
+        // If there are guests, delete all associated data first
+        if (eventGuests.length > 0) {
+          // Extract all guest IDs
+          const guestIds = eventGuests.map(guest => guest.id);
+          console.log(`Processing guest IDs: ${guestIds.join(', ')}`);
+          
+          // Batch delete all guest-related data using 'in' operator for efficiency
+          // Delete guest ceremonies
+          console.log(`Deleting guest ceremonies for guests in event ${id}`);
+          await tx.delete(guestCeremonies).where(inArray(guestCeremonies.guestId, guestIds));
+          
+          // Delete guest travel info
+          console.log(`Deleting travel info for guests in event ${id}`);
+          await tx.delete(travelInfo).where(inArray(travelInfo.guestId, guestIds));
+          
+          // Delete guest room allocations
+          console.log(`Deleting room allocations for guests in event ${id}`);
+          await tx.delete(roomAllocations).where(inArray(roomAllocations.guestId, guestIds));
+          
+          // Delete guest meal selections
+          console.log(`Deleting meal selections for guests in event ${id}`);
+          await tx.delete(guestMealSelections).where(inArray(guestMealSelections.guestId, guestIds));
+          
+          // Delete guest couple messages
+          console.log(`Deleting couple messages for guests in event ${id}`);
+          await tx.delete(coupleMessages).where(inArray(coupleMessages.guestId, guestIds));
+        }
+        
+        // Delete all guests for this event
+        console.log(`Deleting all guests for event ${id}`);
+        await tx.delete(guests).where(eq(guests.eventId, id));
+        
+        // Get all ceremonies for this event
+        console.log(`Fetching ceremonies for event ${id}`);
+        const eventCeremonies = await tx.select().from(ceremonies).where(eq(ceremonies.eventId, id));
+        console.log(`Found ${eventCeremonies.length} ceremonies to delete`);
+        
+        if (eventCeremonies.length > 0) {
+          // Extract ceremony IDs
+          const ceremonyIds = eventCeremonies.map(ceremony => ceremony.id);
+          
+          // Batch delete all meal options for these ceremonies
+          console.log(`Deleting meal options for ceremonies in event ${id}`);
+          await tx.delete(mealOptions).where(inArray(mealOptions.ceremonyId, ceremonyIds));
+        }
+        
+        // Delete all ceremonies
+        console.log(`Deleting all ceremonies for event ${id}`);
+        await tx.delete(ceremonies).where(eq(ceremonies.eventId, id));
+        
+        // Delete accommodations
+        console.log(`Deleting accommodations for event ${id}`);
+        await tx.delete(accommodations).where(eq(accommodations.eventId, id));
+        
+        // Delete WhatsApp templates
+        console.log(`Deleting WhatsApp templates for event ${id}`);
+        await tx.delete(whatsappTemplates).where(eq(whatsappTemplates.eventId, id));
+        
+        // Finally delete the event itself
+        console.log(`Deleting the event ${id} itself`);
+        const result = await tx.delete(weddingEvents).where(eq(weddingEvents.id, id));
+        
+        console.log(`Event ${id} deletion complete with result:`, result);
+        return true;  // If we got here without errors, deletion was successful
+      });
+    } catch (error) {
+      console.error(`ERROR deleting event ${id}:`, error);
+      throw error;  // Re-throw the error to be handled by the caller
     }
-    
-    // Delete all guests
-    await db.delete(guests).where(eq(guests.eventId, id));
-    
-    // Get all ceremonies for this event
-    const eventCeremonies = await db.select().from(ceremonies).where(eq(ceremonies.eventId, id));
-    
-    // Delete meal options for each ceremony
-    for (const ceremony of eventCeremonies) {
-      await db.delete(mealOptions).where(eq(mealOptions.ceremonyId, ceremony.id));
-    }
-    
-    // Delete all ceremonies
-    await db.delete(ceremonies).where(eq(ceremonies.eventId, id));
-    
-    // Delete accommodations
-    await db.delete(accommodations).where(eq(accommodations.eventId, id));
-    
-    // Delete WhatsApp templates
-    await db.delete(whatsappTemplates).where(eq(whatsappTemplates.eventId, id));
-    
-    // Finally delete the event itself
-    const result = await db.delete(weddingEvents).where(eq(weddingEvents.id, id));
-    return !!result;
   }
 
   // Guest operations
