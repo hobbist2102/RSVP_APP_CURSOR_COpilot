@@ -367,29 +367,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
+      console.log(`Processing update for guest ID: ${guestId}`);
+      
+      // Validate input data
       const guestData = insertGuestSchema.partial().parse(req.body);
+      console.log(`Validated guest data: ${JSON.stringify(guestData)}`);
       
       // First verify this guest belongs to the correct event
       const currentGuest = await storage.getGuest(guestId);
       if (!currentGuest) {
+        console.warn(`Guest with ID ${guestId} not found`);
         return res.status(404).json({ message: 'Guest not found' });
       }
       
       // Keep the eventId the same (prevent changing event association)
       const eventId = currentGuest.eventId;
-      const updatedGuest = await storage.updateGuest(guestId, { ...guestData, eventId });
+      console.log(`Preserving eventId: ${eventId} for guest ${guestId}`);
       
-      if (!updatedGuest) {
-        return res.status(404).json({ message: 'Guest not found or update failed' });
+      try {
+        // Update with error handling
+        const updatedGuest = await storage.updateGuest(guestId, { ...guestData, eventId });
+        
+        if (!updatedGuest) {
+          console.warn(`Update failed for guest ${guestId} - no guest returned`);
+          return res.status(404).json({ message: 'Guest not found or update failed' });
+        }
+        
+        console.log(`Successfully updated guest ${guestId}`);
+        return res.json(updatedGuest);
+      } catch (error) {
+        const dbError = error as Error;
+        console.error(`Database error updating guest ${guestId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Database error occurred during update',
+          details: dbError.message || 'Unknown database error' 
+        });
       }
-      
-      res.json(updatedGuest);
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       if (error instanceof z.ZodError) {
+        console.error(`Validation error when updating guest:`, error.errors);
         return res.status(400).json({ message: error.errors });
       }
       console.error("Error updating guest:", error);
-      res.status(500).json({ message: 'Failed to update guest' });
+      res.status(500).json({ message: 'Failed to update guest', details: error.message });
     }
   });
   

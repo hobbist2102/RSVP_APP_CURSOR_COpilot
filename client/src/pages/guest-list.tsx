@@ -78,13 +78,34 @@ export default function GuestList() {
     },
   });
   
-  // Update guest mutation
+  // Update guest mutation with enhanced error handling
   const updateGuestMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await apiRequest("PUT", `/api/guests/${id}`, data);
-      return await response.json();
+      try {
+        console.log(`Submitting update for guest ${id} with data:`, data);
+        const response = await apiRequest("PUT", `/api/guests/${id}`, data);
+        
+        if (!response.ok) {
+          // Parse error response
+          const errorData = await response.json().catch(() => null);
+          console.error("Error response from server:", errorData);
+          
+          // Throw a meaningful error with details from the server if available
+          throw new Error(
+            errorData?.message || 
+            errorData?.details || 
+            `Server error: ${response.status} ${response.statusText}`
+          );
+        }
+        
+        return await response.json();
+      } catch (err) {
+        console.error("Guest update error:", err);
+        throw err; // Re-throw for the mutation to catch
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Guest updated successfully:", data);
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
       setShowEditDialog(false);
       toast({
@@ -92,12 +113,26 @@ export default function GuestList() {
         description: "The guest has been updated successfully.",
       });
     },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Failed to Update Guest",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-      });
+    onError: (error: any) => {
+      console.error("Mutation error handler:", error);
+      
+      // Handle database-specific errors
+      if (error.message?.includes("terminating connection") || 
+          error.message?.includes("database")) {
+        toast({
+          variant: "destructive",
+          title: "Database Connection Error",
+          description: "The database connection was interrupted. Please try again in a moment.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to Update Guest",
+          description: error.message || "An unknown error occurred while updating the guest",
+        });
+      }
+      
+      // Don't close the dialog so user can try again
     },
   });
   

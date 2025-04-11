@@ -1260,21 +1260,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateGuest(id: number, guest: Partial<InsertGuest>): Promise<Guest | undefined> {
-    // First get the existing guest to check eventId
-    const existingGuest = await this.getGuest(id);
-    if (!existingGuest) {
-      return undefined;
-    }
-    
-    // Make sure we preserve the original eventId
-    const eventId = existingGuest.eventId;
-    // This ensures the eventId can't be changed - essential for maintaining event boundaries
-    const result = await db.update(guests)
-      .set({ ...guest, eventId })
-      .where(eq(guests.id, id))
-      .returning();
+    try {
+      // First get the existing guest to check eventId
+      const existingGuest = await this.getGuest(id);
+      if (!existingGuest) {
+        console.log(`Guest with ID ${id} not found`);
+        return undefined;
+      }
       
-    return result[0];
+      // Make sure we preserve the original eventId
+      const eventId = existingGuest.eventId;
+      console.log(`Updating guest ${id} with eventId ${eventId}`);
+      
+      // This ensures the eventId can't be changed - essential for maintaining event boundaries
+      const result = await db.update(guests)
+        .set({ ...guest, eventId })
+        .where(eq(guests.id, id))
+        .returning();
+        
+      if (!result || result.length === 0) {
+        console.error(`No rows returned when updating guest ${id}`);
+        return undefined;
+      }
+      
+      return result[0];
+    } catch (error) {
+      console.error(`Error updating guest ${id}:`, error);
+      // Rethrow the error so the API can handle it appropriately
+      throw error;
+    }
   }
 
   async deleteGuest(id: number): Promise<boolean> {
