@@ -73,10 +73,15 @@ export default function GuestList() {
       if (!response.ok) {
         throw new Error('Failed to fetch guests');
       }
-      return response.json();
+      const data = await response.json();
+      console.log(`Fetched ${data.length} guests for event ${eventId}`);
+      return data;
     },
     enabled: !!eventId,
     staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     // Ensure we get fresh data from server
     select: (data) => {
       // Log data for debugging
