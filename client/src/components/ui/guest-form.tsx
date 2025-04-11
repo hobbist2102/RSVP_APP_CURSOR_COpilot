@@ -102,10 +102,13 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <h3 className="text-lg font-medium">Basic Information</h3>
+            <div className="border-b pb-2">
+              <h3 className="text-xl font-playfair">Basic Information</h3>
+              <p className="text-sm text-muted-foreground mt-1">Enter the guest's personal details</p>
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -370,8 +373,11 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
             />
             
             {form.watch("plusOneAllowed") && (
-              <div className="space-y-4 border border-gray-200 p-4 rounded-md bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-800">Plus One Details</h4>
+              <div className="space-y-4 border border-gray-200/50 p-6 rounded-lg bg-gray-50/50 shadow-sm">
+                <div className="border-b pb-2">
+                  <h4 className="text-lg font-playfair">Plus One Details</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Information about the guest's companion</p>
+                </div>
                 
                 <FormField
                   control={form.control}
@@ -552,13 +558,16 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
             />
             
             {form.watch("numberOfChildren") > 0 && (
-              <div className="space-y-4 border border-gray-200 p-4 rounded-md bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-800">Children Details</h4>
+              <div className="space-y-4 border border-gray-200/50 p-6 rounded-lg bg-gray-50/50 shadow-sm">
+                <div className="border-b pb-2">
+                  <h4 className="text-lg font-playfair">Children Details</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Information about accompanying children</p>
+                </div>
                 
                 <div className="grid grid-cols-1 gap-4">
                   {Array.from({ length: form.watch("numberOfChildren") }).map((_, index) => (
-                    <div key={index} className="flex flex-col space-y-4 p-3 border border-dashed border-gray-300 rounded-md">
-                      <h4 className="text-sm font-medium">Child {index + 1}</h4>
+                    <div key={index} className="flex flex-col space-y-4 p-4 border border-dashed border-gray-300/70 rounded-lg bg-white/50">
+                      <h4 className="text-base font-medium text-primary">Child {index + 1}</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -739,9 +748,20 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
           />
         </div>
         
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {initialData ? "Update Guest" : "Add Guest"}
+        <div className="flex justify-end pt-4 border-t">
+          <Button 
+            type="submit" 
+            disabled={isLoading}
+            className="px-6 py-2 text-base gold-gradient"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span>
+                {initialData ? "Updating..." : "Adding..."}
+              </span>
+            ) : (
+              initialData ? "Update Guest" : "Add Guest"
+            )}
           </Button>
         </div>
       </div>
