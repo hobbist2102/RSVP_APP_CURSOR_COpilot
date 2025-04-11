@@ -81,9 +81,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       <nav className="mt-5 px-2 space-y-1">
         {menuItems.map((item) => (
           <Link key={item.path} href={item.path}>
-            <a
+            <div
               className={cn(
-                "group flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                "group flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
                 location === item.path
                   ? "bg-gray-700 text-white"
                   : "text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             >
               {item.icon}
               {item.name}
-            </a>
+            </div>
           </Link>
         ))}
       </nav>

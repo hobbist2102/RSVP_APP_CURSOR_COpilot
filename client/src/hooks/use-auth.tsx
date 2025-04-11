@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           credentials: "include",
           headers: {
             "Accept": "application/json",
+            "Content-Type": "application/json",
             "Cache-Control": "no-cache"
           }
         });
