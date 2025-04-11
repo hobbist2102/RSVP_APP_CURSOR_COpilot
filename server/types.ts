@@ -12,7 +12,13 @@ declare module 'express-session' {
       brideName: string;
       groomName: string;
       location: string;
-      description?: string;
+      description: string | null;
+      date: string | null;
+      primaryColor: string | null;
+      secondaryColor: string | null;
+      whatsappFrom: string | null;
+      whatsappAccessToken: string | null;
+      createdBy: number;
       [key: string]: any;
     };
   }

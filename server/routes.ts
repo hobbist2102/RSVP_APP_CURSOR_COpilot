@@ -8,6 +8,8 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
+// Import session type extensions
+import './types';
 import { 
   insertUserSchema, 
   insertGuestSchema, 
