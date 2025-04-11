@@ -65,15 +65,13 @@ export default function GuestList() {
   
   // Fetch guests - explicitly depend on eventId in query key to ensure refresh on event switch
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
-    queryKey: [`/api/events/${eventId}/guests`],
+    queryKey: [`/api/events/${eventId}/guests`, { eventId }], // Add eventId as query param
     enabled: !!eventId,
-    // Force the component to refetch when the current event changes
-    refetchOnMount: true,
+    refetchOnMount: 'always', // Always refetch on mount
     refetchOnWindowFocus: true,
-    staleTime: 0, // Don't cache this data
-    gcTime: 0, // TanStack Query v5 uses gcTime instead of cacheTime
-    // Empty function to ensure we don't use any shared cache
-    structuralSharing: () => false,
+    staleTime: 0,
+    gcTime: 0,
+    structuralSharing: false, // Disable structural sharing completely
     // Ensure we get fresh data from server
     select: (data) => {
       // Log data for debugging
