@@ -83,7 +83,13 @@ export default function GuestList() {
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       try {
         console.log(`Submitting update for guest ${id} with data:`, data);
-        const response = await apiRequest("PUT", `/api/guests/${id}`, data);
+        // Pass the event context as a parameter
+        const response = await apiRequest(
+          "PUT", 
+          `/api/guests/${id}`, 
+          data, 
+          { eventId: eventId }
+        );
         
         if (!response.ok) {
           // Parse error response
@@ -139,7 +145,13 @@ export default function GuestList() {
   // Delete guest mutation
   const deleteGuestMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/guests/${id}`, {});
+      // Include the event ID in the request to ensure proper event context verification
+      const response = await apiRequest(
+        "DELETE", 
+        `/api/guests/${id}`, 
+        {},
+        { eventId: eventId }
+      );
       return await response.json();
     },
     onSuccess: () => {
