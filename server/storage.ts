@@ -634,6 +634,10 @@ export class MemStorage implements IStorage {
     return this.eventsMap.get(id);
   }
   
+  async eventExists(id: number): Promise<boolean> {
+    return this.eventsMap.has(id);
+  }
+  
   async getAllEvents(): Promise<WeddingEvent[]> {
     return Array.from(this.eventsMap.values());
   }
