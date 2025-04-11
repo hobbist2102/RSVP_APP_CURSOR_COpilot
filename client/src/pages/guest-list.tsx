@@ -18,7 +18,21 @@ import GuestForm from "@/components/ui/guest-form";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
 import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
 import { getRsvpStatusColor, getInitials, formatDate } from "@/lib/utils";
-import { Plus, FileDown, FileUp, Mail, Eye, Pencil, Trash2 } from "lucide-react";
+import { 
+  Plus, 
+  FileDown, 
+  FileUp, 
+  Mail, 
+  Eye, 
+  Pencil, 
+  Trash2, 
+  Phone, 
+  MapPin, 
+  Users, 
+  UserPlus, 
+  Car, 
+  Bed 
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 
@@ -236,7 +250,7 @@ export default function GuestList() {
     });
   };
   
-  // Setup table columns
+  // Setup table columns with enhanced details
   const columns = [
     {
       header: "Guest",
@@ -246,44 +260,205 @@ export default function GuestList() {
             <AvatarFallback>{getInitials(`${row.firstName} ${row.lastName}`)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">{`${row.firstName} ${row.lastName}`}</div>
-            <div className="text-sm text-gray-500">{row.email}</div>
+            <div className="font-medium">{`${row.salutation || ''} ${row.firstName} ${row.lastName}`}</div>
+            <div className="text-sm text-gray-500">{row.email || "No email"}</div>
+            <div className="text-xs text-primary">
+              <Badge variant="outline" className="bg-purple-50 text-primary border-primary mt-1">
+                {row.side}
+              </Badge>
+              {row.gender && (
+                <Badge variant="outline" className="ml-1 mt-1 text-gray-600 border-gray-200 bg-gray-50">
+                  {row.gender}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       ),
     },
     {
-      header: "Contact",
+      header: "Contact & Location",
+      accessor: (row: any) => {
+        // Format phone with country code if available
+        const formattedPhone = row.countryCode && row.phone 
+          ? `${row.countryCode} ${row.phone}`
+          : row.phone || "N/A";
+            
+        return (
+          <div>
+            <div className="flex items-center">
+              <Phone className="h-3 w-3 mr-1 text-gray-400" />
+              <span>{formattedPhone}</span>
+              {row.whatsappAvailable && (
+                <Badge variant="outline" className="ml-2 bg-green-50 text-green-600 border-green-200 text-xs px-1.5">
+                  WhatsApp
+                </Badge>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 mt-1 flex items-start">
+              <MapPin className="h-3 w-3 mr-1 text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="truncate max-w-[200px]">{row.address || "No address"}</span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {row.city && `${row.city}, `}{row.state && `${row.state}, `}{row.country || ''}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: "RSVP & Group",
       accessor: (row: any) => (
         <div>
-          <div>{row.phone || "N/A"}</div>
-          <div className="text-sm text-gray-500 truncate max-w-[150px]">{row.address || "No address"}</div>
+          <Badge className={getRsvpStatusColor(row.rsvpStatus)}>
+            {row.rsvpStatus?.charAt(0).toUpperCase() + row.rsvpStatus?.slice(1) || "Pending"}
+          </Badge>
+          
+          <div className="text-sm mt-2">
+            {row.relationshipType && (
+              <div className="flex items-center text-gray-600">
+                <Users className="h-3 w-3 mr-1" />
+                {row.relationshipType}
+              </div>
+            )}
+            
+            <div className="mt-1 text-xs text-gray-500">
+              {row.group && `Group: ${row.group}`}
+            </div>
+          </div>
         </div>
       ),
     },
     {
-      header: "RSVP Status",
-      accessor: "rsvpStatus",
-      cell: (row: any) => (
-        <Badge className={getRsvpStatusColor(row.rsvpStatus)}>
-          {row.rsvpStatus.charAt(0).toUpperCase() + row.rsvpStatus.slice(1)}
-        </Badge>
+      header: "Additional Guests",
+      accessor: (row: any) => (
+        <div className="space-y-1">
+          {row.plusOneAllowed && (
+            <div className="flex items-center">
+              <UserPlus className="h-3 w-3 mr-1 text-gray-400" />
+              <span>
+                {row.plusOneName || <span className="text-gray-400 italic">Plus one (unnamed)</span>}
+                {row.plusOneRelationship && 
+                  <span className="text-xs text-gray-500 ml-1">({row.plusOneRelationship})</span>
+                }
+              </span>
+            </div>
+          )}
+          
+          {/* Enhanced children display showing the complete details */}
+          {Array.isArray(row.childrenDetails) && row.childrenDetails.length > 0 && (
+            <div className="text-sm">
+              <div className="font-medium text-xs text-gray-600 mb-1">Children:</div>
+              {row.childrenDetails.map((child: any, index: number) => (
+                <div key={index} className="ml-4 text-xs flex items-center">
+                  <span>• {child.name}</span>
+                  <span className="text-gray-500 ml-1">
+                    ({child.age} yrs{child.gender ? `, ${child.gender}` : ''})
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Fallback to old format if new structure isn't available */}
+          {!Array.isArray(row.childrenDetails) && row.numberOfChildren > 0 && (
+            <div className="text-sm text-gray-500">
+              <span className="font-medium text-xs text-gray-600">Children: </span>
+              {row.numberOfChildren}
+              {row.childrenNames && ` (${row.childrenNames})`}
+            </div>
+          )}
+        </div>
       ),
     },
     {
-      header: "Guests",
+      header: "Travel & Accommodation",
+      accessor: (row: any) => {
+        // Get travel mode icon
+        const getTravelIcon = (mode: string) => {
+          if (!mode) return null;
+          
+          switch (mode?.toLowerCase()) {
+            case 'flight':
+              return <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>;
+            case 'car':
+            case 'taxi':
+              return <Car className="h-3 w-3 mr-1" />;
+            case 'train':
+              return <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>;
+            default:
+              return <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
+          }
+        };
+        
+        return (
+          <div className="space-y-2 text-xs">
+            {row.travelMode && (
+              <div>
+                <div className="flex items-center text-gray-700">
+                  {getTravelIcon(row.travelMode)}
+                  <span>{row.travelMode}</span>
+                  {row.needsTransportation && (
+                    <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-600 border-blue-200 text-xs">
+                      Needs Pickup
+                    </Badge>
+                  )}
+                </div>
+                
+                {row.arrivalDate && (
+                  <div className="ml-4 mt-1 text-gray-500">
+                    Arrival: {formatDate(row.arrivalDate)}
+                    {row.arrivalTime && ` at ${row.arrivalTime}`}
+                  </div>
+                )}
+                
+                {row.departureDate && (
+                  <div className="ml-4 text-gray-500">
+                    Departure: {formatDate(row.departureDate)}
+                    {row.departureTime && ` at ${row.departureTime}`}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {row.accommodationStatus && (
+              <div className="flex items-center text-gray-700">
+                <Bed className="h-3 w-3 mr-1" />
+                <span className="capitalize">{row.accommodationStatus}</span>
+                {row.roomNumber && <span className="ml-1">- Room {row.roomNumber}</span>}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      header: "Special Requests",
       accessor: (row: any) => (
-        <div>
-          {row.plusOneAllowed && (
-            <div>
-              +1: {row.plusOneName || <span className="text-gray-400">Not specified</span>}
+        <div className="max-w-[150px] text-xs text-gray-600">
+          {row.dietaryRestrictions && (
+            <div className="mb-1">
+              <span className="font-medium">Dietary: </span>
+              {row.dietaryRestrictions}
             </div>
           )}
-          {row.numberOfChildren > 0 && (
-            <div className="text-sm text-gray-500">
-              Children: {row.numberOfChildren}
-              {row.childrenNames && ` (${row.childrenNames})`}
+          
+          {row.accessibilityNeeds && (
+            <div className="mb-1">
+              <span className="font-medium">Accessibility: </span>
+              {row.accessibilityNeeds}
             </div>
+          )}
+          
+          {row.specialRequests && (
+            <div className="mb-1">
+              <span className="font-medium">Requests: </span>
+              {row.specialRequests}
+            </div>
+          )}
+          
+          {(!row.dietaryRestrictions && !row.accessibilityNeeds && !row.specialRequests) && (
+            <span className="text-gray-400 italic">None specified</span>
           )}
         </div>
       ),
