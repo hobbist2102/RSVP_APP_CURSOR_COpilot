@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { exportToExcel, formatGuestsForExport } from "@/lib/xlsx-utils";
 import GuestForm from "@/components/ui/guest-form";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
@@ -63,8 +64,11 @@ export default function GuestList() {
   // Use the current event ID from the context
   const eventId = currentEventId || 1;
 
-  // Use the guests-by-event hook
-  const { guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useGuestsByEvent();
+  // Fetch guests for current event
+  const { data: guests = [], isLoading: isLoadingGuests } = useQuery({
+    queryKey: [`/api/events/${eventId}/guests`],
+    enabled: !!eventId,
+  });
 
   // Create guest mutation
   const createGuestMutation = useMutation({
