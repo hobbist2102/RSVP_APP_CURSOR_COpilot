@@ -767,6 +767,15 @@ export class MemStorage implements IStorage {
     return this.guestsMap.get(id);
   }
   
+  async getGuestWithEventContext(guestId: number, eventId: number): Promise<Guest | undefined> {
+    const guest = this.guestsMap.get(guestId);
+    // Only return the guest if it belongs to the specified event
+    if (guest && guest.eventId === eventId) {
+      return guest;
+    }
+    return undefined;
+  }
+  
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
     return Array.from(this.guestsMap.values()).filter(
       (guest) => guest.eventId === eventId
