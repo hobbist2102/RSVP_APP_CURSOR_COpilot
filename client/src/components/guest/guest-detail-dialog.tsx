@@ -240,6 +240,21 @@ export default function GuestDetailDialog({
                 <p className="text-sm text-muted-foreground">Table Assignment</p>
                 <p>{guest.tableAssignment || "Not assigned"}</p>
               </div>
+              
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground">RSVP Contact</p>
+                {guest.plusOneRsvpContact && guest.plusOneName ? (
+                  <div className="flex items-center">
+                    <Badge variant="outline" className="mr-2 bg-purple-50 border-purple-200">Plus One</Badge>
+                    <span>{guest.plusOneName}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <Badge variant="outline" className="mr-2 bg-blue-50 border-blue-200">Primary Guest</Badge>
+                    <span>{guest.firstName} {guest.lastName}</span>
+                  </div>
+                )}
+              </div>
             </div>
             
             {guest.dietaryRestrictions && (

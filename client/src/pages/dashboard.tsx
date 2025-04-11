@@ -154,6 +154,7 @@ export default function Dashboard() {
           value={stats?.confirmed || 0}
           change={{ value: 12, text: "from last week" }}
           icon="confirmed"
+          onClick={() => setLocation(`/guest-list?filter=confirmed`)}
         />
         
         <StatsCard
@@ -161,6 +162,7 @@ export default function Dashboard() {
           value={stats?.declined || 0}
           change={{ value: 0, text: "No change from last week" }}
           icon="declined"
+          onClick={() => setLocation(`/guest-list?filter=declined`)}
         />
         
         <StatsCard
@@ -168,6 +170,7 @@ export default function Dashboard() {
           value={stats?.pending || 0}
           change={{ value: -8, text: "from last week" }}
           icon="pending"
+          onClick={() => setLocation(`/guest-list?filter=pending`)}
         />
         
         <StatsCard
@@ -175,6 +178,7 @@ export default function Dashboard() {
           value={stats?.total || 0}
           change={{ value: 5, text: "from last week" }}
           icon="total"
+          onClick={() => setLocation(`/guest-list`)}
         />
       </div>
 

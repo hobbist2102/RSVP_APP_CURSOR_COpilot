@@ -18,9 +18,10 @@ interface StatsCardProps {
   };
   icon: "confirmed" | "declined" | "pending" | "total";
   className?: string;
+  onClick?: () => void;
 }
 
-export default function StatsCard({ title, value, change, icon, className }: StatsCardProps) {
+export default function StatsCard({ title, value, change, icon, className, onClick }: StatsCardProps) {
   const getIcon = () => {
     switch (icon) {
       case "confirmed":
@@ -54,7 +55,14 @@ export default function StatsCard({ title, value, change, icon, className }: Sta
   };
 
   return (
-    <div className={cn("bg-white rounded-lg shadow p-6 transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg", className)}>
+    <div 
+      className={cn(
+        "bg-white rounded-lg shadow p-6 transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg", 
+        onClick && "cursor-pointer", 
+        className
+      )}
+      onClick={onClick}
+    >
       <div className="flex items-center">
         <div className={cn("p-3 rounded-full", getIconClass())}>
           {getIcon()}
