@@ -764,28 +764,133 @@ export class MemStorage implements IStorage {
   
   // Guest methods
   async getGuest(id: number): Promise<Guest | undefined> {
-    return this.guestsMap.get(id);
+    console.log(`Looking up guest with ID: ${id}`);
+    
+    if (!id || isNaN(id)) {
+      console.error(`Invalid guest ID provided: ${id}`);
+      throw new Error('Invalid guest ID');
+    }
+    
+    const guest = this.guestsMap.get(id);
+    
+    if (guest) {
+      console.log(`Found guest ${id} belonging to event ${guest.eventId}`);
+      // WARNING: This method does not enforce event boundaries!
+      console.warn(`WARNING: Using getGuest without event context for guest ${id} - this may lead to data leakage across events`);
+    } else {
+      console.warn(`Guest with ID ${id} not found`);
+    }
+    
+    return guest;
   }
   
   async getGuestWithEventContext(guestId: number, eventId: number): Promise<Guest | undefined> {
-    const guest = this.guestsMap.get(guestId);
-    // Only return the guest if it belongs to the specified event
-    if (guest && guest.eventId === eventId) {
-      return guest;
+    console.log(`Fetching guest ${guestId} with event context ${eventId}`);
+    
+    if (!guestId || isNaN(guestId)) {
+      console.error(`Invalid guest ID provided: ${guestId}`);
+      throw new Error('Invalid guest ID');
     }
-    return undefined;
+    
+    if (!eventId || isNaN(eventId)) {
+      console.error(`Invalid event ID provided: ${eventId}`);
+      throw new Error('Invalid event ID');
+    }
+    
+    try {
+      // First, verify the event exists
+      const event = await this.getEvent(eventId);
+      if (!event) {
+        console.warn(`Attempted to get guest for non-existent event ID: ${eventId}`);
+        return undefined;
+      }
+      
+      // Get the guest
+      const guest = this.guestsMap.get(guestId);
+      
+      // Only return the guest if it belongs to the specified event
+      if (guest && guest.eventId === eventId) {
+        console.log(`Guest ${guestId} found in event ${eventId}`);
+        return guest;
+      }
+      
+      if (guest) {
+        console.warn(`Event boundary violation: Guest ${guestId} exists but belongs to event ${guest.eventId}, not requested event ${eventId}`);
+      } else {
+        console.warn(`Guest ${guestId} not found`);
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error(`Error in getGuestWithEventContext for guest ${guestId}, event ${eventId}:`, error);
+      throw error;
+    }
   }
   
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
-    return Array.from(this.guestsMap.values()).filter(
-      (guest) => guest.eventId === eventId
-    );
+    console.log(`Getting guests for event ID: ${eventId}`);
+    
+    if (!eventId || isNaN(eventId)) {
+      console.error(`Invalid event ID provided: ${eventId}`);
+      throw new Error('Invalid event ID');
+    }
+    
+    try {
+      // First check if this event exists
+      const event = await this.getEvent(eventId);
+      if (!event) {
+        console.warn(`Attempted to get guests for non-existent event ID: ${eventId}`);
+        return []; // Return empty array for non-existent events
+      }
+      
+      const guests = Array.from(this.guestsMap.values()).filter(
+        (guest) => guest.eventId === eventId
+      );
+      
+      console.log(`Retrieved ${guests.length} guests for event ID: ${eventId}`);
+      return guests;
+    } catch (error) {
+      console.error(`Error in getGuestsByEvent for event ${eventId}:`, error);
+      throw error;
+    }
   }
   
   async getGuestByEmail(eventId: number, email: string): Promise<Guest | undefined> {
-    return Array.from(this.guestsMap.values()).find(
-      (guest) => guest.eventId === eventId && guest.email === email
-    );
+    console.log(`Looking up guest with email: ${email} in event: ${eventId}`);
+    
+    if (!eventId || isNaN(eventId)) {
+      console.error(`Invalid event ID provided: ${eventId}`);
+      throw new Error('Invalid event ID');
+    }
+    
+    if (!email) {
+      console.error('Empty email provided for guest lookup');
+      throw new Error('Email is required');
+    }
+    
+    try {
+      // First check if this event exists
+      const event = await this.getEvent(eventId);
+      if (!event) {
+        console.warn(`Attempted to get guest by email for non-existent event ID: ${eventId}`);
+        return undefined;
+      }
+      
+      const guest = Array.from(this.guestsMap.values()).find(
+        (guest) => guest.eventId === eventId && guest.email === email
+      );
+      
+      if (guest) {
+        console.log(`Found guest with email ${email} in event ${eventId}`);
+      } else {
+        console.log(`No guest found with email ${email} in event ${eventId}`);
+      }
+      
+      return guest;
+    } catch (error) {
+      console.error(`Error in getGuestByEmail for email ${email}, event ${eventId}:`, error);
+      throw error;
+    }
   }
   
   async createGuest(guest: InsertGuest): Promise<Guest> {

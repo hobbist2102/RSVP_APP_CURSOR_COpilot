@@ -321,24 +321,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('GET /api/current-event - Session ID:', req.sessionID);
       
-      // Get current event from session if available
+      // Case 1: Event exists in session
       if (req.session && req.session.currentEvent) {
-        // Verify the event still exists in the database (in case it was deleted)
-        const storedEvent = await storage.getEvent(req.session.currentEvent.id);
+        const eventId = req.session.currentEvent.id;
+        console.log(`Found event ID ${eventId} in session, verifying it exists`);
+        
+        // Verify that the session event still exists in the database
+        const storedEvent = await storage.getEvent(eventId);
         if (storedEvent) {
-          console.log('Returning current event from session:', req.session.currentEvent.title, '(ID:', req.session.currentEvent.id, ')');
-          return res.json(req.session.currentEvent);
+          console.log(`Current event from session: ${storedEvent.title} (ID: ${eventId})`);
+          
+          // Return the database version to ensure we have the latest data
+          return res.json(storedEvent);
         } else {
-          console.log('Event in session no longer exists in database, fetching new default event');
+          console.log(`Event ID ${eventId} in session no longer exists in database, fetching new default event`);
           // Session has a deleted event, clear it to fetch a new one
           delete req.session.currentEvent;
+          
+          // Save session immediately after deleting the invalid event
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                console.error('Error saving session after removing invalid event:', err);
+                reject(err);
+              } else {
+                console.log('Session saved after removing invalid event');
+                resolve();
+              }
+            });
+          });
         }
+      } else {
+        console.log('No current event found in session');
       }
       
-      // If no current event in session, get the first event
+      // Case 2: No valid event in session, get the first event from the database
       const events = await storage.getAllEvents();
       if (events && events.length > 0) {
-        console.log('No current event in session, defaulting to first event:', events[0].title, '(ID:', events[0].id, ')');
+        console.log(`No current event in session, defaulting to first event: ${events[0].title} (ID: ${events[0].id})`);
+        
         // Store in session for future requests
         req.session.currentEvent = events[0];
         
@@ -346,10 +367,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await new Promise<void>((resolve, reject) => {
           req.session.save((err) => {
             if (err) {
-              console.error('Error saving session:', err);
+              console.error('Error saving session with default event:', err);
               reject(err);
             } else {
-              console.log('Session saved with new current event');
+              console.log('Session saved with default event');
               resolve();
             }
           });
@@ -358,13 +379,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(events[0]);
       }
       
-      // No events available
-      console.log('No events available for current-event endpoint');
-      return res.status(404).json({ message: 'No events available' });
+      // Case 3: No events exist in database
+      console.log('No events found in database for current-event endpoint');
+      return res.status(404).json({ 
+        message: 'No events found',
+        details: 'Please create an event before proceeding' 
+      });
     } catch (error) {
       const err = error as Error;
-      console.error(`Error with current event: ${err.message}`);
-      res.status(500).json({ message: 'Error processing current event' });
+      console.error(`Error fetching current event: ${err.message}`);
+      return res.status(500).json({ 
+        message: 'Error fetching current event',
+        details: err.message 
+      });
     }
   });
   
