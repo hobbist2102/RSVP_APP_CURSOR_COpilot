@@ -1299,7 +1299,22 @@ export class DatabaseStorage implements IStorage {
 
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
     console.log(`Fetching all guests for event: ${eventId}`);
-    return await db.select().from(guests).where(eq(guests.eventId, eventId));
+    try {
+      const result = await db.select().from(guests).where(eq(guests.eventId, eventId));
+      console.log(`Retrieved ${result.length} guests for event ${eventId}`);
+      
+      // Double-check that all returned guests have the correct event ID
+      const validGuests = result.filter(guest => guest.eventId === eventId);
+      
+      if (validGuests.length !== result.length) {
+        console.warn(`WARNING: Filtered out ${result.length - validGuests.length} guests with incorrect event ID`);
+      }
+      
+      return validGuests;
+    } catch (error) {
+      console.error(`Error fetching guests for event ${eventId}:`, error);
+      throw error;
+    }
   }
 
   async getGuestByEmail(eventId: number, email: string): Promise<Guest | undefined> {

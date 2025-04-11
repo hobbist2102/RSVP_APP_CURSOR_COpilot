@@ -71,14 +71,22 @@ export default function GuestList() {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0, // Don't cache this data
-    cacheTime: 0, // Don't keep old data in cache
+    gcTime: 0, // TanStack Query v5 uses gcTime instead of cacheTime
     // Empty function to ensure we don't use any shared cache
     structuralSharing: () => false,
     // Ensure we get fresh data from server
     select: (data) => {
       // Log data for debugging
       console.log(`Received guest data for event ${eventId}:`, data);
-      return data;
+      // Verify each guest belongs to the current event
+      if (Array.isArray(data)) {
+        const validGuests = data.filter(guest => 
+          guest && typeof guest === 'object' && guest.eventId === eventId
+        );
+        console.log(`Filtered ${data.length} guests to ${validGuests.length} for event ${eventId}`);
+        return validGuests;
+      }
+      return [];
     }
   });
   
