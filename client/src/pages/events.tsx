@@ -275,12 +275,52 @@ export default function Events() {
     const eventEndDate = new Date(event?.endDate || '');
     
     if (ceremonyDate < eventStartDate || ceremonyDate > eventEndDate) {
-      const proceed = window.confirm(
-        `Warning: The ceremony date (${data.date}) is outside the event dates ` +
-        `(${event?.startDate} to ${event?.endDate}). Do you want to proceed anyway?`
-      );
-      
-      if (!proceed) return;
+      return new Promise((resolve) => {
+        const dialog = document.createElement('div');
+        document.body.appendChild(dialog);
+        
+        const AlertDialogDemo = () => (
+          <AlertDialog defaultOpen onOpenChange={(open) => !open && resolve(false)}>
+            <AlertDialogContent className="border-2 border-primary/20">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="font-playfair text-2xl">Date Outside Event Range</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-3">
+                  <p>The ceremony date ({formatDate(data.date)}) is outside the wedding event dates:</p>
+                  <p className="font-medium text-primary font-script text-lg">
+                    {formatDate(event?.startDate)} to {formatDate(event?.endDate)}
+                  </p>
+                  <p>Would you like to proceed with creating this ceremony?</p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="hover:bg-gray-100">Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => resolve(true)}
+                  className="gold-gradient hover:from-purple-500 hover:to-purple-600 transition-all duration-300"
+                >
+                  Continue Anyway
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+
+        ReactDOM.render(<AlertDialogDemo />, dialog);
+      }).then((proceed) => {
+        if (!proceed) return;
+        
+        if (currentCeremony) {
+          updateCeremonyMutation.mutate({
+            ...data,
+            date: data.date,
+          });
+        } else {
+          createCeremonyMutation.mutate({
+            ...data,
+            date: data.date,
+          });
+        }
+      });
     }
 
     if (currentCeremony) {
