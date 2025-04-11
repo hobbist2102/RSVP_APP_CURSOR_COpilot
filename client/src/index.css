@@ -12,44 +12,44 @@
     --cream: 35 70% 90%;           /* Cream color from the image */
     --light-gray: 0 0% 94%;        /* Light gray from the image */
     --gold: 45 100% 50%;           /* Rich gold accent */
-    
+
     /* Theme variables */
     --background: 35 70% 98%;      /* Light cream background */
     --foreground: var(--charcoal);
-    
+
     --card: 0 0% 100%;
     --card-foreground: var(--charcoal);
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: var(--charcoal);
-    
+
     --primary: var(--royal-purple);
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: var(--gold);
     --secondary-foreground: 0 0% 20%;
-    
+
     --muted: var(--light-gray);
     --muted-foreground: 0 0% 45%;
-    
+
     --accent: var(--cream);
     --accent-foreground: var(--royal-purple);
-    
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 0 0% 89%;
     --input: 0 0% 89%;
     --ring: var(--gold);
-    
+
     --radius: 0.75rem;
-    
+
     --chart-1: var(--royal-purple);
     --chart-2: var(--gold);
     --chart-3: 0 0% 25%;
     --chart-4: var(--cream);
     --chart-5: 300 70% 50%;
-    
+
     --sidebar-background: var(--royal-purple);
     --sidebar-foreground: 45 100% 95%;
     --sidebar-primary: var(--gold);
@@ -59,15 +59,15 @@
     --sidebar-border: 280 30% 50%;
     --sidebar-ring: var(--gold);
   }
-  
+
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-playfair;
   }
@@ -77,56 +77,64 @@
   .font-script {
     font-family: 'Great Vibes', cursive;
   }
-  
+
   .font-playfair {
     font-family: 'Playfair Display', serif;
   }
-  
+
   .font-lato {
     font-family: 'Lato', sans-serif;
   }
-  
+
   /* Gold effects */
   .gold-gradient {
-    @apply bg-gradient-to-r from-amber-500 to-yellow-400;
+    @apply bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-purple-500 hover:to-purple-400 transition-all duration-300;
   }
-  
+
   .gold-text {
     @apply text-transparent bg-clip-text gold-gradient;
   }
-  
+
   .gold-border {
-    @apply border-2 border-secondary;
+    @apply border-2 border-secondary hover:border-purple-500 transition-colors;
   }
-  
+
   .gold-shadow {
     box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+    @apply hover:shadow-purple-200/25 transition-shadow;
   }
-  
+
+  /* Button overrides */
+  .btn-gold {
+    @apply bg-gradient-to-r from-amber-500 to-yellow-400 text-white 
+           hover:from-purple-500 hover:to-purple-400
+           transition-all duration-300 transform hover:scale-[1.02];
+  }
+
   /* Wedding specific styles */
   .wedding-card {
     @apply rounded-lg p-6 bg-white shadow-md border border-secondary/20 gold-shadow;
   }
-  
+
   .wedding-heading {
     @apply font-playfair font-bold gold-text;
   }
-  
+
   .wedding-subheading {
     @apply font-playfair text-primary/90;
   }
-  
+
   .wedding-script {
     @apply font-script text-3xl gold-text;
   }
-  
+
   /* Indian wedding specific patterns and effects */
   .mandala-pattern {
     background-color: rgba(255, 255, 255, 0.95);
     background-image: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 2px, transparent 2px);
     background-size: 24px 24px;
   }
-  
+
   .paisley-border {
     @apply border-t-4 border-b-4 border-secondary py-2;
     background-image: repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.1) 10px, transparent 10px, transparent 20px);
