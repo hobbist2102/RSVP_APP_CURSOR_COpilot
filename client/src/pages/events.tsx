@@ -269,6 +269,20 @@ export default function Events() {
   
   // Handle ceremony form submission
   const onSubmitCeremonyForm = (data: z.infer<typeof ceremonyFormSchema>) => {
+    const event = events.find(e => e.id === selectedEventId);
+    const ceremonyDate = new Date(data.date);
+    const eventStartDate = new Date(event?.startDate || '');
+    const eventEndDate = new Date(event?.endDate || '');
+    
+    if (ceremonyDate < eventStartDate || ceremonyDate > eventEndDate) {
+      const proceed = window.confirm(
+        `Warning: The ceremony date (${data.date}) is outside the event dates ` +
+        `(${event?.startDate} to ${event?.endDate}). Do you want to proceed anyway?`
+      );
+      
+      if (!proceed) return;
+    }
+
     if (currentCeremony) {
       // Update existing ceremony
       updateCeremonyMutation.mutate({
