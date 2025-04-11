@@ -744,6 +744,7 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
             {initialData ? "Update Guest" : "Add Guest"}
           </Button>
         </div>
+      </div>
       </form>
     </Form>
   );
