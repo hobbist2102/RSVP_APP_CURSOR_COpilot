@@ -360,8 +360,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (events && events.length > 0) {
         console.log(`No current event in session, defaulting to first event: ${events[0].title} (ID: ${events[0].id})`);
         
-        // Store in session for future requests
-        req.session.currentEvent = events[0];
+        // Store in session for future requests with required properties
+        req.session.currentEvent = {
+          ...events[0],
+          primaryColor: null,
+          secondaryColor: null,
+          whatsappFrom: null
+        };
         
         // Explicitly save the session to ensure it's persisted
         await new Promise<void>((resolve, reject) => {
@@ -440,8 +445,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Store in session
-      req.session.currentEvent = event;
+      // Store in session with required additional properties
+      req.session.currentEvent = {
+        ...event,
+        primaryColor: null,
+        secondaryColor: null,
+        whatsappFrom: null
+      };
       console.log(`Setting current event in session: ${event.title} (ID: ${event.id})`);
       
       // Explicitly save the session to ensure it's persisted
@@ -484,7 +494,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Store current event in session for context in future requests
-      req.session.currentEvent = event;
+      req.session.currentEvent = {
+        ...event,
+        primaryColor: null,
+        secondaryColor: null,
+        whatsappFrom: null
+      };
       console.log(`Set session current event to: ${event.title} (ID: ${eventId})`);
       
       // Get guests for this event with added validation
