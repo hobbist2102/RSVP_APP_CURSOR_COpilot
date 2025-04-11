@@ -7,7 +7,7 @@ import { Guest } from './use-guest-with-context';
 export function useGuestsByEvent() {
   const { currentEvent } = useCurrentEvent();
   
-  // Fetch all guests for the current event
+  // Fetch all guests for the current event with proper error handling
   const {
     data: guests = [],
     isLoading,
@@ -15,7 +15,30 @@ export function useGuestsByEvent() {
     refetch
   } = useQuery<Guest[]>({
     queryKey: currentEvent?.id ? [`/api/events/${currentEvent.id}/guests`] : ['guests-placeholder-key'],
+    queryFn: async () => {
+      if (!currentEvent?.id) {
+        console.warn('No event ID available for guest query');
+        return [];
+      }
+
+      const response = await fetch(`/api/events/${currentEvent.id}/guests`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch guests' }));
+        throw new Error(errorData.message || 'Failed to fetch guests');
+      }
+      
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!currentEvent?.id,
+    staleTime: 5000, // Cache for 5 seconds
+    retry: 1, // Only retry once on failure
   });
   
   // Create a new guest
