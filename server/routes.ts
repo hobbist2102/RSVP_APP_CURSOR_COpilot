@@ -35,10 +35,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const sessionStore = MemoryStore(session);
   app.use(session({
     secret: 'wedding-rsvp-secret',
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Changed to true to ensure session is saved after each request
+    saveUninitialized: true, // Changed to true to create session unconditionally
     cookie: { 
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // False for development, should be conditional in production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       sameSite: 'lax',
@@ -120,8 +120,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         console.log('Registration and login successful, user:', user);
-        console.log('Session after registration:', req.session);
-        res.status(201).json({ user });
+        
+        // Save the session explicitly before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.status(500).json({ message: 'Registration successful but session save failed' });
+          }
+          
+          console.log('Session after registration (saved):', req.session);
+          res.status(201).json({ user });
+        });
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -132,11 +141,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
-    // Log the session after login to debug
-    console.log('Login successful, session:', req.session);
-    console.log('User after login:', req.user);
-    res.json({ user: req.user });
+  app.post('/api/auth/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ message: info?.message || 'Invalid credentials' });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          return next(loginErr);
+        }
+        
+        // Log the session after login to debug
+        console.log('Login successful, session:', req.session);
+        console.log('User after login:', req.user);
+        
+        // Save the session before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            return next(saveErr);
+          }
+          return res.json({ user: req.user });
+        });
+      });
+    })(req, res, next);
   });
   
   app.post('/api/auth/logout', (req, res) => {
@@ -150,6 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/auth/user', (req, res) => {
     console.log('Checking user authentication, session ID:', req.sessionID);
+    console.log('Session object:', req.session);
+    
     if (req.isAuthenticated() && req.user) {
       console.log('User is authenticated:', req.user);
       // Ensure we return a consistent user object
@@ -160,9 +193,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: (req.user as any).email || '',
         role: (req.user as any).role || 'couple',
       };
-      res.json({ user });
+      return res.json({ user });
     } else {
-      res.status(401).json({ message: 'Not authenticated' });
+      console.log('User is not authenticated');
+      return res.status(401).json({ message: 'Not authenticated' });
     }
   });
   
