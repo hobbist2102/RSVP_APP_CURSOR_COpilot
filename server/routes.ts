@@ -596,10 +596,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      
+      // Verify that the event exists before creating a guest
+      console.log(`Verifying event ${eventId} exists before creating guest`);
+      const eventExists = await storage.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Attempted to create guest for non-existent event ID: ${eventId}`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      console.log(`Event ${eventId} verified, creating guest`);
       const guestData = insertGuestSchema.parse({ ...req.body, eventId });
       const guest = await storage.createGuest(guestData);
+      
+      console.log(`Guest created successfully for event ${eventId}: ${guest.id}`);
       res.status(201).json(guest);
     } catch (error) {
+      console.error(`Error creating guest:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -798,9 +811,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const eventId = parseInt(req.params.eventId);
+      
+      // Verify that the event exists before creating any guests
+      console.log(`Verifying event ${eventId} exists before importing guests`);
+      const eventExists = await storage.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Attempted to import guests for non-existent event ID: ${eventId}`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
       const workbook = XLSX.read(req.file.buffer);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      console.log(`Processing ${jsonData.length} rows from Excel import for event ${eventId}`);
       
       const guests = jsonData.map((row: any) => ({
         eventId,
@@ -836,14 +860,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      console.log(`Validated ${validGuests.length} guests out of ${guests.length} for import`);
+      
       const createdGuests = await storage.bulkCreateGuests(validGuests);
       
+      console.log(`Successfully imported ${createdGuests.length} guests for event ${eventId}`);
       res.status(201).json({
         message: `Imported ${createdGuests.length} guests successfully`,
         guests: createdGuests
       });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to import guests' });
+      console.error(`Error importing guests:`, error);
+      res.status(500).json({ 
+        message: 'Failed to import guests',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
   
@@ -903,10 +934,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/ceremonies', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      
+      // Verify that the event exists before creating a ceremony
+      console.log(`Verifying event ${eventId} exists before creating ceremony`);
+      const eventExists = await storage.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Attempted to create ceremony for non-existent event ID: ${eventId}`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      console.log(`Event ${eventId} verified, creating ceremony`);
       const ceremonyData = insertCeremonySchema.parse({ ...req.body, eventId });
       const ceremony = await storage.createCeremony(ceremonyData);
+      
+      console.log(`Ceremony created successfully for event ${eventId}: ${ceremony.id}`);
       res.status(201).json(ceremony);
     } catch (error) {
+      console.error(`Error creating ceremony:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1054,10 +1098,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/accommodations', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      
+      // Verify that the event exists before creating an accommodation
+      console.log(`Verifying event ${eventId} exists before creating accommodation`);
+      const eventExists = await storage.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Attempted to create accommodation for non-existent event ID: ${eventId}`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      console.log(`Event ${eventId} verified, creating accommodation`);
       const accommodationData = insertAccommodationSchema.parse({ ...req.body, eventId });
       const accommodation = await storage.createAccommodation(accommodationData);
+      
+      console.log(`Accommodation created successfully for event ${eventId}: ${accommodation.id}`);
       res.status(201).json(accommodation);
     } catch (error) {
+      console.error(`Error creating accommodation:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
