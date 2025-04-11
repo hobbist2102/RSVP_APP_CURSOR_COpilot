@@ -62,11 +62,13 @@ export default function GuestDetailDialog({
         </div>
 
         <Tabs defaultValue="basic">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="family">Family & Side</TabsTrigger>
             <TabsTrigger value="rsvp">RSVP</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="logistics">Logistics</TabsTrigger>
+            <TabsTrigger value="travel">Travel</TabsTrigger>
+            <TabsTrigger value="stay">Stay</TabsTrigger>
           </TabsList>
           
           <TabsContent value="basic" className="space-y-4 pt-4">
@@ -118,6 +120,46 @@ export default function GuestDetailDialog({
                 </div>
               </>
             )}
+          </TabsContent>
+
+          <TabsContent value="family" className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Side</p>
+                <Badge variant="outline" className="capitalize">
+                  {guest.side}'s Side
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Family Member</p>
+                <Badge variant={guest.isFamily ? "default" : "outline"}>
+                  {guest.isFamily ? "Yes" : "No"}
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Gender</p>
+                <p className="capitalize">{guest.gender || "Not specified"}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Salutation</p>
+                <p>{guest.salutation || "Not specified"}</p>
+              </div>
+
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground">Relationship</p>
+                <p>{guest.relationship || "Not specified"}</p>
+              </div>
+
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground">WhatsApp Available</p>
+                <Badge variant={guest.whatsappAvailable ? "default" : "outline"}>
+                  {guest.whatsappAvailable ? "Yes" : "No"}
+                </Badge>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="rsvp" className="space-y-4 pt-4">
@@ -309,6 +351,102 @@ export default function GuestDetailDialog({
                 <p className="text-sm">No accommodation information available</p>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="travel" className="space-y-4 pt-4">
+            {guest.travel ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Travel Mode</p>
+                    <p className="capitalize flex items-center gap-2">
+                      {getTravelModeIcon(guest.travel.travelMode)}
+                      {guest.travel.travelMode || "Not specified"}
+                    </p>
+                  </div>
+
+                  {guest.travel.flightNumber && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Flight Number</p>
+                      <p>{guest.travel.flightNumber}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-sm text-muted-foreground">Arrival</p>
+                    <div>
+                      <p>{formatDate(guest.travel.arrivalDate)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {guest.travel.arrivalTime} at {guest.travel.arrivalLocation}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground">Departure</p>
+                    <div>
+                      <p>{formatDate(guest.travel.departureDate)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {guest.travel.departureTime} at {guest.travel.departureLocation}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Transportation Needs</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={guest.travel.needsTransportation ? "default" : "outline"}>
+                        {guest.travel.needsTransportation ? "Required" : "Not Required"}
+                      </Badge>
+                      {guest.travel.needsTransportation && (
+                        <span className="text-sm">({guest.travel.transportationType})</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No travel information available</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="stay" className="space-y-4 pt-4">
+            {guest.accommodation ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Hotel</p>
+                    <p>{guest.accommodation.name}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground">Room Number</p>
+                    <p>{guest.accommodation.roomNumber || "Not assigned"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground">Room Type</p>
+                    <p>{guest.accommodation.roomType}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground">Check-in/Check-out</p>
+                    <div>
+                      <p>{formatDate(guest.accommodation.checkIn)} - {formatDate(guest.accommodation.checkOut)}</p>
+                    </div>
+                  </div>
+
+                  {guest.accommodation.specialRequests && (
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">Special Requests</p>
+                      <p>{guest.accommodation.specialRequests}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No accommodation information available</p>
+            )}
           </TabsContent>
         </Tabs>
         
