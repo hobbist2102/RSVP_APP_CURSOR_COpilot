@@ -791,7 +791,10 @@ export class MemStorage implements IStorage {
     const existingGuest = this.guestsMap.get(id);
     if (!existingGuest) return undefined;
     
-    const updatedGuest = { ...existingGuest, ...guest };
+    // Preserve the original eventId to maintain event boundaries
+    const eventId = existingGuest.eventId;
+    // This ensures the eventId can't be changed - essential for maintaining event boundaries
+    const updatedGuest = { ...existingGuest, ...guest, eventId };
     this.guestsMap.set(id, updatedGuest);
     return updatedGuest;
   }
