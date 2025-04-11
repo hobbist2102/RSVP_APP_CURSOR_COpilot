@@ -64,7 +64,7 @@ export default function GuestDetailDialog({
         <Tabs defaultValue="basic">
           <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="family">Family & Side</TabsTrigger>
+            <TabsTrigger value="relationship">Relationship</TabsTrigger>
             <TabsTrigger value="rsvp">RSVP</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="travel">Travel</TabsTrigger>
@@ -122,12 +122,12 @@ export default function GuestDetailDialog({
             )}
           </TabsContent>
 
-          <TabsContent value="family" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="relationship" className="space-y-6 pt-6">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-muted-foreground">Side</p>
+                <p className="text-sm text-muted-foreground">Guest Association</p>
                 <Badge variant="outline" className="capitalize">
-                  {guest.side}'s Side
+                  {guest.side === 'bride' ? "Bride's Guest" : "Groom's Guest"}
                 </Badge>
               </div>
 

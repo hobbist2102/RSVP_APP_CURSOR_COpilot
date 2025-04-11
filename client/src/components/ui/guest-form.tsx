@@ -256,33 +256,36 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="side"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Guest Side</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select side" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="bride">Bride's Side</SelectItem>
-                      <SelectItem value="groom">Groom's Side</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    This helps with seating arrangements and targeted communications
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-6 border-t pt-6 mt-6">
+              <h3 className="text-lg font-medium">Relationship Information</h3>
+              
+              <FormField
+                control={form.control}
+                name="side"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Guest Association</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select guest association" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="bride">Bride's Guest</SelectItem>
+                        <SelectItem value="groom">Groom's Guest</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      This helps with seating arrangements and targeted communications
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                         
             <div className="flex space-x-4">
               <FormField
@@ -481,6 +484,30 @@ export default function GuestForm({ eventId, initialData, onSubmit, isLoading = 
                     </FormItem>
                   )}
                 />
+
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-sm font-medium mb-4">RSVP Contact Settings</h4>
+                  <FormField
+                    control={form.control}
+                    name="plusOneRsvpContact"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value as boolean}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Set Plus One as Primary RSVP Contact</FormLabel>
+                          <FormDescription>
+                            All RSVP communications will be directed to the plus one instead of the main guest
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
                 <FormField
                   control={form.control}
