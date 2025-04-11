@@ -49,36 +49,11 @@ export function EventSelector() {
       const selectedEvent = events.find(event => String(event.id) === value);
       
       if (selectedEvent) {
-        // Call the server to set the current event in session
-        await fetch('/api/current-event', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            eventId: selectedEvent.id
-          })
-        });
+        console.log(`Event selector: Switching to event ID: ${selectedEvent.id} (${selectedEvent.title})`);
         
-        // Set the current event using our hook
-        setCurrentEvent(selectedEvent);
-        
-        // More aggressively invalidate all relevant queries to force fresh data for the new event
-        
-        // First, invalidate the specific guest list for this event
-        queryClient.invalidateQueries({
-          queryKey: [`/api/events/${selectedEvent.id}/guests`]
-        });
-        
-        // Then invalidate ALL guest-related queries to prevent stale/mismatched data 
-        queryClient.invalidateQueries({
-          queryKey: ['/api/guests']
-        });
-        
-        // Force refetch to ensure the latest data
-        queryClient.refetchQueries({
-          queryKey: [`/api/events/${selectedEvent.id}/guests`]
-        });
+        // We use setCurrentEvent from our hook which now handles all the cache clearing
+        // and server-side session update in one function
+        await setCurrentEvent(selectedEvent);
         
         toast({
           title: "Event Changed",

@@ -34,6 +34,12 @@ export function useCurrentEvent() {
   
   // Helper function to set the current event both locally and on server
   const setCurrentEvent = async (event: CurrentEvent) => {
+    console.log(`Switching to event ID: ${event.id} (${event.title})`);
+    
+    // First, remove all related guest data from the cache to prevent incorrect display of guests
+    // This line is key to fixing the issue with guests appearing in wrong events
+    queryClient.clear();
+    
     // Update local cache immediately for responsive UI
     queryClient.setQueryData(['/api/current-event'], event);
     
@@ -48,14 +54,22 @@ export function useCurrentEvent() {
       queryKey: [`/api/events/${event.id}/guests`] 
     });
     queryClient.invalidateQueries({ 
+      queryKey: ['/api/events'] 
+    });
+    queryClient.invalidateQueries({ 
+      queryKey: ['guests'] 
+    });
+    queryClient.invalidateQueries({ 
       queryKey: [`/api/events/${event.id}/ceremonies`] 
     });
     queryClient.invalidateQueries({ 
       queryKey: [`/api/events/${event.id}/accommodations`] 
     });
-    queryClient.invalidateQueries({ 
+    queryClient.invalidateQueries({
       queryKey: [`/api/events/${event.id}/statistics`] 
     });
+    
+    console.log('Query cache cleared and relevant queries invalidated for new event context');
   };
   
   return {
