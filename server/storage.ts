@@ -1584,7 +1584,7 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`Creating ${validGuests.length} guests in database`);
     try {
-      // Here's the fix: using the validGuests array for the values parameter
+      // Use the guests schema from shared/schema.ts for the table reference
       const result = await db.insert(guests).values(validGuests).returning();
       return result;
     } catch (error) {
