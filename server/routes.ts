@@ -454,12 +454,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
+      
+      // Get the current event context from query parameters
+      const contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If event context provided, verify this guest belongs to the event
+      if (contextEventId) {
+        const guest = await storage.getGuestWithEventContext(guestId, contextEventId);
+        if (!guest) {
+          console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
+          return res.status(404).json({ 
+            message: 'Guest not found in this event',
+            details: `Guest ${guestId} does not belong to event ${contextEventId}` 
+          });
+        }
+      }
+      
+      // Proceed with deletion
       const success = await storage.deleteGuest(guestId);
       if (!success) {
         return res.status(404).json({ message: 'Guest not found' });
       }
+      
       res.json({ message: 'Guest deleted successfully' });
     } catch (error) {
+      console.error(`Error deleting guest:`, error);
       res.status(500).json({ message: 'Failed to delete guest' });
     }
   });
