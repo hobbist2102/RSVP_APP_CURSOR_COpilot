@@ -35,7 +35,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
-import { formatDate, getDaysDifference } from "@/lib/utils";
+import { formatDate, getDaysDifference, isDateInRange } from "@/lib/utils";
 import { 
   AlertCircle,
   AlertTriangle,
@@ -92,7 +92,7 @@ export default function Events() {
     deleteEvent,
     isDeletingEvent
   } = useEvents();
-  
+
   // State for modals
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
   const [showEditEventDialog, setShowEditEventDialog] = useState(false);
@@ -100,9 +100,10 @@ export default function Events() {
   const [showAddCeremonyDialog, setShowAddCeremonyDialog] = useState(false);
   const [showEditCeremonyDialog, setShowEditCeremonyDialog] = useState(false);
   const [showDeleteCeremonyDialog, setShowDeleteCeremonyDialog] = useState(false);
+  const [showDateWarningDialog, setShowDateWarningDialog] = useState(false); // Added state for date warning dialog
   const [currentEvent, setCurrentEvent] = useState<any>(null);
   const [currentCeremony, setCurrentCeremony] = useState<any>(null);
-  
+
   // Event form
   const eventForm = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
@@ -117,7 +118,7 @@ export default function Events() {
       description: "",
     },
   });
-  
+
   // Ceremony form
   const ceremonyForm = useForm<z.infer<typeof ceremonyFormSchema>>({
     resolver: zodResolver(ceremonyFormSchema),
@@ -131,16 +132,16 @@ export default function Events() {
       attireCode: "",
     },
   });
-  
+
   // Select event for detail view
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  
+
   // Fetch ceremonies for selected event
   const { data: ceremonies = [] } = useQuery({
     queryKey: [`/api/events/${selectedEventId}/ceremonies`],
     enabled: !!selectedEventId,
   });
-  
+
   // Create ceremony mutation
   const createCeremonyMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -168,7 +169,7 @@ export default function Events() {
       });
     },
   });
-  
+
   // Update ceremony mutation
   const updateCeremonyMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -196,7 +197,7 @@ export default function Events() {
       });
     },
   });
-  
+
   // Delete ceremony mutation
   const deleteCeremonyMutation = useMutation({
     mutationFn: async () => {
@@ -224,10 +225,10 @@ export default function Events() {
       });
     },
   });
-  
+
   // Get the auth context once for the whole component
   const { user } = useAuth();
-  
+
   // Handle event form submission
   const onSubmitEventForm = (data: z.infer<typeof eventFormSchema>) => {
     if (currentEvent) {
@@ -243,7 +244,7 @@ export default function Events() {
     } else {
       // Create new event - convert the string dates to actual Date objects
       console.log("Creating event with data:", data);
-      
+
       // Check if user is authenticated
       if (!user) {
         toast({
@@ -253,7 +254,7 @@ export default function Events() {
         });
         return;
       }
-      
+
       // Let the server get the user ID from the session
       createEvent({
         ...data,
@@ -261,26 +262,22 @@ export default function Events() {
         endDate: data.endDate,
         date: data.startDate // For backward compatibility 
       });
-      
+
       // Close the dialog
       setShowAddEventDialog(false);
     }
   };
-  
+
   // Handle ceremony form submission
   const onSubmitCeremonyForm = (data: z.infer<typeof ceremonyFormSchema>) => {
     const event = events.find(e => e.id === selectedEventId);
     const ceremonyDate = new Date(data.date);
     const eventStartDate = new Date(event?.startDate || '');
     const eventEndDate = new Date(event?.endDate || '');
-    
-    if (ceremonyDate < eventStartDate || ceremonyDate > eventEndDate) {
-      const proceed = window.confirm(
-        `Warning: The ceremony date (${data.date}) is outside the event dates ` +
-        `(${event?.startDate} to ${event?.endDate}). Do you want to proceed anyway?`
-      );
-      
-      if (!proceed) return;
+
+    if (!isDateInRange(ceremonyDate, eventStartDate, eventEndDate)) {
+      setShowDateWarningDialog(true);
+      return;
     }
 
     if (currentCeremony) {
@@ -297,7 +294,7 @@ export default function Events() {
       });
     }
   };
-  
+
   // Open edit event dialog
   const handleEditEvent = (event: any) => {
     setCurrentEvent(event);
@@ -313,7 +310,7 @@ export default function Events() {
     });
     setShowEditEventDialog(true);
   };
-  
+
   // Open add ceremony dialog
   const handleAddCeremony = () => {
     setCurrentCeremony(null);
@@ -328,7 +325,7 @@ export default function Events() {
     });
     setShowAddCeremonyDialog(true);
   };
-  
+
   // Open edit ceremony dialog
   const handleEditCeremony = (ceremony: any) => {
     setCurrentCeremony(ceremony);
@@ -343,19 +340,19 @@ export default function Events() {
     });
     setShowEditCeremonyDialog(true);
   };
-  
+
   // Open delete ceremony dialog
   const handleDeleteCeremony = (ceremony: any) => {
     setCurrentCeremony(ceremony);
     setShowDeleteCeremonyDialog(true);
   };
-  
+
   // Open delete event dialog
   const handleDeleteEvent = (event: any) => {
     setCurrentEvent(event);
     setShowDeleteEventDialog(true);
   };
-  
+
   // Ceremony details table columns
   const ceremonyColumns = [
     {
@@ -419,7 +416,7 @@ export default function Events() {
             Manage your wedding events and ceremonies
           </p>
         </div>
-        
+
         <Button 
           onClick={() => {
             setCurrentEvent(null);
@@ -440,7 +437,7 @@ export default function Events() {
           <PlusCircle className="mr-2 h-4 w-4" /> Add Event
         </Button>
       </div>
-      
+
       {isLoadingEvents ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -477,7 +474,7 @@ export default function Events() {
                   {event.coupleNames}
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent className="pt-4 space-y-4">
                 <div className="flex items-start space-x-2">
                   <CalendarClock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -493,19 +490,19 @@ export default function Events() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-2">
                   <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div>{event.location}</div>
                 </div>
-                
+
                 {event.description && (
                   <p className="text-sm text-muted-foreground">
                     {event.description}
                   </p>
                 )}
               </CardContent>
-              
+
               <CardFooter className="border-t pt-4 flex justify-between">
                 <Button 
                   variant="outline" 
@@ -548,7 +545,7 @@ export default function Events() {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Event Details Dialog */}
       {selectedEventId && (
         <Dialog open={!!selectedEventId} onOpenChange={() => setSelectedEventId(null)}>
@@ -561,7 +558,7 @@ export default function Events() {
                 {events.find(e => e.id === selectedEventId)?.coupleNames}
               </DialogDescription>
             </DialogHeader>
-            
+
             <Tabs defaultValue="info">
               <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
                 <TabsTrigger value="info">
@@ -571,7 +568,7 @@ export default function Events() {
                   <Clock className="mr-2 h-4 w-4" /> Ceremonies
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="info">
                 <div className="space-y-4">
                   <div>
@@ -591,18 +588,18 @@ export default function Events() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div>
                     <h3 className="text-lg font-medium mb-2">Description</h3>
                     <p className="text-muted-foreground">
                       {events.find(e => e.id === selectedEventId)?.description || "No description provided"}
                     </p>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div>
                     <h3 className="text-lg font-medium mb-2">Timeline Overview</h3>
                     {ceremonies.length > 0 ? (
@@ -634,7 +631,7 @@ export default function Events() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="ceremonies">
                 <div className="flex justify-between mb-4">
                   <h3 className="text-lg font-medium">Ceremonies</h3>
@@ -646,7 +643,7 @@ export default function Events() {
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Ceremony
                   </Button>
                 </div>
-                
+
                 {ceremonies.length > 0 ? (
                   <DataTable
                     data={ceremonies}
@@ -670,7 +667,7 @@ export default function Events() {
           </DialogContent>
         </Dialog>
       )}
-      
+
       {/* Add/Edit Event Dialog */}
       <Dialog 
         open={showAddEventDialog || showEditEventDialog} 
@@ -689,7 +686,7 @@ export default function Events() {
               {currentEvent ? "Update the event details" : "Fill in the details for your wedding event"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...eventForm}>
             <form onSubmit={eventForm.handleSubmit(onSubmitEventForm)} className="space-y-4">
               <FormField
@@ -705,7 +702,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={eventForm.control}
                 name="coupleNames"
@@ -719,7 +716,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={eventForm.control}
@@ -734,7 +731,7 @@ export default function Events() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={eventForm.control}
                   name="groomName"
@@ -749,7 +746,7 @@ export default function Events() {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={eventForm.control}
@@ -764,7 +761,7 @@ export default function Events() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={eventForm.control}
                   name="endDate"
@@ -779,7 +776,7 @@ export default function Events() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={eventForm.control}
                 name="location"
@@ -793,7 +790,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={eventForm.control}
                 name="description"
@@ -807,7 +804,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button 
                   type="submit" 
@@ -821,7 +818,7 @@ export default function Events() {
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Add/Edit Ceremony Dialog */}
       <Dialog 
         open={showAddCeremonyDialog || showEditCeremonyDialog} 
@@ -840,7 +837,7 @@ export default function Events() {
               {currentCeremony ? "Update the ceremony details" : "Fill in the details for this ceremony or event"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...ceremonyForm}>
             <form onSubmit={ceremonyForm.handleSubmit(onSubmitCeremonyForm)} className="space-y-4">
               <FormField
@@ -856,7 +853,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={ceremonyForm.control}
                 name="date"
@@ -870,7 +867,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={ceremonyForm.control}
@@ -885,7 +882,7 @@ export default function Events() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={ceremonyForm.control}
                   name="endTime"
@@ -900,7 +897,7 @@ export default function Events() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={ceremonyForm.control}
                 name="location"
@@ -914,7 +911,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={ceremonyForm.control}
                 name="attireCode"
@@ -928,7 +925,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={ceremonyForm.control}
                 name="description"
@@ -942,7 +939,7 @@ export default function Events() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button 
                   type="submit" 
@@ -958,7 +955,7 @@ export default function Events() {
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Ceremony Dialog */}
       <Dialog 
         open={showDeleteCeremonyDialog} 
@@ -975,7 +972,7 @@ export default function Events() {
               Are you sure you want to delete this ceremony? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          
+
           {currentCeremony && (
             <div className="py-4">
               <p className="font-medium">{currentCeremony.name}</p>
@@ -985,7 +982,7 @@ export default function Events() {
               <p className="text-sm text-muted-foreground">{currentCeremony.location}</p>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button 
               variant="outline" 
@@ -1003,7 +1000,7 @@ export default function Events() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Event Dialog */}
       <Dialog 
         open={showDeleteEventDialog} 
@@ -1012,7 +1009,7 @@ export default function Events() {
             setShowDeleteEventDialog(false);
             setCurrentEvent(null);
           }
-        }}
+        }}}
       >
         <DialogContent>
           <DialogHeader>
@@ -1022,7 +1019,7 @@ export default function Events() {
               delete all associated data including guests, ceremonies, accommodations, meal options, etc.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4 space-y-4">
             <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4">
               <p className="flex items-center">
@@ -1030,7 +1027,7 @@ export default function Events() {
                 <span><strong>Warning:</strong> This is a permanent action that cannot be recovered.</span>
               </p>
             </div>
-            
+
             {currentEvent && (
               <div className="border rounded-md p-4 space-y-2">
                 <p className="mb-2"><strong>Event:</strong> {currentEvent.title}</p>
@@ -1042,7 +1039,7 @@ export default function Events() {
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button 
               variant="outline" 
@@ -1065,6 +1062,26 @@ export default function Events() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Date Warning Dialog */}
+      <Dialog open={showDateWarningDialog} onOpenChange={setShowDateWarningDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Warning</DialogTitle>
+            <DialogDescription>
+              The ceremony date you selected is outside the event date range.  Are you sure you want to proceed?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDateWarningDialog(false)}>Cancel</Button>
+            <Button variant="primary" onClick={() => {
+              setShowDateWarningDialog(false);
+              onSubmitCeremonyForm(ceremonyForm.getValues());
+            }}>Continue</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </DashboardLayout>
   );
 }
