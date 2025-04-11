@@ -67,6 +67,12 @@ export default function GuestList() {
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
     queryKey: ['guests', eventId],
     queryFn: async () => {
+      if (!eventId) {
+        console.warn('No event ID provided for guest query');
+        return [];
+      }
+
+      console.log(`Fetching guests for event ID: ${eventId}`);
       const response = await fetch(`/api/events/${eventId}/guests`, {
         credentials: 'include',
         headers: {
@@ -79,18 +85,19 @@ export default function GuestList() {
       }
       
       const data = await response.json();
-      // Filter guests by current event ID to ensure data isolation
-      const filteredData = data.filter((guest: any) => guest.eventId === eventId);
-      console.log(`Fetched ${filteredData.length} guests for event ${eventId}`);
-      return filteredData;
+      if (!Array.isArray(data)) {
+        console.warn('Expected array of guests but received:', data);
+        return [];
+      }
+      
+      console.log(`Received ${data.length} guests from server for event ${eventId}`);
+      return data;
     },
     enabled: !!eventId,
     staleTime: 0,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
-    keepPreviousData: false,
-    // Ensure cache is properly keyed by event
-    cacheTime: 0
+    cacheTime: 1000 // 1 second cache to prevent duplicate requests
   });
 
   // Create guest mutation
