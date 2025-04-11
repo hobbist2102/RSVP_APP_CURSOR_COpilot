@@ -385,23 +385,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const guestId = parseInt(req.params.id);
       
-      // Get the current event context from query parameters
-      const eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      // First try to get event context from query parameters
+      let eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If no event context in query, try to get it from session
+      if (!eventId && req.session.currentEvent) {
+        eventId = req.session.currentEvent.id;
+        console.log(`Using session event context: ${eventId} for guest lookup`);
+      }
       
       let guest;
       
       if (eventId) {
-        // If event context is provided, use it to ensure guest belongs to this event
+        // Use event context to ensure guest belongs to this event
         console.log(`Fetching guest ${guestId} with event context ${eventId}`);
         guest = await storage.getGuestWithEventContext(guestId, eventId);
       } else {
-        // If no event context, get the guest without context (for backward compatibility)
-        console.log(`Fetching guest ${guestId} without event context`);
+        // If we really have no event context (should be rare), log this unusual case
+        console.warn(`WARNING: Fetching guest ${guestId} without event context - this may lead to data leakage across events`);
         guest = await storage.getGuest(guestId);
       }
       
       if (!guest) {
-        return res.status(404).json({ message: 'Guest not found' });
+        return res.status(404).json({ message: 'Guest not found in this event' });
       }
       
       res.json(guest);
@@ -430,14 +436,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const guestId = parseInt(req.params.id);
       console.log(`Processing update for guest ID: ${guestId}`);
       
-      // Get the current event context from query parameters
-      const contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      // First try to get event context from query parameters
+      let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If no event context in query, try to get it from session
+      if (!contextEventId && req.session.currentEvent) {
+        contextEventId = req.session.currentEvent.id;
+        console.log(`Using session event context: ${contextEventId} for guest update`);
+      }
       
       // Validate input data
       const guestData = insertGuestSchema.partial().parse(req.body);
       console.log(`Validated guest data: ${JSON.stringify(guestData)}`);
       
-      // First verify this guest belongs to the correct event
+      // Verify this guest belongs to the correct event
       let currentGuest;
       
       if (contextEventId) {
@@ -453,7 +465,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // If no event context, get the guest without context (for backward compatibility)
+        // If we really have no event context (should be rare), log this unusual case
+        console.warn(`WARNING: Updating guest ${guestId} without event context - this may lead to data leakage across events`);
         currentGuest = await storage.getGuest(guestId);
         if (!currentGuest) {
           console.warn(`Guest with ID ${guestId} not found`);
@@ -499,8 +512,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const guestId = parseInt(req.params.id);
       
-      // Get the current event context from query parameters
-      const contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      // First try to get event context from query parameters
+      let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If no event context in query, try to get it from session
+      if (!contextEventId && req.session.currentEvent) {
+        contextEventId = req.session.currentEvent.id;
+        console.log(`Using session event context: ${contextEventId} for guest deletion`);
+      }
       
       // If event context provided, verify this guest belongs to the event
       if (contextEventId) {
@@ -512,6 +531,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             details: `Guest ${guestId} does not belong to event ${contextEventId}` 
           });
         }
+      } else {
+        console.warn(`WARNING: Deleting guest ${guestId} without event context - this may lead to data leakage across events`);
       }
       
       // Proceed with deletion
