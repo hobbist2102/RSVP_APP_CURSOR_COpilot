@@ -63,7 +63,7 @@ export default function GuestList() {
   // Use the current event ID from the context
   const eventId = currentEventId || 1;
 
-  // Fetch guests for current event
+  // Fetch guests for current event with strict event context
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
     queryKey: ['guests', eventId],
     queryFn: async () => {
@@ -79,14 +79,18 @@ export default function GuestList() {
       }
       
       const data = await response.json();
-      console.log(`Fetched ${data.length} guests for event ${eventId}`);
-      return data;
+      // Filter guests by current event ID to ensure data isolation
+      const filteredData = data.filter((guest: any) => guest.eventId === eventId);
+      console.log(`Fetched ${filteredData.length} guests for event ${eventId}`);
+      return filteredData;
     },
     enabled: !!eventId,
     staleTime: 0,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-    keepPreviousData: false
+    keepPreviousData: false,
+    // Ensure cache is properly keyed by event
+    cacheTime: 0
   });
 
   // Create guest mutation
