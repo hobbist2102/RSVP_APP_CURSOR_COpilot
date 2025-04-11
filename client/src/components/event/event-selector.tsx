@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useCurrentEvent, type CurrentEvent } from "@/hooks/use-current-event";
 import { CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { queryClient } from "@/lib/queryClient";
 
 export function EventSelector() {
   const { currentEvent, setCurrentEvent } = useCurrentEvent();
@@ -39,20 +40,45 @@ export function EventSelector() {
     }
   }, [events, selectedEventId, setCurrentEvent]);
 
-  const handleEventChange = (value: string) => {
-    // Set the selected event ID
-    setSelectedEventId(value);
-    
-    // Find the selected event
-    const selectedEvent = events.find(event => String(event.id) === value);
-    
-    if (selectedEvent) {
-      // Set the current event using our hook
-      setCurrentEvent(selectedEvent);
+  const handleEventChange = async (value: string) => {
+    try {
+      // Set the selected event ID
+      setSelectedEventId(value);
       
+      // Find the selected event
+      const selectedEvent = events.find(event => String(event.id) === value);
+      
+      if (selectedEvent) {
+        // Call the server to set the current event in session
+        await fetch('/api/current-event', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            eventId: selectedEvent.id
+          })
+        });
+        
+        // Set the current event using our hook
+        setCurrentEvent(selectedEvent);
+        
+        // Invalidate all relevant queries to force fresh data for the new event
+        queryClient.invalidateQueries({
+          queryKey: [`/api/events/${selectedEvent.id}/guests`]
+        });
+        
+        toast({
+          title: "Event Changed",
+          description: `Now viewing: ${selectedEvent.title}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error changing event:", error);
       toast({
-        title: "Event Changed",
-        description: `Now viewing: ${selectedEvent.title}`,
+        variant: "destructive",
+        title: "Error Changing Event",
+        description: "There was a problem switching events. Please try again."
       });
     }
   };

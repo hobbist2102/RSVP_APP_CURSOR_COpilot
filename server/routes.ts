@@ -317,12 +317,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route for current event, used by event selector
   app.get('/api/current-event', isAuthenticated, async (req, res) => {
     try {
-      // This endpoint doesn't actually fetch from storage - it's used as a query key
-      // The current event is stored in the react-query cache by the EventSelector component
-      res.json({});
+      // Get current event from session if available
+      if (req.session && req.session.currentEvent) {
+        console.log('Returning current event from session:', req.session.currentEvent);
+        return res.json(req.session.currentEvent);
+      }
+      
+      // If no current event in session, get the first event
+      const events = await storage.getAllEvents();
+      if (events && events.length > 0) {
+        console.log('No current event in session, defaulting to first event:', events[0]);
+        // Store in session for future requests
+        req.session.currentEvent = events[0];
+        return res.json(events[0]);
+      }
+      
+      // No events available
+      console.log('No events available for current-event endpoint');
+      return res.json({});
     } catch (error) {
       console.error(`Error with current event: ${error}`);
       res.status(500).json({ message: 'Error processing current event' });
+    }
+  });
+  
+  // API route to set current event
+  app.post('/api/current-event', isAuthenticated, async (req, res) => {
+    try {
+      const { eventId } = req.body;
+      
+      if (!eventId) {
+        return res.status(400).json({ message: 'Event ID is required' });
+      }
+      
+      // Get the event details
+      const event = await storage.getEvent(Number(eventId));
+      
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Store in session
+      req.session.currentEvent = event;
+      console.log('Setting current event in session:', event);
+      
+      res.json(event);
+    } catch (error) {
+      console.error(`Error setting current event: ${error}`);
+      res.status(500).json({ message: 'Error setting current event' });
     }
   });
   
