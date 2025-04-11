@@ -25,6 +25,7 @@ export interface IStorage {
   
   // Event operations
   getEvent(id: number): Promise<WeddingEvent | undefined>;
+  eventExists(id: number): Promise<boolean>;
   getAllEvents(): Promise<WeddingEvent[]>;
   getEventsByUser(userId: number): Promise<WeddingEvent[]>;
   createEvent(event: InsertWeddingEvent): Promise<WeddingEvent>;
@@ -1279,6 +1280,21 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select().from(weddingEvents).where(eq(weddingEvents.id, id));
     return result[0];
   }
+  
+  // Helper method to check if an event exists
+  async eventExists(id: number): Promise<boolean> {
+    if (!id) return false;
+    try {
+      const result = await db.select({ id: weddingEvents.id })
+        .from(weddingEvents)
+        .where(eq(weddingEvents.id, id))
+        .limit(1);
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error checking event existence for ID ${id}:`, error);
+      return false;
+    }
+  }
 
   async getAllEvents(): Promise<WeddingEvent[]> {
     return await db.select().from(weddingEvents);
@@ -1390,16 +1406,45 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
-  // Get guest with event context verification
+  // Get guest with event context verification to ensure multi-tenant isolation
   async getGuestWithEventContext(id: number, eventId: number): Promise<Guest | undefined> {
+    if (!id || !eventId) {
+      console.error('Invalid parameters for getGuestWithEventContext', { id, eventId });
+      return undefined;
+    }
+    
     console.log(`Fetching guest with ID: ${id} in event context: ${eventId}`);
-    const result = await db.select().from(guests).where(
-      and(
-        eq(guests.id, id),
-        eq(guests.eventId, eventId)
-      )
-    );
-    return result[0];
+    try {
+      // First verify the event exists
+      const eventExists = await this.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Event ID ${eventId} does not exist in getGuestWithEventContext`);
+        return undefined;
+      }
+      
+      // Then fetch the guest with event context constraint
+      const result = await db.select().from(guests).where(
+        and(
+          eq(guests.id, id),
+          eq(guests.eventId, eventId)
+        )
+      );
+      
+      if (result.length === 0) {
+        console.warn(`No guest found with ID ${id} in event ${eventId}`);
+        return undefined;
+      }
+      
+      if (result.length > 1) {
+        console.warn(`Multiple guests found with ID ${id} in event ${eventId}, returning first one`);
+      }
+      
+      console.log(`Successfully retrieved guest ${id} for event ${eventId}`);
+      return result[0];
+    } catch (error) {
+      console.error(`Error in getGuestWithEventContext for guest ${id}, event ${eventId}:`, error);
+      throw new Error(`Failed to retrieve guest with ID ${id} in event context ${eventId}`);
+    }
   }
 
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
