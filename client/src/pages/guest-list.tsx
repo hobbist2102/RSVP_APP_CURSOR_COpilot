@@ -40,29 +40,29 @@ export default function GuestList() {
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   // Use current event hook to get the current event ID
   const { currentEventId } = useCurrentEvent();
-  
+
   // Dialog states
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
+
   // Selected guest for operations
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
-  
+
   // Get parameters from URL query params
   const urlParams = new URLSearchParams(location.split("?")[1] || "");
   const editGuestId = urlParams.get("edit");
   const addGuest = urlParams.get("add");
   const filter = urlParams.get("filter"); // Get filter parameter for RSVP status
-  
+
   // Use the current event ID from the context
   const eventId = currentEventId || 1;
-  
+
   // Fetch guests - explicitly depend on eventId in query key to ensure refresh on event switch
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
     queryKey: ['guests', eventId],
@@ -74,8 +74,8 @@ export default function GuestList() {
         throw new Error('Failed to fetch guests');
       }
       const data = await response.json();
-      console.log(`Fetched ${data.length} guests for event ${eventId}`);
-      return data;
+      // Only return guests that belong to the current event
+      return data.filter((guest: any) => guest.eventId === eventId);
     },
     enabled: !!eventId,
     staleTime: 0,
@@ -84,20 +84,10 @@ export default function GuestList() {
     refetchOnWindowFocus: true,
     // Ensure we get fresh data from server
     select: (data) => {
-      // Log data for debugging
-      console.log(`Received guest data for event ${eventId}:`, data);
-      // Verify each guest belongs to the current event
-      if (Array.isArray(data)) {
-        const validGuests = data.filter(guest => 
-          guest && typeof guest === 'object' && guest.eventId === eventId
-        );
-        console.log(`Filtered ${data.length} guests to ${validGuests.length} for event ${eventId}`);
-        return validGuests;
-      }
-      return [];
+      return data;
     }
   });
-  
+
   // Create guest mutation
   const createGuestMutation = useMutation({
     mutationFn: async (guestData: any) => {
@@ -120,7 +110,7 @@ export default function GuestList() {
       });
     },
   });
-  
+
   // Update guest mutation with enhanced error handling
   const updateGuestMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
@@ -133,12 +123,12 @@ export default function GuestList() {
           data, 
           { eventId: eventId }
         );
-        
+
         if (!response.ok) {
           // Parse error response
           const errorData = await response.json().catch(() => null);
           console.error("Error response from server:", errorData);
-          
+
           // Throw a meaningful error with details from the server if available
           throw new Error(
             errorData?.message || 
@@ -146,7 +136,7 @@ export default function GuestList() {
             `Server error: ${response.status} ${response.statusText}`
           );
         }
-        
+
         return await response.json();
       } catch (err) {
         console.error("Guest update error:", err);
@@ -164,7 +154,7 @@ export default function GuestList() {
     },
     onError: (error: any) => {
       console.error("Mutation error handler:", error);
-      
+
       // Handle database-specific errors
       if (error.message?.includes("terminating connection") || 
           error.message?.includes("database")) {
@@ -180,11 +170,11 @@ export default function GuestList() {
           description: error.message || "An unknown error occurred while updating the guest",
         });
       }
-      
+
       // Don't close the dialog so user can try again
     },
   });
-  
+
   // Delete guest mutation
   const deleteGuestMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -214,7 +204,7 @@ export default function GuestList() {
       });
     },
   });
-  
+
   // Get current event for export filename
   const { currentEvent } = useCurrentEvent();
 
@@ -226,7 +216,7 @@ export default function GuestList() {
         formattedData, 
         `Guest_List_${currentEvent?.title.replace(/\s+/g, '_') || 'Wedding'}_${new Date().toISOString().split('T')[0]}`
       );
-      
+
       toast({
         title: "Export Successful",
         description: "The guest list has been exported to Excel.",
@@ -240,37 +230,37 @@ export default function GuestList() {
       });
     }
   };
-  
+
   // Handle add guest
   const handleAddGuest = (data: any) => {
     createGuestMutation.mutate(data);
   };
-  
+
   // Handle edit guest
   const handleEditGuest = (data: any) => {
     if (selectedGuest) {
       updateGuestMutation.mutate({ id: selectedGuest.id, data });
     }
   };
-  
+
   // Handle delete guest
   const handleDeleteGuest = () => {
     if (selectedGuest) {
       deleteGuestMutation.mutate(selectedGuest.id);
     }
   };
-  
+
   // Handle view guest details
   const handleViewGuest = (guest: any) => {
     setSelectedGuest(guest);
     setShowDetailDialog(true);
   };
-  
+
   // Handle import success
   const handleImportSuccess = () => {
     refetchGuests();
   };
-  
+
   // Handle send reminder email (placeholder functionality)
   const handleSendReminder = (guestId: number) => {
     toast({
@@ -278,7 +268,7 @@ export default function GuestList() {
       description: "The reminder email has been sent to the guest.",
     });
   };
-  
+
   // Setup table columns with enhanced details
   const columns = [
     {
@@ -312,7 +302,7 @@ export default function GuestList() {
         const formattedPhone = row.countryCode && row.phone 
           ? `${row.countryCode} ${row.phone}`
           : row.phone || "N/A";
-            
+
         return (
           <div>
             <div className="flex items-center">
@@ -342,7 +332,7 @@ export default function GuestList() {
           <Badge className={getRsvpStatusColor(row.rsvpStatus)}>
             {row.rsvpStatus?.charAt(0).toUpperCase() + row.rsvpStatus?.slice(1) || "Pending"}
           </Badge>
-          
+
           <div className="text-sm mt-2">
             {row.relationshipType && (
               <div className="flex items-center text-gray-600">
@@ -350,7 +340,7 @@ export default function GuestList() {
                 {row.relationshipType}
               </div>
             )}
-            
+
             <div className="mt-1 text-xs text-gray-500">
               {row.group && `Group: ${row.group}`}
             </div>
@@ -373,7 +363,7 @@ export default function GuestList() {
               </span>
             </div>
           )}
-          
+
           {/* Enhanced children display showing the complete details */}
           {Array.isArray(row.childrenDetails) && row.childrenDetails.length > 0 && (
             <div className="text-sm">
@@ -406,7 +396,7 @@ export default function GuestList() {
         // Get travel mode icon
         const getTravelIcon = (mode: string) => {
           if (!mode) return null;
-          
+
           switch (mode?.toLowerCase()) {
             case 'flight':
               return <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>;
@@ -419,7 +409,7 @@ export default function GuestList() {
               return <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
           }
         };
-        
+
         return (
           <div className="space-y-2 text-xs">
             {row.travelMode && (
@@ -433,14 +423,14 @@ export default function GuestList() {
                     </Badge>
                   )}
                 </div>
-                
+
                 {row.arrivalDate && (
                   <div className="ml-4 mt-1 text-gray-500">
                     Arrival: {formatDate(row.arrivalDate)}
                     {row.arrivalTime && ` at ${row.arrivalTime}`}
                   </div>
                 )}
-                
+
                 {row.departureDate && (
                   <div className="ml-4 text-gray-500">
                     Departure: {formatDate(row.departureDate)}
@@ -449,7 +439,7 @@ export default function GuestList() {
                 )}
               </div>
             )}
-            
+
             {row.accommodationStatus && (
               <div className="flex items-center text-gray-700">
                 <Bed className="h-3 w-3 mr-1" />
@@ -471,21 +461,21 @@ export default function GuestList() {
               {row.dietaryRestrictions}
             </div>
           )}
-          
+
           {row.accessibilityNeeds && (
             <div className="mb-1">
               <span className="font-medium">Accessibility: </span>
               {row.accessibilityNeeds}
             </div>
           )}
-          
+
           {row.specialRequests && (
             <div className="mb-1">
               <span className="font-medium">Requests: </span>
               {row.specialRequests}
             </div>
           )}
-          
+
           {(!row.dietaryRestrictions && !row.accessibilityNeeds && !row.specialRequests) && (
             <span className="text-gray-400 italic">None specified</span>
           )}
@@ -548,7 +538,7 @@ export default function GuestList() {
       ),
     },
   ];
-  
+
   // Check for URL parameters to auto-open dialogs
   useEffect(() => {
     if (editGuestId && !showEditDialog) {
@@ -558,7 +548,7 @@ export default function GuestList() {
         setShowEditDialog(true);
       }
     }
-    
+
     if (addGuest === "true" && !showAddDialog) {
       setShowAddDialog(true);
     }
@@ -573,7 +563,7 @@ export default function GuestList() {
             Manage your wedding guest list and RSVPs
           </p>
         </div>
-        
+
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -597,7 +587,7 @@ export default function GuestList() {
           </Button>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow p-6">
         {/* Add filter status banner if filtering is active */}
         {filter && (
@@ -615,7 +605,7 @@ export default function GuestList() {
             </Button>
           </div>
         )}
-        
+
         <DataTable
           data={filter ? guests.filter((guest: any) => guest.rsvpStatus === filter) : guests}
           columns={columns}
@@ -625,7 +615,7 @@ export default function GuestList() {
           searchPlaceholder="Search guests..."
         />
       </div>
-      
+
       {/* Add Guest Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
@@ -639,7 +629,7 @@ export default function GuestList() {
           />
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Guest Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
@@ -656,7 +646,7 @@ export default function GuestList() {
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
@@ -681,7 +671,7 @@ export default function GuestList() {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* Import Dialog */}
       <GuestImportDialog
         isOpen={showImportDialog}
@@ -689,7 +679,7 @@ export default function GuestList() {
         eventId={eventId}
         onSuccess={handleImportSuccess}
       />
-      
+
       {/* Guest Detail Dialog */}
       <GuestDetailDialog
         isOpen={showDetailDialog}
