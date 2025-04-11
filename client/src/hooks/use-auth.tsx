@@ -79,6 +79,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const data = await response.json();
       setUser(data.user);
       
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force reload auth state
+      await checkAuthStatus();
+      
       // Redirect to dashboard
       setLocation("/dashboard");
       
@@ -91,6 +97,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Extract checkAuthStatus as a separate function
+  const checkAuthStatus = async () => {
+    try {
+      console.log("Checking auth status...");
+      const response = await fetch("/api/auth/user", {
+        credentials: "include",
+        headers: {
+          "Accept": "application/json",
+          "Cache-Control": "no-cache"
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Auth check successful, user:", data.user);
+        if (data.user) {
+          setUser(data.user);
+        }
+      } else {
+        console.log("Auth check failed, status:", response.status);
+      }
+    } catch (error) {
+      console.error("Auth check error:", error);
     }
   };
 
