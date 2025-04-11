@@ -1307,10 +1307,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/messages', async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+
+      // Verify that the event exists before creating a message
+      console.log(`Verifying event ${eventId} exists before creating couple message`);
+      const eventExists = await storage.eventExists(eventId);
+      if (!eventExists) {
+        console.warn(`Attempted to create couple message for non-existent event ID: ${eventId}`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      console.log(`Event ${eventId} verified, creating couple message`);
       const messageData = insertCoupleMessageSchema.parse({ ...req.body, eventId });
       const message = await storage.createCoupleMessage(messageData);
+      
+      console.log(`Couple message created successfully for event ${eventId}`);
       res.status(201).json(message);
     } catch (error) {
+      console.error(`Error creating couple message:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }

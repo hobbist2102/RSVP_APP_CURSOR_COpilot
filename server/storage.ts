@@ -1522,39 +1522,6 @@ export class DatabaseStorage implements IStorage {
     return !!result;
   }
 
-  async bulkCreateGuests(guests: InsertGuest[]): Promise<Guest[]> {
-    if (guests.length === 0) return [];
-    
-    // Group guests by event for more efficient verification
-    const eventIds = [...new Set(guests.map(g => g.eventId))];
-    console.log(`Bulk creating guests for events: ${eventIds.join(', ')}`);
-    
-    // Verify all events exist before proceeding
-    const validEventIds: number[] = [];
-    for (const eventId of eventIds) {
-      if (await this.eventExists(eventId)) {
-        validEventIds.push(eventId);
-      } else {
-        console.warn(`Attempted to bulk create guests for non-existent event ID: ${eventId}`);
-      }
-    }
-    
-    // Filter guests to only include those with valid event IDs
-    const validGuests = guests.filter(g => validEventIds.includes(g.eventId));
-    
-    if (validGuests.length !== guests.length) {
-      console.warn(`Filtered out ${guests.length - validGuests.length} guests with invalid event IDs`);
-    }
-    
-    if (validGuests.length === 0) {
-      console.warn('No valid guests to create after event validation');
-      return [];
-    }
-    
-    console.log(`Creating ${validGuests.length} guests in database`);
-    const result = await db.insert(guests).values(validGuests).returning();
-    return result;
-  }
 
   // Ceremony operations
   async getCeremony(id: number): Promise<Ceremony | undefined> {
