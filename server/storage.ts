@@ -1257,10 +1257,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateGuest(id: number, guest: Partial<InsertGuest>): Promise<Guest | undefined> {
+    // First get the existing guest to check eventId
+    const existingGuest = await this.getGuest(id);
+    if (!existingGuest) {
+      return undefined;
+    }
+    
+    // Make sure we preserve the original eventId
+    const eventId = existingGuest.eventId;
+    // This ensures the eventId can't be changed - essential for maintaining event boundaries
     const result = await db.update(guests)
-      .set(guest)
+      .set({ ...guest, eventId })
       .where(eq(guests.id, id))
       .returning();
+      
     return result[0];
   }
 

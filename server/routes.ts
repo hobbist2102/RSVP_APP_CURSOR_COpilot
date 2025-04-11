@@ -368,15 +368,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const guestId = parseInt(req.params.id);
       const guestData = insertGuestSchema.partial().parse(req.body);
-      const updatedGuest = await storage.updateGuest(guestId, guestData);
-      if (!updatedGuest) {
+      
+      // First verify this guest belongs to the correct event
+      const currentGuest = await storage.getGuest(guestId);
+      if (!currentGuest) {
         return res.status(404).json({ message: 'Guest not found' });
       }
+      
+      // Keep the eventId the same (prevent changing event association)
+      const eventId = currentGuest.eventId;
+      const updatedGuest = await storage.updateGuest(guestId, { ...guestData, eventId });
+      
+      if (!updatedGuest) {
+        return res.status(404).json({ message: 'Guest not found or update failed' });
+      }
+      
       res.json(updatedGuest);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
+      console.error("Error updating guest:", error);
       res.status(500).json({ message: 'Failed to update guest' });
     }
   });
