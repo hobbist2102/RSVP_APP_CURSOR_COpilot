@@ -952,16 +952,13 @@ export class MemStorage implements IStorage {
     }
     
     console.log(`Creating ${validGuests.length} guests in database`);
-    const result = await db.insert(guests).values(validGuests).returning();
-    return result;
-    const createdGuests: Guest[] = [];
-    
-    for (const guest of guests) {
-      const newGuest = await this.createGuest(guest);
-      createdGuests.push(newGuest);
+    try {
+      const result = await db.insert(guests).values(validGuests).returning();
+      return result;
+    } catch (error) {
+      console.error('Error in bulkCreateGuests:', error);
+      throw error;
     }
-    
-    return createdGuests;
   }
   
   // Ceremony methods

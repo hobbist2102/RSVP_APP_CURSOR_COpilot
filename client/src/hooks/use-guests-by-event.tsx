@@ -11,7 +11,6 @@ export function useGuestsByEvent() {
     data: guests = [],
     isLoading,
     error,
-    error,
     refetch
   } = useQuery<Guest[]>({
     queryKey: ['guests', currentEvent?.id],

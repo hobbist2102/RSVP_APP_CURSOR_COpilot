@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { exportToExcel, formatGuestsForExport } from "@/lib/xlsx-utils";
 import GuestForm from "@/components/ui/guest-form";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
@@ -39,7 +38,6 @@ import { useCurrentEvent } from "@/hooks/use-current-event";
 
 export default function GuestList() {
   const [location, setLocation] = useLocation();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Use current event hook to get the current event ID
@@ -65,7 +63,7 @@ export default function GuestList() {
   const eventId = currentEventId || 1;
 
   // Fetch guests for current event
-  const { data: guests = [], isLoading: isLoadingGuests } = useQuery({
+  const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/guests`],
     enabled: !!eventId,
   });
@@ -193,7 +191,8 @@ export default function GuestList() {
   // Handle export
   const handleExport = () => {
     try {
-      const formattedData = formatGuestsForExport(guests);
+      // Use type assertion to ensure we pass an array
+      const formattedData = formatGuestsForExport(guests as any[]);
       exportToExcel(
         formattedData, 
         `Guest_List_${currentEvent?.title.replace(/\s+/g, '_') || 'Wedding'}_${new Date().toISOString().split('T')[0]}`
@@ -524,7 +523,7 @@ export default function GuestList() {
   // Check for URL parameters to auto-open dialogs
   useEffect(() => {
     if (editGuestId && !showEditDialog) {
-      const guestToEdit = guests.find((g: any) => g.id === parseInt(editGuestId));
+      const guestToEdit = (guests as any[]).find((g: any) => g.id === parseInt(editGuestId));
       if (guestToEdit) {
         setSelectedGuest(guestToEdit);
         setShowEditDialog(true);
@@ -589,7 +588,7 @@ export default function GuestList() {
         )}
 
         <DataTable
-          data={filter ? guests.filter((guest: any) => guest.rsvpStatus === filter) : guests}
+          data={filter ? (guests as any[]).filter((guest: any) => guest.rsvpStatus === filter) : guests as any[]}
           columns={columns}
           keyField="id"
           onRowClick={handleViewGuest}
@@ -669,7 +668,7 @@ export default function GuestList() {
         guest={selectedGuest}
         onEdit={(guestId) => {
           setShowDetailDialog(false);
-          const guestToEdit = guests.find((g: any) => g.id === guestId);
+          const guestToEdit = (guests as any[]).find((g: any) => g.id === guestId);
           if (guestToEdit) {
             setSelectedGuest(guestToEdit);
             setShowEditDialog(true);
