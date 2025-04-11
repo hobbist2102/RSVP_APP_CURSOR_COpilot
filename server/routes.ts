@@ -35,10 +35,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const sessionStore = MemoryStore(session);
   app.use(session({
     secret: 'wedding-rsvp-secret',
-    resave: true, // Changed to true to ensure session is saved
-    saveUninitialized: true, // Changed to true to create session for all users
+    resave: false,
+    saveUninitialized: false,
     cookie: { 
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       sameSite: 'lax',
@@ -87,8 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('User is authenticated:', req.user);
       return next();
     }
-    console.log('Authentication failed - session info:', req.session);
-    res.status(401).json({ message: 'Unauthorized' });
+    console.log('Authentication failed - session:', req.sessionID);
+    res.status(401).json({ message: 'Please log in again' });
   };
   
   const isAdmin = (req: Request, res: Response, next: any) => {
