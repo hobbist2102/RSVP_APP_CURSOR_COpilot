@@ -63,29 +63,30 @@ export default function GuestList() {
   // Use the current event ID from the context
   const eventId = currentEventId || 1;
 
-  // Fetch guests - explicitly depend on eventId in query key to ensure refresh on event switch
+  // Fetch guests for current event
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
     queryKey: ['guests', eventId],
     queryFn: async () => {
       const response = await fetch(`/api/events/${eventId}/guests`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      
       if (!response.ok) {
         throw new Error('Failed to fetch guests');
       }
+      
       const data = await response.json();
-      // Only return guests that belong to the current event
-      return data.filter((guest: any) => guest.eventId === eventId);
+      console.log(`Fetched ${data.length} guests for event ${eventId}`);
+      return data;
     },
     enabled: !!eventId,
     staleTime: 0,
-    cacheTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    // Ensure we get fresh data from server
-    select: (data) => {
-      return data;
-    }
+    keepPreviousData: false
   });
 
   // Create guest mutation
