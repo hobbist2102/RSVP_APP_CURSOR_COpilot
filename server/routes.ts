@@ -418,8 +418,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rsvpStatus: row['RSVP Status'] || 'pending',
         plusOneAllowed: row['Plus One Allowed'] === 'Yes',
         plusOneName: row['Plus One Name'] || '',
-        numberOfChildren: parseInt(row['Number of Children'] || '0'),
-        childrenNames: row['Children Names'] || '',
+        childrenDetails: (row['Number of Children'] && parseInt(row['Number of Children']) > 0) ? 
+          Array(parseInt(row['Number of Children'])).fill({name: '', age: 0}) : [],
+        childrenNotes: row['Children Notes'] || '',
         dietaryRestrictions: row['Dietary Restrictions'] || '',
         tableAssignment: row['Table Assignment'] || '',
         giftTracking: row['Gift Tracking'] || '',
@@ -471,8 +472,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'RSVP Status': guest.rsvpStatus,
         'Plus One Allowed': guest.plusOneAllowed ? 'Yes' : 'No',
         'Plus One Name': guest.plusOneName,
-        'Number of Children': guest.numberOfChildren,
-        'Children Names': guest.childrenNames,
+        'Number of Children': guest.childrenDetails && Array.isArray(guest.childrenDetails) ? guest.childrenDetails.length : 0,
+        'Children Notes': guest.childrenNotes || '',
         'Dietary Restrictions': guest.dietaryRestrictions,
         'Table Assignment': guest.tableAssignment,
         'Gift Tracking': guest.giftTracking,
@@ -715,7 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accommodation = await storage.getAccommodation(allocationData.accommodationId);
       if (accommodation) {
         await storage.updateAccommodation(allocationData.accommodationId, {
-          allocatedRooms: accommodation.allocatedRooms + 1
+          allocatedRooms: (accommodation.allocatedRooms || 0) + 1
         });
       }
       
@@ -867,7 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RSVP public endpoint
   app.post('/api/rsvp', async (req, res) => {
     try {
-      const { eventId, email, firstName, lastName, rsvpStatus, plusOneName, numberOfChildren, childrenNames, dietaryRestrictions, message } = req.body;
+      const { eventId, email, firstName, lastName, rsvpStatus, plusOneName, childrenDetails, childrenNotes, dietaryRestrictions, message } = req.body;
       
       if (!eventId || !email || !firstName || !lastName || !rsvpStatus) {
         return res.status(400).json({ message: 'Missing required fields' });
@@ -884,13 +885,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       guest = await storage.updateGuest(guest.id, {
         rsvpStatus,
         plusOneName: plusOneName || guest.plusOneName,
-        numberOfChildren: numberOfChildren !== undefined ? numberOfChildren : guest.numberOfChildren,
-        childrenNames: childrenNames || guest.childrenNames,
+        childrenDetails: childrenDetails || guest.childrenDetails,
+        childrenNotes: childrenNotes || guest.childrenNotes,
         dietaryRestrictions: dietaryRestrictions || guest.dietaryRestrictions
       });
       
       // Add message if provided
-      if (message) {
+      if (message && guest) {
         await storage.createCoupleMessage({
           eventId,
           guestId: guest.id,
@@ -919,7 +920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         declined: guests.filter(g => g.rsvpStatus === 'declined').length,
         pending: guests.filter(g => g.rsvpStatus === 'pending').length,
         plusOnes: guests.filter(g => g.plusOneName).length,
-        children: guests.reduce((acc, g) => acc + g.numberOfChildren, 0),
+        children: guests.reduce((acc, g) => acc + (g.childrenDetails && Array.isArray(g.childrenDetails) ? g.childrenDetails.length : 0), 0),
         rsvpRate: guests.length > 0 ? 
           (guests.filter(g => g.rsvpStatus !== 'pending').length / guests.length) * 100 : 0
       };
