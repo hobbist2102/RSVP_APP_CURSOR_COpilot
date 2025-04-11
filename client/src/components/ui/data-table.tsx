@@ -57,16 +57,18 @@ export default function DataTable<T>({
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Filter data based on search query
+  // Ensure data is an array and filter based on search query
+  const safeData = Array.isArray(data) ? data : [];
+  
   const filteredData = searchable && searchQuery
-    ? data.filter((item) => {
+    ? safeData.filter((item) => {
         // Convert item to string representation and search for query
         return Object.values(item as object).some((value) => {
           if (value === null || value === undefined) return false;
           return String(value).toLowerCase().includes(searchQuery.toLowerCase());
         });
       })
-    : data;
+    : safeData;
   
   // Calculate pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
