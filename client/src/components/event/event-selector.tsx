@@ -26,10 +26,13 @@ import { formatDate } from "@/lib/utils";
 export function EventSelector() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
+  const { user } = useAuth();
+
   // Fetch all events
   const { data: events = [], isLoading: eventsLoading } = useQuery<WeddingEvent[]>({
     queryKey: ['/api/events'],
     staleTime: 60 * 60 * 1000, // 1 hour
+    enabled: !!user, // Only fetch when user is authenticated
     select: (data) => {
       if (!Array.isArray(data)) return [];
       return data;
