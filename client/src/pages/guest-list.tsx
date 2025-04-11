@@ -356,7 +356,7 @@ export default function GuestList() {
               </Badge>
               <p>Showing {filter} guests only</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setLocation('/guest-list')}>
+            <Button variant="ghost" size="sm" onClick={() => setLocation('/guests')}>
               Clear Filter
             </Button>
           </div>
