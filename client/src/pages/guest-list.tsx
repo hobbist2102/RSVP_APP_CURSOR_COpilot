@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import DataTable from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { Plus, FileDown, FileUp, Mail, Eye, Pencil, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function GuestList() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -36,10 +36,11 @@ export default function GuestList() {
   // Selected guest for operations
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
   
-  // Get eventId from URL query params or default to first event
+  // Get parameters from URL query params
   const urlParams = new URLSearchParams(location.split("?")[1] || "");
   const editGuestId = urlParams.get("edit");
   const addGuest = urlParams.get("add");
+  const filter = urlParams.get("filter"); // Get filter parameter for RSVP status
   
   // Fetch the first event (would ideally have a way to select/switch events)
   const { data: events } = useQuery({
@@ -344,8 +345,25 @@ export default function GuestList() {
       </div>
       
       <div className="bg-white rounded-lg shadow p-6">
+        {/* Add filter status banner if filtering is active */}
+        {filter && (
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex justify-between items-center">
+            <div className="flex items-center">
+              <Badge className={`mr-2 ${filter === 'confirmed' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
+                filter === 'declined' ? 'bg-red-100 text-red-800 hover:bg-red-200' : 
+                'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'}`}>
+                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+              </Badge>
+              <p>Showing {filter} guests only</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setLocation('/guest-list')}>
+              Clear Filter
+            </Button>
+          </div>
+        )}
+        
         <DataTable
-          data={guests}
+          data={filter ? guests.filter((guest: any) => guest.rsvpStatus === filter) : guests}
           columns={columns}
           keyField="id"
           onRowClick={handleViewGuest}
