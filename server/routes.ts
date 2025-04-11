@@ -35,13 +35,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const sessionStore = MemoryStore(session);
   app.use(session({
     secret: 'wedding-rsvp-secret',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: { 
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       path: '/'
     },
     store: new sessionStore({
