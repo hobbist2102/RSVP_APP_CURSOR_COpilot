@@ -65,13 +65,18 @@ export default function GuestList() {
   
   // Fetch guests - explicitly depend on eventId in query key to ensure refresh on event switch
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
-    queryKey: [`/api/events/${eventId}/guests`, { eventId }], // Add eventId as query param
+    queryKey: ['guests', eventId],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/guests`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch guests');
+      }
+      return response.json();
+    },
     enabled: !!eventId,
-    refetchOnMount: 'always', // Always refetch on mount
-    refetchOnWindowFocus: true,
     staleTime: 0,
-    gcTime: 0,
-    structuralSharing: false, // Disable structural sharing completely
     // Ensure we get fresh data from server
     select: (data) => {
       // Log data for debugging
