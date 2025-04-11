@@ -261,6 +261,9 @@ export default function Events() {
         endDate: data.endDate,
         date: data.startDate // For backward compatibility 
       });
+      
+      // Close the dialog
+      setShowAddEventDialog(false);
     }
   };
   
