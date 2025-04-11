@@ -401,16 +401,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('POST /api/current-event - Session ID:', req.sessionID);
       const { eventId } = req.body;
       
+      // Input validation
       if (!eventId) {
-        return res.status(400).json({ message: 'Event ID is required' });
+        console.warn('Missing eventId in request body');
+        return res.status(400).json({ 
+          message: 'Event ID is required',
+          details: 'Please provide a valid event ID in the request body' 
+        });
+      }
+      
+      const parsedEventId = Number(eventId);
+      if (isNaN(parsedEventId)) {
+        console.warn(`Invalid eventId format: ${eventId}`);
+        return res.status(400).json({ 
+          message: 'Invalid Event ID format',
+          details: 'Event ID must be a valid number' 
+        });
       }
       
       // Get the event details
-      const event = await storage.getEvent(Number(eventId));
+      console.log(`Attempting to fetch event with ID: ${parsedEventId}`);
+      const event = await storage.getEvent(parsedEventId);
       
       if (!event) {
-        console.log(`Failed to set current event: Event ID ${eventId} not found`);
-        return res.status(404).json({ message: 'Event not found' });
+        console.warn(`Failed to set current event: Event ID ${parsedEventId} not found`);
+        return res.status(404).json({ 
+          message: 'Event not found',
+          details: `No event exists with ID ${parsedEventId}` 
+        });
+      }
+      
+      // Verify the current user has permission to access this event
+      if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
+        console.warn(`User ${(req.user as any).id} attempted to access event ${parsedEventId} without permission`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'You do not have permission to access this event' 
+        });
       }
       
       // Store in session
@@ -431,11 +458,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log(`Successfully set current event to: ${event.title}`);
-      res.json(event);
+      
+      // Return the full event details to ensure client has latest data
+      return res.json(event);
     } catch (error) {
       const err = error as Error;
-      console.error(`Error setting current event: ${err.message}`);
-      res.status(500).json({ message: 'Error setting current event' });
+      console.error(`Error setting current event: ${err.message}`, err);
+      return res.status(500).json({ 
+        message: 'Error setting current event',
+        details: err.message 
+      });
     }
   });
   
@@ -468,10 +500,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
-      const guestId = parseInt(req.params.id);
+      console.log(`GET /api/guests/:id - Session ID: ${req.sessionID}`);
+      const guestIdParam = req.params.id;
+      
+      if (!guestIdParam) {
+        console.warn('Missing guest ID in request');
+        return res.status(400).json({ 
+          message: 'Guest ID is required',
+          details: 'Please provide a valid guest ID' 
+        });
+      }
+      
+      const guestId = parseInt(guestIdParam);
+      if (isNaN(guestId)) {
+        console.warn(`Invalid guest ID format: ${guestIdParam}`);
+        return res.status(400).json({ 
+          message: 'Invalid guest ID format',
+          details: 'Guest ID must be a valid number' 
+        });
+      }
       
       // First try to get event context from query parameters
-      let eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      let eventId = undefined;
+      if (req.query.eventId) {
+        eventId = parseInt(req.query.eventId as string);
+        if (isNaN(eventId)) {
+          console.warn(`Invalid event ID format in query: ${req.query.eventId}`);
+          return res.status(400).json({ 
+            message: 'Invalid event ID format',
+            details: 'Event ID must be a valid number' 
+          });
+        }
+        console.log(`Using event context from query parameter: ${eventId}`);
+      }
       
       // If no event context in query, try to get it from session
       if (!eventId && req.session.currentEvent) {
@@ -482,23 +543,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let guest;
       
       if (eventId) {
+        // First verify the event exists
+        const event = await storage.getEvent(eventId);
+        if (!event) {
+          console.warn(`Event ID ${eventId} not found when retrieving guest`);
+          return res.status(404).json({ 
+            message: 'Event not found',
+            details: `The specified event ID ${eventId} does not exist` 
+          });
+        }
+        
+        // Verify the current user has permission to access this event
+        if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
+          console.warn(`User ${(req.user as any).id} attempted to access event ${eventId} without permission`);
+          return res.status(403).json({ 
+            message: 'Access denied',
+            details: 'You do not have permission to access this event' 
+          });
+        }
+        
         // Use event context to ensure guest belongs to this event
         console.log(`Fetching guest ${guestId} with event context ${eventId}`);
         guest = await storage.getGuestWithEventContext(guestId, eventId);
       } else {
-        // If we really have no event context (should be rare), log this unusual case
-        console.warn(`WARNING: Fetching guest ${guestId} without event context - this may lead to data leakage across events`);
-        guest = await storage.getGuest(guestId);
+        console.warn(`WARNING: No event context available for guest ${guestId} lookup`);
+        return res.status(400).json({ 
+          message: 'Event context required',
+          details: 'Please provide an event ID or select an event first' 
+        });
       }
       
       if (!guest) {
-        return res.status(404).json({ message: 'Guest not found in this event' });
+        console.warn(`Guest ${guestId} not found in event ${eventId}`);
+        return res.status(404).json({ 
+          message: 'Guest not found in this event',
+          details: `Guest ${guestId} does not exist or does not belong to event ${eventId}` 
+        });
       }
       
-      res.json(guest);
+      console.log(`Successfully retrieved guest ${guestId} from event ${eventId}`);
+      return res.json(guest);
     } catch (error) {
-      console.error(`Error fetching guest:`, error);
-      res.status(500).json({ message: 'Failed to fetch guest' });
+      const err = error as Error;
+      console.error(`Error fetching guest: ${err.message}`, err);
+      return res.status(500).json({ 
+        message: 'Failed to fetch guest',
+        details: err.message 
+      });
     }
   });
   
@@ -595,10 +686,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.delete('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
-      const guestId = parseInt(req.params.id);
+      console.log(`DELETE /api/guests/:id - Session ID: ${req.sessionID}`);
+      const guestIdParam = req.params.id;
+      
+      if (!guestIdParam) {
+        console.warn('Missing guest ID in request');
+        return res.status(400).json({ 
+          message: 'Guest ID is required',
+          details: 'Please provide a valid guest ID' 
+        });
+      }
+      
+      const guestId = parseInt(guestIdParam);
+      if (isNaN(guestId)) {
+        console.warn(`Invalid guest ID format: ${guestIdParam}`);
+        return res.status(400).json({ 
+          message: 'Invalid guest ID format',
+          details: 'Guest ID must be a valid number' 
+        });
+      }
       
       // First try to get event context from query parameters
-      let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      let contextEventId = undefined;
+      if (req.query.eventId) {
+        contextEventId = parseInt(req.query.eventId as string);
+        if (isNaN(contextEventId)) {
+          console.warn(`Invalid event ID format in query: ${req.query.eventId}`);
+          return res.status(400).json({ 
+            message: 'Invalid event ID format',
+            details: 'Event ID must be a valid number' 
+          });
+        }
+        console.log(`Using event context from query parameter: ${contextEventId}`);
+      }
       
       // If no event context in query, try to get it from session
       if (!contextEventId && req.session.currentEvent) {
@@ -606,30 +726,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Using session event context: ${contextEventId} for guest deletion`);
       }
       
-      // If event context provided, verify this guest belongs to the event
-      if (contextEventId) {
-        const guest = await storage.getGuestWithEventContext(guestId, contextEventId);
-        if (!guest) {
-          console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
-          return res.status(404).json({ 
-            message: 'Guest not found in this event',
-            details: `Guest ${guestId} does not belong to event ${contextEventId}` 
-          });
-        }
-      } else {
-        console.warn(`WARNING: Deleting guest ${guestId} without event context - this may lead to data leakage across events`);
+      // Always require event context for guest operations
+      if (!contextEventId) {
+        console.warn(`No event context available for guest ${guestId} deletion`);
+        return res.status(400).json({ 
+          message: 'Event context required',
+          details: 'Please provide an event ID or select an event first' 
+        });
+      }
+      
+      // Verify the event exists
+      const event = await storage.getEvent(contextEventId);
+      if (!event) {
+        console.warn(`Event ID ${contextEventId} not found when deleting guest`);
+        return res.status(404).json({ 
+          message: 'Event not found',
+          details: `The specified event ID ${contextEventId} does not exist` 
+        });
+      }
+      
+      // Verify the current user has permission to access this event
+      if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
+        console.warn(`User ${(req.user as any).id} attempted to access event ${contextEventId} without permission`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'You do not have permission to access this event' 
+        });
+      }
+      
+      // Verify this guest belongs to the correct event
+      const guest = await storage.getGuestWithEventContext(guestId, contextEventId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
+        return res.status(404).json({ 
+          message: 'Guest not found in this event',
+          details: `Guest ${guestId} does not belong to event ${contextEventId}` 
+        });
       }
       
       // Proceed with deletion
       const success = await storage.deleteGuest(guestId);
       if (!success) {
-        return res.status(404).json({ message: 'Guest not found' });
+        console.warn(`Deletion failed for guest ${guestId}`);
+        return res.status(500).json({ 
+          message: 'Guest deletion failed',
+          details: 'The deletion operation could not be completed' 
+        });
       }
       
-      res.json({ message: 'Guest deleted successfully' });
+      console.log(`Successfully deleted guest ${guestId} from event ${contextEventId}`);
+      return res.json({ 
+        message: 'Guest deleted successfully',
+        guestId: guestId,
+        eventId: contextEventId
+      });
     } catch (error) {
-      console.error(`Error deleting guest:`, error);
-      res.status(500).json({ message: 'Failed to delete guest' });
+      const err = error as Error;
+      console.error(`Error deleting guest: ${err.message}`, err);
+      return res.status(500).json({ 
+        message: 'Failed to delete guest',
+        details: err.message 
+      });
     }
   });
   
