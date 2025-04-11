@@ -52,7 +52,7 @@ export default function Dashboard() {
   ];
   
   // Prepare recent RSVP activity data
-  const recentActivities = guests
+  const recentActivities = guests && Array.isArray(guests)
     ? guests
         .slice(0, 5)
         .map((guest: any) => ({
@@ -70,7 +70,7 @@ export default function Dashboard() {
     : [];
   
   // Prepare accommodation data
-  const accommodationData = accommodations
+  const accommodationData = accommodations && Array.isArray(accommodations)
     ? accommodations.map((acc: any) => ({
         id: acc.id,
         name: acc.roomType,
@@ -80,8 +80,15 @@ export default function Dashboard() {
       }))
     : [];
   
+  // Import the SpecialRequirement type
+  type SpecialRequirement = {
+    id: number;
+    text: string;
+    status: "completed" | "pending";
+  };
+  
   // Sample special requirements
-  const specialRequirements = [
+  const specialRequirements: SpecialRequirement[] = [
     { id: 1, text: "3 rooms with accessibility features", status: "completed" },
     { id: 2, text: "2 rooms with cribs", status: "completed" },
     { id: 3, text: "4 additional rooms on hold", status: "pending" },
@@ -89,10 +96,12 @@ export default function Dashboard() {
   
   // Handle view guest
   const handleViewGuest = (guestId: number) => {
-    const guest = guests.find((g: any) => g.id === guestId);
-    if (guest) {
-      setSelectedGuest(guest);
-      setShowGuestDetailDialog(true);
+    if (guests && Array.isArray(guests)) {
+      const guest = guests.find((g: any) => g.id === guestId);
+      if (guest) {
+        setSelectedGuest(guest);
+        setShowGuestDetailDialog(true);
+      }
     }
   };
   
