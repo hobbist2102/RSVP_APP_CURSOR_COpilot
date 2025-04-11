@@ -63,8 +63,20 @@ export function EventSelector() {
         // Set the current event using our hook
         setCurrentEvent(selectedEvent);
         
-        // Invalidate all relevant queries to force fresh data for the new event
+        // More aggressively invalidate all relevant queries to force fresh data for the new event
+        
+        // First, invalidate the specific guest list for this event
         queryClient.invalidateQueries({
+          queryKey: [`/api/events/${selectedEvent.id}/guests`]
+        });
+        
+        // Then invalidate ALL guest-related queries to prevent stale/mismatched data 
+        queryClient.invalidateQueries({
+          queryKey: ['/api/guests']
+        });
+        
+        // Force refetch to ensure the latest data
+        queryClient.refetchQueries({
           queryKey: [`/api/events/${selectedEvent.id}/guests`]
         });
         

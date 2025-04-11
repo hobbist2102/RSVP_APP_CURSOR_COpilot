@@ -63,10 +63,14 @@ export default function GuestList() {
   // Use the current event ID from the context
   const eventId = currentEventId || 1;
   
-  // Fetch guests
+  // Fetch guests - explicitly depend on eventId in query key to ensure refresh on event switch
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
     queryKey: [`/api/events/${eventId}/guests`],
     enabled: !!eventId,
+    // Force the component to refetch when the current event changes
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0 // Don't cache this data
   });
   
   // Create guest mutation
