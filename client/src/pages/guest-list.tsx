@@ -70,7 +70,16 @@ export default function GuestList() {
     // Force the component to refetch when the current event changes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 0 // Don't cache this data
+    staleTime: 0, // Don't cache this data
+    cacheTime: 0, // Don't keep old data in cache
+    // Empty function to ensure we don't use any shared cache
+    structuralSharing: () => false,
+    // Ensure we get fresh data from server
+    select: (data) => {
+      // Log data for debugging
+      console.log(`Received guest data for event ${eventId}:`, data);
+      return data;
+    }
   });
   
   // Create guest mutation
