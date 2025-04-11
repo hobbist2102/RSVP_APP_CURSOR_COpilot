@@ -319,26 +319,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route for current event, used by event selector
   app.get('/api/current-event', isAuthenticated, async (req, res) => {
     try {
+      console.log('GET /api/current-event - Session ID:', req.sessionID);
+      
       // Get current event from session if available
       if (req.session && req.session.currentEvent) {
-        console.log('Returning current event from session:', req.session.currentEvent);
-        return res.json(req.session.currentEvent);
+        // Verify the event still exists in the database (in case it was deleted)
+        const storedEvent = await storage.getEvent(req.session.currentEvent.id);
+        if (storedEvent) {
+          console.log('Returning current event from session:', req.session.currentEvent.title, '(ID:', req.session.currentEvent.id, ')');
+          return res.json(req.session.currentEvent);
+        } else {
+          console.log('Event in session no longer exists in database, fetching new default event');
+          // Session has a deleted event, clear it to fetch a new one
+          delete req.session.currentEvent;
+        }
       }
       
       // If no current event in session, get the first event
       const events = await storage.getAllEvents();
       if (events && events.length > 0) {
-        console.log('No current event in session, defaulting to first event:', events[0]);
+        console.log('No current event in session, defaulting to first event:', events[0].title, '(ID:', events[0].id, ')');
         // Store in session for future requests
         req.session.currentEvent = events[0];
+        
+        // Explicitly save the session to ensure it's persisted
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error('Error saving session:', err);
+              reject(err);
+            } else {
+              console.log('Session saved with new current event');
+              resolve();
+            }
+          });
+        });
+        
         return res.json(events[0]);
       }
       
       // No events available
       console.log('No events available for current-event endpoint');
-      return res.json({});
+      return res.status(404).json({ message: 'No events available' });
     } catch (error) {
-      console.error(`Error with current event: ${error}`);
+      const err = error as Error;
+      console.error(`Error with current event: ${err.message}`);
       res.status(500).json({ message: 'Error processing current event' });
     }
   });
@@ -346,6 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route to set current event
   app.post('/api/current-event', isAuthenticated, async (req, res) => {
     try {
+      console.log('POST /api/current-event - Session ID:', req.sessionID);
       const { eventId } = req.body;
       
       if (!eventId) {
@@ -356,16 +382,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await storage.getEvent(Number(eventId));
       
       if (!event) {
+        console.log(`Failed to set current event: Event ID ${eventId} not found`);
         return res.status(404).json({ message: 'Event not found' });
       }
       
       // Store in session
       req.session.currentEvent = event;
-      console.log('Setting current event in session:', event);
+      console.log(`Setting current event in session: ${event.title} (ID: ${event.id})`);
       
+      // Explicitly save the session to ensure it's persisted
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('Error saving session with current event:', err);
+            reject(err);
+          } else {
+            console.log('Session saved with new current event');
+            resolve();
+          }
+        });
+      });
+      
+      console.log(`Successfully set current event to: ${event.title}`);
       res.json(event);
     } catch (error) {
-      console.error(`Error setting current event: ${error}`);
+      const err = error as Error;
+      console.error(`Error setting current event: ${err.message}`);
       res.status(500).json({ message: 'Error setting current event' });
     }
   });
@@ -374,9 +416,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      
+      // Verify that the event exists
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        console.warn(`Event ID ${eventId} not found when retrieving guests`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Store current event in session for context in future requests
+      req.session.currentEvent = event;
+      console.log(`Set session current event to: ${event.title} (ID: ${eventId})`);
+      
+      // Get guests for this event with added validation
       const guests = await storage.getGuestsByEvent(eventId);
+      console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
+      
       res.json(guests);
     } catch (error) {
+      console.error(`Error fetching guests for event:`, error);
       res.status(500).json({ message: 'Failed to fetch guests' });
     }
   });
