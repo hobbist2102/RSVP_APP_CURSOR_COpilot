@@ -1237,11 +1237,25 @@ export class DatabaseStorage implements IStorage {
 
   // Guest operations
   async getGuest(id: number): Promise<Guest | undefined> {
+    console.log(`Fetching guest with ID: ${id}`);
     const result = await db.select().from(guests).where(eq(guests.id, id));
+    return result[0];
+  }
+  
+  // Get guest with event context verification
+  async getGuestWithEventContext(id: number, eventId: number): Promise<Guest | undefined> {
+    console.log(`Fetching guest with ID: ${id} in event context: ${eventId}`);
+    const result = await db.select().from(guests).where(
+      and(
+        eq(guests.id, id),
+        eq(guests.eventId, eventId)
+      )
+    );
     return result[0];
   }
 
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
+    console.log(`Fetching all guests for event: ${eventId}`);
     return await db.select().from(guests).where(eq(guests.eventId, eventId));
   }
 

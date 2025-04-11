@@ -340,12 +340,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
-      const guest = await storage.getGuest(guestId);
+      
+      // Get the current event context from query parameters
+      const eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      let guest;
+      
+      if (eventId) {
+        // If event context is provided, use it to ensure guest belongs to this event
+        console.log(`Fetching guest ${guestId} with event context ${eventId}`);
+        guest = await storage.getGuestWithEventContext(guestId, eventId);
+      } else {
+        // If no event context, get the guest without context (for backward compatibility)
+        console.log(`Fetching guest ${guestId} without event context`);
+        guest = await storage.getGuest(guestId);
+      }
+      
       if (!guest) {
         return res.status(404).json({ message: 'Guest not found' });
       }
+      
       res.json(guest);
     } catch (error) {
+      console.error(`Error fetching guest:`, error);
       res.status(500).json({ message: 'Failed to fetch guest' });
     }
   });
@@ -369,15 +386,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const guestId = parseInt(req.params.id);
       console.log(`Processing update for guest ID: ${guestId}`);
       
+      // Get the current event context from query parameters
+      const contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
       // Validate input data
       const guestData = insertGuestSchema.partial().parse(req.body);
       console.log(`Validated guest data: ${JSON.stringify(guestData)}`);
       
       // First verify this guest belongs to the correct event
-      const currentGuest = await storage.getGuest(guestId);
-      if (!currentGuest) {
-        console.warn(`Guest with ID ${guestId} not found`);
-        return res.status(404).json({ message: 'Guest not found' });
+      let currentGuest;
+      
+      if (contextEventId) {
+        // If event context is provided, verify guest belongs to this event
+        console.log(`Verifying guest ${guestId} belongs to event ${contextEventId}`);
+        currentGuest = await storage.getGuestWithEventContext(guestId, contextEventId);
+        
+        if (!currentGuest) {
+          console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
+          return res.status(404).json({ 
+            message: 'Guest not found in this event',
+            details: `Guest ${guestId} does not belong to event ${contextEventId}` 
+          });
+        }
+      } else {
+        // If no event context, get the guest without context (for backward compatibility)
+        currentGuest = await storage.getGuest(guestId);
+        if (!currentGuest) {
+          console.warn(`Guest with ID ${guestId} not found`);
+          return res.status(404).json({ message: 'Guest not found' });
+        }
       }
       
       // Keep the eventId the same (prevent changing event association)
