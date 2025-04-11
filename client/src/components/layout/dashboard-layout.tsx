@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "./header";
 import Sidebar from "./sidebar";
-import { useQuery } from "@tanstack/react-query";
 import { formatDate } from "@/lib/utils";
 import EventSelector from "../event/event-selector";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,31 +12,8 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Get the current event from the cache (this will be set by EventSelector)
-  const { data: currentEvent } = useQuery({
-    queryKey: ['/api/current-event'],
-    staleTime: 60 * 60 * 1000, // 1 hour
-  });
-
-  // Fallback to event 1 if no current event is set
-  useEffect(() => {
-    if (!currentEvent) {
-      // Fetch default event (we'll keep this as a fallback)
-      const fetchEvent = async () => {
-        try {
-          const response = await fetch('/api/events/1');
-          if (response.ok) {
-            const data = await response.json();
-            // This event data will be displayed in header
-          }
-        } catch (error) {
-          console.error('Error fetching default event:', error);
-        }
-      };
-      
-      fetchEvent();
-    }
-  }, [currentEvent]);
+  // Use our custom hook to get the current event
+  const { currentEvent } = useCurrentEvent();
 
   const eventData = currentEvent ? {
     title: currentEvent.title,

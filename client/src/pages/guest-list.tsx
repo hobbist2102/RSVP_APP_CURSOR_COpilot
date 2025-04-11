@@ -20,11 +20,15 @@ import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
 import { getRsvpStatusColor, getInitials, formatDate } from "@/lib/utils";
 import { Plus, FileDown, FileUp, Mail, Eye, Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 
 export default function GuestList() {
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Use current event hook to get the current event ID
+  const { currentEventId } = useCurrentEvent();
   
   // Dialog states
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -42,12 +46,8 @@ export default function GuestList() {
   const addGuest = urlParams.get("add");
   const filter = urlParams.get("filter"); // Get filter parameter for RSVP status
   
-  // Fetch the first event (would ideally have a way to select/switch events)
-  const { data: events } = useQuery({
-    queryKey: ['/api/events'],
-  });
-  
-  const eventId = events?.[0]?.id || 1;
+  // Use the current event ID from the context
+  const eventId = currentEventId || 1;
   
   // Fetch guests
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery({
@@ -125,13 +125,16 @@ export default function GuestList() {
     },
   });
   
+  // Get current event for export filename
+  const { currentEvent } = useCurrentEvent();
+
   // Handle export
   const handleExport = () => {
     try {
       const formattedData = formatGuestsForExport(guests);
       exportToExcel(
         formattedData, 
-        `Guest_List_${events?.[0]?.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`
+        `Guest_List_${currentEvent?.title.replace(/\s+/g, '_') || 'Wedding'}_${new Date().toISOString().split('T')[0]}`
       );
       
       toast({

@@ -8,26 +8,18 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-// Define a simplified type for WeddingEvent
-interface WeddingEvent {
-  id: number;
-  title: string;
-  date: string;
-  coupleNames: string;
-  brideName: string;
-  groomName: string;
-  location: string;
-  description: string | null;
-}
-import { queryClient } from "@/lib/queryClient";
+import { useCurrentEvent, type CurrentEvent } from "@/hooks/use-current-event";
 import { CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 export function EventSelector() {
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const { currentEvent, setCurrentEvent } = useCurrentEvent();
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(
+    currentEvent ? String(currentEvent.id) : null
+  );
 
   // Fetch all events
-  const { data: events = [], isLoading: eventsLoading } = useQuery<WeddingEvent[]>({
+  const { data: events = [], isLoading: eventsLoading } = useQuery<CurrentEvent[]>({
     queryKey: ['/api/events'],
     staleTime: 60 * 60 * 1000, // 1 hour
     select: (data) => {
@@ -42,10 +34,10 @@ export function EventSelector() {
       const firstEventId = String(events[0].id);
       setSelectedEventId(firstEventId);
       
-      // Set the current event in react-query cache
-      queryClient.setQueryData(['/api/current-event'], events[0]);
+      // Set the current event in react-query cache using our hook
+      setCurrentEvent(events[0]);
     }
-  }, [events, selectedEventId]);
+  }, [events, selectedEventId, setCurrentEvent]);
 
   const handleEventChange = (value: string) => {
     // Set the selected event ID
@@ -55,15 +47,8 @@ export function EventSelector() {
     const selectedEvent = events.find(event => String(event.id) === value);
     
     if (selectedEvent) {
-      // Set the current event in react-query cache
-      queryClient.setQueryData(['/api/current-event'], selectedEvent);
-      
-      // Invalidate queries that depend on the current event ID
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${value}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${value}/guests`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${value}/ceremonies`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${value}/accommodations`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${value}/statistics`] });
+      // Set the current event using our hook
+      setCurrentEvent(selectedEvent);
       
       toast({
         title: "Event Changed",
@@ -109,7 +94,7 @@ export function EventSelector() {
               >
                 <div className="flex flex-col">
                   <span className="font-medium">{event.title}</span>
-                  <span className="text-xs text-gray-500">{formatDate(event.date)}</span>
+                  <span className="text-xs text-gray-500">{formatDate(event.startDate)} - {formatDate(event.endDate)}</span>
                 </div>
               </SelectItem>
             ))}

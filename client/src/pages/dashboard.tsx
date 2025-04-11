@@ -13,6 +13,7 @@ import { formatDate, getInitials } from "@/lib/utils";
 import { useEventStats } from "@/hooks/use-stats";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
 import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -21,20 +22,11 @@ export default function Dashboard() {
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
   const [showGuestDetailDialog, setShowGuestDetailDialog] = useState(false);
   
-  // Get the current event from the cache (this will be set by EventSelector)
-  const { data: currentEvent } = useQuery({
-    queryKey: ['/api/current-event'],
-    staleTime: 60 * 60 * 1000, // 1 hour
-  });
+  // Get the current event from our custom hook
+  const { currentEvent, currentEventId } = useCurrentEvent();
   
-  // Fallback to fetching events if no current event is set
-  const { data: events } = useQuery({
-    queryKey: ['/api/events'],
-    enabled: !currentEvent,
-  });
-  
-  // Use either the selected event or the first event as fallback
-  const eventId = currentEvent?.id || events?.[0]?.id || 1;
+  // Use the current event ID
+  const eventId = currentEventId || 1;
   
   // Get event statistics
   const { stats, isLoadingStats, generateRsvpProgressData } = useEventStats(eventId);
@@ -121,9 +113,9 @@ export default function Dashboard() {
         <div>
           <h2 className="text-3xl font-playfair font-bold text-neutral">Dashboard</h2>
           <p className="text-sm text-gray-500">
-            Wedding: <span className="font-medium">{currentEvent?.title || events?.[0]?.title || "Loading..."}</span> | 
+            Wedding: <span className="font-medium">{currentEvent?.title || "Loading..."}</span> | 
             Dates: <span className="font-medium">
-              {formatDate(currentEvent?.startDate || events?.[0]?.startDate)} - {formatDate(currentEvent?.endDate || events?.[0]?.endDate)}
+              {currentEvent ? `${formatDate(currentEvent.startDate)} - ${formatDate(currentEvent.endDate)}` : "Loading..."}
             </span>
           </p>
         </div>
