@@ -55,10 +55,21 @@ export function EventSelector() {
         // and server-side session update in one function
         await setCurrentEvent(selectedEvent);
         
+        // Show toast notifying the user
         toast({
           title: "Event Changed",
           description: `Now viewing: ${selectedEvent.title}`,
         });
+        
+        // EXTREME MEASURE: Hard reload the page after switching events
+        // This is a last resort to ensure all React Query cache is completely reset
+        // and we start with a fresh state
+        console.log("EVENT SELECTOR: Forcing page reload to ensure complete reset");
+        
+        // Slight delay to ensure the toast is shown and server request is complete
+        setTimeout(() => {
+          window.location.href = window.location.pathname;
+        }, 800);
       }
     } catch (error) {
       console.error("Error changing event:", error);
