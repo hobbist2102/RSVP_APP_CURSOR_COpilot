@@ -223,9 +223,9 @@ export function validateTenantContext(eventId: number | null | undefined): void 
 export interface RequestWithEventContext extends Request {
   eventContext?: {
     eventId: number;
-    eventTitle?: string;
-    hasPermission?: boolean;
-    createdBy?: number;
+    eventTitle?: string | undefined;
+    hasPermission?: boolean | undefined;
+    createdBy?: number | undefined;
   };
 }
 

@@ -54,7 +54,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
       const result = await db.select().from(this.table).where(condition);
       return result[0] as T | undefined;
     } catch (error) {
-      console.error(`Failed to get ${this.table.name} with ID ${id} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to get ${tableName} with ID ${id} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -79,7 +81,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
       const result = await db.select().from(this.table).where(condition);
       return result as T[];
     } catch (error) {
-      console.error(`Failed to get all ${this.table.name} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to get all ${tableName} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -98,7 +102,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
       const result = await db.insert(this.table).values(insertData).returning();
       return result[0] as T;
     } catch (error) {
-      console.error(`Failed to create ${this.table.name} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to create ${tableName} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -121,7 +127,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
       const result = await db.insert(this.table).values(insertData).returning();
       return result as T[];
     } catch (error) {
-      console.error(`Failed to bulk create ${this.table.name} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to bulk create ${tableName} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -158,7 +166,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
         
       return result[0] as T;
     } catch (error) {
-      console.error(`Failed to update ${this.table.name} with ID ${id} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to update ${tableName} with ID ${id} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -193,7 +203,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
         
       return result.length > 0;
     } catch (error) {
-      console.error(`Failed to delete ${this.table.name} with ID ${id} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to delete ${tableName} with ID ${id} for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -219,7 +231,9 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
         
       return result.length;
     } catch (error) {
-      console.error(`Failed to delete all ${this.table.name} for event ${eventId}:`, error);
+      // Get table name safely or use generic name
+      const tableName = (this.table as any).name || 'entity';
+      console.error(`Failed to delete all ${tableName} for event ${eventId}:`, error);
       throw error;
     }
   }
