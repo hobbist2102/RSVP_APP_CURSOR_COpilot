@@ -70,6 +70,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
+  // Apply tenant context middleware for multi-tenant data isolation
+  // This middleware must come after session setup but before route handlers
+  app.use(tenantContext);
+  
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
       const user = await storage.getUserByUsername(username);
