@@ -864,13 +864,16 @@ export class MemStorage implements IStorage {
   // TEMPORARY: This method forwards to the database implementation and logs the difference
   // for debugging the Don ji issue. Will be replaced with direct call to db implementation.
   async getGuestsByEvent(eventId: number): Promise<Guest[]> {
-    console.log(`FORWARDING getGuestsByEvent to database implementation for event ID: ${eventId}`);
+    console.log(`Legacy MemStorage.getGuestsByEvent for event ID: ${eventId}`);
     
     try {
-      // Forward to database implementation
-      return await this._dbGetGuestsByEvent(eventId);
+      // Simply return guests for this event from memory
+      // This ensures we don't have a circular reference with storage
+      return Array.from(this.guestsMap.values()).filter(
+        (guest) => guest.eventId === eventId
+      );
     } catch (error) {
-      console.error(`Error in getGuestsByEvent for event ${eventId}:`, error);
+      console.error(`Error in legacy MemStorage.getGuestsByEvent for event ${eventId}:`, error);
       throw error;
     }
   }
@@ -1494,8 +1497,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // This is the correct database implementation of getGuestsByEvent
-  async _dbGetGuestsByEvent(eventId: number): Promise<Guest[]> {
+  // This is the correct implementation of getGuestsByEvent
+  async getGuestsByEvent(eventId: number): Promise<Guest[]> {
     if (!eventId || isNaN(eventId)) {
       throw new Error('Invalid event ID');
     }
