@@ -3,7 +3,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
-// Define the event interface
+/**
+ * Enhanced CurrentEvent interface to match server-side WeddingEvent
+ * 
+ * This interface represents a wedding event (tenant) in the system
+ * and is used for the event context throughout the application.
+ */
 export interface CurrentEvent {
   id: number;
   title: string;
@@ -14,13 +19,35 @@ export interface CurrentEvent {
   endDate: string;
   location: string;
   description?: string | null;
+  date?: string | null; // Keeping for backward compatibility
+  
+  // Tenant-specific configuration
   primaryColor?: string | null;
   secondaryColor?: string | null;
+  
+  // Email config
+  emailProvider?: string | null;
+  emailApiKey?: string | null;
+  emailFromAddress?: string | null;
+  emailFromDomain?: string | null;
+  emailConfigured?: boolean;
+  
+  // WhatsApp config
+  whatsappBusinessPhoneId?: string | null;
+  whatsappBusinessNumber?: string | null;
+  whatsappBusinessAccountId?: string | null;
+  whatsappAccessToken?: string | null;
   whatsappFrom?: string | null;
-  // Add other properties as needed
+  whatsappConfigured?: boolean;
+  
+  // Metadata
+  createdBy: number;
 }
 
-// Define what the event context provides
+/**
+ * The event context interface exposes event state and methods
+ * for the rest of the application to consume
+ */
 interface EventContextType {
   currentEvent: CurrentEvent | null;
   isLoading: boolean;
@@ -28,6 +55,7 @@ interface EventContextType {
   setCurrentEvent: (event: CurrentEvent) => Promise<void>;
   clearEventContext: () => void;
   isValidEventContext: boolean;
+  hasPermission: boolean;
 }
 
 // Create the context with default values
@@ -38,12 +66,17 @@ const EventContext = createContext<EventContextType>({
   setCurrentEvent: async () => {},
   clearEventContext: () => {},
   isValidEventContext: false,
+  hasPermission: false,
 });
 
-// Create the provider component
+/**
+ * EventContextProvider manages the tenant context on the client-side
+ * and synchronizes it with the server-side tenant context.
+ */
 export function EventContextProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [isValidEventContext, setIsValidEventContext] = useState<boolean>(false);
+  const [hasPermission, setHasPermission] = useState<boolean>(false);
   
   // Query to get the current event from server session
   const { 
@@ -55,13 +88,25 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/current-event'],
     staleTime: 60 * 60 * 1000, // 1 hour
     retry: 1, // Retry once in case of initial session setup
-    onSettled: (data) => {
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    onSuccess: (data) => {
       if (data && 'id' in data) {
         console.log(`Event context loaded: ${data.title} (ID: ${data.id})`);
         setIsValidEventContext(true);
+        
+        // Capture permission from the server response if available
+        if ('hasPermission' in data) {
+          setHasPermission(!!data.hasPermission);
+        }
       } else {
         setIsValidEventContext(false);
+        setHasPermission(false);
       }
+    },
+    onError: () => {
+      setIsValidEventContext(false);
+      setHasPermission(false);
     }
   });
   
@@ -80,10 +125,18 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       setIsValidEventContext(false);
+      setHasPermission(false);
     }
   });
   
-  // Helper function to set the current event both locally and on server
+  /**
+   * Helper function to set the current event both locally and on server
+   * This function handles:
+   * 1. Cache clearing to prevent stale data
+   * 2. Local state updates for responsive UI
+   * 3. Server-side session updates
+   * 4. Query invalidation to refresh relevant data
+   */
   const setCurrentEvent = async (event: CurrentEvent) => {
     try {
       console.log(`EVENT CONTEXT: Switching to event ID: ${event.id} (${event.title})`);
@@ -110,6 +163,9 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
         description: `Now viewing: ${event.title}`,
       });
       
+      // Invalidate all event-specific queries
+      invalidateEventQueries(event.id);
+      
       // Force a refetch of all active queries after a short delay
       setTimeout(() => {
         queryClient.refetchQueries();
@@ -117,24 +173,91 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('EVENT CONTEXT: Error setting current event:', error);
       setIsValidEventContext(false);
+      setHasPermission(false);
       throw error;
     }
   };
   
-  // Function to clear the event context
-  const clearEventContext = () => {
-    queryClient.setQueryData<CurrentEvent | null>(['/api/current-event'], null);
-    setIsValidEventContext(false);
-    console.log('EVENT CONTEXT: Cleared event context');
+  /**
+   * Helper function to invalidate all queries related to a specific event
+   */
+  const invalidateEventQueries = (eventId: number) => {
+    console.log(`EVENT CONTEXT: Invalidating queries for event ${eventId}`);
+    
+    // Invalidate specific event routes
+    const eventSpecificRoutes = [
+      `/api/events/${eventId}`,
+      `/api/events/${eventId}/guests`,
+      `/api/events/${eventId}/ceremonies`,
+      `/api/events/${eventId}/accommodations`,
+      `/api/events/${eventId}/statistics`,
+      `/api/events/${eventId}/meals`,
+      `/api/events/${eventId}/whatsapp`,
+      `/api/events/${eventId}/templates`,
+    ];
+    
+    // Invalidate each specific route
+    eventSpecificRoutes.forEach(route => {
+      queryClient.invalidateQueries({ queryKey: [route] });
+    });
+    
+    // Invalidate general routes that might contain event data
+    const generalRoutes = [
+      '/api/events',
+      '/api/guests',
+      '/api/ceremonies',
+      '/api/accommodations',
+      '/api/meals',
+    ];
+    
+    // Invalidate each general route
+    generalRoutes.forEach(route => {
+      queryClient.invalidateQueries({ queryKey: [route] });
+    });
+    
+    console.log('EVENT CONTEXT: All relevant queries invalidated');
   };
   
-  // Effect to validate event context when component mounts
+  /**
+   * Function to clear the event context
+   * Used when logging out or when we need to reset the event context
+   */
+  const clearEventContext = async () => {
+    try {
+      // Clear the local cache
+      queryClient.setQueryData<CurrentEvent | null>(['/api/current-event'], null);
+      setIsValidEventContext(false);
+      setHasPermission(false);
+      
+      // Clear the server-side session
+      await apiRequest("DELETE", "/api/current-event");
+      
+      console.log('EVENT CONTEXT: Cleared event context');
+      
+      // Clear the cache to prevent stale data
+      queryClient.clear();
+      
+      // Invalidate queries to ensure fresh data when a new event is selected
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      
+    } catch (error) {
+      console.error('EVENT CONTEXT: Error clearing event context:', error);
+    }
+  };
+  
+  // Effect to validate event context when component mounts or when currentEvent changes
   useEffect(() => {
-    // Check if we have a valid event context on mount
+    // Check if we have a valid event context
     if (currentEvent && 'id' in currentEvent) {
       setIsValidEventContext(true);
+      
+      // Capture permission from the event data if available
+      if ('hasPermission' in currentEvent) {
+        setHasPermission(!!currentEvent.hasPermission);
+      }
     } else {
       setIsValidEventContext(false);
+      setHasPermission(false);
     }
   }, [currentEvent]);
   
@@ -147,6 +270,7 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
         setCurrentEvent,
         clearEventContext,
         isValidEventContext,
+        hasPermission,
       }}
     >
       {children}
@@ -154,7 +278,10 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use the event context
+/**
+ * Hook to use the event context throughout the application
+ * This is the primary way for components to access the current tenant
+ */
 export function useEventContext() {
   const context = useContext(EventContext);
   if (!context) {
