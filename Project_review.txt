@@ -1,0 +1,97 @@
+# Project Review: Indian Wedding Management Platform
+
+## Metadata
+- **Date of Review**: 2025-04-12
+- **Reviewer**: hobbist2102
+- **Current Status**: Active Development
+
+---
+
+## Section 1: Overall Review
+### Project Summary
+The **Indian Wedding Management Platform** is designed to streamline the management of complex Indian wedding events. The platform supports multi-event management, robust guest tracking, ceremony logistics, and automated communication through WhatsApp integration.
+
+### Key Features
+1. Multi-event management with tenant-based data isolation.
+2. Comprehensive guest tracking and RSVP management.
+3. Ceremony and accommodation planning tools.
+4. WhatsApp Business integration for personalized communication.
+
+### Strengths
+- Well-structured backend using TypeScript, Express, and Drizzle ORM.
+- Modular frontend architecture with React, TanStack Query, and TailwindCSS.
+- Strong focus on multi-tenancy and security.
+
+### Areas for Improvement
+1. **Error Handling**:
+   - Enhance server-side error handling for API endpoints.
+   - Add user-friendly error messages for common issues.
+2. **Performance Optimization**:
+   - Optimize database queries to handle large guest lists efficiently.
+   - Implement lazy loading for frontend components.
+3. **Testing**:
+   - Increase test coverage for critical components and APIs.
+   - Add automated tests for utility functions and backend routes.
+
+---
+
+## Section 2: Issue Tracking and Suggestions
+
+### Issue 1: Guest List Appearing Across Events
+- **Description**: Guests created in one event (e.g., "Rocky Rani") appear in other events (e.g., "Virat and Anu").
+- **Status**: Open
+- **Impact**: Causes data leakage and violates tenant-based data isolation.
+- **Recommended Fix**:
+  1. **Backend**:
+     - Ensure the `/api/events/:eventId/guests` endpoint filters guests by `eventId`.
+     - Update SQL query or ORM logic to include `WHERE event_id = :eventId`.
+
+  2. **Frontend**:
+     - Update `useQuery` calls to enforce a valid `eventId`.
+     - Validate `eventId` before making API requests.
+
+  3. **Validation**:
+     - Add server-side validation to reject requests with missing or invalid `eventId`.
+
+#### Code Snippet for Fix
+```typescript name=backend/fix_guest_list.ts
+// Ensure guests are fetched only for the specified event
+const getGuestsByEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!eventId) {
+    return res.status(400).json({ message: "Event ID is required" });
+  }
+
+  try {
+    const guests = await db.query(`
+      SELECT * FROM guests WHERE event_id = $1
+    `, [eventId]);
+
+    res.json(guests);
+  } catch (error) {
+    console.error("Error fetching guests:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+```
+
+```tsx name=frontend/fix_guest_list.tsx
+// UseQuery hook to fetch guests with event context
+const { data: guests = [], isLoading } = useQuery<Guest[]>({
+  queryKey: [`/api/events/${eventId}/guests`],
+  queryFn: async () => {
+    if (!eventId) throw new Error("No valid event ID provided");
+    const res = await fetch(`/api/events/${eventId}/guests`);
+    return res.json();
+  },
+  enabled: !!eventId,
+});
+```
+
+---
+
+## Change Log
+### 2025-04-12
+- Added initial project review and recommendations.
+- Logged "Guest List Appearing Across Events" issue with proposed fixes.
