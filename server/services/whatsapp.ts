@@ -5,25 +5,54 @@
 import { Guest, WeddingEvent, WhatsappTemplate } from "@shared/schema";
 import { storage } from "../storage";
 
+export interface WhatsAppMessageParameter {
+  type: string;
+  text?: string;
+  image?: {
+    link: string;
+  };
+  document?: {
+    link: string;
+    filename: string;
+  };
+  video?: {
+    link: string;
+  };
+  currency?: {
+    code: string;
+    amount: number;
+  };
+  date_time?: {
+    fallback_value: string;
+  };
+}
+
+export interface WhatsAppMessageComponent {
+  type: string; // 'header', 'body', 'button', 'footer'
+  parameters: WhatsAppMessageParameter[];
+  sub_type?: string; // Used for buttons: 'quick_reply', 'url'
+  index?: number; // Used for buttons
+}
+
 export interface WhatsAppMessage {
   to: string;
   templateName: string;
   languageCode: string;
-  components?: Array<{
-    type: string;
-    parameters: Array<{
-      type: string;
-      text?: string;
-      image?: {
-        link: string;
-      };
-      document?: {
-        link: string;
-        filename: string;
-      };
-    }>;
-  }>;
+  components?: WhatsAppMessageComponent[];
 }
+
+export type WhatsAppTemplateType = 
+  | 'invitation'      // General event invitation
+  | 'rsvp_invitation' // RSVP request
+  | 'rsvp_confirmation' // RSVP confirmed
+  | 'rsvp_declined'   // RSVP declined
+  | 'reminder'        // General reminder
+  | 'itinerary'       // Event schedule/itinerary
+  | 'accommodation'   // Accommodation details
+  | 'transportation'  // Transportation details
+  | 'emergency'       // Emergency contact information
+  | 'message_from_couple' // Special message from the couple
+  | 'customs';        // Custom templates created by the user
 
 export class WhatsAppService {
   private apiKey: string | null;
@@ -47,6 +76,10 @@ export class WhatsAppService {
   
   /**
    * Send a WhatsApp message to a guest
+   * @param guest The guest to send the message to
+   * @param templateName The name/type of the template to use
+   * @param parameters Custom parameters to include in the message
+   * @returns Promise with success status, message ID, and error if any
    */
   public async sendMessage(guest: Guest, templateName: string, parameters: any = {}): Promise<{ success: boolean; id?: string; error?: string }> {
     if (!this.isConfigured()) {
@@ -54,16 +87,44 @@ export class WhatsAppService {
       return { success: false, error: 'WhatsApp service not configured' };
     }
     
+    // Check if guest has a phone number
     if (!guest.phone) {
+      // If WhatsApp-specific number exists, use that
+      if (guest.whatsappAvailable && guest.whatsappNumber) {
+        // Format WhatsApp number
+        const whatsAppPhone = this.formatPhoneNumber(
+          guest.whatsappNumber, 
+          guest.whatsappCountryCode || guest.countryCode || '91'
+        );
+        return this.sendMessageToPhone(whatsAppPhone, templateName, guest, parameters);
+      }
+      
       console.warn(`Guest ${guest.id} has no phone number`);
       return { success: false, error: 'Guest has no phone number' };
     }
     
-    // Format phone number - ensure it includes country code and remove any spaces or dashes
+    // Format standard phone number
     const phone = this.formatPhoneNumber(guest.phone, guest.countryCode || '91');
     
-    // Get template from database
+    return this.sendMessageToPhone(phone, templateName, guest, parameters);
+  }
+  
+  /**
+   * Send a WhatsApp message to a specific phone number
+   * @param phone The formatted phone number to send to
+   * @param templateName The name/type of the template to use
+   * @param guest The guest data to personalize the message
+   * @param parameters Custom parameters to include in the message
+   * @returns Promise with success status, message ID, and error if any
+   */
+  private async sendMessageToPhone(
+    phone: string, 
+    templateName: string, 
+    guest: Guest, 
+    parameters: any = {}
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
+      // Get template from database
       const templates = await storage.getWhatsappTemplatesByCategory(this.eventId, templateName);
       
       if (!templates || templates.length === 0) {
@@ -76,6 +137,9 @@ export class WhatsAppService {
       // Prepare parameters
       const messageParameters = this.prepareMessageParameters(template, guest, parameters);
       
+      // Log the message being sent
+      console.log(`[WHATSAPP] Sending message to ${guest.firstName} ${guest.lastName} (${phone}) using template "${templateName}"`);
+      
       // Call WhatsApp Business API
       return await this.sendTemplateMessage(phone, template, messageParameters);
     } catch (error) {
@@ -86,6 +150,10 @@ export class WhatsAppService {
   
   /**
    * Send an RSVP invitation via WhatsApp
+   * @param guest The guest to send the invitation to
+   * @param event The wedding event details
+   * @param rsvpLink The personalized RSVP link for the guest
+   * @returns Promise with success status, message ID, and error if any
    */
   public async sendRSVPInvitation(guest: Guest, event: WeddingEvent, rsvpLink: string): Promise<{ success: boolean; id?: string; error?: string }> {
     // Get the deadline from the event, defaulting to a week from now if not set
@@ -96,6 +164,130 @@ export class WhatsAppService {
       couple_names: event.coupleNames,
       rsvp_link: rsvpLink,
       rsvp_deadline: deadline
+    });
+  }
+  
+  /**
+   * Send RSVP confirmation via WhatsApp
+   * @param guest The guest whose RSVP was confirmed
+   * @param event The wedding event details
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendRSVPConfirmation(guest: Guest, event: WeddingEvent): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'rsvp_confirmation', {
+      event_name: event.title,
+      couple_names: event.coupleNames,
+      event_date: event.startDate,
+      event_location: event.location
+    });
+  }
+  
+  /**
+   * Send RSVP decline acknowledgment via WhatsApp
+   * @param guest The guest who declined the invitation
+   * @param event The wedding event details
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendRSVPDeclined(guest: Guest, event: WeddingEvent): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'rsvp_declined', {
+      event_name: event.title,
+      couple_names: event.coupleNames
+    });
+  }
+  
+  /**
+   * Send event reminder via WhatsApp
+   * @param guest The guest to remind
+   * @param event The wedding event details
+   * @param daysRemaining Number of days remaining until the event
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendEventReminder(guest: Guest, event: WeddingEvent, daysRemaining: number): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'reminder', {
+      event_name: event.title,
+      couple_names: event.coupleNames,
+      event_date: event.startDate,
+      event_location: event.location,
+      days_remaining: daysRemaining.toString()
+    });
+  }
+  
+  /**
+   * Send ceremony details via WhatsApp
+   * @param guest The guest to send details to
+   * @param event The wedding event details
+   * @param ceremony The specific ceremony details
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendCeremonyDetails(
+    guest: Guest, 
+    event: WeddingEvent, 
+    ceremony: { name: string; date: string; location: string; startTime: string; attireCode?: string }
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'ceremony', {
+      event_name: event.title,
+      couple_names: event.coupleNames,
+      ceremony_name: ceremony.name,
+      ceremony_date: ceremony.date,
+      ceremony_location: ceremony.location,
+      ceremony_time: ceremony.startTime,
+      attire_code: ceremony.attireCode || 'Formal'
+    });
+  }
+  
+  /**
+   * Send accommodation details via WhatsApp
+   * @param guest The guest to send details to
+   * @param event The wedding event details
+   * @param accommodation The accommodation details
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendAccommodationDetails(
+    guest: Guest, 
+    event: WeddingEvent,
+    accommodation: { 
+      name: string; 
+      roomType?: string; 
+      checkInDate?: string; 
+      checkOutDate?: string;
+      roomNumber?: string;
+    }
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'accommodation', {
+      event_name: event.title,
+      couple_names: event.coupleNames,
+      hotel_name: accommodation.name,
+      room_type: accommodation.roomType || 'Standard',
+      check_in_date: accommodation.checkInDate || event.startDate,
+      check_out_date: accommodation.checkOutDate || event.endDate,
+      room_number: accommodation.roomNumber || 'To be assigned'
+    });
+  }
+  
+  /**
+   * Send transportation details via WhatsApp
+   * @param guest The guest to send details to
+   * @param event The wedding event details
+   * @param transport The transportation details
+   * @returns Promise with success status, message ID, and error if any
+   */
+  public async sendTransportationDetails(
+    guest: Guest, 
+    event: WeddingEvent,
+    transport: { 
+      type: string; 
+      pickupLocation?: string; 
+      pickupTime?: string;
+      contactNumber?: string;
+    }
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
+    return await this.sendMessage(guest, 'transportation', {
+      event_name: event.title,
+      couple_names: event.coupleNames,
+      transport_type: transport.type,
+      pickup_location: transport.pickupLocation || 'Main entrance',
+      pickup_time: transport.pickupTime || '10:00 AM',
+      contact_number: transport.contactNumber || 'Event coordinator'
     });
   }
   
