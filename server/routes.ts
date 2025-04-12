@@ -29,6 +29,9 @@ import {
 import { z } from "zod";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+// Import RSVP service and routes
+import { RSVPService } from "./services/rsvp";
+import { registerRSVPRoutes } from "./routes/rsvp";
 
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -1622,6 +1625,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to mark WhatsApp template as used' });
     }
   });
+
+  // Register RSVP routes
+  // These handle verification of RSVP tokens, submission of RSVP responses, 
+  // and generation of RSVP links for guests
+  registerRSVPRoutes(app, isAuthenticated, isAdmin);
   
   return httpServer;
 }
