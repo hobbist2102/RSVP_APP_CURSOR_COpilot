@@ -1,7 +1,7 @@
 /**
  * RSVP API routes
  */
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { RSVPService, RSVPResponseSchema } from '../services/rsvp';
 import { EmailService } from '../services/email';
@@ -12,7 +12,7 @@ const router = Router();
 /**
  * Test endpoint to verify RSVP routes are configured correctly
  */
-router.get('/test', (req, res) => {
+router.get('/test', (req: Request, res: Response) => {
   res.json({ 
     success: true, 
     message: 'RSVP API is working correctly',
@@ -380,7 +380,7 @@ export function registerRSVPRoutes(
   });
   
   // Verify token endpoint
-  app.get('/api/rsvp/verify', async (req, res) => {
+  app.get('/api/rsvp/verify', async (req: Request, res: Response) => {
     try {
       const { token } = req.query;
       
@@ -483,7 +483,7 @@ export function registerRSVPRoutes(
   });
   
   // Submit RSVP response endpoint
-  app.post('/api/rsvp/submit', async (req, res) => {
+  app.post('/api/rsvp/submit', async (req: Request, res: Response) => {
     try {
       // Validate request body against schema
       const validationResult = RSVPResponseSchema.safeParse(req.body);
@@ -553,7 +553,7 @@ export function registerRSVPRoutes(
   });
   
   // Admin-only endpoints for generating and sending RSVP links
-  app.post('/api/admin/rsvp/generate-links', isAuthenticated, async (req, res) => {
+  app.post('/api/admin/rsvp/generate-links', isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { eventId, baseUrl } = req.body;
       
@@ -601,7 +601,7 @@ export function registerRSVPRoutes(
     }
   });
   
-  app.post('/api/admin/rsvp/send-invites', isAuthenticated, async (req, res) => {
+  app.post('/api/admin/rsvp/send-invites', isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { eventId, guestIds, baseUrl, channel } = req.body;
       
