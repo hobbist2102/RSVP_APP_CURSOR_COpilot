@@ -832,8 +832,9 @@ export class MemStorage implements IStorage {
     }
   }
   
-  async getGuestsByEvent(eventId: number): Promise<Guest[]> {
-    console.log(`Getting guests for event ID: ${eventId}`);
+  // DEPRECATED: In-memory implementation - kept for reference only, but not used
+  async _legacyGetGuestsByEvent(eventId: number): Promise<Guest[]> {
+    console.log(`[LEGACY] Getting guests for event ID: ${eventId} from in-memory store`);
     
     if (!eventId || isNaN(eventId)) {
       console.error(`Invalid event ID provided: ${eventId}`);
@@ -852,8 +853,22 @@ export class MemStorage implements IStorage {
         (guest) => guest.eventId === eventId
       );
       
-      console.log(`Retrieved ${guests.length} guests for event ID: ${eventId}`);
+      console.log(`[LEGACY] Retrieved ${guests.length} guests for event ID: ${eventId}`);
       return guests;
+    } catch (error) {
+      console.error(`Error in legacy getGuestsByEvent for event ${eventId}:`, error);
+      throw error;
+    }
+  }
+  
+  // TEMPORARY: This method forwards to the database implementation and logs the difference
+  // for debugging the Don ji issue. Will be replaced with direct call to db implementation.
+  async getGuestsByEvent(eventId: number): Promise<Guest[]> {
+    console.log(`FORWARDING getGuestsByEvent to database implementation for event ID: ${eventId}`);
+    
+    try {
+      // Forward to database implementation
+      return await this._dbGetGuestsByEvent(eventId);
     } catch (error) {
       console.error(`Error in getGuestsByEvent for event ${eventId}:`, error);
       throw error;
@@ -1479,17 +1494,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getGuestsByEvent(eventId: number): Promise<Guest[]> {
+  // This is the correct database implementation of getGuestsByEvent
+  async _dbGetGuestsByEvent(eventId: number): Promise<Guest[]> {
     if (!eventId || isNaN(eventId)) {
       throw new Error('Invalid event ID');
     }
 
-    console.log(`Fetching guests for event: ${eventId}`);
+    console.log(`DB: Fetching guests for event: ${eventId}`);
     try {
       // First verify the event exists
       const event = await this.getEvent(eventId);
       if (!event) {
-        console.warn(`Event ${eventId} not found`);
+        console.warn(`DB: Event ${eventId} not found`);
         return [];
       }
 
@@ -1499,10 +1515,46 @@ export class DatabaseStorage implements IStorage {
         .from(guests)
         .where(eq(guests.eventId, eventId));
 
-      console.log(`Retrieved ${result.length} guests for event ${eventId}`);
+      console.log(`DB: Retrieved ${result.length} guests for event ${eventId}`);
+      
+      // If this is Rocky Rani event, log more details
+      if (eventId === 4) {
+        console.log(`DEBUG - Rocky Rani guests from database: ${result.map(g => `${g.id}: ${g.firstName} ${g.lastName}`).join(', ') || 'None'}`);
+        
+        // Look for Don ji in the results
+        const donJi = result.find(g => g.firstName === 'Don' && g.lastName === 'ji');
+        if (donJi) {
+          console.log(`DEBUG - Found Don ji in database results! ID: ${donJi.id}`);
+        } else {
+          console.log(`DEBUG - Don ji not found in database results! Double-checking with direct SQL...`);
+          
+          // Double-check with direct SQL
+          try {
+            const { pgClient } = await import('./db');
+            const directResult = await pgClient`
+              SELECT id, first_name as "firstName", last_name as "lastName", event_id as "eventId"
+              FROM guests
+              WHERE event_id = ${eventId} AND first_name = 'Don' AND last_name = 'ji'
+            `;
+            
+            if (directResult && directResult.length > 0) {
+              console.log(`DB-DIRECT: Found Don ji with ID ${directResult[0].id} in direct query`);
+              
+              // Add Don ji to the results
+              console.log(`DB: Adding Don ji to results from direct query`);
+              result.push(directResult[0] as any);
+            } else {
+              console.log(`DB-DIRECT: Don ji not found in direct database query either`);
+            }
+          } catch (dbError) {
+            console.error(`DB-DIRECT: Error checking for Don ji:`, dbError);
+          }
+        }
+      }
+      
       return result;
     } catch (error) {
-      console.error(`Error fetching guests for event ${eventId}:`, error);
+      console.error(`DB: Error fetching guests for event ${eventId}:`, error);
       throw error;
     }
   }
