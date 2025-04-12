@@ -30,11 +30,19 @@ export const weddingEvents = pgTable("wedding_events", {
   date: date("date"),                      // Keeping for backward compatibility
   location: text("location").notNull(),
   description: text("description"),
+  // Email Configuration
+  emailProvider: text("email_provider").default("resend"), // 'resend', 'sendgrid', etc.
+  emailApiKey: text("email_api_key"),                      // API key for the email provider
+  emailFromAddress: text("email_from_address"),            // The "from" email address
+  emailFromDomain: text("email_from_domain"),              // Domain for the email
+  emailConfigured: boolean("email_configured").default(false),
   // WhatsApp Business API Integration
   whatsappBusinessPhoneId: text("whatsapp_business_phone_id"),
   whatsappBusinessNumber: text("whatsapp_business_number"),
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   whatsappAccessToken: text("whatsapp_access_token"),
+  whatsappConfigured: boolean("whatsapp_configured").default(false),
+  // General metadata
   createdBy: integer("created_by").notNull(),
 });
 

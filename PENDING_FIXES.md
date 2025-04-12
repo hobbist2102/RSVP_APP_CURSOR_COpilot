@@ -1,34 +1,59 @@
-# Pending Fixes and Outstanding Issues
+# Pending Fixes for Wedding RSVP Application
 
-## Data Consistency Issues
-- [ ] **Don ji missing from Rocky Rani event**: Despite being in the database with the correct event_id, Don ji doesn't appear in the guest list when viewing the Rocky Rani event
-- [ ] **Event switching redirects**: Users are always redirected back to "Rocky Rani" event when switching events
-- [ ] **Multiple implementations of `getGuestsByEvent()`**: There are two different implementations in storage.ts - one using in-memory storage and one using the database
+## Critical Bugs
 
-## Required Fixes
-- [ ] Complete the consolidation of storage implementations to exclusively use database storage
-- [ ] Remove all in-memory implementations that have database counterparts
-- [ ] Fix direct database queries for guests to ensure all guests with the correct event_id are returned
-- [ ] Verify and improve session-based event context management
-- [ ] Add validation for all API routes to ensure event-based data isolation is maintained
-- [ ] Fix TypeScript errors in storage.ts related to type mismatches
+### 1. Guest Data Inconsistency (Don ji not appearing)
 
-## Next Features to Implement
-1. **Sending Emails**
-   - Set up SendGrid integration
-   - Create email templates for various notifications
-   - Implement email sending functionality
+**Issue:** 
+- Database confirms "Don ji" exists with ID 9 and event_id 4 (Rocky Rani wedding) but doesn't appear in guest lists despite being in the database.
+- The application has duplicate implementations of `getGuestsByEvent()` - one in MemStorage (in-memory) and one in DatabaseStorage (database-based), likely causing data inconsistency.
 
-2. **WhatsApp Integration**
-   - Implement WhatsApp Business API integration
-   - Create message templates
-   - Add functionality to send notifications and RSVP forms
+**Temporary Fix:**
+- Forwarded all calls to the database implementation 
+- Added direct SQL queries as fallback for troubleshooting
 
-3. **RSVP Module**
-   - Create RSVP form that can be sent via both WhatsApp and email
-   - Show existing guest information for confirmation
-   - Add edit button for guests to correct information
-   - Support for plus-ones and children details
-   - Allow for custom messages from the couple
-   - Implement update notifications when new guest details are submitted
-   - Consider future AI conversation agent integration
+**Permanent Solution Required:**
+- ✅ Consolidate the duplicate implementations
+- ✅ Ensure all guest management operations use a single source of truth
+- ⬜ Investigate why Don ji doesn't appear in standard queries
+
+### 2. Database Schema/TypeScript Inconsistencies
+
+**Issue:**
+- Several TypeScript errors in `storage.ts` due to type mismatches between Drizzle schema and actual implementation
+
+**Required Fix:**
+- ⬜ Review and align all TypeScript types with the database schema
+- ⬜ Fix all TypeScript errors related to date handling, optional properties, and returning promises
+
+### 3. Routes Error Handling
+
+**Issue:**
+- Several routes call `getGuestsByEvent` but don't have proper error handling
+
+**Required Fix:**
+- ⬜ Update all routes calling the function to use `_dbGetGuestsByEvent`
+- ⬜ Add consistent error handling across all API routes
+
+## Feature Development
+
+### 1. Email Service Integration
+
+**Status:**
+- ✅ Basic email service framework created with Resend integration
+- ✅ Schema updated with email configuration fields
+- ⬜ Email template system for RSVP notifications
+- ⬜ Email configuration in event setup UI
+
+### 2. RSVP Module
+
+**Status:**
+- ⬜ Backend API routes for RSVP submission and status
+- ⬜ Secure token system for guest authentication
+- ⬜ Public RSVP form with guest verification
+- ⬜ Guest information confirmation/editing workflow
+- ⬜ Plus-one and children information collection
+- ⬜ Ceremony selection
+- ⬜ Travel and accommodation requirements
+- ⬜ Meal selection
+- ⬜ Personal message to couple
