@@ -36,6 +36,12 @@ import { registerRSVPRoutes } from "./routes/rsvp";
 // Import WhatsApp routes
 import { registerWhatsAppRoutes } from "./routes/whatsapp";
 
+// Import tenant context middleware
+import { tenantContext } from "./middleware/tenant-context";
+
+// Import event context routes
+import eventContextRoutes from "./routes/event-context";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 

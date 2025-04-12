@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 // Define the event interface
 export interface CurrentEvent {
@@ -14,6 +14,9 @@ export interface CurrentEvent {
   endDate: string;
   location: string;
   description?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  whatsappFrom?: string | null;
   // Add other properties as needed
 }
 
@@ -39,6 +42,7 @@ const EventContext = createContext<EventContextType>({
 
 // Create the provider component
 export function EventContextProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast();
   const [isValidEventContext, setIsValidEventContext] = useState<boolean>(false);
   
   // Query to get the current event from server session
@@ -51,16 +55,13 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/current-event'],
     staleTime: 60 * 60 * 1000, // 1 hour
     retry: 1, // Retry once in case of initial session setup
-    onSuccess: (data) => {
-      if (data && data.id) {
+    onSettled: (data) => {
+      if (data && 'id' in data) {
         console.log(`Event context loaded: ${data.title} (ID: ${data.id})`);
         setIsValidEventContext(true);
       } else {
         setIsValidEventContext(false);
       }
-    },
-    onError: () => {
-      setIsValidEventContext(false);
     }
   });
   
@@ -96,7 +97,7 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
       console.log('EVENT CONTEXT: After clearing - Query cache is now empty');
       
       // Update local cache immediately for responsive UI
-      queryClient.setQueryData(['/api/current-event'], event);
+      queryClient.setQueryData<CurrentEvent>(['/api/current-event'], event);
       setIsValidEventContext(true);
       
       // Save to server session
@@ -122,7 +123,7 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
   
   // Function to clear the event context
   const clearEventContext = () => {
-    queryClient.setQueryData(['/api/current-event'], null);
+    queryClient.setQueryData<CurrentEvent | null>(['/api/current-event'], null);
     setIsValidEventContext(false);
     console.log('EVENT CONTEXT: Cleared event context');
   };
@@ -130,7 +131,7 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
   // Effect to validate event context when component mounts
   useEffect(() => {
     // Check if we have a valid event context on mount
-    if (currentEvent && currentEvent.id) {
+    if (currentEvent && 'id' in currentEvent) {
       setIsValidEventContext(true);
     } else {
       setIsValidEventContext(false);

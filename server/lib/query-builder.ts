@@ -19,15 +19,18 @@ export function withTenantFilter<T extends object>(
   eventIdField: keyof T,
   eventId: number,
   ...additionalConditions: SQL[]
-): SQL {
+): SQL<unknown> {
+  // Convert field key to string and ensure it's a column in the table
+  const eventIdFieldName = String(eventIdField);
+  
   if (additionalConditions.length === 0) {
     // Just tenant filtering
-    return eq(table[eventIdField as string], eventId);
+    return eq(table[eventIdFieldName] as any, eventId);
   }
   
   // Tenant filtering and additional conditions
   return and(
-    eq(table[eventIdField as string], eventId),
+    eq(table[eventIdFieldName] as any, eventId),
     ...additionalConditions
   );
 }
@@ -47,10 +50,14 @@ export function withEntityAndTenant<T extends object>(
   id: number,
   eventIdField: keyof T,
   eventId: number
-): SQL {
+): SQL<unknown> {
+  // Convert field keys to strings
+  const idFieldName = String(idField);
+  const eventIdFieldName = String(eventIdField);
+  
   return and(
-    eq(table[idField as string], id),
-    eq(table[eventIdField as string], eventId)
+    eq(table[idFieldName] as any, id),
+    eq(table[eventIdFieldName] as any, eventId)
   );
 }
 

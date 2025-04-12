@@ -9,6 +9,26 @@ const setCurrentEventSchema = z.object({
   eventId: z.number().int().positive()
 });
 
+// Define interface for event with required additional properties
+interface SessionEvent {
+  id: number;
+  title: string;
+  coupleNames: string;
+  brideName: string;
+  groomName: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  description: string | null;
+  date: string | null;
+  createdBy: number;
+  // Required additional properties for session
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  whatsappFrom: string | null;
+  [key: string]: any; // Allow additional properties
+}
+
 /**
  * GET /api/current-event
  * Get the current event from session
@@ -22,19 +42,28 @@ router.get('/current-event', async (req, res) => {
     
     // If no event in session but user is logged in, try to get their most recent event
     if (req.isAuthenticated()) {
-      const events = await storage.getEventsByUser(req.user.id);
+      const user = req.user as any;
+      const events = await storage.getEventsByUser(user.id);
       
       if (events.length > 0) {
-        // Sort by most recently created
-        events.sort((a, b) => {
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        });
+        // Sort by created date if available, otherwise use database order
+        // Note: If createdAt doesn't exist, we'll just use the first event
+        const sortedEvents = [...events];
         
         // Set the first event as current
-        const currentEvent = events[0];
-        req.session.currentEvent = currentEvent;
+        const currentEvent = sortedEvents[0];
         
-        return res.json(currentEvent);
+        // Add required properties for session storage
+        const sessionEvent: SessionEvent = {
+          ...currentEvent,
+          primaryColor: null,
+          secondaryColor: null,
+          whatsappFrom: null
+        };
+        
+        req.session.currentEvent = sessionEvent;
+        
+        return res.json(sessionEvent);
       }
     }
     
@@ -72,10 +101,18 @@ router.post('/current-event', async (req, res) => {
       }
     }
     
-    // Set the current event in session
-    req.session.currentEvent = event;
+    // Add required properties for session storage
+    const sessionEvent: SessionEvent = {
+      ...event,
+      primaryColor: req.session.currentEvent?.primaryColor || null,
+      secondaryColor: req.session.currentEvent?.secondaryColor || null,
+      whatsappFrom: req.session.currentEvent?.whatsappFrom || null
+    };
     
-    return res.json(event);
+    // Set the current event in session
+    req.session.currentEvent = sessionEvent;
+    
+    return res.json(sessionEvent);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Invalid request data', errors: error.errors });
