@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+import { eventRepository } from '../repositories';
 
 // Extend Express Request to include eventContext
 declare global {
@@ -9,6 +9,7 @@ declare global {
         eventId: number;
         eventTitle: string;
         hasPermission: boolean;
+        createdBy: number;
       };
     }
   }
@@ -22,18 +23,21 @@ declare global {
  * 4. Session - req.session.currentEvent
  */
 export async function tenantContext(req: Request, res: Response, next: NextFunction) {
-  console.log(`🔒 Tenant Context - Session ID: ${req.sessionID}`);
-  
-  // Skip tenant context for authentication routes
+  // Skip tenant context for authentication routes and static assets
   if (
     req.path.startsWith('/api/auth') || 
     req.path === '/api/register' || 
     req.path === '/api/login' || 
-    req.path === '/api/logout'
+    req.path === '/api/logout' ||
+    req.path.startsWith('/assets/') ||
+    req.path.startsWith('/favicon') ||
+    req.path.startsWith('/@') ||  // Vite dev paths
+    req.path === '/'
   ) {
-    console.log('🔒 Tenant Context - Skipping authentication route');
     return next();
   }
+  
+  console.log(`🔒 Tenant Context - Session ID: ${req.sessionID}`);
   
   try {
     // Step 1: Determine the event ID from various sources
@@ -78,8 +82,8 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
     
     // Step 2: Validate and store event context if event ID is found
     if (eventId) {
-      // Verify event exists
-      const event = await storage.getEvent(eventId);
+      // Verify event exists using the repository
+      const event = await eventRepository.getById(eventId);
       if (!event) {
         // Event not found - only error if event ID was explicitly provided
         if (source !== 'session') {
@@ -98,7 +102,11 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
         let hasPermission = false;
         if (req.user) {
           const user = req.user as any;
-          hasPermission = user.role === 'admin' || user.id === event.createdBy;
+          hasPermission = await eventRepository.hasAccessToEvent(
+            event.id, 
+            user.id, 
+            user.role === 'admin'
+          );
           
           if (!hasPermission) {
             console.warn(`🔒 Tenant Context - User ${user.id} has no permission for event ${eventId}`);
@@ -113,7 +121,8 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
         req.eventContext = {
           eventId: event.id,
           eventTitle: event.title,
-          hasPermission
+          hasPermission,
+          createdBy: event.createdBy
         };
         
         // Ensure the session has the current event
@@ -122,7 +131,8 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
             ...event,
             primaryColor: req.session.currentEvent?.primaryColor || null,
             secondaryColor: req.session.currentEvent?.secondaryColor || null,
-            whatsappFrom: req.session.currentEvent?.whatsappFrom || null
+            whatsappFrom: req.session.currentEvent?.whatsappFrom || null,
+            whatsappAccessToken: event.whatsappAccessToken // Ensure this is properly passed
           };
           console.log(`🔒 Tenant Context - Updated session with event: ${event.title} (ID: ${event.id})`);
         }
@@ -136,7 +146,9 @@ export async function tenantContext(req: Request, res: Response, next: NextFunct
         '/api/ceremonies',
         '/api/accommodations',
         '/api/travel',
-        '/api/meal'
+        '/api/meal',
+        '/api/rsvp',
+        '/api/whatsapp'
       ];
       
       const routeRequiresContext = requiresContext.some(route => req.path.includes(route));

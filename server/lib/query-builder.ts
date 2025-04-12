@@ -1,9 +1,11 @@
-import { eq, and, SQL } from 'drizzle-orm';
+import { eq, and, SQL, isNotNull, inArray, asc, desc } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
 
 /**
- * Utility functions for building tenant-aware database queries
- * These functions help ensure data isolation between different wedding events
+ * Multi-Tenant Query Builder Utilities
+ * 
+ * These functions ensure proper data isolation between different wedding events
+ * by consistently applying tenant filtering across all database operations.
  */
 
 /**
@@ -20,6 +22,11 @@ export function withTenantFilter<T extends object>(
   eventId: number,
   ...additionalConditions: SQL[]
 ): SQL<unknown> {
+  // Validate inputs
+  if (!eventId || isNaN(eventId)) {
+    throw new Error(`Invalid eventId: ${eventId}`);
+  }
+
   // Convert field key to string and ensure it's a column in the table
   const eventIdFieldName = String(eventIdField);
   
@@ -51,12 +58,56 @@ export function withEntityAndTenant<T extends object>(
   eventIdField: keyof T,
   eventId: number
 ): SQL<unknown> {
+  // Validate inputs
+  if (!id || isNaN(id)) {
+    throw new Error(`Invalid entity id: ${id}`);
+  }
+  
+  if (!eventId || isNaN(eventId)) {
+    throw new Error(`Invalid eventId: ${eventId}`);
+  }
+
   // Convert field keys to strings
   const idFieldName = String(idField);
   const eventIdFieldName = String(eventIdField);
   
   return and(
     eq(table[idFieldName] as any, id),
+    eq(table[eventIdFieldName] as any, eventId)
+  );
+}
+
+/**
+ * Creates a tenant-filtered where condition for multiple entities
+ * @param table The database table
+ * @param idField The ID field in the table
+ * @param ids Array of entity IDs
+ * @param eventIdField The event ID field in the table
+ * @param eventId The event ID to filter by
+ * @returns A SQL condition that filters by entity IDs and tenant
+ */
+export function withEntitiesAndTenant<T extends object>(
+  table: PgTable<any>,
+  idField: keyof T,
+  ids: number[],
+  eventIdField: keyof T,
+  eventId: number
+): SQL<unknown> {
+  // Validate inputs
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    throw new Error(`Invalid entity ids array: ${ids}`);
+  }
+  
+  if (!eventId || isNaN(eventId)) {
+    throw new Error(`Invalid eventId: ${eventId}`);
+  }
+
+  // Convert field keys to strings
+  const idFieldName = String(idField);
+  const eventIdFieldName = String(eventIdField);
+  
+  return and(
+    inArray(table[idFieldName] as any, ids),
     eq(table[eventIdFieldName] as any, eventId)
   );
 }
@@ -71,8 +122,89 @@ export function withTenantId<T extends object>(
   data: Omit<T, 'eventId'>,
   eventId: number
 ): T {
+  // Validate inputs
+  if (!eventId || isNaN(eventId)) {
+    throw new Error(`Invalid eventId: ${eventId}`);
+  }
+
   return {
     ...data as object,
     eventId
   } as T;
+}
+
+/**
+ * Prepares multiple objects for insertion with the same tenant ID
+ * @param dataArray Array of data objects to insert
+ * @param eventId The event ID to associate with the data
+ * @returns Array of data objects with tenant ID included
+ */
+export function withBulkTenantId<T extends object>(
+  dataArray: Array<Omit<T, 'eventId'>>,
+  eventId: number
+): T[] {
+  // Validate inputs
+  if (!eventId || isNaN(eventId)) {
+    throw new Error(`Invalid eventId: ${eventId}`);
+  }
+  
+  if (!dataArray || !Array.isArray(dataArray)) {
+    throw new Error('Invalid data array');
+  }
+
+  return dataArray.map(data => ({
+    ...data as object,
+    eventId
+  } as T));
+}
+
+/**
+ * Creates a standardized ordering condition based on common fields
+ * @param table The database table
+ * @param orderBy Field to order by
+ * @param direction Sort direction ('asc' or 'desc')
+ * @returns SQL ordering condition
+ */
+export function getOrderBy<T extends object>(
+  table: PgTable<any>,
+  orderBy: keyof T,
+  direction: 'asc' | 'desc' = 'asc'
+): SQL<unknown> {
+  const fieldName = String(orderBy);
+  
+  if (direction === 'desc') {
+    return desc(table[fieldName] as any);
+  }
+  
+  return asc(table[fieldName] as any);
+}
+
+/**
+ * Helper function to validate tenant context exists
+ * @param eventId The event ID to validate
+ * @throws Error if eventId is invalid
+ */
+export function validateTenantContext(eventId: number | null | undefined): void {
+  if (!eventId || isNaN(eventId)) {
+    throw new Error('Missing or invalid event context');
+  }
+}
+
+/**
+ * Helper function to extract eventId from request context
+ * @param req Express request object with eventContext
+ * @returns Validated event ID
+ * @throws Error if event context is missing or invalid
+ */
+export function getEventIdFromContext(req: any): number {
+  if (!req || !req.eventContext || !req.eventContext.eventId) {
+    throw new Error('Missing event context');
+  }
+  
+  const eventId = req.eventContext.eventId;
+  if (isNaN(eventId)) {
+    throw new Error('Invalid event ID in context');
+  }
+  
+  return eventId;
 }
