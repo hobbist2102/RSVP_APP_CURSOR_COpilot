@@ -187,7 +187,7 @@ router.post('/send-bulk', async (req: Request, res: Response) => {
 /**
  * Configure WhatsApp settings for an event
  */
-router.post('/configure', async (req, res) => {
+router.post('/configure', async (req: Request, res: Response) => {
   try {
     // Validate request body
     const schema = z.object({
@@ -261,7 +261,7 @@ router.post('/configure', async (req, res) => {
 /**
  * Get WhatsApp configuration status for an event
  */
-router.get('/status/:eventId', async (req, res) => {
+router.get('/status/:eventId', async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
     
@@ -310,7 +310,7 @@ router.get('/status/:eventId', async (req, res) => {
  * @param isAdmin Admin authentication middleware
  */
 export function registerWhatsAppRoutes(
-  app: Express.Application, 
+  app: any, // Using any for now to resolve type issue with Express.Application
   isAuthenticated: (req: Request, res: Response, next: any) => void, 
   isAdmin: (req: Request, res: Response, next: any) => void
 ) {

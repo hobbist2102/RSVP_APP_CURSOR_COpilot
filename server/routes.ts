@@ -512,8 +512,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Set session current event to: ${event.title} (ID: ${eventId})`);
       
       // Get guests for this event with added validation
+      let guests;
       try {
-        const guests = await storage.getGuestsByEvent(eventId);
+        guests = await storage.getGuestsByEvent(eventId);
+        
+        if (!Array.isArray(guests)) {
+          console.error(`getGuestsByEvent returned non-array: ${typeof guests}`);
+          guests = []; // Default to empty array if not an array
+        }
         
         // Enhanced logging to debug the Don ji issue
         console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
@@ -523,9 +529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If this is Rocky Rani event, let's add detailed logging
-      if (eventId === 4) {
+      if (eventId === 4 && Array.isArray(guests)) {
         const guestNames = guests.map(g => `${g.id}: ${g.firstName} ${g.lastName}`).join(', ');
-        console.log(`Rocky Rani guests: ${guestNames || 'None'}`);
+        console.log(`DEBUG - Rocky Rani guests from database: ${guestNames || 'None'}`);
         
         // Let's explicitly check for Don ji
         const donJi = guests.find(g => 

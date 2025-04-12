@@ -362,12 +362,16 @@ router.post('/send-invites', async (req, res) => {
  * @param isAuthenticated Authentication middleware
  * @param isAdmin Admin authentication middleware
  */
-export function registerRSVPRoutes(app, isAuthenticated, isAdmin) {
+export function registerRSVPRoutes(
+  app: any, // Using any temporarily to avoid type errors 
+  isAuthenticated: (req: Request, res: Response, next: any) => void,
+  isAdmin: (req: Request, res: Response, next: any) => void
+) {
   // Public endpoints for RSVP verification and submission
   // Using specific routes instead of router to ensure proper API handling
   
   // Test endpoint
-  app.get('/api/rsvp/test', (req, res) => {
+  app.get('/api/rsvp/test', (req: Request, res: Response) => {
     res.json({ 
       success: true, 
       message: 'RSVP API is working correctly',
