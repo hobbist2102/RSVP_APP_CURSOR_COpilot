@@ -1,17 +1,19 @@
 /**
  * WhatsApp API routes
  */
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
+import { Express } from 'express';
 import { storage } from '../storage';
 import { WhatsAppService } from '../services/whatsapp';
 import { z } from 'zod';
+import { Guest, WeddingEvent } from '@shared/schema';
 
 const router = Router();
 
 /**
  * Test endpoint to verify WhatsApp routes are configured correctly
  */
-router.get('/test', (req, res) => {
+router.get('/test', (req: Request, res: Response) => {
   res.json({ 
     success: true, 
     message: 'WhatsApp API is working correctly',
@@ -22,7 +24,7 @@ router.get('/test', (req, res) => {
 /**
  * Send a WhatsApp message to a guest
  */
-router.post('/send-message', async (req, res) => {
+router.post('/send-message', async (req: Request, res: Response) => {
   try {
     // Validate request body
     const schema = z.object({
@@ -101,7 +103,7 @@ router.post('/send-message', async (req, res) => {
 /**
  * Send WhatsApp messages to multiple guests
  */
-router.post('/send-bulk', async (req, res) => {
+router.post('/send-bulk', async (req: Request, res: Response) => {
   try {
     // Validate request body
     const schema = z.object({
@@ -307,9 +309,13 @@ router.get('/status/:eventId', async (req, res) => {
  * @param isAuthenticated Authentication middleware
  * @param isAdmin Admin authentication middleware
  */
-export function registerWhatsAppRoutes(app, isAuthenticated, isAdmin) {
+export function registerWhatsAppRoutes(
+  app: Express.Application, 
+  isAuthenticated: (req: Request, res: Response, next: any) => void, 
+  isAdmin: (req: Request, res: Response, next: any) => void
+) {
   // Test endpoint accessible without authentication for basic connectivity testing
-  app.get('/api/whatsapp/test', (req, res) => {
+  app.get('/api/whatsapp/test', (req: Request, res: Response) => {
     res.json({ 
       success: true, 
       message: 'WhatsApp API is working correctly',

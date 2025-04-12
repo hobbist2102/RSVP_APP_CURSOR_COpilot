@@ -33,6 +33,9 @@ import { eq } from "drizzle-orm";
 import { RSVPService } from "./services/rsvp";
 import { registerRSVPRoutes } from "./routes/rsvp";
 
+// Import WhatsApp routes
+import { registerWhatsAppRoutes } from "./routes/whatsapp";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -1630,6 +1633,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // These handle verification of RSVP tokens, submission of RSVP responses, 
   // and generation of RSVP links for guests
   registerRSVPRoutes(app, isAuthenticated, isAdmin);
+  
+  // Register WhatsApp routes
+  registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
   
   return httpServer;
 }
