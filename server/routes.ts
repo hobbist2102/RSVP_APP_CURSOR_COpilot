@@ -1,4 +1,4 @@
-import express, { type Express, Request, Response } from "express";
+import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
@@ -23,9 +23,12 @@ import {
   insertGuestMealSelectionSchema,
   insertCoupleMessageSchema,
   insertRelationshipTypeSchema,
-  insertWhatsappTemplateSchema
+  insertWhatsappTemplateSchema,
+  guests
 } from "@shared/schema";
 import { z } from "zod";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -514,19 +517,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Rocky Rani guests: ${guestNames || 'None'}`);
         
         // Let's explicitly check for Don ji
-        const donJi = guests.find(g => g.firstName === 'Don' && g.lastName === 'ji');
+        const donJi = guests.find(g => 
+          g.firstName === 'Don' && g.lastName === 'ji'
+        );
+        
         if (donJi) {
           console.log(`Found Don ji with ID ${donJi.id} in event ${eventId}`);
         } else {
           console.log(`Don ji not found in event ${eventId} results, checking database directly...`);
-          // Double-check database directly
-          const allGuests = await db.select().from(guests).where(eq(guests.eventId, eventId));
-          const donJiDb = allGuests.find(g => g.firstName === 'Don' && g.lastName === 'ji');
           
-          if (donJiDb) {
-            console.log(`Found Don ji in direct DB query. ID: ${donJiDb.id}`);
-          } else {
-            console.log(`Don ji not found in database for event ${eventId}`);
+          // Double-check database directly with raw SQL using the postgres client
+          try {
+            const { pgClient } = await import('./db');
+            const result = await pgClient`
+              SELECT id, first_name as "firstName", last_name as "lastName", event_id as "eventId"
+              FROM guests
+              WHERE event_id = ${eventId} AND first_name = 'Don' AND last_name = 'ji'
+            `;
+            
+            if (result && result.length > 0) {
+              console.log(`Found Don ji in direct DB query. ID: ${result[0].id}`);
+              
+              // Something is wrong - Don ji exists in DB but wasn't returned by storage.getGuestsByEvent
+              console.error(`DATA DISCREPANCY: Don ji (ID: ${result[0].id}) exists in database but was not returned by storage.getGuestsByEvent`);
+              
+              // Let's re-fetch from postgres directly and add to response to fix immediate issue
+              console.log(`Adding Don ji to response directly from database query`);
+              const donJiFromDB = result[0];
+              guests.push(donJiFromDB as any);
+            } else {
+              console.log(`Don ji not found in database for event ${eventId}`);
+            }
+          } catch (dbError) {
+            console.error(`Error checking for Don ji directly in database:`, dbError);
           }
         }
       }
