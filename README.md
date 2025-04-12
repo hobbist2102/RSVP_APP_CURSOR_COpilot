@@ -22,21 +22,28 @@ The platform supports both client-facing (couple) and backend (agency staff) int
 
 ## 🏗️ System Architecture
 
+### Multi-Tenant Foundation
+- **Tenant-Based Isolation**: Every piece of data is associated with a specific event (tenant)
+- **Single Database Design**: Using event_id as the tenant identifier across all tables
+- **Session-Based Context**: Current event context stored in user session
+- **Access Control**: Server-side validation of tenant access permissions
+
 ### Backend
 - **TypeScript/Node.js**: Strong typing with Express framework
 - **PostgreSQL Database**: Relational database with tenant-based isolation
 - **Drizzle ORM**: Type-safe database queries and schema management
-- **RESTful API**: Clean API architecture for frontend communication
+- **RESTful API**: Clean API architecture with tenant context validation
 
 ### Frontend
 - **React**: Component-based UI library
-- **TanStack Query (React Query)**: Data fetching and cache management
+- **TanStack Query (React Query)**: Data fetching with tenant-aware cache management
 - **shadcn/ui & Tailwind CSS**: Component library and utility-first CSS
 - **TypeScript**: Type-safe client-side code
 
 ### Security & Authentication
 - **Session-based Authentication**: Secure session management
 - **Event-level Data Isolation**: Multi-tenant architecture with strict data boundaries
+- **Tenant Context Validation**: Every API request validates the tenant context
 
 ## 🚀 Key Features
 
