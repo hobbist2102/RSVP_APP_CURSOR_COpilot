@@ -29,16 +29,47 @@ export function EventSelector() {
     }
   });
   
-  // When events are loaded, select the first event by default if none is selected
+  // When events are loaded, preserve the current event or select one if none exists
   useEffect(() => {
-    if (events.length > 0 && !selectedEventId) {
-      const firstEventId = String(events[0].id);
-      setSelectedEventId(firstEventId);
+    // Only set an event if we have events and no current selection
+    if (events.length > 0 && !selectedEventId && !currentEvent) {
+      console.log("No event currently selected, checking for recently used events...");
       
-      // Set the current event in react-query cache using our hook
-      setCurrentEvent(events[0]);
+      // Check if the URL has an event query parameter
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlEventId = searchParams.get('eventId');
+      
+      // If we have a URL parameter, use that event
+      if (urlEventId && events.find(e => String(e.id) === urlEventId)) {
+        console.log(`Using event ID from URL: ${urlEventId}`);
+        const selectedEvent = events.find(e => String(e.id) === urlEventId);
+        setSelectedEventId(urlEventId);
+        if (selectedEvent) {
+          setCurrentEvent(selectedEvent);
+        }
+      } 
+      // Otherwise, try to use preferred event ID 4 ("Rocky Rani")
+      else if (events.find(e => e.id === 4)) {
+        console.log("Using preferred event: Rocky Rani (ID: 4)");
+        const rockyRaniEvent = events.find(e => e.id === 4);
+        setSelectedEventId("4");
+        if (rockyRaniEvent) {
+          setCurrentEvent(rockyRaniEvent);
+        }
+      }
+      // Otherwise use first available
+      else {
+        console.log(`No preference found, using first event: ${events[0].title} (ID: ${events[0].id})`);
+        const firstEventId = String(events[0].id);
+        setSelectedEventId(firstEventId);
+        setCurrentEvent(events[0]);
+      }
+    } else if (currentEvent && !selectedEventId) {
+      // If we have a current event but no selected ID, sync them
+      console.log(`Syncing selectedEventId with current event: ${currentEvent.title} (ID: ${currentEvent.id})`);
+      setSelectedEventId(String(currentEvent.id));
     }
-  }, [events, selectedEventId, setCurrentEvent]);
+  }, [events, selectedEventId, setCurrentEvent, currentEvent]);
 
   const handleEventChange = async (value: string) => {
     try {

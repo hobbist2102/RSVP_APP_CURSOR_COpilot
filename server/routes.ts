@@ -504,7 +504,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get guests for this event with added validation
       const guests = await storage.getGuestsByEvent(eventId);
+      
+      // Enhanced logging to debug the Don ji issue
       console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
+      
+      // If this is Rocky Rani event, let's add detailed logging
+      if (eventId === 4) {
+        const guestNames = guests.map(g => `${g.id}: ${g.firstName} ${g.lastName}`).join(', ');
+        console.log(`Rocky Rani guests: ${guestNames || 'None'}`);
+        
+        // Let's explicitly check for Don ji
+        const donJi = guests.find(g => g.firstName === 'Don' && g.lastName === 'ji');
+        if (donJi) {
+          console.log(`Found Don ji with ID ${donJi.id} in event ${eventId}`);
+        } else {
+          console.log(`Don ji not found in event ${eventId} results, checking database directly...`);
+          // Double-check database directly
+          const allGuests = await db.select().from(guests).where(eq(guests.eventId, eventId));
+          const donJiDb = allGuests.find(g => g.firstName === 'Don' && g.lastName === 'ji');
+          
+          if (donJiDb) {
+            console.log(`Found Don ji in direct DB query. ID: ${donJiDb.id}`);
+          } else {
+            console.log(`Don ji not found in database for event ${eventId}`);
+          }
+        }
+      }
       
       res.json(guests);
     } catch (error) {
