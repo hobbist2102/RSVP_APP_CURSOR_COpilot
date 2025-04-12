@@ -22,11 +22,31 @@ interface SessionEvent {
   description: string | null;
   date: string | null;
   createdBy: number;
+  
   // Required additional properties for session
   primaryColor: string | null;
   secondaryColor: string | null;
+  
+  // WhatsApp configuration fields
   whatsappFrom: string | null;
-  [key: string]: any; // Allow additional properties
+  whatsappBusinessPhoneId: string | null;
+  whatsappBusinessNumber: string | null;
+  whatsappBusinessAccountId: string | null;
+  whatsappAccessToken: string | null;
+  whatsappConfigured: boolean | null;
+  
+  // Email configuration fields
+  emailProvider: string | null;
+  emailApiKey: string | null;
+  emailFromAddress: string | null;
+  emailFromDomain: string | null;
+  emailConfigured: boolean | null;
+  
+  // Additional permission field
+  hasPermission?: boolean;
+  
+  // Allow additional properties
+  [key: string]: any;
 }
 
 /**
@@ -58,7 +78,24 @@ router.get('/current-event', async (req, res) => {
           ...currentEvent,
           primaryColor: null,
           secondaryColor: null,
-          whatsappFrom: null
+          
+          // WhatsApp configuration fields
+          whatsappFrom: null,
+          whatsappBusinessPhoneId: null,
+          whatsappBusinessNumber: null,
+          whatsappBusinessAccountId: null,
+          whatsappAccessToken: null,
+          whatsappConfigured: null,
+          
+          // Email configuration fields
+          emailProvider: null,
+          emailApiKey: null,
+          emailFromAddress: null,
+          emailFromDomain: null,
+          emailConfigured: null,
+          
+          // Permission field
+          hasPermission: req.isAuthenticated() ? true : false
         };
         
         req.session.currentEvent = sessionEvent;
@@ -106,7 +143,24 @@ router.post('/current-event', async (req, res) => {
       ...event,
       primaryColor: req.session.currentEvent?.primaryColor || null,
       secondaryColor: req.session.currentEvent?.secondaryColor || null,
-      whatsappFrom: req.session.currentEvent?.whatsappFrom || null
+      
+      // WhatsApp configuration fields
+      whatsappFrom: req.session.currentEvent?.whatsappFrom || null,
+      whatsappBusinessPhoneId: req.session.currentEvent?.whatsappBusinessPhoneId || null,
+      whatsappBusinessNumber: req.session.currentEvent?.whatsappBusinessNumber || null,
+      whatsappBusinessAccountId: req.session.currentEvent?.whatsappBusinessAccountId || null,
+      whatsappAccessToken: req.session.currentEvent?.whatsappAccessToken || null,
+      whatsappConfigured: req.session.currentEvent?.whatsappConfigured || null,
+      
+      // Email configuration fields
+      emailProvider: req.session.currentEvent?.emailProvider || null,
+      emailApiKey: req.session.currentEvent?.emailApiKey || null,
+      emailFromAddress: req.session.currentEvent?.emailFromAddress || null,
+      emailFromDomain: req.session.currentEvent?.emailFromDomain || null,
+      emailConfigured: req.session.currentEvent?.emailConfigured || null,
+      
+      // Permission field
+      hasPermission: req.isAuthenticated() ? true : false
     };
     
     // Set the current event in session

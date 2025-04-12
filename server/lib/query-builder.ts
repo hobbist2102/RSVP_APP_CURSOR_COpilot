@@ -1,4 +1,4 @@
-import { eq, and, SQL, isNotNull, inArray, asc, desc, AnyColumn, is } from 'drizzle-orm';
+import { eq, and, SQL, isNotNull, inArray, asc, desc, AnyColumn, is, sql } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
 import { Request } from 'express';
 
@@ -61,10 +61,7 @@ export function withTenantFilter<T extends object>(
   }
   
   // Tenant filtering and additional conditions
-  return and(
-    eq(column, eventId),
-    ...validConditions
-  );
+  return sql`${eq(column, eventId)} AND ${and(...validConditions)}`;
 }
 
 /**
@@ -99,10 +96,7 @@ export function withEntityAndTenant<T extends object>(
   const eventIdColumn = getColumn(table, eventIdFieldName);
   
   // Create a combined filter condition
-  return and(
-    eq(idColumn, id),
-    eq(eventIdColumn, eventId)
-  );
+  return sql`${eq(idColumn, id)} AND ${eq(eventIdColumn, eventId)}`;
 }
 
 /**
@@ -140,7 +134,7 @@ export function withEntitiesAndTenant<T extends object>(
   const inArrayCondition = inArray(idColumn, ids);
   const eqCondition = eq(eventIdColumn, eventId);
   
-  return and(inArrayCondition, eqCondition);
+  return sql`${inArrayCondition} AND ${eqCondition}`;
 }
 
 /**
@@ -224,19 +218,7 @@ export function validateTenantContext(eventId: number | null | undefined): void 
 
 /**
  * Type definition for request with event context
- */
-export interface RequestWithEventContext extends Request {
-  eventContext?: {
-    eventId: number;
-    eventTitle?: string;
-    hasPermission?: boolean;
-    createdBy?: number;
-  };
-}
-
-/**
- * A more precise definition of the RequestWithEventContext
- * to prevent TypeScript errors when using with Express
+ * This defines the structure of the Express request with tenant context
  */
 export interface RequestWithEventContext extends Request {
   eventContext?: {
