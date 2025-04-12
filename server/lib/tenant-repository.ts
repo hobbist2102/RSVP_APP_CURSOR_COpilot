@@ -17,7 +17,7 @@ import {
  * @template InsertT The insert type for the entity
  */
 export class TenantRepository<T extends { id: number; eventId: number }, InsertT extends { eventId: number }> {
-  protected table: PgTable;
+  protected table: PgTable<any>;
   protected idField: string = 'id';
   protected eventIdField: string = 'eventId';
   
@@ -27,7 +27,7 @@ export class TenantRepository<T extends { id: number; eventId: number }, InsertT
    * @param idField The ID field in the table (defaults to 'id')
    * @param eventIdField The event ID field in the table (defaults to 'eventId')
    */
-  constructor(table: PgTable, idField: string = 'id', eventIdField: string = 'eventId') {
+  constructor(table: PgTable<any>, idField: string = 'id', eventIdField: string = 'eventId') {
     this.table = table;
     this.idField = idField;
     this.eventIdField = eventIdField;
