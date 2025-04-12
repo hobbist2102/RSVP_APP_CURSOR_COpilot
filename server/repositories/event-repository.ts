@@ -1,10 +1,15 @@
-import { weddingEvents, WeddingEvent, InsertWeddingEvent } from '@shared/schema';
+import { weddingEvents, type WeddingEvent, type InsertWeddingEvent } from '@shared/schema';
 import { eq, and, SQL, desc } from 'drizzle-orm';
 import { db } from '../db';
 
 /**
  * EventRepository provides data access for wedding event entities
  * Note: This is not a tenant repository as events are the tenants themselves
+ */
+
+/**
+ * EventRepository is a special case and doesn't extend TenantRepository
+ * since events are the tenants themselves and not tenant-isolated.
  */
 export class EventRepository {
   /**
