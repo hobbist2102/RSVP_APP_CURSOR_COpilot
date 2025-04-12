@@ -1,53 +1,90 @@
-# Pending Fixes for Wedding RSVP Application
+# Pending Fixes for Wedding Management Platform
 
-## Critical Bugs
+## Core Architectural Improvements
 
-### 1. Guest Data Inconsistency (Don ji not appearing)
-
-**Issue:** 
-- Database confirms "Don ji" exists with ID 9 and event_id 4 (Rocky Rani wedding) but doesn't appear in guest lists despite being in the database.
-- The application has duplicate implementations of `getGuestsByEvent()` - one in MemStorage (in-memory) and one in DatabaseStorage (database-based), likely causing data inconsistency.
-
-**Temporary Fix:**
-- Forwarded all calls to the database implementation 
-- Added direct SQL queries as fallback for troubleshooting
-
-**Permanent Solution Required:**
-- ✅ Consolidate the duplicate implementations
-- ✅ Ensure all guest management operations use a single source of truth
-- ⬜ Investigate why Don ji doesn't appear in standard queries
-
-### 2. Database Schema/TypeScript Inconsistencies
+### 1. Multi-Tenant Foundation Implementation
 
 **Issue:**
-- Several TypeScript errors in `storage.ts` due to type mismatches between Drizzle schema and actual implementation
+- Current implementation has inconsistent tenant isolation, leading to data leakage between events
+- Lack of proper tenant context validation in API routes
+- Inconsistent approach to tenant filtering in database queries
+- Missing middleware for tenant context validation
 
-**Required Fix:**
-- ⬜ Review and align all TypeScript types with the database schema
-- ⬜ Fix all TypeScript errors related to date handling, optional properties, and returning promises
+**Required Implementation:**
+- ⬜ Create tenant context middleware for API routes
+- ⬜ Implement session-based tenant context storage
+- ⬜ Develop standard query builders with automatic tenant filtering
+- ⬜ Add tenant validation to all existing API routes
+- ⬜ Create proper event switching with cache invalidation
 
-### 3. Routes Error Handling
+**Benefits:**
+- Will resolve guest data inconsistency issues
+- Prevents cross-event data leakage
+- Provides centralized tenant validation
+
+### 2. Event Context Management
 
 **Issue:**
-- Several routes call `getGuestsByEvent` but don't have proper error handling
+- Frontend lacks consistent access to current event context
+- Missing validation when switching between events
+- No permission checking for event access
+
+**Required Implementation:**
+- ⬜ Create robust `useCurrentEvent` hook
+- ⬜ Implement event selection component with proper validation
+- ⬜ Add event-level permissions system
+- ⬜ Ensure proper cache invalidation on event switching
+
+### 3. Database Schema/TypeScript Alignment
+
+**Issue:**
+- TypeScript errors in `storage.ts` due to mismatches between schema and implementation
+- Inconsistent handling of optional properties
+- Non-standardized approach to tenant filtering
 
 **Required Fix:**
-- ⬜ Update all routes calling the function to use `_dbGetGuestsByEvent`
-- ⬜ Add consistent error handling across all API routes
+- ⬜ Review and align all TypeScript types with database schema
+- ⬜ Fix TypeScript errors related to date handling and optional properties
+- ⬜ Standardize tenant filtering in all database queries
 
-## Feature Development
+## Development Plan
 
-### 1. Email Service Integration
+### Phase 1: Multi-Tenant Foundation (Priority 1)
 
-**Status:**
+**1. Server-Side Tenant Context (Week 1)**
+- ⬜ Create tenant middleware in `server/middleware/tenant-context.ts`
+- ⬜ Implement session-based tenant storage with validation
+- ⬜ Add tenant context middleware to Express application
+- ⬜ Create tenant-aware query builder utility
+- ⬜ Update storage interface for tenant awareness
+
+**2. Client-Side Event Context (Week 1)**
+- ⬜ Develop robust `useCurrentEvent` hook
+- ⬜ Create event context provider component
+- ⬜ Build event selection component with proper validation
+- ⬜ Implement cache invalidation on event switching
+
+**3. API Route Protection (Week 2)**
+- ⬜ Add tenant validation to all existing API routes
+- ⬜ Standardize error handling for tenant validation
+- ⬜ Add tenant context to API response logging
+- ⬜ Create tenant-aware route registration pattern
+
+**4. Database Schema Alignment (Week 2)**
+- ⬜ Review and fix all TypeScript errors in `storage.ts`
+- ⬜ Standardize tenant filtering in database queries
+- ⬜ Update all Drizzle models to ensure tenant consistency
+- ⬜ Create migration for any required schema changes
+
+### Phase 2: Feature Development (After Multi-Tenant Foundation)
+
+**1. Email Service Integration**
 - ✅ Basic email service framework created with Resend integration
 - ✅ Schema updated with email configuration fields
 - ⬜ Email template system for RSVP notifications
 - ⬜ Email configuration in event setup UI
 
-### 2. RSVP Module
-
-**Status:**
+**2. RSVP Module**
 - ⬜ Backend API routes for RSVP submission and status
 - ⬜ Secure token system for guest authentication
 - ⬜ Public RSVP form with guest verification
