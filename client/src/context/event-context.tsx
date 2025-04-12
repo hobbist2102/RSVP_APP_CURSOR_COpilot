@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, UseQueryOptions } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -42,6 +42,19 @@ export interface CurrentEvent {
   
   // Metadata
   createdBy: number;
+  
+  // Permission flag - will be added by server
+  hasPermission?: boolean;
+}
+
+/**
+ * Type guard to check if an object is a valid CurrentEvent
+ */
+function isCurrentEvent(obj: any): obj is CurrentEvent {
+  return obj !== null && 
+         typeof obj === 'object' && 
+         typeof obj.id === 'number' && 
+         typeof obj.title === 'string';
 }
 
 /**
@@ -78,37 +91,44 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
   const [isValidEventContext, setIsValidEventContext] = useState<boolean>(false);
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   
+  // Query options with proper typings for TanStack Query v5
+  const queryOptions: UseQueryOptions<CurrentEvent | null, Error> = {
+    queryKey: ['/api/current-event'],
+    staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1, // Retry once in case of initial session setup
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  };
+
   // Query to get the current event from server session
   const { 
     data: currentEvent, 
     isLoading, 
     error,
     refetch 
-  } = useQuery<CurrentEvent>({
-    queryKey: ['/api/current-event'],
-    staleTime: 60 * 60 * 1000, // 1 hour
-    retry: 1, // Retry once in case of initial session setup
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    onSuccess: (data) => {
-      if (data && 'id' in data) {
-        console.log(`Event context loaded: ${data.title} (ID: ${data.id})`);
-        setIsValidEventContext(true);
-        
-        // Capture permission from the server response if available
-        if ('hasPermission' in data) {
-          setHasPermission(!!data.hasPermission);
-        }
-      } else {
-        setIsValidEventContext(false);
-        setHasPermission(false);
-      }
-    },
-    onError: () => {
+  } = useQuery<CurrentEvent | null, Error>(queryOptions);
+  
+  // Effect to handle successful data fetching (replacing onSuccess since it's not available in v5)
+  useEffect(() => {
+    if (currentEvent && isCurrentEvent(currentEvent)) {
+      console.log(`Event context loaded: ${currentEvent.title} (ID: ${currentEvent.id})`);
+      setIsValidEventContext(true);
+      
+      // Capture permission from the server response if available
+      setHasPermission(!!currentEvent.hasPermission);
+    } else {
       setIsValidEventContext(false);
       setHasPermission(false);
     }
-  });
+  }, [currentEvent]);
+  
+  // Effect to handle error state (replacing onError)
+  useEffect(() => {
+    if (error) {
+      setIsValidEventContext(false);
+      setHasPermission(false);
+    }
+  }, [error]);
   
   // Mutation to set the current event on the server
   const setCurrentEventMutation = useMutation({
@@ -139,6 +159,10 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
    */
   const setCurrentEvent = async (event: CurrentEvent) => {
     try {
+      if (!isCurrentEvent(event)) {
+        throw new Error('Invalid event object');
+      }
+      
       console.log(`EVENT CONTEXT: Switching to event ID: ${event.id} (${event.title})`);
       
       // Log the current state of the query cache
@@ -245,28 +269,12 @@ export function EventContextProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  // Effect to validate event context when component mounts or when currentEvent changes
-  useEffect(() => {
-    // Check if we have a valid event context
-    if (currentEvent && 'id' in currentEvent) {
-      setIsValidEventContext(true);
-      
-      // Capture permission from the event data if available
-      if ('hasPermission' in currentEvent) {
-        setHasPermission(!!currentEvent.hasPermission);
-      }
-    } else {
-      setIsValidEventContext(false);
-      setHasPermission(false);
-    }
-  }, [currentEvent]);
-  
   return (
     <EventContext.Provider
       value={{
-        currentEvent: currentEvent || null,
+        currentEvent: isCurrentEvent(currentEvent) ? currentEvent : null,
         isLoading,
-        error: error as Error | null,
+        error: error || null,
         setCurrentEvent,
         clearEventContext,
         isValidEventContext,

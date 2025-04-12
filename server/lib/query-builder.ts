@@ -1,5 +1,6 @@
-import { eq, and, SQL, isNotNull, inArray, asc, desc } from 'drizzle-orm';
+import { eq, and, SQL, isNotNull, inArray, asc, desc, AnyColumn, is } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
+import { Request } from 'express';
 
 /**
  * Multi-Tenant Query Builder Utilities
@@ -7,6 +8,24 @@ import { PgTable } from 'drizzle-orm/pg-core';
  * These functions ensure proper data isolation between different wedding events
  * by consistently applying tenant filtering across all database operations.
  */
+
+/**
+ * Type guard to ensure a column exists on a table
+ */
+function hasColumn<T>(table: PgTable<any>, column: string): column is keyof typeof table {
+  return column in table;
+}
+
+/**
+ * Safely access a table column by string name
+ */
+function getColumn(table: PgTable<any>, columnName: string): AnyColumn {
+  if (!hasColumn(table, columnName)) {
+    throw new Error(`Column '${columnName}' does not exist on table '${table}'`);
+  }
+  
+  return table[columnName] as AnyColumn;
+}
 
 /**
  * Creates a where condition that includes tenant filtering
@@ -20,7 +39,7 @@ export function withTenantFilter<T extends object>(
   table: PgTable<any>,
   eventIdField: keyof T,
   eventId: number,
-  ...additionalConditions: SQL[]
+  ...additionalConditions: SQL<unknown>[]
 ): SQL<unknown> {
   // Validate inputs
   if (!eventId || isNaN(eventId)) {
@@ -29,16 +48,22 @@ export function withTenantFilter<T extends object>(
 
   // Convert field key to string and ensure it's a column in the table
   const eventIdFieldName = String(eventIdField);
+  const column = getColumn(table, eventIdFieldName);
   
-  if (additionalConditions.length === 0) {
+  // Filter out any undefined conditions
+  const validConditions = additionalConditions.filter(
+    (condition): condition is SQL<unknown> => condition !== undefined
+  );
+  
+  if (validConditions.length === 0) {
     // Just tenant filtering
-    return eq(table[eventIdFieldName] as any, eventId);
+    return eq(column, eventId);
   }
   
   // Tenant filtering and additional conditions
   return and(
-    eq(table[eventIdFieldName] as any, eventId),
-    ...additionalConditions
+    eq(column, eventId),
+    ...validConditions
   );
 }
 
@@ -67,13 +92,16 @@ export function withEntityAndTenant<T extends object>(
     throw new Error(`Invalid eventId: ${eventId}`);
   }
 
-  // Convert field keys to strings
+  // Convert field keys to strings and get columns
   const idFieldName = String(idField);
   const eventIdFieldName = String(eventIdField);
+  const idColumn = getColumn(table, idFieldName);
+  const eventIdColumn = getColumn(table, eventIdFieldName);
   
+  // Create a combined filter condition
   return and(
-    eq(table[idFieldName] as any, id),
-    eq(table[eventIdFieldName] as any, eventId)
+    eq(idColumn, id),
+    eq(eventIdColumn, eventId)
   );
 }
 
@@ -102,14 +130,17 @@ export function withEntitiesAndTenant<T extends object>(
     throw new Error(`Invalid eventId: ${eventId}`);
   }
 
-  // Convert field keys to strings
+  // Convert field keys to strings and get columns
   const idFieldName = String(idField);
   const eventIdFieldName = String(eventIdField);
+  const idColumn = getColumn(table, idFieldName);
+  const eventIdColumn = getColumn(table, eventIdFieldName);
   
-  return and(
-    inArray(table[idFieldName] as any, ids),
-    eq(table[eventIdFieldName] as any, eventId)
-  );
+  // Create a combined filter condition that won't return undefined
+  const inArrayCondition = inArray(idColumn, ids);
+  const eqCondition = eq(eventIdColumn, eventId);
+  
+  return and(inArrayCondition, eqCondition);
 }
 
 /**
@@ -171,12 +202,13 @@ export function getOrderBy<T extends object>(
   direction: 'asc' | 'desc' = 'asc'
 ): SQL<unknown> {
   const fieldName = String(orderBy);
+  const column = getColumn(table, fieldName);
   
   if (direction === 'desc') {
-    return desc(table[fieldName] as any);
+    return desc(column);
   }
   
-  return asc(table[fieldName] as any);
+  return asc(column);
 }
 
 /**
@@ -191,12 +223,37 @@ export function validateTenantContext(eventId: number | null | undefined): void 
 }
 
 /**
+ * Type definition for request with event context
+ */
+export interface RequestWithEventContext extends Request {
+  eventContext?: {
+    eventId: number;
+    eventTitle?: string;
+    hasPermission?: boolean;
+    createdBy?: number;
+  };
+}
+
+/**
+ * A more precise definition of the RequestWithEventContext
+ * to prevent TypeScript errors when using with Express
+ */
+export interface RequestWithEventContext extends Request {
+  eventContext?: {
+    eventId: number;
+    eventTitle?: string;
+    hasPermission?: boolean;
+    createdBy?: number;
+  };
+}
+
+/**
  * Helper function to extract eventId from request context
  * @param req Express request object with eventContext
  * @returns Validated event ID
  * @throws Error if event context is missing or invalid
  */
-export function getEventIdFromContext(req: any): number {
+export function getEventIdFromContext(req: RequestWithEventContext): number {
   if (!req || !req.eventContext || !req.eventContext.eventId) {
     throw new Error('Missing event context');
   }

@@ -54,7 +54,28 @@ Middleware that extracts and validates tenant context from various sources:
 - Stores event context in the request object for downstream handlers
 - Rejects requests that require tenant context when it's missing
 
+### 5. Client-Side Event Context (`client/src/context/event-context.tsx`)
+
+React context provider that manages the current event on the client side:
+
+- `EventContextProvider`: Main provider component that maintains event state
+- `useEventContext`: Hook for accessing event context throughout the application
+- `CurrentEvent` interface: Represents a wedding event with all necessary properties
+- Features synchronization with server-side tenant context
+- Handles caching, query invalidation, and permission management
+
+### 6. Event Selector Component (`client/src/components/event/event-selector.tsx`)
+
+UI component for switching between events:
+
+- Displays visual indicators for event context status
+- Manages event switching with proper tenant context updates
+- Handles edge cases like URL parameters and fallbacks
+- Ensures data consistency during tenant switches
+
 ## Data Flow
+
+### Server-Side Flow
 
 1. **Request Arrives**: The tenant context middleware processes the request
 2. **Context Extraction**: Event ID is determined from available sources
@@ -62,6 +83,14 @@ Middleware that extracts and validates tenant context from various sources:
 4. **Route Handler**: Uses repositories with the validated event ID
 5. **Repository Operations**: All database operations include tenant filtering
 6. **Response**: Data is returned, properly isolated by tenant
+
+### Client-Side Flow
+
+1. **App Initialization**: Event context provider initializes and fetches current event
+2. **Context Access**: Components access event context via the `useEventContext` hook or simpler `useCurrentEvent` wrapper
+3. **Event Switching**: When user selects a new event, the context provider updates local state, server session, and invalidates affected queries
+4. **Data Requests**: API requests include tenant context automatically via session
+5. **UI Updates**: Components re-render with data specific to the current event
 
 ## Implementation Guidelines
 
@@ -87,7 +116,17 @@ For entities that don't have a direct tenant reference:
 3. Extract event ID from request using `getEventIdFromRequest` or from event context
 4. Pass the event ID to repository operations
 
+### Client-Side Integration
+
+1. Access the current event context using `useEventContext()` or `useCurrentEvent()`
+2. Check `isValidEventContext` before attempting tenant-specific operations
+3. Use `setCurrentEvent()` to switch the active tenant
+4. For tenant-specific API endpoints, add event ID to the query key to ensure proper cache management
+5. When creating new tenant-specific data, use `withTenantId` on the server side
+
 ## Example Usage
+
+### Server-Side Example
 
 ```typescript
 // In a route handler:
@@ -103,16 +142,61 @@ app.get('/api/guests', tenantContext, requireTenantContext, async (req, res) => 
 });
 ```
 
+### Client-Side Example
+
+```typescript
+// In a React component:
+import { useCurrentEvent } from '@/hooks/use-current-event';
+import { useQuery } from '@tanstack/react-query';
+
+function GuestList() {
+  const { currentEvent, isValidEventContext } = useCurrentEvent();
+  
+  const { data: guests = [], isLoading } = useQuery({
+    queryKey: ['/api/guests', currentEvent?.id],
+    enabled: isValidEventContext && !!currentEvent?.id,
+  });
+  
+  if (!isValidEventContext) {
+    return <div>Please select an event first</div>;
+  }
+  
+  if (isLoading) {
+    return <div>Loading guests...</div>;
+  }
+  
+  return (
+    <div>
+      <h2>Guests for {currentEvent.title}</h2>
+      {/* Render guest list */}
+    </div>
+  );
+}
+```
+
 ## Security Considerations
 
 - Event access is verified in the tenant context middleware
 - Repository operations validate tenant context before executing
 - Raw SQL queries should never be used directly
 - Always use repository methods that enforce tenant isolation
+- Client-side event context includes permission checks to prevent unauthorized access
+- API responses are filtered by tenant before being returned
 
 ## Testing
 
 The `server/test-tenant-repositories.ts` file provides examples of how to test the tenant-aware repositories and demonstrates proper tenant isolation.
+
+## Debugging Tenant Context Issues
+
+When troubleshooting tenant isolation problems:
+
+1. Check the server logs for tenant context middleware messages (prefixed with 🔒)
+2. Verify that the correct event ID is being passed to repository methods
+3. Check if the client-side event context is valid by examining `isValidEventContext`
+4. Ensure query keys include the event ID for proper cache segmentation
+5. Look for places where tenant filtering might be missing in custom repository methods
+6. Check for proper query invalidation after tenant-specific data mutations
 
 ## Future Enhancements
 
@@ -120,3 +204,5 @@ The `server/test-tenant-repositories.ts` file provides examples of how to test t
 2. **Audit Logging**: Add tenant-aware audit logging for all operations
 3. **Rate Limiting**: Implement tenant-based rate limiting
 4. **Analytics**: Add tenant-specific analytics and usage tracking
+5. **Tenant Configuration**: Add more tenant-specific configuration options
+6. **Tenant Templates**: Create template system for new tenant initialization

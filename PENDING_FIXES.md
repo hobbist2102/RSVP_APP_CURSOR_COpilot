@@ -15,7 +15,7 @@
 - ✅ Implement session-based tenant context storage
 - ✅ Develop standard query builders with automatic tenant filtering
 - ⬜ Add tenant validation to all existing API routes
-- ⬜ Create proper event switching with cache invalidation
+- ✅ Create proper event switching with cache invalidation
 
 **Benefits:**
 - Will resolve guest data inconsistency issues
@@ -30,15 +30,15 @@
 - No permission checking for event access
 
 **Required Implementation:**
-- ⬜ Create robust `useCurrentEvent` hook
-- ⬜ Implement event selection component with proper validation
+- ✅ Create robust `useCurrentEvent` hook
+- ✅ Implement event selection component with proper validation
 - ✅ Add event-level permissions system
-- ⬜ Ensure proper cache invalidation on event switching
+- ✅ Ensure proper cache invalidation on event switching
 
 ### 3. Database Schema/TypeScript Alignment
 
 **Issue:**
-- TypeScript errors in `storage.ts` due to mismatches between schema and implementation
+- TypeScript errors in multiple files due to mismatches between schema and implementation
 - Inconsistent handling of optional properties
 - Non-standardized approach to tenant filtering
 
@@ -46,6 +46,25 @@
 - ⬜ Review and align all TypeScript types with database schema
 - ⬜ Fix TypeScript errors related to date handling and optional properties
 - ✅ Standardize tenant filtering in all database queries
+
+## TypeScript Issues
+
+The following TypeScript issues remain to be fixed:
+
+### Query Builder Issues
+- Type errors in `query-builder.ts` when indexing table by string
+- SQL undefined errors requiring null checks or default values
+- Need to implement proper type casting for table field access
+
+### Repository Type Issues
+- Date handling in CeremonyRepository (string vs Date conflicts)
+- Null safety issues in AccommodationRepository and RoomAllocationRepository
+- Type mismatch in MealRepository for ceremony dates
+
+### Context API Issues
+- TanStack Query API has changed; onSuccess/onSettled properties need updating
+- Type narrowing issues in CurrentEvent interface with in operator
+- Schema definition alignment with server-side interfaces
 
 ## Development Plan
 
@@ -59,10 +78,10 @@
 - ✅ Update storage interface for tenant awareness
 
 **2. Client-Side Event Context (Week 1)**
-- ⬜ Develop robust `useCurrentEvent` hook
-- ⬜ Create event context provider component
-- ⬜ Build event selection component with proper validation
-- ⬜ Implement cache invalidation on event switching
+- ✅ Develop robust `useCurrentEvent` hook
+- ✅ Create event context provider component
+- ✅ Build event selection component with proper validation
+- ✅ Implement cache invalidation on event switching
 
 **3. API Route Protection (Week 2)**
 - ⬜ Add tenant validation to all existing API routes
@@ -71,7 +90,7 @@
 - ⬜ Create tenant-aware route registration pattern
 
 **4. Database Schema Alignment (Week 2)**
-- ⬜ Review and fix all TypeScript errors in `storage.ts`
+- ⬜ Review and fix all TypeScript errors in repositories and utilities
 - ✅ Standardize tenant filtering in database queries
 - ⬜ Update all Drizzle models to ensure tenant consistency
 - ⬜ Create migration for any required schema changes
