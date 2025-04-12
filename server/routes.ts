@@ -506,10 +506,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Set session current event to: ${event.title} (ID: ${eventId})`);
       
       // Get guests for this event with added validation
-      const guests = await storage.getGuestsByEvent(eventId);
-      
-      // Enhanced logging to debug the Don ji issue
-      console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
+      try {
+        const guests = await storage.getGuestsByEvent(eventId);
+        
+        // Enhanced logging to debug the Don ji issue
+        console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
+      } catch (error) {
+        console.error(`Error fetching guests for event: ${error}`);
+        return res.status(500).json({ message: 'Failed to fetch guests' });
+      }
       
       // If this is Rocky Rani event, let's add detailed logging
       if (eventId === 4) {

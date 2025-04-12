@@ -117,17 +117,29 @@ export class RSVPService {
         return { success: false, message: 'Event not found' };
       }
       
-      // Update guest RSVP status
+      // Update guest RSVP status - only updating fields that are in the schema
       const updatedGuest = {
-        ...guest,
         rsvpStatus: response.attending ? 'confirmed' : 'declined',
-        rsvpDate: new Date().toISOString(),
-        plusOneConfirmed: response.plusOneAttending,
-        plusOneName: response.plusOneName || guest.plusOneName,
+        // Store RSVP date as string
+        plusOneName: response.plusOneName || guest.plusOneName, 
         dietaryRestrictions: response.dietaryRestrictions || guest.dietaryRestrictions,
-        // Update children information if provided
-        childrenDetails: response.childrenDetails || guest.childrenDetails,
+        notes: guest.notes || ''
       };
+      
+      // Add plus one confirmation if provided
+      if (response.plusOneAttending !== undefined) {
+        (updatedGuest as any).plusOneConfirmed = response.plusOneAttending;
+      }
+      
+      // Add children details if provided
+      if (response.childrenDetails) {
+        // Convert children details to proper JSON
+        const childrenDetailsJson = typeof response.childrenDetails === 'string' 
+          ? response.childrenDetails 
+          : JSON.stringify(response.childrenDetails);
+          
+        (updatedGuest as any).childrenDetails = childrenDetailsJson;
+      }
       
       await storage.updateGuest(guest.id, updatedGuest);
       
@@ -178,11 +190,11 @@ export class RSVPService {
       
       // Handle accommodation needs
       if (response.accommodationNeeded) {
-        // For now, just record this in the guest record
+        // For now, just record this in the guest record as notes
         // In a future enhancement, we would allocate a room based on available inventory
         await storage.updateGuest(guest.id, {
-          accommodationPreference: 'needed',
-          accommodationNotes: `Arrival: ${response.arrivalDate}, Departure: ${response.departureDate}`
+          needsAccommodation: true,
+          notes: (guest.notes || '') + `\nAccommodation needed: Arrival: ${response.arrivalDate || 'TBD'}, Departure: ${response.departureDate || 'TBD'}`
         });
       }
       
@@ -214,8 +226,7 @@ export class RSVPService {
         await storage.createCoupleMessage({
           guestId: guest.id,
           eventId: event.id,
-          message: response.message,
-          isPrivate: false
+          message: response.message
         });
       }
       

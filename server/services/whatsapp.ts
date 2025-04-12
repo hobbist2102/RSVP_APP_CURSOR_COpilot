@@ -88,11 +88,14 @@ export class WhatsAppService {
    * Send an RSVP invitation via WhatsApp
    */
   public async sendRSVPInvitation(guest: Guest, event: WeddingEvent, rsvpLink: string): Promise<{ success: boolean; id?: string; error?: string }> {
+    // Get the deadline from the event, defaulting to a week from now if not set
+    const deadline = event.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
     return await this.sendMessage(guest, 'rsvp_invitation', {
       event_name: event.title,
       couple_names: event.coupleNames,
       rsvp_link: rsvpLink,
-      rsvp_deadline: event.rsvpDeadline || 'soon'
+      rsvp_deadline: deadline
     });
   }
   
@@ -251,10 +254,12 @@ export class WhatsAppService {
    * Create a WhatsAppService instance from an event object
    */
   public static fromEvent(event: WeddingEvent): WhatsAppService {
+    // Get the WhatsApp API credentials from the event
+    // Using the accessToken and businessPhoneId fields if available
     return new WhatsAppService(
       event.id,
-      event.whatsappApiKey || null,
-      event.whatsappPhoneNumberId || null,
+      event.whatsappAccessToken || null,
+      event.whatsappBusinessPhoneId || null,
       event.title
     );
   }
