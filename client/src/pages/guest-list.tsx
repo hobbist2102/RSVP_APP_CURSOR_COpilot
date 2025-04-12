@@ -65,6 +65,27 @@ export default function GuestList() {
   // Fetch guests for current event
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/guests`],
+    queryFn: async () => {
+      console.log(`GUEST LIST: Fetching guests for event ID: ${eventId}`);
+      const res = await fetch(`/api/events/${eventId}/guests`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      if (!res.ok) {
+        console.error(`GUEST LIST: Failed to fetch guests for event ID: ${eventId}`, res.status, res.statusText);
+        throw new Error(`Failed to fetch guests: ${res.status} ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      console.log(`GUEST LIST: Fetched ${data.length} guests for event ID: ${eventId}`, 
+        data.map((g: any) => `${g.id}: ${g.firstName} ${g.lastName} (Event: ${g.eventId})`));
+      return data;
+    },
     enabled: !!eventId,
   });
 

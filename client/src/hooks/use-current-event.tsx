@@ -34,19 +34,34 @@ export function useCurrentEvent() {
   
   // Helper function to set the current event both locally and on server
   const setCurrentEvent = async (event: CurrentEvent) => {
-    console.log(`Switching to event ID: ${event.id} (${event.title})`);
+    console.log(`EVENT SWITCH: Switching to event ID: ${event.id} (${event.title})`);
+    
+    // Log the current state of the query cache
+    console.log('EVENT SWITCH: Before clearing - Query cache keys:', 
+      queryClient.getQueryCache().getAll().map(query => query.queryKey));
     
     // First, remove all related guest data from the cache to prevent incorrect display of guests
     // This line is key to fixing the issue with guests appearing in wrong events
     queryClient.clear();
     
+    console.log('EVENT SWITCH: After clearing - Query cache is now empty');
+    
     // Update local cache immediately for responsive UI
     queryClient.setQueryData(['/api/current-event'], event);
+    console.log('EVENT SWITCH: Set current event in cache:', event.id);
     
     // Save to server session
-    await setCurrentEventMutation.mutateAsync(event.id);
+    try {
+      console.log('EVENT SWITCH: Saving to server session...');
+      await setCurrentEventMutation.mutateAsync(event.id);
+      console.log('EVENT SWITCH: Successfully saved event to server session:', event.id);
+    } catch (error) {
+      console.error('EVENT SWITCH: Failed to save event to server session:', error);
+    }
     
     // Invalidate related queries to force data refresh
+    console.log('EVENT SWITCH: Starting query invalidations for event:', event.id);
+    
     queryClient.invalidateQueries({ 
       queryKey: [`/api/events/${event.id}`] 
     });
@@ -69,7 +84,13 @@ export function useCurrentEvent() {
       queryKey: [`/api/events/${event.id}/statistics`] 
     });
     
-    console.log('Query cache cleared and relevant queries invalidated for new event context');
+    console.log('EVENT SWITCH: All relevant queries invalidated for new event context');
+    
+    // Force a window refresh after a short delay - extreme measure to ensure complete reset
+    setTimeout(() => {
+      console.log('EVENT SWITCH: Forcing refetch of all active queries');
+      queryClient.refetchQueries();
+    }, 300);
   };
   
   return {
