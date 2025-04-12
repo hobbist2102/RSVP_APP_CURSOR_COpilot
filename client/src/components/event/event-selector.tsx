@@ -7,27 +7,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useCurrentEvent, type CurrentEvent } from "@/hooks/use-current-event";
-import { CalendarClock, Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { queryClient } from "@/lib/queryClient";
 
-/**
- * EventSelector component
- * 
- * Provides a UI to select and switch between different events (tenants)
- * while maintaining proper tenant context management.
- */
 export function EventSelector() {
-  const { toast } = useToast();
-  const { 
-    currentEvent, 
-    setCurrentEvent,
-    hasPermission,
-    isValidEventContext
-  } = useCurrentEvent();
-  
+  const { currentEvent, setCurrentEvent } = useCurrentEvent();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(
     currentEvent ? String(currentEvent.id) : null
   );
@@ -44,25 +31,15 @@ export function EventSelector() {
   
   // When events are loaded, preserve the current event or select one if none exists
   useEffect(() => {
-    // Only proceed if we have events to work with
-    if (events.length === 0) return;
-    
-    // If we have a current event but no selected ID, sync them
-    if (currentEvent && !selectedEventId) {
-      console.log(`Syncing selectedEventId with current event: ${currentEvent.title} (ID: ${currentEvent.id})`);
-      setSelectedEventId(String(currentEvent.id));
-      return;
-    }
-    
-    // Only auto-select an event if we have events and no current selection
-    if (!selectedEventId && !currentEvent) {
-      console.log("No event currently selected, finding a suitable event...");
+    // Only set an event if we have events and no current selection
+    if (events.length > 0 && !selectedEventId && !currentEvent) {
+      console.log("No event currently selected, checking for recently used events...");
       
       // Check if the URL has an event query parameter
       const searchParams = new URLSearchParams(window.location.search);
       const urlEventId = searchParams.get('eventId');
       
-      // Priority 1: If we have a URL parameter, use that event
+      // If we have a URL parameter, use that event
       if (urlEventId && events.find(e => String(e.id) === urlEventId)) {
         console.log(`Using event ID from URL: ${urlEventId}`);
         const selectedEvent = events.find(e => String(e.id) === urlEventId);
@@ -70,26 +47,32 @@ export function EventSelector() {
         if (selectedEvent) {
           setCurrentEvent(selectedEvent);
         }
+      } 
+      // Otherwise, try to use preferred event ID 4 ("Rocky Rani")
+      else if (events.find(e => e.id === 4)) {
+        console.log("Using preferred event: Rocky Rani (ID: 4)");
+        const rockyRaniEvent = events.find(e => e.id === 4);
+        setSelectedEventId("4");
+        if (rockyRaniEvent) {
+          setCurrentEvent(rockyRaniEvent);
+        }
       }
-      // Priority 2: Use the first event
+      // Otherwise use first available
       else {
-        console.log(`Using first available event: ${events[0].title} (ID: ${events[0].id})`);
+        console.log(`No preference found, using first event: ${events[0].title} (ID: ${events[0].id})`);
         const firstEventId = String(events[0].id);
         setSelectedEventId(firstEventId);
         setCurrentEvent(events[0]);
       }
+    } else if (currentEvent && !selectedEventId) {
+      // If we have a current event but no selected ID, sync them
+      console.log(`Syncing selectedEventId with current event: ${currentEvent.title} (ID: ${currentEvent.id})`);
+      setSelectedEventId(String(currentEvent.id));
     }
   }, [events, selectedEventId, setCurrentEvent, currentEvent]);
 
-  /**
-   * Handle event change initiated by the user
-   * This function manages tenant switching with proper context management
-   */
   const handleEventChange = async (value: string) => {
     try {
-      // Only proceed if the selection has changed
-      if (selectedEventId === value) return;
-      
       // Set the selected event ID
       setSelectedEventId(value);
       
@@ -97,38 +80,30 @@ export function EventSelector() {
       const selectedEvent = events.find(event => String(event.id) === value);
       
       if (selectedEvent) {
-        console.log(`EVENT SELECTOR: Switching to event ID: ${selectedEvent.id} (${selectedEvent.title})`);
+        console.log(`Event selector: Switching to event ID: ${selectedEvent.id} (${selectedEvent.title})`);
         
-        // Use the enhanced setCurrentEvent function which handles:
-        // - Cache clearing
-        // - Server-side session update
-        // - Query invalidation
+        // We use setCurrentEvent from our hook which now handles all the cache clearing
+        // and server-side session update in one function
         await setCurrentEvent(selectedEvent);
         
-        // Show toast notifying the user - NOTE: The setCurrentEvent already shows a toast,
-        // but we'll keep this for clarity and in case we want to customize it further
+        // Show toast notifying the user
         toast({
           title: "Event Changed",
           description: `Now viewing: ${selectedEvent.title}`,
         });
         
-        // Hard reload the page after switching events
-        // This ensures a completely fresh state
-        console.log("EVENT SELECTOR: Forcing page reload for complete context reset");
+        // EXTREME MEASURE: Hard reload the page after switching events
+        // This is a last resort to ensure all React Query cache is completely reset
+        // and we start with a fresh state
+        console.log("EVENT SELECTOR: Forcing page reload to ensure complete reset");
         
-        // Slight delay to ensure toast is shown and server request completes
+        // Slight delay to ensure the toast is shown and server request is complete
         setTimeout(() => {
           window.location.href = window.location.pathname;
         }, 800);
       }
     } catch (error) {
       console.error("Error changing event:", error);
-      
-      // Reset selectedEventId to current event on error
-      if (currentEvent) {
-        setSelectedEventId(String(currentEvent.id));
-      }
-      
       toast({
         variant: "destructive",
         title: "Error Changing Event",
@@ -137,7 +112,6 @@ export function EventSelector() {
     }
   };
 
-  // Loading state
   if (eventsLoading) {
     return (
       <div className="flex items-center gap-2 py-2 px-3 text-sm text-gray-500">
@@ -147,7 +121,6 @@ export function EventSelector() {
     );
   }
 
-  // Empty state
   if (events.length === 0) {
     return (
       <div className="text-sm text-gray-500 py-2 px-3">
@@ -158,45 +131,13 @@ export function EventSelector() {
 
   return (
     <div className="flex items-center space-x-2 px-2 py-2">
-      {/* Event context status indicator */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            {isValidEventContext ? (
-              hasPermission ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <Lock className="h-5 w-5 text-amber-500" />
-              )
-            ) : (
-              <AlertCircle className="h-5 w-5 text-rose-500" />
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          {isValidEventContext
-            ? hasPermission
-              ? "Event context valid with full access"
-              : "Event context valid with limited access"
-            : "No valid event context"}
-        </TooltipContent>
-      </Tooltip>
-
-      {/* Event icon */}
       <CalendarClock className="h-5 w-5 text-secondary" />
-      
-      {/* Event selector dropdown */}
       <div className="flex-1 min-w-[200px]">
         <Select
           value={selectedEventId || undefined}
           onValueChange={handleEventChange}
         >
-          <SelectTrigger 
-            className={`bg-white/80 border-secondary/30 hover:border-secondary ${
-              !isValidEventContext ? 'border-rose-300' : 
-              !hasPermission ? 'border-amber-300' : ''
-            }`}
-          >
+          <SelectTrigger className="bg-white/80 border-secondary/30 hover:border-secondary">
             <SelectValue placeholder="Select Event" />
           </SelectTrigger>
           <SelectContent>

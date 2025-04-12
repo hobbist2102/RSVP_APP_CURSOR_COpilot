@@ -36,12 +36,6 @@ import { registerRSVPRoutes } from "./routes/rsvp";
 // Import WhatsApp routes
 import { registerWhatsAppRoutes } from "./routes/whatsapp";
 
-// Import tenant context middleware
-import { tenantContext } from "./middleware/tenant-context";
-
-// Import event context routes
-import eventContextRoutes from "./routes/event-context";
-
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -69,10 +63,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Passport setup
   app.use(passport.initialize());
   app.use(passport.session());
-  
-  // Apply tenant context middleware for multi-tenant data isolation
-  // This middleware must come after session setup but before route handlers
-  app.use(tenantContext);
   
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {

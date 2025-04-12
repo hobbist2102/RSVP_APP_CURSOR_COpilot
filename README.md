@@ -22,28 +22,21 @@ The platform supports both client-facing (couple) and backend (agency staff) int
 
 ## 🏗️ System Architecture
 
-### Multi-Tenant Foundation
-- **Tenant-Based Isolation**: Every piece of data is associated with a specific event (tenant)
-- **Single Database Design**: Using event_id as the tenant identifier across all tables
-- **Session-Based Context**: Current event context stored in user session
-- **Access Control**: Server-side validation of tenant access permissions
-
 ### Backend
 - **TypeScript/Node.js**: Strong typing with Express framework
 - **PostgreSQL Database**: Relational database with tenant-based isolation
 - **Drizzle ORM**: Type-safe database queries and schema management
-- **RESTful API**: Clean API architecture with tenant context validation
+- **RESTful API**: Clean API architecture for frontend communication
 
 ### Frontend
 - **React**: Component-based UI library
-- **TanStack Query (React Query)**: Data fetching with tenant-aware cache management
+- **TanStack Query (React Query)**: Data fetching and cache management
 - **shadcn/ui & Tailwind CSS**: Component library and utility-first CSS
 - **TypeScript**: Type-safe client-side code
 
 ### Security & Authentication
 - **Session-based Authentication**: Secure session management
 - **Event-level Data Isolation**: Multi-tenant architecture with strict data boundaries
-- **Tenant Context Validation**: Every API request validates the tenant context
 
 ## 🚀 Key Features
 
@@ -120,15 +113,7 @@ The platform uses a multi-tenant data architecture with the following key models
 
 ### Data Isolation Strategy
 
-The platform implements a robust multi-tenant architecture using a tenant identifier pattern:
-
-- **Event ID as Tenant Identifier**: Every data model includes an `eventId` field that serves as the tenant identifier
-- **Database-Level Isolation**: All queries include tenant filtering to ensure complete data separation
-- **Application-Level Enforcement**: Business logic and APIs enforce tenant boundaries
-- **Session-Based Context**: Current tenant context is maintained in the user session
-- **Context Switching**: Clean system for switching between events with proper cache invalidation
-
-This approach ensures complete data separation between different wedding projects while maintaining a single database architecture, which is more cost-effective than separate databases per tenant.
+All data is isolated at the event level using an event ID as a tenant identifier. This approach ensures complete data separation between different wedding projects while maintaining a single database.
 
 ## 🛣️ Development Roadmap
 
@@ -152,36 +137,20 @@ This approach ensures complete data separation between different wedding project
 
 ## 🔧 Technical Implementation
 
-### Multi-Tenant Architecture
-The platform employs a comprehensive multi-tenant architecture with these key components:
+### Query Caching Strategy
+The application implements a sophisticated caching strategy using TanStack Query to ensure proper data isolation between events:
 
-#### 1. Tenant Context Management
-- **Session-Based Storage**: Current event ID stored in user session
-- **Context Provider Component**: React context provider for event information
-- **useCurrentEvent Hook**: Custom hook for accessing current event context
-- **Event Selection UI**: Intuitive interface for switching between events
-- **Permission Validation**: Server-side verification of event access rights
+- Cache is completely cleared when switching between events
+- Reduced staleTime to ensure fresh data when switching contexts
+- Comprehensive query invalidation for related data
+- Event context included in query keys for proper isolation
 
-#### 2. Database Isolation Layer
-- **Tenant-Filtered Queries**: All database access includes `eventId` filtering
-- **Typed ORM Integration**: Drizzle ORM with proper tenant-aware schemas
-- **Middleware Protection**: Express middleware to validate tenant context on all API routes
-- **Defensive Query Building**: Helper functions that automatically inject tenant filtering
-- **Audit Logging**: Operations logged with tenant context for troubleshooting
+### Event Context Management
+The platform uses session-based event context tracking with validation at both client and server:
 
-#### 3. Query Caching Strategy
-- **Tenant-Aware Cache Keys**: Event ID included in all query keys
-- **Cache Isolation**: Complete cache invalidation when switching events
-- **Reduced Stale Time**: Ensuring fresh data when changing contexts
-- **Custom QueryClient**: Configured for proper multi-tenant handling
-- **Optimistic Updates**: Properly scoped to current tenant context
-
-#### 4. API Route Protection
-- **Mandatory Tenant Context**: All API routes require valid event context
-- **Early Validation**: Tenant validation occurs before business logic processing
-- **Custom Middleware**: Express middleware to attach tenant context to request object
-- **Error Boundaries**: Proper error handling for tenant validation failures
-- **CORS & Security**: Additional security headers for tenant isolation
+- Server-side verification of event context on all API requests
+- Client-side hooks for consistent access to the current event
+- Defensive programming to prevent cross-event data leakage
 
 ## 🤝 Contributing
 

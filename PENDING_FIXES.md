@@ -1,119 +1,53 @@
-# Pending Fixes for Wedding Management Platform
+# Pending Fixes for Wedding RSVP Application
 
-## Core Architectural Improvements
+## Critical Bugs
 
-### 1. Multi-Tenant Foundation Implementation
+### 1. Guest Data Inconsistency (Don ji not appearing)
 
-**Issue:**
-- Current implementation has inconsistent tenant isolation, leading to data leakage between events
-- Lack of proper tenant context validation in API routes
-- Inconsistent approach to tenant filtering in database queries
-- Missing middleware for tenant context validation
+**Issue:** 
+- Database confirms "Don ji" exists with ID 9 and event_id 4 (Rocky Rani wedding) but doesn't appear in guest lists despite being in the database.
+- The application has duplicate implementations of `getGuestsByEvent()` - one in MemStorage (in-memory) and one in DatabaseStorage (database-based), likely causing data inconsistency.
 
-**Required Implementation:**
-- ✅ Create tenant context middleware for API routes
-- ✅ Implement session-based tenant context storage
-- ✅ Develop standard query builders with automatic tenant filtering
-- ⬜ Add tenant validation to all existing API routes
-- ✅ Create proper event switching with cache invalidation
+**Temporary Fix:**
+- Forwarded all calls to the database implementation 
+- Added direct SQL queries as fallback for troubleshooting
 
-**Benefits:**
-- Will resolve guest data inconsistency issues
-- Prevents cross-event data leakage
-- Provides centralized tenant validation
+**Permanent Solution Required:**
+- ✅ Consolidate the duplicate implementations
+- ✅ Ensure all guest management operations use a single source of truth
+- ⬜ Investigate why Don ji doesn't appear in standard queries
 
-### 2. Event Context Management
+### 2. Database Schema/TypeScript Inconsistencies
 
 **Issue:**
-- Frontend lacks consistent access to current event context
-- Missing validation when switching between events
-- No permission checking for event access
-
-**Required Implementation:**
-- ✅ Create robust `useCurrentEvent` hook
-- ✅ Implement event selection component with proper validation
-- ✅ Add event-level permissions system
-- ✅ Ensure proper cache invalidation on event switching
-
-### 3. Database Schema/TypeScript Alignment
-
-**Issue:**
-- TypeScript errors in multiple files due to mismatches between schema and implementation
-- Inconsistent handling of optional properties
-- Non-standardized approach to tenant filtering
+- Several TypeScript errors in `storage.ts` due to type mismatches between Drizzle schema and actual implementation
 
 **Required Fix:**
-- ⬜ Review and align all TypeScript types with database schema
-- ⬜ Fix TypeScript errors related to date handling and optional properties
-- ✅ Standardize tenant filtering in all database queries
+- ⬜ Review and align all TypeScript types with the database schema
+- ⬜ Fix all TypeScript errors related to date handling, optional properties, and returning promises
 
-## TypeScript Issues
+### 3. Routes Error Handling
 
-The following TypeScript issues remain to be fixed:
+**Issue:**
+- Several routes call `getGuestsByEvent` but don't have proper error handling
 
-### Query Builder Issues
-- Type errors in `query-builder.ts` when indexing table by string
-- SQL undefined errors requiring null checks or default values
-- Need to implement proper type casting for table field access
+**Required Fix:**
+- ⬜ Update all routes calling the function to use `_dbGetGuestsByEvent`
+- ⬜ Add consistent error handling across all API routes
 
-### Repository Type Issues
-- Date handling in CeremonyRepository (string vs Date conflicts)
-- Null safety issues in AccommodationRepository and RoomAllocationRepository
-- Type mismatch in MealRepository for ceremony dates
+## Feature Development
 
-### Context API Issues
-- TanStack Query API has changed; onSuccess/onSettled properties need updating
-- Type narrowing issues in CurrentEvent interface with in operator
-- Schema definition alignment with server-side interfaces
+### 1. Email Service Integration
 
-## Development Plan
-
-### Phase 1: Multi-Tenant Foundation (Priority 1)
-
-**1. Server-Side Tenant Context (Week 1)**
-- ✅ Create tenant middleware in `server/middleware/tenant-context.ts`
-- ✅ Implement session-based tenant storage with validation
-- ✅ Add tenant context middleware to Express application
-- ✅ Create tenant-aware query builder utility
-- ✅ Update storage interface for tenant awareness
-
-**2. Client-Side Event Context (Week 1)**
-- ✅ Develop robust `useCurrentEvent` hook
-- ✅ Create event context provider component
-- ✅ Build event selection component with proper validation
-- ✅ Implement cache invalidation on event switching
-
-**3. API Route Protection (Week 2)**
-- ⬜ Add tenant validation to all existing API routes
-- ✅ Standardize error handling for tenant validation
-- ✅ Add tenant context to API response logging
-- ⬜ Create tenant-aware route registration pattern
-
-**4. Database Schema Alignment (Week 2)**
-- ⬜ Review and fix all TypeScript errors in repositories and utilities
-- ✅ Standardize tenant filtering in database queries
-- ⬜ Update all Drizzle models to ensure tenant consistency
-- ⬜ Create migration for any required schema changes
-
-**5. Entity Repository Implementation (Week 2)**
-- ✅ Create base TenantRepository class with standard CRUD operations
-- ✅ Implement tenant-aware repository for Guests
-- ✅ Implement tenant-aware repository for Ceremonies
-- ✅ Implement tenant-aware repository for Accommodations
-- ✅ Implement tenant-aware repository for Meals
-- ✅ Implement tenant-aware repository for WhatsApp Templates
-- ✅ Implement special repository for RoomAllocations
-- ⬜ Update API routes to use tenant-aware repositories
-
-### Phase 2: Feature Development (After Multi-Tenant Foundation)
-
-**1. Email Service Integration**
+**Status:**
 - ✅ Basic email service framework created with Resend integration
 - ✅ Schema updated with email configuration fields
 - ⬜ Email template system for RSVP notifications
 - ⬜ Email configuration in event setup UI
 
-**2. RSVP Module**
+### 2. RSVP Module
+
+**Status:**
 - ⬜ Backend API routes for RSVP submission and status
 - ⬜ Secure token system for guest authentication
 - ⬜ Public RSVP form with guest verification
