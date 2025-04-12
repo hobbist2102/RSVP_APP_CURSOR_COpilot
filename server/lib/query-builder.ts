@@ -219,15 +219,12 @@ export function validateTenantContext(eventId: number | null | undefined): void 
 /**
  * Type definition for request with event context
  * This defines the structure of the Express request with tenant context
+ * 
+ * Note: The actual Request extension is done in tenant-context.ts
+ * via the global Express namespace. This interface is just for 
+ * utility functions in this file.
  */
-export interface RequestWithEventContext extends Request {
-  eventContext?: {
-    eventId: number;
-    eventTitle?: string | undefined;
-    hasPermission?: boolean | undefined;
-    createdBy?: number | undefined;
-  };
-}
+export type RequestWithEventContext = Request;
 
 /**
  * Helper function to extract eventId from request context
