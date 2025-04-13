@@ -1,6 +1,19 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
-import { isAuthenticated, isAdmin } from "../middleware";
+
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: 'Please log in again' });
+};
+
+const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated() && req.user && (req.user as any).role === 'admin') {
+    return next();
+  }
+  res.status(403).json({ message: 'Forbidden' });
+};
 import axios from "axios";
 import { randomBytes } from "crypto";
 
@@ -84,13 +97,13 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     // Exchange the authorization code for tokens
     const tokenResponse = await axios.post(
       "https://oauth2.googleapis.com/token",
-      {
-        code,
-        client_id: GMAIL_CLIENT_ID,
-        client_secret: GMAIL_CLIENT_SECRET,
+      new URLSearchParams({
+        code: code as string,
+        client_id: GMAIL_CLIENT_ID as string,
+        client_secret: GMAIL_CLIENT_SECRET as string,
         redirect_uri: GMAIL_REDIRECT_URI,
         grant_type: "authorization_code",
-      },
+      }).toString(),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -130,7 +143,8 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     });
   } catch (error) {
     console.error("Gmail OAuth callback error:", error);
-    res.status(500).json({ message: "Failed to complete Gmail authorization", error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: "Failed to complete Gmail authorization", error: errorMessage });
   }
 });
 
@@ -234,7 +248,8 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     });
   } catch (error) {
     console.error("Outlook OAuth callback error:", error);
-    res.status(500).json({ message: "Failed to complete Outlook authorization", error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: "Failed to complete Outlook authorization", error: errorMessage });
   }
 });
 
@@ -317,7 +332,8 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
     }
   } catch (error) {
     console.error("Token refresh error:", error);
-    res.status(500).json({ message: "Failed to refresh token", error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ message: "Failed to refresh token", error: errorMessage });
   }
 });
 
