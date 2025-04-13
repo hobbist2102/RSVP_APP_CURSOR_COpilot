@@ -1452,6 +1452,7 @@ export class DatabaseStorage implements IStorage {
   // Guest operations
   async getGuest(id: number): Promise<Guest | undefined> {
     console.log(`Fetching guest with ID: ${id}`);
+    console.warn(`WARNING: Using getGuest without event context for guest ${id} - this may lead to data leakage across events`);
     const result = await db.select().from(guests).where(eq(guests.id, id));
     return result[0];
   }

@@ -232,8 +232,8 @@ router.post('/generate-links', async (req: Request, res: Response) => {
       return {
         id: guest.id,
         name: `${guest.firstName} ${guest.lastName}`,
-        email: guest.email,
-        phone: guest.phone,
+        email: guest.email || undefined,
+        phone: guest.phone || undefined,
         rsvpLink
       };
     });
@@ -302,7 +302,17 @@ router.post('/send-invites', async (req: Request, res: Response) => {
     }
     
     // Get guests
-    const results = [];
+    const results: Array<{
+      guestId: number;
+      name?: string;
+      email?: string;
+      phone?: string;
+      success: boolean;
+      message?: string;
+      emailSent?: boolean;
+      whatsappSent?: boolean;
+      rsvpLink?: string;
+    }> = [];
     for (const guestId of guestIds) {
       const guest = await storage.getGuest(guestId);
       
@@ -335,8 +345,9 @@ router.post('/send-invites', async (req: Request, res: Response) => {
       results.push({
         guestId: guest.id,
         name: `${guest.firstName} ${guest.lastName}`,
-        email: guest.email,
-        phone: guest.phone,
+        email: guest.email || undefined,
+        phone: guest.phone || undefined,
+        success: true,
         emailSent,
         whatsappSent,
         rsvpLink
@@ -403,12 +414,12 @@ export function registerRSVPRoutes(
       
       const { guestId, eventId } = tokenData;
       
-      // Get guest and event information
-      const guest = await storage.getGuest(guestId);
+      // Get guest with event context to enforce isolation
+      const guest = await storage.getGuestWithEventContext(guestId, eventId);
       if (!guest) {
         return res.status(404).json({ 
           success: false, 
-          message: 'Guest not found' 
+          message: 'Guest not found or does not belong to this event' 
         });
       }
       
@@ -582,8 +593,8 @@ export function registerRSVPRoutes(
         return {
           id: guest.id,
           name: `${guest.firstName} ${guest.lastName}`,
-          email: guest.email,
-          phone: guest.phone,
+          email: guest.email || undefined,
+          phone: guest.phone || undefined,
           rsvpLink
         };
       });
@@ -649,7 +660,17 @@ export function registerRSVPRoutes(
       }
       
       // Get guests
-      const results = [];
+      const results: Array<{
+        guestId: number;
+        name?: string;
+        email?: string;
+        phone?: string;
+        success: boolean;
+        message?: string;
+        emailSent?: boolean;
+        whatsappSent?: boolean;
+        rsvpLink?: string;
+      }> = [];
       for (const guestId of guestIds) {
         const guest = await storage.getGuest(guestId);
         
@@ -682,8 +703,9 @@ export function registerRSVPRoutes(
         results.push({
           guestId: guest.id,
           name: `${guest.firstName} ${guest.lastName}`,
-          email: guest.email,
-          phone: guest.phone,
+          email: guest.email || undefined,
+          phone: guest.phone || undefined,
+          success: true,
           emailSent,
           whatsappSent,
           rsvpLink
