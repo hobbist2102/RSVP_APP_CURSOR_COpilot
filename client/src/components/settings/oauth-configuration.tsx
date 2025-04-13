@@ -45,28 +45,28 @@ export interface OAuthCredentials {
 }
 
 export const OAuthConfiguration = () => {
-  const { event, refetch: refetchEvent } = useCurrentEvent();
+  const { currentEvent, refetchCurrentEvent } = useCurrentEvent();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
   const [credentials, setCredentials] = useState<OAuthCredentials>({
     // Set initial values from the event if available
-    gmailClientId: event?.gmailClientId || "",
-    gmailClientSecret: event?.gmailClientSecret || "",
-    gmailRedirectUri: event?.gmailRedirectUri || "",
+    gmailClientId: currentEvent?.gmailClientId || "",
+    gmailClientSecret: currentEvent?.gmailClientSecret || "",
+    gmailRedirectUri: currentEvent?.gmailRedirectUri || "",
     
-    outlookClientId: event?.outlookClientId || "",
-    outlookClientSecret: event?.outlookClientSecret || "",
-    outlookRedirectUri: event?.outlookRedirectUri || "",
+    outlookClientId: currentEvent?.outlookClientId || "",
+    outlookClientSecret: currentEvent?.outlookClientSecret || "",
+    outlookRedirectUri: currentEvent?.outlookRedirectUri || "",
     
-    sendGridApiKey: event?.sendGridApiKey || "",
+    sendGridApiKey: currentEvent?.sendGridApiKey || "",
     
-    emailFrom: event?.emailFrom || "",
-    emailReplyTo: event?.emailReplyTo || "",
+    emailFrom: currentEvent?.emailFrom || "",
+    emailReplyTo: currentEvent?.emailReplyTo || "",
     
-    useGmail: event?.useGmail || false,
-    useOutlook: event?.useOutlook || false,
-    useSendGrid: event?.useSendGrid || false,
+    useGmail: currentEvent?.useGmail || false,
+    useOutlook: currentEvent?.useOutlook || false,
+    useSendGrid: currentEvent?.useSendGrid || false,
   });
   
   const [isConnecting, setIsConnecting] = useState({
@@ -79,7 +79,7 @@ export const OAuthConfiguration = () => {
     mutationFn: async (data: OAuthCredentials) => {
       const res = await apiRequest(
         "PATCH",
-        `/api/events/${event?.id}/oauth-config`,
+        `/api/events/${currentEvent?.id}/oauth-config`,
         data
       );
       
@@ -98,7 +98,7 @@ export const OAuthConfiguration = () => {
       
       // Invalidate the current event query to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/current-event"] });
-      refetchEvent();
+      refetchCurrentEvent();
     },
     onError: (error) => {
       toast({
@@ -127,14 +127,14 @@ export const OAuthConfiguration = () => {
   
   // Start OAuth process for Gmail
   const initiateGmailAuth = async () => {
-    if (!event?.id) return;
+    if (!currentEvent?.id) return;
     
     setIsConnecting({ ...isConnecting, gmail: true });
     
     try {
       const res = await apiRequest(
         "GET",
-        `/api/oauth/gmail/authorize?eventId=${event.id}`,
+        `/api/oauth/gmail/authorize?eventId=${currentEvent.id}`,
         null
       );
       

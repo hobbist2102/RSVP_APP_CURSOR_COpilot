@@ -42,6 +42,9 @@ import rsvpFollowupRoutes from "./routes/rsvp-followup";
 // Import OAuth routes
 import oauthRoutes from "./routes/oauth";
 
+// Import Event Settings routes
+import eventSettingsRoutes from "./routes/event-settings";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 

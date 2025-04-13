@@ -109,6 +109,13 @@ router.patch("/:eventId/oauth-config", isAuthenticated, isAdmin, async (req: Req
     // Update the OAuth configuration
     const updatedEvent = await storage.updateEvent(eventId, validationResult.data);
     
+    if (!updatedEvent) {
+      return res.status(500).json({
+        message: "Failed to update OAuth configuration",
+        details: "Event update returned no data"
+      });
+    }
+    
     res.json({
       message: "OAuth configuration updated successfully",
       event: {
