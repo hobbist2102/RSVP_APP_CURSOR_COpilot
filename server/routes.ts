@@ -264,20 +264,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Complete event data with user ID:', eventData);
       
-      // Validate the event data
-      const validatedData = insertWeddingEventSchema.parse(eventData);
-      console.log('Parsed event data:', validatedData);
-      
-      // Create the event
-      const event = await storage.createEvent(validatedData);
-      res.status(201).json(event);
+      try {
+        // Validate the event data
+        const validatedData = insertWeddingEventSchema.parse(eventData);
+        console.log('Parsed event data:', validatedData);
+        
+        // Create the event
+        const event = await storage.createEvent(validatedData);
+        console.log('Event created successfully:', event);
+        res.status(201).json(event);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          console.error('Validation errors:', validationError.errors);
+          return res.status(400).json({ message: validationError.errors });
+        }
+        throw validationError;
+      }
     } catch (error) {
       console.error('Error creating event:', error);
-      if (error instanceof z.ZodError) {
-        console.error('Validation errors:', error.errors);
-        return res.status(400).json({ message: error.errors });
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
       }
-      res.status(500).json({ message: 'Failed to create event' });
+      res.status(500).json({ message: 'Failed to create event', details: error instanceof Error ? error.message : String(error) });
     }
   });
   
