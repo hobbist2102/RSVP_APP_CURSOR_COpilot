@@ -117,7 +117,7 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
       gmailAccount: email,
       gmailAccessToken: access_token,
       gmailRefreshToken: refresh_token,
-      gmailTokenExpiry: new Date(Date.now() + expires_in * 1000).toISOString(),
+      gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
       useGmail: true,
     });
     
@@ -221,7 +221,7 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
       outlookAccount: email,
       outlookAccessToken: access_token,
       outlookRefreshToken: refresh_token,
-      outlookTokenExpiry: new Date(Date.now() + expires_in * 1000).toISOString(),
+      outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
       useOutlook: true,
     });
     
@@ -277,7 +277,7 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
       
       await storage.updateEventEmailConfig(eventId, {
         gmailAccessToken: access_token,
-        gmailTokenExpiry: new Date(Date.now() + expires_in * 1000).toISOString(),
+        gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
       });
       
       return res.json({ success: true, message: "Gmail token refreshed successfully" });
@@ -308,7 +308,7 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
       await storage.updateEventEmailConfig(eventId, {
         outlookAccessToken: access_token,
         outlookRefreshToken: refresh_token, // Microsoft may issue a new refresh token
-        outlookTokenExpiry: new Date(Date.now() + expires_in * 1000).toISOString(),
+        outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
       });
       
       return res.json({ success: true, message: "Outlook token refreshed successfully" });
