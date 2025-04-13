@@ -131,7 +131,7 @@ router.get('/verify', async (req: Request, res: Response) => {
 /**
  * Submit RSVP response
  */
-router.post('/submit', async (req, res) => {
+router.post('/submit', async (req: Request, res: Response) => {
   try {
     // Validate request body against schema
     const validationResult = RSVPResponseSchema.safeParse(req.body);
@@ -203,7 +203,7 @@ router.post('/submit', async (req, res) => {
 /**
  * Generate RSVP links for guests
  */
-router.post('/generate-links', async (req, res) => {
+router.post('/generate-links', async (req: Request, res: Response) => {
   try {
     const { eventId, baseUrl } = req.body;
     
@@ -254,7 +254,7 @@ router.post('/generate-links', async (req, res) => {
 /**
  * Send RSVP invites to guests
  */
-router.post('/send-invites', async (req, res) => {
+router.post('/send-invites', async (req: Request, res: Response) => {
   try {
     const { eventId, guestIds, baseUrl, channel } = req.body;
     
@@ -427,7 +427,7 @@ export function registerRSVPRoutes(
       const guestCeremonies = await storage.getGuestCeremoniesByGuest(guestId);
       
       // Get meal options for each ceremony
-      const mealOptionsByCeremony = {};
+      const mealOptionsByCeremony: Record<number, any[]> = {};
       for (const ceremony of ceremonies) {
         const options = await storage.getMealOptionsByCeremony(ceremony.id);
         if (options.length > 0) {
