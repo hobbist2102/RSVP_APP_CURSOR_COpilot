@@ -1355,8 +1355,58 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEvent(event: InsertWeddingEvent): Promise<WeddingEvent> {
-    const result = await db.insert(weddingEvents).values(event).returning();
-    return result[0];
+    try {
+      // Use a transaction to ensure both the event and default templates are created atomically
+      return await db.transaction(async (tx) => {
+        // Create the event first
+        const result = await tx.insert(weddingEvents).values(event).returning();
+        const newEvent = result[0];
+        
+        // Create default WhatsApp templates for this event
+        const defaultTemplates = [
+          {
+            eventId: newEvent.id,
+            name: "RSVP Reminder",
+            category: "rsvp",
+            content: "Hello {{guest_name}}, this is a friendly reminder to RSVP for {{event_name}} by {{due_date}}. Looking forward to your response!",
+            parameters: JSON.stringify(["guest_name", "event_name", "due_date"]),
+            language: "en_US"
+          },
+          {
+            eventId: newEvent.id,
+            name: "Welcome Message",
+            category: "general",
+            content: "Welcome {{guest_name}}! We're delighted you'll be joining us for our wedding celebrations. Here's the event link: {{event_link}}",
+            parameters: JSON.stringify(["guest_name", "event_link"]),
+            language: "en_US"
+          },
+          {
+            eventId: newEvent.id,
+            name: "Travel Information",
+            category: "travel",
+            content: "Hello {{guest_name}}, here are the travel details for {{event_name}}. Venue: {{venue}}. If you need any assistance with transportation, please let us know.",
+            parameters: JSON.stringify(["guest_name", "event_name", "venue"]),
+            language: "en_US"
+          },
+          {
+            eventId: newEvent.id,
+            name: "Accommodation Confirmation",
+            category: "accommodation",
+            content: "Hello {{guest_name}}, your accommodation for {{event_name}} has been confirmed. You're staying at {{hotel_name}}, Room {{room_number}}, from {{check_in_date}} to {{check_out_date}}.",
+            parameters: JSON.stringify(["guest_name", "event_name", "hotel_name", "room_number", "check_in_date", "check_out_date"]),
+            language: "en_US"
+          }
+        ];
+        
+        // Insert all templates in a single query
+        await tx.insert(whatsappTemplates).values(defaultTemplates);
+        
+        return newEvent;
+      });
+    } catch (error) {
+      console.error('Error creating event with default templates:', error);
+      throw error;
+    }
   }
 
   async updateEvent(id: number, event: Partial<InsertWeddingEvent>): Promise<WeddingEvent | undefined> {
