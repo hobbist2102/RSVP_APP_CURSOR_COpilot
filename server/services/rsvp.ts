@@ -185,6 +185,14 @@ export class RSVPService {
       // Stage 2 is only required for confirmed attendees who are not local guests
       const requiresStage2 = response.rsvpStatus === 'confirmed' && !response.isLocalGuest;
       
+      // Trigger follow-up communication based on RSVP status
+      try {
+        await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
+      } catch (followupError) {
+        console.error('Error sending RSVP follow-up:', followupError);
+        // Continue with the response even if follow-up fails
+      }
+      
       return { 
         success: true, 
         guest: await storage.getGuest(guest.id), // Return updated guest data
