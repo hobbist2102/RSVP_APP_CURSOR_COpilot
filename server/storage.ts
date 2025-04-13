@@ -3,11 +3,11 @@ export interface EmailConfig {
   gmailAccount?: string;
   gmailAccessToken?: string;
   gmailRefreshToken?: string;
-  gmailTokenExpiry?: string;
+  gmailTokenExpiry?: Date;
   outlookAccount?: string;
   outlookAccessToken?: string;
   outlookRefreshToken?: string;
-  outlookTokenExpiry?: string;
+  outlookTokenExpiry?: Date;
   useGmail?: boolean;
   useOutlook?: boolean;
   emailFrom?: string;
@@ -1519,6 +1519,14 @@ export class DatabaseStorage implements IStorage {
   async updateEvent(id: number, event: Partial<InsertWeddingEvent>): Promise<WeddingEvent | undefined> {
     const result = await db.update(weddingEvents)
       .set(event)
+      .where(eq(weddingEvents.id, id))
+      .returning();
+    return result[0];
+  }
+  
+  async updateEventEmailConfig(id: number, config: EmailConfig): Promise<WeddingEvent | undefined> {
+    const result = await db.update(weddingEvents)
+      .set(config)
       .where(eq(weddingEvents.id, id))
       .returning();
     return result[0];

@@ -1,4 +1,12 @@
 import { Request, Response, NextFunction } from "express";
+import { User as SchemaUser } from "../shared/schema";
+
+// Declare global Express namespace extensions
+declare global {
+  namespace Express {
+    interface User extends SchemaUser {}
+  }
+}
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
