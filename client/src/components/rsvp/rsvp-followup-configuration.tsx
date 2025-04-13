@@ -331,38 +331,103 @@ export default function RsvpFollowupConfiguration() {
   }, [currentEvent, communicationForm]);
   
   // Handle OAuth configuration
-  const handleOAuthSetup = (provider: 'gmail' | 'outlook') => {
-    setIsConfiguring(true);
-    setAuthProvider(provider);
-    
-    // In a real implementation, this would open a popup window or redirect to the OAuth provider
-    const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
-    
-    // Simulate OAuth flow success
-    setTimeout(() => {
-      const accountEmail = provider === 'gmail' 
-        ? "wedding@gmail.com" 
-        : "wedding@outlook.com";
-        
-      toast({
-        title: `${providerName} Connected`,
-        description: `${providerName} account ${accountEmail} has been successfully connected.`,
-      });
+  const handleOAuthSetup = async (provider: 'gmail' | 'outlook') => {
+    try {
+      setIsConfiguring(true);
+      setAuthProvider(provider);
       
-      // Update the form values
-      communicationForm.setValue(provider === 'gmail' ? 'gmailAccount' : 'outlookAccount', accountEmail);
-      communicationForm.setValue(provider === 'gmail' ? 'useGmail' : 'useOutlook', true);
+      const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
       
-      // Update state
-      if (provider === 'gmail') {
-        setIsGmailConfigured(true);
-      } else {
-        setIsOutlookConfigured(true);
+      // Call our server to get the auth URL
+      const response = await fetch(`/api/oauth/${provider}/authorize?eventId=${currentEventId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to initiate ${providerName} authorization`);
       }
       
+      const data = await response.json();
+      
+      // Open the auth URL in a new window
+      const authWindow = window.open(data.authUrl, `${providerName} Authorization`, 
+        'width=600,height=800,left=200,top=100');
+      
+      // Poll for window closure or auth completion
+      const pollInterval = setInterval(async () => {
+        if (!authWindow || authWindow.closed) {
+          clearInterval(pollInterval);
+          
+          // Query current event to refresh OAuth status
+          const eventResponse = await fetch(`/api/events/${currentEventId}`);
+          if (eventResponse.ok) {
+            const updatedEvent = await eventResponse.json();
+            
+            // Check if auth was successful
+            const isAuthorized = provider === 'gmail' 
+              ? !!updatedEvent.gmailAccount 
+              : !!updatedEvent.outlookAccount;
+            
+            if (isAuthorized) {
+              // Update form values with the new authorized account
+              communicationForm.setValue(
+                provider === 'gmail' ? 'gmailAccount' : 'outlookAccount', 
+                provider === 'gmail' ? updatedEvent.gmailAccount : updatedEvent.outlookAccount
+              );
+              communicationForm.setValue(
+                provider === 'gmail' ? 'useGmail' : 'useOutlook', 
+                true
+              );
+              
+              // Update state
+              if (provider === 'gmail') {
+                setIsGmailConfigured(true);
+              } else {
+                setIsOutlookConfigured(true);
+              }
+              
+              toast({
+                title: `${providerName} Connected`,
+                description: `${providerName} account has been successfully connected.`,
+              });
+            } else {
+              toast({
+                title: `${providerName} Authorization Failed`,
+                description: `Unable to connect to your ${providerName} account. Please try again.`,
+                variant: "destructive"
+              });
+            }
+          }
+          
+          setIsConfiguring(false);
+          setAuthProvider(null);
+        }
+      }, 1000);
+      
+      // Set a timeout to stop polling after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (authWindow && !authWindow.closed) {
+          authWindow.close();
+        }
+        
+        setIsConfiguring(false);
+        setAuthProvider(null);
+        
+        toast({
+          title: `${providerName} Authorization Timeout`,
+          description: `The ${providerName} authorization process timed out. Please try again.`,
+          variant: "destructive"
+        });
+      }, 5 * 60 * 1000);
+      
+    } catch (error) {
+      console.error(`${provider} OAuth setup error:`, error);
+      toast({
+        title: `${provider === 'gmail' ? 'Gmail' : 'Outlook'} Configuration Failed`,
+        description: error instanceof Error ? error.message : `Failed to configure ${provider}`,
+        variant: "destructive"
+      });
       setIsConfiguring(false);
       setAuthProvider(null);
-    }, 2000);
+    }
   };
 
   // Handle template form submission
