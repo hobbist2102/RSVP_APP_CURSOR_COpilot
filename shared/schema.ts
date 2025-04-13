@@ -43,6 +43,15 @@ export const weddingEvents = pgTable("wedding_events", {
   whatsappBusinessAccountId: text("whatsapp_business_account_id"),
   whatsappAccessToken: text("whatsapp_access_token"),
   whatsappConfigured: boolean("whatsapp_configured").default(false),
+  // Email Communication Settings
+  emailFrom: text("email_from"),
+  emailReplyTo: text("email_reply_to"),
+  useGmail: boolean("use_gmail").default(false),
+  useOutlook: boolean("use_outlook").default(false),
+  useSendGrid: boolean("use_sendgrid").default(false),
+  gmailAccount: text("gmail_account"),
+  outlookAccount: text("outlook_account"),
+  sendGridApiKey: text("sendgrid_api_key"),
   // General metadata
   createdBy: integer("created_by").notNull(),
 });
