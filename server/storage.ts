@@ -1,3 +1,21 @@
+// Email configuration interface for OAuth integration
+export interface EmailConfig {
+  gmailAccount?: string;
+  gmailAccessToken?: string;
+  gmailRefreshToken?: string;
+  gmailTokenExpiry?: string;
+  outlookAccount?: string;
+  outlookAccessToken?: string;
+  outlookRefreshToken?: string;
+  outlookTokenExpiry?: string;
+  useGmail?: boolean;
+  useOutlook?: boolean;
+  emailFrom?: string;
+  emailReplyTo?: string;
+  useSendGrid?: boolean;
+  sendGridApiKey?: string;
+}
+
 import {
   users, type User, type InsertUser,
   weddingEvents, type WeddingEvent, type InsertWeddingEvent,
@@ -717,6 +735,15 @@ export class MemStorage implements IStorage {
     if (!existingEvent) return undefined;
     
     const updatedEvent = { ...existingEvent, ...event };
+    this.eventsMap.set(id, updatedEvent);
+    return updatedEvent;
+  }
+  
+  async updateEventEmailConfig(id: number, config: EmailConfig): Promise<WeddingEvent | undefined> {
+    const existingEvent = this.eventsMap.get(id);
+    if (!existingEvent) return undefined;
+    
+    const updatedEvent = { ...existingEvent, ...config };
     this.eventsMap.set(id, updatedEvent);
     return updatedEvent;
   }
