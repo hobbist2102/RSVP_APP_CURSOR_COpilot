@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { PanelLeftOpen, BarChart3, CalendarDays, Users, Send } from "lucide-react";
+import { PanelLeftOpen, BarChart3, CalendarDays, Users, Send, MessageSquareText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { formatDate, getRsvpStatusColor, calculateRsvpProgress } from "@/lib/utils";
 import DataTable from "@/components/ui/data-table";
@@ -29,6 +29,7 @@ import RsvpStage1Form from "@/components/rsvp/rsvp-stage1-form";
 import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
 import RsvpLinkGenerator from "@/components/rsvp/rsvp-link-generator";
 import RsvpStatusDisplay from "@/components/rsvp/rsvp-status-display";
+import RsvpFollowupConfiguration from "@/components/rsvp/rsvp-followup-configuration";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -276,7 +277,7 @@ export default function RsvpManagement() {
             <PanelLeftOpen className="mr-2 h-4 w-4" /> Messages
           </TabsTrigger>
           <TabsTrigger value="invitations">
-            <Send className="mr-2 h-4 w-4" /> Invitations
+            <Send className="mr-2 h-4 w-4" /> Invitations & Follow-ups
           </TabsTrigger>
         </TabsList>
         
@@ -509,6 +510,18 @@ export default function RsvpManagement() {
               }}
             />
             
+            <Card>
+              <CardHeader>
+                <CardTitle>RSVP Follow-up Communication</CardTitle>
+                <CardDescription>
+                  Configure automated follow-up messages sent to guests after they RSVP
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <RsvpFollowupConfiguration />
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>RSVP Completion Status</CardTitle>
