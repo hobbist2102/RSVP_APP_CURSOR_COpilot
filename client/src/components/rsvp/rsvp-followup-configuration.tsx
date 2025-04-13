@@ -841,8 +841,8 @@ export default function RsvpFollowupConfiguration() {
                         />
                       </FormControl>
                       <FormDescription>
-                        You can use these placeholders: {{guest_name}}, {{first_name}}, {{last_name}}, 
-                        {{couple_names}}, {{event_name}}, {{rsvp_status}}, {{rsvp_link}}, {{rsvp_deadline}}
+                        You can use these placeholders: {"{{"}{`guest_name || "[guest name]"`}{"}}"}, {"{{"}{`first_name || "[first name]"`}{"}}"}, {"{{"}{`last_name || "[last name]"`}{"}}"}, 
+                        {"{{"}{`couple_names || "[couple names]"`}{"}}"}, {"{{"}{`event_name || "[event name]"`}{"}}"}, {"{{"}{`rsvp_status || "[RSVP status]"`}{"}}"}, {"{{"}{`rsvp_link || "[RSVP link]"`}{"}}"}, {"{{"}{`rsvp_deadline || "[RSVP deadline]"`}{"}}"} 
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -857,7 +857,7 @@ export default function RsvpFollowupConfiguration() {
                       <FormLabel>WhatsApp Message (Optional)</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Dear {{guest_name}},\n\nThank you for your RSVP..." 
+                          placeholder={`Dear {{guest_name || "[guest name]"}},\n\nThank you for your RSVP...`}
                           className="min-h-[150px] font-mono text-sm"
                           {...field} 
                         />
