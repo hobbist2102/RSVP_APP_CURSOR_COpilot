@@ -33,6 +33,7 @@ export interface IStorage {
   createEvent(event: InsertWeddingEvent): Promise<WeddingEvent>;
   updateEvent(id: number, event: Partial<InsertWeddingEvent>): Promise<WeddingEvent | undefined>;
   deleteEvent(id: number): Promise<boolean>;
+  updateEventEmailConfig(id: number, config: EmailConfig): Promise<WeddingEvent | undefined>;
   
   // Guest operations
   getGuest(id: number): Promise<Guest | undefined>;
