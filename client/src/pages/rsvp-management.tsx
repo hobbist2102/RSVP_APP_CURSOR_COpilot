@@ -38,20 +38,20 @@ export default function RsvpManagement() {
   const { toast } = useToast();
 
   // Fetch the first event
-  const { data: events } = useQuery({
+  const { data: events = [] } = useQuery<any[]>({
     queryKey: ['/api/events'],
   });
   
   const eventId = events?.[0]?.id || 1;
   
   // Fetch guests
-  const { data: guests = [], isLoading: isLoadingGuests } = useQuery({
+  const { data: guests = [], isLoading: isLoadingGuests } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/guests`],
     enabled: !!eventId,
   });
   
   // Fetch ceremonies
-  const { data: ceremonies = [] } = useQuery({
+  const { data: ceremonies = [] } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/ceremonies`],
     enabled: !!eventId,
   });
@@ -59,7 +59,7 @@ export default function RsvpManagement() {
   // Fetch meal options (for main ceremony, usually the reception)
   const receptionCeremony = ceremonies.find((c: any) => c.name.toLowerCase().includes('reception'));
   
-  const { data: mealOptions = [] } = useQuery({
+  const { data: mealOptions = [] } = useQuery<any[]>({
     queryKey: [`/api/ceremonies/${receptionCeremony?.id}/meals`],
     enabled: !!receptionCeremony?.id,
   });
@@ -165,7 +165,7 @@ export default function RsvpManagement() {
   }));
   
   // Message table
-  const { data: messages = [] } = useQuery({
+  const { data: messages = [] } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/messages`],
     enabled: !!eventId,
   });
