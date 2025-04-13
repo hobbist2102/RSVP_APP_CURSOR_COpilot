@@ -30,6 +30,7 @@ export const weddingEvents = pgTable("wedding_events", {
   date: date("date"),                      // Keeping for backward compatibility
   location: text("location").notNull(),
   description: text("description"),
+  rsvpDeadline: date("rsvp_deadline"),    // Deadline for RSVP submissions
   // Email Configuration
   emailProvider: text("email_provider").default("resend"), // 'resend', 'sendgrid', etc.
   emailApiKey: text("email_api_key"),                      // API key for the email provider
@@ -70,7 +71,9 @@ export const guests = pgTable("guests", {
   isFamily: boolean("is_family").default(false), // is a family member
   relationship: text("relationship"),
   rsvpStatus: text("rsvp_status").default("pending"), // pending, confirmed, declined
+  rsvpDate: date("rsvp_date"),                        // Date when the RSVP was submitted
   plusOneAllowed: boolean("plus_one_allowed").default(false),
+  plusOneConfirmed: boolean("plus_one_confirmed").default(false), // Whether plus one is confirmed by guest
   plusOneName: text("plus_one_name"),
   plusOneEmail: text("plus_one_email"),
   plusOnePhone: text("plus_one_phone"),
@@ -81,11 +84,15 @@ export const guests = pgTable("guests", {
   plusOneSalutation: text("plus_one_salutation"), // Mr, Mrs, Ms, Dr, etc.
   childrenDetails: jsonb("children_details").default("[]"), // array of {name, age, gender, salutation}
   childrenNotes: text("children_notes"), // special notes about children
+  // Legacy fields for backward compatibility
+  numberOfChildren: integer("number_of_children").default(0), // Deprecated - use childrenDetails.length instead
+  childrenNames: text("children_names"),                      // Deprecated - use childrenDetails instead
   dietaryRestrictions: text("dietary_restrictions"),
   allergies: text("allergies"),
   tableAssignment: text("table_assignment"),
   giftTracking: text("gift_tracking"),
   needsAccommodation: boolean("needs_accommodation").default(false),
+  accommodationPreference: text("accommodation_preference"), // Guest's preference for accommodation type
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -173,6 +180,9 @@ export const roomAllocations = pgTable("room_allocations", {
   checkOutDate: date("check_out_date"),
   checkOutStatus: text("check_out_status").default("pending"), // pending, checked-out
   checkOutTime: text("check_out_time"),
+  // Legacy fields for backward compatibility
+  checkIn: date("check_in"),           // Deprecated - use checkInDate instead
+  checkOut: date("check_out"),         // Deprecated - use checkOutDate instead
   specialRequests: text("special_requests"),
   // For tracking accompanying guests in same room
   includesPlusOne: boolean("includes_plus_one").default(false),

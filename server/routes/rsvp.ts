@@ -23,7 +23,7 @@ router.get('/test', (req: Request, res: Response) => {
 /**
  * Verify RSVP token and return guest information
  */
-router.get('/verify', async (req, res) => {
+router.get('/verify', async (req: Request, res: Response) => {
   const { token } = req.query;
   
   if (!token || typeof token !== 'string') {
@@ -70,7 +70,7 @@ router.get('/verify', async (req, res) => {
     const guestCeremonies = await storage.getGuestCeremoniesByGuest(guestId);
     
     // Get meal options for each ceremony
-    const mealOptionsByCeremony = {};
+    const mealOptionsByCeremony: Record<number, any[]> = {};
     for (const ceremony of ceremonies) {
       const options = await storage.getMealOptionsByCeremony(ceremony.id);
       if (options.length > 0) {
