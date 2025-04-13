@@ -129,9 +129,42 @@ As of April 13, 2025, the following progress has been made:
    - Guest verification
    - RSVP submission
    - Invitation sending
+6. Implemented ceremony-related route isolation:
+   - Ceremony deletion with event context validation
+   - Guest-ceremony attendance with cross-validation between guest and ceremony events
+7. Enhanced meal selection routes for multi-tenant security:
+   - Added guest-ceremony-meal cross-validation when creating selections
+   - Implemented comprehensive validation for meal selection updates
+   - Added detailed logging for troubleshooting and security auditing
+
+### Completed Route Updates
+
+The following specific route endpoints now have proper multi-tenant isolation:
+
+1. **Guest Management:**
+   - `/api/guests/:id` (GET/PUT/DELETE)
+   - `/api/events/:eventId/guests` (GET)
+
+2. **WhatsApp Communication:**
+   - `/api/whatsapp/send-message` (POST)
+   - `/api/whatsapp/send-bulk` (POST)
+   - `/api/whatsapp/templates` endpoints
+
+3. **RSVP Management:**
+   - `/api/rsvp/verify` (GET)
+   - `/api/rsvp/submit` (POST)
+   - `/api/admin/rsvp/send-invites` (POST)
+
+4. **Ceremony Management:**
+   - `/api/ceremonies/:id` (DELETE)
+   - `/api/guests/:guestId/attendance` (POST)
+
+5. **Meal Management:**
+   - `/api/guests/:guestId/meal-selections` (POST)
+   - `/api/meal-selections/:id` (PUT)
 
 Remaining work includes applying similar isolation techniques to:
-- Ceremony attendance routes
 - Travel information routes
 - Accommodation allocation routes
-- Meal selection routes
+- Relationship type and template routes
+- Statistics and reporting endpoints

@@ -47,7 +47,13 @@
 - ✅ Created comprehensive documentation in `docs/MULTI_TENANT_ISOLATION.md`
 - ✅ Updated WhatsApp routes to use context-aware methods
 - ✅ Verified individual guest routes for proper event context validation
-- ⬜ Continue to update remaining API routes to use context-aware methods
+- ✅ Enhanced ceremony attendance endpoints with guest-ceremony-event validation
+- ✅ Updated ceremony deletion endpoint with event context validation
+- ✅ Added meal selection endpoints with cross-ceremony validation
+- ✅ Implemented comprehensive logging for debugging and auditing
+- ⬜ Update travel and accommodation endpoints for proper event validation
+- ⬜ Apply context validation to relationship types and templates
+- ⬜ Review statistics and reporting endpoints for proper isolation
 
 ## Feature Development
 

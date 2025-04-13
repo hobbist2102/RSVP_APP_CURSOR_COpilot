@@ -1259,16 +1259,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const guestId = parseInt(req.params.guestId);
       const travelData = insertTravelInfoSchema.parse({ ...req.body, guestId });
       
+      // First verify the guest exists and get their event context
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when creating travel info`);
+        return res.status(404).json({ 
+          message: 'Guest not found' 
+        });
+      }
+      
+      console.log(`Creating/updating travel information for guest ${guestId} (event ${guest.eventId})`);
+      
       // Check if already exists
       const existing = await storage.getTravelInfoByGuest(guestId);
       if (existing) {
+        console.log(`Updating existing travel info for guest ${guestId}`);
         const updated = await storage.updateTravelInfo(existing.id, travelData);
         return res.json(updated);
       }
       
+      console.log(`Creating new travel info for guest ${guestId}`);
       const travel = await storage.createTravelInfo(travelData);
       res.status(201).json(travel);
     } catch (error) {
+      console.error(`Error creating travel info:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1280,12 +1294,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const travelId = parseInt(req.params.id);
       const travelData = insertTravelInfoSchema.partial().parse(req.body);
+      
+      // First get the current travel information
+      const currentTravel = await storage.getTravelInfo(travelId);
+      if (!currentTravel) {
+        console.warn(`Travel info with ID ${travelId} not found when updating`);
+        return res.status(404).json({ message: 'Travel info not found' });
+      }
+      
+      // If guestId is being changed, verify event context
+      if (travelData.guestId && travelData.guestId !== currentTravel.guestId) {
+        // Get the original guest
+        const originalGuest = await storage.getGuest(currentTravel.guestId);
+        if (!originalGuest) {
+          console.warn(`Original guest with ID ${currentTravel.guestId} not found when updating travel info`);
+          return res.status(404).json({ message: 'Original guest not found' });
+        }
+        
+        // Get the new guest
+        const newGuest = await storage.getGuest(travelData.guestId);
+        if (!newGuest) {
+          console.warn(`New guest with ID ${travelData.guestId} not found when updating travel info`);
+          return res.status(404).json({ message: 'New guest not found' });
+        }
+        
+        // Verify both guests belong to the same event
+        if (originalGuest.eventId !== newGuest.eventId) {
+          console.warn(`Cross-event operation attempted: Original guest ${currentTravel.guestId} (event ${originalGuest.eventId}) and new guest ${travelData.guestId} (event ${newGuest.eventId})`);
+          return res.status(403).json({ 
+            message: 'Access denied',
+            details: 'Cannot transfer travel information between guests from different events'
+          });
+        }
+        
+        console.log(`Changing travel info ${travelId} from guest ${currentTravel.guestId} to guest ${travelData.guestId} in event ${originalGuest.eventId}`);
+      }
+      
+      console.log(`Updating travel info ${travelId}`);
       const updatedTravel = await storage.updateTravelInfo(travelId, travelData);
       if (!updatedTravel) {
         return res.status(404).json({ message: 'Travel info not found' });
       }
       res.json(updatedTravel);
     } catch (error) {
+      console.error(`Error updating travel info:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1372,18 +1424,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/allocations', isAuthenticated, async (req, res) => {
     try {
       const allocationData = insertRoomAllocationSchema.parse(req.body);
-      const allocation = await storage.createRoomAllocation(allocationData);
+      const guestId = allocationData.guestId;
+      const accommodationId = allocationData.accommodationId;
       
-      // Update allocated rooms count
-      const accommodation = await storage.getAccommodation(allocationData.accommodationId);
-      if (accommodation) {
-        await storage.updateAccommodation(allocationData.accommodationId, {
-          allocatedRooms: (accommodation.allocatedRooms || 0) + 1
+      // First get the guest and accommodation to verify they belong to the same event
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when creating room allocation`);
+        return res.status(404).json({ 
+          message: 'Guest not found' 
         });
       }
       
+      const accommodation = await storage.getAccommodation(accommodationId);
+      if (!accommodation) {
+        console.warn(`Accommodation with ID ${accommodationId} not found when creating room allocation`);
+        return res.status(404).json({ 
+          message: 'Accommodation not found' 
+        });
+      }
+      
+      // Verify that guest and accommodation belong to the same event
+      if (guest.eventId !== accommodation.eventId) {
+        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Accommodation ${accommodationId} (event ${accommodation.eventId})`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Guest and accommodation must belong to the same event'
+        });
+      }
+      
+      console.log(`Creating room allocation for guest ${guestId} at accommodation ${accommodationId} in event ${guest.eventId}`);
+      const allocation = await storage.createRoomAllocation(allocationData);
+      
+      // Update allocated rooms count
+      console.log(`Updating allocated rooms count for accommodation ${accommodationId}`);
+      await storage.updateAccommodation(accommodationId, {
+        allocatedRooms: (accommodation.allocatedRooms || 0) + 1
+      });
+      
       res.status(201).json(allocation);
     } catch (error) {
+      console.error(`Error creating room allocation:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1395,12 +1476,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const allocationId = parseInt(req.params.id);
       const allocationData = insertRoomAllocationSchema.partial().parse(req.body);
+      
+      // First get the current allocation
+      const currentAllocation = await storage.getRoomAllocation(allocationId);
+      if (!currentAllocation) {
+        console.warn(`Room allocation with ID ${allocationId} not found when updating`);
+        return res.status(404).json({ message: 'Allocation not found' });
+      }
+      
+      // Handle event context validation if changing guest or accommodation
+      if (allocationData.guestId || allocationData.accommodationId) {
+        // Get the current guest and accommodation to establish event context
+        const currentGuest = await storage.getGuest(currentAllocation.guestId);
+        if (!currentGuest) {
+          console.warn(`Current guest with ID ${currentAllocation.guestId} not found when updating room allocation`);
+          return res.status(404).json({ message: 'Current guest not found' });
+        }
+        
+        const currentAccommodation = await storage.getAccommodation(currentAllocation.accommodationId);
+        if (!currentAccommodation) {
+          console.warn(`Current accommodation with ID ${currentAllocation.accommodationId} not found when updating room allocation`);
+          return res.status(404).json({ message: 'Current accommodation not found' });
+        }
+        
+        // Verify current guest and accommodation belong to same event
+        if (currentGuest.eventId !== currentAccommodation.eventId) {
+          console.warn(`Existing data inconsistency detected: Guest ${currentAllocation.guestId} (event ${currentGuest.eventId}) and Accommodation ${currentAllocation.accommodationId} (event ${currentAccommodation.eventId})`);
+        }
+        
+        const eventId = currentGuest.eventId;
+        
+        // If changing guest, verify new guest is in same event
+        if (allocationData.guestId && allocationData.guestId !== currentAllocation.guestId) {
+          const newGuest = await storage.getGuest(allocationData.guestId);
+          if (!newGuest) {
+            console.warn(`New guest with ID ${allocationData.guestId} not found when updating room allocation`);
+            return res.status(404).json({ message: 'New guest not found' });
+          }
+          
+          if (newGuest.eventId !== eventId) {
+            console.warn(`Cross-event operation attempted: New guest ${allocationData.guestId} (event ${newGuest.eventId}) used with existing context (event ${eventId})`);
+            return res.status(403).json({
+              message: 'Access denied',
+              details: 'Cannot assign room allocation to guest from different event'
+            });
+          }
+        }
+        
+        // If changing accommodation, verify new accommodation is in same event
+        if (allocationData.accommodationId && allocationData.accommodationId !== currentAllocation.accommodationId) {
+          const newAccommodation = await storage.getAccommodation(allocationData.accommodationId);
+          if (!newAccommodation) {
+            console.warn(`New accommodation with ID ${allocationData.accommodationId} not found when updating room allocation`);
+            return res.status(404).json({ message: 'New accommodation not found' });
+          }
+          
+          if (newAccommodation.eventId !== eventId) {
+            console.warn(`Cross-event operation attempted: New accommodation ${allocationData.accommodationId} (event ${newAccommodation.eventId}) used with existing context (event ${eventId})`);
+            return res.status(403).json({
+              message: 'Access denied',
+              details: 'Cannot assign room allocation to accommodation from different event'
+            });
+          }
+        }
+      }
+      
+      console.log(`Updating room allocation ${allocationId}`);
       const updatedAllocation = await storage.updateRoomAllocation(allocationId, allocationData);
       if (!updatedAllocation) {
         return res.status(404).json({ message: 'Allocation not found' });
       }
       res.json(updatedAllocation);
     } catch (error) {
+      console.error(`Error updating room allocation:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
