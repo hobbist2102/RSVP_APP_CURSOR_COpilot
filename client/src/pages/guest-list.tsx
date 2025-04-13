@@ -96,7 +96,15 @@ export default function GuestList() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
+      // Invalidate and immediately refetch the guests query
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/events/${eventId}/guests`],
+        refetchType: 'active', // Make sure active queries are refetched
+      });
+      
+      // Explicitly trigger a refetch with our refetchGuests function
+      refetchGuests();
+      
       setShowAddDialog(false);
       toast({
         title: "Guest Added",
@@ -146,7 +154,16 @@ export default function GuestList() {
     },
     onSuccess: (data) => {
       console.log("Guest updated successfully:", data);
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
+      
+      // Invalidate and immediately refetch the guests query
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/events/${eventId}/guests`],
+        refetchType: 'active', // Make sure active queries are refetched
+      });
+      
+      // Explicitly trigger a refetch
+      refetchGuests();
+      
       setShowEditDialog(false);
       toast({
         title: "Guest Updated",
@@ -189,7 +206,15 @@ export default function GuestList() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
+      // Invalidate and immediately refetch the guests query
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/events/${eventId}/guests`],
+        refetchType: 'active', // Make sure active queries are refetched
+      });
+      
+      // Explicitly trigger a refetch
+      refetchGuests();
+      
       setShowDeleteDialog(false);
       setSelectedGuest(null);
       toast({
