@@ -3,7 +3,13 @@
  */
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
-import { RSVPService, RSVPResponseSchema } from '../services/rsvp';
+import { RSVPService } from '../services/rsvp';
+import { 
+  RSVPResponseSchema,
+  RSVPStage1Schema,
+  RSVPStage2Schema,
+  RSVPCombinedSchema
+} from '../services/rsvp-schema';
 import { EmailService } from '../services/email';
 import { WhatsAppService } from '../services/whatsapp';
 
@@ -493,7 +499,230 @@ export function registerRSVPRoutes(
     }
   });
   
-  // Submit RSVP response endpoint
+  // Submit RSVP Stage 1 (Basic attendance) endpoint
+  app.post('/api/rsvp/stage1', async (req: Request, res: Response) => {
+    try {
+      // Validate request body against Stage 1 schema
+      const validationResult = RSVPStage1Schema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid RSVP data', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      const response = validationResult.data;
+      
+      // Process RSVP Stage 1 response
+      const result = await RSVPService.processRSVPStage1(response);
+      
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      
+      // Send confirmation communication based on stage 1 result
+      const guest = result.guest;
+      const event = await storage.getEvent(response.eventId);
+      
+      if (guest && event) {
+        // Send email if guest has email
+        if (guest.email) {
+          const emailService = EmailService.fromEvent(event);
+          
+          if (emailService.isConfigured()) {
+            await emailService.sendEmail({
+              to: guest.email,
+              subject: `Your RSVP for ${event.title} - ${response.rsvpStatus === 'confirmed' ? 'Confirmed' : 'Declined'}`,
+              text: `Dear ${guest.firstName},\n\nThank you for your RSVP response for ${event.title}.\n\nYour response: ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}\n\n${response.rsvpStatus === 'confirmed' && result.requiresStage2 ? 'We will send you a follow-up form for additional travel details soon.\n\n' : ''}We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}\n\nRegards,\n${event.coupleNames}`,
+              html: `<p>Dear ${guest.firstName},</p><p>Thank you for your RSVP response for ${event.title}.</p><p><strong>Your response:</strong> ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}</p>${response.rsvpStatus === 'confirmed' && result.requiresStage2 ? '<p>We will send you a follow-up form for additional travel details soon.</p>' : ''}<p>We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}</p><p>Regards,<br>${event.coupleNames}</p>`
+            });
+          }
+        }
+        
+        // Send WhatsApp if guest has phone number
+        if (guest.phone) {
+          const whatsappService = WhatsAppService.fromEvent(event);
+          
+          if (whatsappService.isConfigured()) {
+            await whatsappService.sendMessage(
+              guest, 
+              response.rsvpStatus === 'confirmed' ? 'rsvp_confirmation_stage1' : 'rsvp_declined',
+              {
+                event_name: event.title,
+                couple_names: event.coupleNames,
+                rsvp_status: response.rsvpStatus,
+                requires_stage2: result.requiresStage2 ? 'yes' : 'no'
+              }
+            );
+          }
+        }
+      }
+      
+      return res.json({
+        success: true,
+        message: 'RSVP response submitted successfully',
+        requiresStage2: result.requiresStage2,
+        guest: result.guest
+      });
+    } catch (error) {
+      console.error('Error submitting RSVP stage 1:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error processing RSVP submission' 
+      });
+    }
+  });
+
+  // Submit RSVP Stage 2 (Travel details) endpoint
+  app.post('/api/rsvp/stage2', async (req: Request, res: Response) => {
+    try {
+      // Validate request body against Stage 2 schema
+      const validationResult = RSVPStage2Schema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid RSVP travel data', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      const response = validationResult.data;
+      
+      // Process RSVP Stage 2 response
+      const result = await RSVPService.processRSVPStage2(response);
+      
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      
+      // Send confirmation for Stage 2
+      const guest = result.guest;
+      const event = await storage.getEvent(response.eventId);
+      
+      if (guest && event) {
+        // Send confirmation email if guest has email address
+        if (guest.email) {
+          const emailService = EmailService.fromEvent(event);
+          
+          if (emailService.isConfigured()) {
+            await emailService.sendEmail({
+              to: guest.email,
+              subject: `Travel Details Confirmed for ${event.title}`,
+              text: `Dear ${guest.firstName},\n\nThank you for providing your travel details for ${event.title}.\n\nYour preferences have been recorded successfully. We will use this information to make your experience as smooth as possible.\n\nRegards,\n${event.coupleNames}`,
+              html: `<p>Dear ${guest.firstName},</p><p>Thank you for providing your travel details for ${event.title}.</p><p>Your preferences have been recorded successfully. We will use this information to make your experience as smooth as possible.</p><p>Regards,<br>${event.coupleNames}</p>`
+            });
+          }
+        }
+        
+        // Send WhatsApp confirmation if guest has phone number
+        if (guest.phone) {
+          const whatsappService = WhatsAppService.fromEvent(event);
+          
+          if (whatsappService.isConfigured()) {
+            await whatsappService.sendMessage(
+              guest, 
+              'rsvp_confirmation_stage2',
+              {
+                event_name: event.title,
+                couple_names: event.coupleNames
+              }
+            );
+          }
+        }
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Travel details submitted successfully',
+        guest: result.guest
+      });
+    } catch (error) {
+      console.error('Error submitting RSVP stage 2:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error processing travel details' 
+      });
+    }
+  });
+
+  // Submit combined RSVP response (both stages at once) endpoint
+  app.post('/api/rsvp/combined', async (req: Request, res: Response) => {
+    try {
+      // Validate request body against combined schema
+      const validationResult = RSVPCombinedSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid RSVP data', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      const response = validationResult.data;
+      
+      // Process combined RSVP response
+      const result = await RSVPService.processRSVPCombined(response);
+      
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      
+      // Send confirmation
+      const guest = result.guest;
+      const event = await storage.getEvent(response.eventId);
+      
+      if (guest && event) {
+        // Send confirmation email
+        if (guest.email) {
+          const emailService = EmailService.fromEvent(event);
+          
+          if (emailService.isConfigured()) {
+            await emailService.sendEmail({
+              to: guest.email,
+              subject: `Your RSVP for ${event.title} - ${response.rsvpStatus === 'confirmed' ? 'Confirmed' : 'Declined'}`,
+              text: `Dear ${guest.firstName},\n\nThank you for your RSVP response for ${event.title}.\n\nYour response: ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}\n\nWe ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}\n\nRegards,\n${event.coupleNames}`,
+              html: `<p>Dear ${guest.firstName},</p><p>Thank you for your RSVP response for ${event.title}.</p><p><strong>Your response:</strong> ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}</p><p>We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}</p><p>Regards,<br>${event.coupleNames}</p>`
+            });
+          }
+        }
+        
+        // Send WhatsApp confirmation
+        if (guest.phone) {
+          const whatsappService = WhatsAppService.fromEvent(event);
+          
+          if (whatsappService.isConfigured()) {
+            await whatsappService.sendMessage(
+              guest, 
+              response.rsvpStatus === 'confirmed' ? 'rsvp_confirmation_combined' : 'rsvp_declined',
+              {
+                event_name: event.title,
+                couple_names: event.coupleNames,
+                rsvp_status: response.rsvpStatus
+              }
+            );
+          }
+        }
+      }
+      
+      return res.json({
+        success: true,
+        message: 'RSVP response submitted successfully',
+        guest: result.guest
+      });
+    } catch (error) {
+      console.error('Error submitting combined RSVP:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error processing RSVP submission' 
+      });
+    }
+  });
+
+  // Legacy RSVP submission endpoint (for backward compatibility)
   app.post('/api/rsvp/submit', async (req: Request, res: Response) => {
     try {
       // Validate request body against schema

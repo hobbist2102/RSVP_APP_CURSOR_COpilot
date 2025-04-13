@@ -4,33 +4,18 @@
 import { Guest, WeddingEvent, insertGuestSchema } from "@shared/schema";
 import { storage } from "../storage";
 import { randomBytes, createHmac } from "crypto";
-import { z } from "zod";
 
-// RSVP response schema
-export const RSVPResponseSchema = z.object({
-  guestId: z.number(),
-  eventId: z.number(),
-  attending: z.boolean(),
-  plusOneAttending: z.boolean().optional(),
-  plusOneName: z.string().optional(),
-  plusOneEmail: z.string().email().optional(),
-  plusOnePhone: z.string().optional(),
-  childrenAttending: z.number().default(0),
-  childrenDetails: z.string().optional(),
-  dietaryRestrictions: z.string().optional(),
-  message: z.string().optional(),
-  accommodationNeeded: z.boolean().optional(),
-  arrivalDate: z.string().optional(),
-  departureDate: z.string().optional(),
-  transportationNeeded: z.boolean().optional(),
-  ceremonies: z.array(z.object({
-    ceremonyId: z.number(),
-    attending: z.boolean(),
-    mealOptionId: z.number().optional()
-  })).optional()
-});
-
-export type RSVPResponse = z.infer<typeof RSVPResponseSchema>;
+// Import the new schema definitions
+import { 
+  RSVPResponseSchema,
+  RSVPStage1Schema,
+  RSVPStage2Schema,
+  RSVPCombinedSchema,
+  type RSVPResponse,
+  type RSVPStage1Response,
+  type RSVPStage2Response,
+  type RSVPCombinedResponse
+} from "./rsvp-schema";
 
 export class RSVPService {
   private static readonly TOKEN_EXPIRY_DAYS = 90; // 90 days expiry for RSVP tokens
@@ -102,7 +87,325 @@ export class RSVPService {
   }
   
   /**
-   * Process an RSVP response
+   * Process Stage 1 of RSVP (Basic attendance information)
+   */
+  static async processRSVPStage1(response: RSVPStage1Response): Promise<{ 
+    success: boolean; 
+    message?: string; 
+    guest?: Guest; 
+    requiresStage2?: boolean;
+  }> {
+    try {
+      // Validate guest and event exist with proper context validation
+      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
+      if (!guest) {
+        return { success: false, message: 'Guest not found or does not belong to this event' };
+      }
+      
+      const event = await storage.getEvent(response.eventId);
+      if (!event) {
+        return { success: false, message: 'Event not found' };
+      }
+      
+      // Update guest basic information
+      const updatedGuest: any = {
+        // Update name and contact info if it was edited
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        // RSVP status and date
+        rsvpStatus: response.rsvpStatus,
+        rsvpDate: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+        // Basic guest preferences
+        dietaryRestrictions: response.dietaryRestrictions || guest.dietaryRestrictions,
+        allergies: response.allergies || guest.allergies,
+      };
+      
+      // Update phone if provided
+      if (response.phone) {
+        updatedGuest.phone = response.phone;
+      }
+      
+      // Add local/outstation status if provided
+      if (response.isLocalGuest !== undefined) {
+        updatedGuest.isLocalGuest = response.isLocalGuest;
+      }
+      
+      // Handle plus one information
+      if (response.plusOneAttending !== undefined) {
+        updatedGuest.plusOneConfirmed = response.plusOneAttending;
+        if (response.plusOneAttending && response.plusOneName) {
+          updatedGuest.plusOneName = response.plusOneName;
+          
+          // Only update these fields if they're provided
+          if (response.plusOneEmail) updatedGuest.plusOneEmail = response.plusOneEmail;
+          if (response.plusOnePhone) updatedGuest.plusOnePhone = response.plusOnePhone;
+          if (response.plusOneGender) updatedGuest.plusOneGender = response.plusOneGender;
+        }
+      }
+      
+      // Update the guest record
+      await storage.updateGuest(guest.id, updatedGuest);
+      
+      // Process ceremony selections if provided
+      if (response.ceremonies && response.ceremonies.length > 0) {
+        for (const ceremony of response.ceremonies) {
+          // Check if guest-ceremony relation already exists
+          const existingRelation = await storage.getGuestCeremony(guest.id, ceremony.ceremonyId);
+          
+          if (existingRelation) {
+            // Update existing relation
+            await storage.updateGuestCeremony(existingRelation.id, {
+              attending: ceremony.attending
+            });
+          } else {
+            // Create new relation
+            await storage.createGuestCeremony({
+              guestId: guest.id,
+              ceremonyId: ceremony.ceremonyId,
+              attending: ceremony.attending
+            });
+          }
+        }
+      }
+      
+      // Record message if provided
+      if (response.message) {
+        await storage.createCoupleMessage({
+          guestId: guest.id,
+          eventId: event.id,
+          message: response.message
+        });
+      }
+      
+      // Determine if Stage 2 is required
+      // Stage 2 is only required for confirmed attendees who are not local guests
+      const requiresStage2 = response.rsvpStatus === 'confirmed' && !response.isLocalGuest;
+      
+      return { 
+        success: true, 
+        guest: await storage.getGuest(guest.id), // Return updated guest data
+        requiresStage2
+      };
+    } catch (error) {
+      console.error('Error processing RSVP stage 1:', error);
+      return { 
+        success: false, 
+        message: 'An error occurred while processing your RSVP. Please try again later.'
+      };
+    }
+  }
+  
+  /**
+   * Process Stage 2 of RSVP (Detailed travel and accommodation information)
+   */
+  static async processRSVPStage2(response: RSVPStage2Response): Promise<{ 
+    success: boolean; 
+    message?: string; 
+    guest?: Guest;
+  }> {
+    try {
+      // Validate guest and event exist with proper context validation
+      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
+      if (!guest) {
+        return { success: false, message: 'Guest not found or does not belong to this event' };
+      }
+      
+      const event = await storage.getEvent(response.eventId);
+      if (!event) {
+        return { success: false, message: 'Event not found' };
+      }
+      
+      // Ensure guest has confirmed attendance before processing stage 2
+      if (guest.rsvpStatus !== 'confirmed') {
+        return { 
+          success: false, 
+          message: 'Cannot process detailed information for guests who have not confirmed attendance' 
+        };
+      }
+      
+      // Process accommodation needs
+      if (response.needsAccommodation) {
+        await storage.updateGuest(guest.id, {
+          needsAccommodation: true,
+          accommodationPreference: response.accommodationPreference,
+          notes: (guest.notes || '') + 
+            `\nAccommodation: ${response.accommodationPreference}` +
+            (response.accommodationNotes ? `\nNotes: ${response.accommodationNotes}` : '')
+        });
+      }
+      
+      // Process transportation needs
+      if (response.needsTransportation) {
+        // Check if travel info already exists
+        const existingTravelInfo = await storage.getTravelInfoByGuest(guest.id);
+        
+        const travelInfoData: any = {
+          needsTransportation: true,
+          transportationType: response.transportationPreference,
+          travelMode: response.travelMode,
+          arrivalDate: response.arrivalDate,
+          arrivalTime: response.arrivalTime,
+          departureDate: response.departureDate,
+          departureTime: response.departureTime,
+        };
+        
+        // Add flight details if available
+        if (response.travelMode === 'air' && response.flightDetails) {
+          travelInfoData.flightNumber = response.flightDetails.flightNumber;
+          // Store additional flight data in a notes field
+          const flightNotes = [];
+          if (response.flightDetails.airline) flightNotes.push(`Airline: ${response.flightDetails.airline}`);
+          if (response.flightDetails.arrivalAirport) flightNotes.push(`Arrival Airport: ${response.flightDetails.arrivalAirport}`);
+          if (response.flightDetails.departureAirport) flightNotes.push(`Departure Airport: ${response.flightDetails.departureAirport}`);
+          
+          if (flightNotes.length > 0) {
+            travelInfoData.notes = flightNotes.join('\n');
+          }
+        }
+        
+        if (existingTravelInfo) {
+          // Update existing travel info
+          await storage.updateTravelInfo(existingTravelInfo.id, travelInfoData);
+        } else {
+          // Create new travel info
+          travelInfoData.guestId = guest.id;
+          await storage.createTravelInfo(travelInfoData);
+        }
+      }
+      
+      // Process children details if provided
+      if (response.childrenDetails && response.childrenDetails.length > 0) {
+        // Format children details as JSON
+        const childrenDetailsJson = JSON.stringify(response.childrenDetails);
+        
+        // Update guest record with children information
+        await storage.updateGuest(guest.id, {
+          childrenDetails: childrenDetailsJson,
+          numberOfChildren: response.childrenDetails.length
+        });
+      }
+      
+      // Process meal selections if provided
+      if (response.mealSelections && response.mealSelections.length > 0) {
+        for (const mealSelection of response.mealSelections) {
+          // Check if meal selection already exists
+          const existingMealSelections = await storage.getGuestMealSelectionsByGuest(guest.id);
+          const existingForCeremony = existingMealSelections.find(ms => 
+            ms.ceremonyId === mealSelection.ceremonyId
+          );
+          
+          const mealData: any = {
+            mealOptionId: mealSelection.mealOptionId
+          };
+          
+          // Add notes if provided
+          if (mealSelection.notes) {
+            mealData.notes = mealSelection.notes;
+          }
+          
+          if (existingForCeremony) {
+            // Update existing meal selection
+            await storage.updateGuestMealSelection(existingForCeremony.id, mealData);
+          } else {
+            // Create new meal selection
+            mealData.guestId = guest.id;
+            mealData.ceremonyId = mealSelection.ceremonyId;
+            await storage.createGuestMealSelection(mealData);
+          }
+        }
+      }
+      
+      return { 
+        success: true, 
+        guest: await storage.getGuest(guest.id) // Return updated guest data
+      };
+    } catch (error) {
+      console.error('Error processing RSVP stage 2:', error);
+      return { 
+        success: false, 
+        message: 'An error occurred while processing your detailed information. Please try again later.'
+      };
+    }
+  }
+  
+  /**
+   * Process a combined RSVP response (Both stages at once)
+   */
+  static async processRSVPCombined(response: RSVPCombinedResponse): Promise<{ 
+    success: boolean; 
+    message?: string; 
+    guest?: Guest;
+  }> {
+    try {
+      // Process Stage 1 first
+      const stage1Result = await this.processRSVPStage1({
+        guestId: response.guestId,
+        eventId: response.eventId,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        email: response.email,
+        phone: response.phone,
+        rsvpStatus: response.rsvpStatus,
+        isLocalGuest: response.isLocalGuest,
+        plusOneAttending: response.plusOneAttending,
+        plusOneName: response.plusOneName,
+        plusOneEmail: response.plusOneEmail,
+        plusOnePhone: response.plusOnePhone,
+        plusOneGender: response.plusOneGender,
+        dietaryRestrictions: response.dietaryRestrictions,
+        allergies: response.allergies,
+        ceremonies: response.ceremonies,
+        message: response.message
+      });
+      
+      if (!stage1Result.success) {
+        return stage1Result;
+      }
+      
+      // If attendance is declined or guest is local and no stage 2 data is needed, return success
+      if (response.rsvpStatus === 'declined' || (response.isLocalGuest && 
+          !response.needsAccommodation && !response.needsTransportation &&
+          (!response.childrenDetails || response.childrenDetails.length === 0) &&
+          (!response.mealSelections || response.mealSelections.length === 0))) {
+        return {
+          success: true,
+          guest: stage1Result.guest
+        };
+      }
+      
+      // Otherwise, process Stage 2
+      const stage2Result = await this.processRSVPStage2({
+        guestId: response.guestId,
+        eventId: response.eventId,
+        needsAccommodation: response.needsAccommodation,
+        accommodationPreference: response.accommodationPreference,
+        accommodationNotes: response.accommodationNotes,
+        needsTransportation: response.needsTransportation,
+        transportationPreference: response.transportationPreference,
+        transportationNotes: response.transportationNotes,
+        travelMode: response.travelMode,
+        flightDetails: response.flightDetails,
+        arrivalDate: response.arrivalDate,
+        arrivalTime: response.arrivalTime,
+        departureDate: response.departureDate,
+        departureTime: response.departureTime,
+        childrenDetails: response.childrenDetails,
+        mealSelections: response.mealSelections
+      });
+      
+      return stage2Result;
+    } catch (error) {
+      console.error('Error processing combined RSVP:', error);
+      return { 
+        success: false, 
+        message: 'An error occurred while processing your RSVP. Please try again later.'
+      };
+    }
+  }
+  
+  /**
+   * Process an RSVP response (for backward compatibility)
    */
   static async processRSVPResponse(response: RSVPResponse): Promise<{ success: boolean; message?: string }> {
     try {
@@ -120,7 +423,7 @@ export class RSVPService {
       // Update guest RSVP status - only updating fields that are in the schema
       const updatedGuest = {
         rsvpStatus: response.attending ? 'confirmed' : 'declined',
-        // Store RSVP date as string
+        rsvpDate: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
         plusOneName: response.plusOneName || guest.plusOneName, 
         dietaryRestrictions: response.dietaryRestrictions || guest.dietaryRestrictions,
         notes: guest.notes || ''
