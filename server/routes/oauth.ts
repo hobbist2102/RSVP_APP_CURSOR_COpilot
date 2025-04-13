@@ -336,11 +336,21 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
         return res.status(400).json({ message: "No Gmail refresh token available" });
       }
       
+      // Use event-specific credentials or fall back to environment variables
+      const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
+      const clientSecret = event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
+      
+      if (!clientId || !clientSecret) {
+        return res.status(500).json({ 
+          message: "Gmail OAuth credentials not configured properly" 
+        });
+      }
+      
       const response = await axios.post(
         "https://oauth2.googleapis.com/token",
         new URLSearchParams({
-          client_id: GMAIL_CLIENT_ID,
-          client_secret: GMAIL_CLIENT_SECRET,
+          client_id: clientId,
+          client_secret: clientSecret,
           refresh_token: event.gmailRefreshToken,
           grant_type: "refresh_token",
         }).toString(),
@@ -365,11 +375,21 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
         return res.status(400).json({ message: "No Outlook refresh token available" });
       }
       
+      // Use event-specific credentials or fall back to environment variables
+      const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
+      const clientSecret = event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
+      
+      if (!clientId || !clientSecret) {
+        return res.status(500).json({ 
+          message: "Outlook OAuth credentials not configured properly" 
+        });
+      }
+      
       const response = await axios.post(
         "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         new URLSearchParams({
-          client_id: OUTLOOK_CLIENT_ID,
-          client_secret: OUTLOOK_CLIENT_SECRET,
+          client_id: clientId,
+          client_secret: clientSecret,
           refresh_token: event.outlookRefreshToken,
           grant_type: "refresh_token",
           scope: OUTLOOK_SCOPES.join(" "),
