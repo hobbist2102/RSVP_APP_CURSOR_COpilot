@@ -1387,12 +1387,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const accommodationId = parseInt(req.params.id);
       const accommodationData = insertAccommodationSchema.partial().parse(req.body);
+      
+      // First get the current accommodation to verify event context
+      const currentAccommodation = await storage.getAccommodation(accommodationId);
+      if (!currentAccommodation) {
+        console.warn(`Accommodation with ID ${accommodationId} not found when updating`);
+        return res.status(404).json({ message: 'Accommodation not found' });
+      }
+      
+      // Verify eventId hasn't changed or if it has, it's a valid operation
+      if (accommodationData.eventId && accommodationData.eventId !== currentAccommodation.eventId) {
+        console.warn(`Attempted to change eventId from ${currentAccommodation.eventId} to ${accommodationData.eventId} for accommodation ${accommodationId}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Cannot change the event association of an accommodation'
+        });
+      }
+      
+      console.log(`Updating accommodation ${accommodationId} in event ${currentAccommodation.eventId}`);
       const updatedAccommodation = await storage.updateAccommodation(accommodationId, accommodationData);
       if (!updatedAccommodation) {
         return res.status(404).json({ message: 'Accommodation not found' });
       }
       res.json(updatedAccommodation);
     } catch (error) {
+      console.error(`Error updating accommodation:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1404,9 +1423,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/accommodations/:accommodationId/allocations', isAuthenticated, async (req, res) => {
     try {
       const accommodationId = parseInt(req.params.accommodationId);
+      
+      // First verify that the accommodation exists and note its event context
+      const accommodation = await storage.getAccommodation(accommodationId);
+      if (!accommodation) {
+        console.warn(`Accommodation with ID ${accommodationId} not found when fetching allocations`);
+        return res.status(404).json({ message: 'Accommodation not found' });
+      }
+      
+      console.log(`Fetching allocations for accommodation ${accommodationId} in event ${accommodation.eventId}`);
       const allocations = await storage.getRoomAllocationsByAccommodation(accommodationId);
       res.json(allocations);
     } catch (error) {
+      console.error(`Error fetching allocations for accommodation:`, error);
       res.status(500).json({ message: 'Failed to fetch allocations' });
     }
   });
@@ -1414,9 +1443,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/guests/:guestId/allocations', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.guestId);
+      
+      // First verify that the guest exists and note its event context
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when fetching allocations`);
+        return res.status(404).json({ message: 'Guest not found' });
+      }
+      
+      console.log(`Fetching allocations for guest ${guestId} in event ${guest.eventId}`);
       const allocations = await storage.getRoomAllocationsByGuest(guestId);
       res.json(allocations);
     } catch (error) {
+      console.error(`Error fetching allocations for guest:`, error);
       res.status(500).json({ message: 'Failed to fetch allocations' });
     }
   });
@@ -1560,9 +1599,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/ceremonies/:ceremonyId/meals', isAuthenticated, async (req, res) => {
     try {
       const ceremonyId = parseInt(req.params.ceremonyId);
+      
+      // First verify that the ceremony exists and get its event context
+      const ceremony = await storage.getCeremony(ceremonyId);
+      if (!ceremony) {
+        console.warn(`Ceremony with ID ${ceremonyId} not found when fetching meal options`);
+        return res.status(404).json({ message: 'Ceremony not found' });
+      }
+      
+      console.log(`Fetching meal options for ceremony ${ceremonyId} in event ${ceremony.eventId}`);
       const meals = await storage.getMealOptionsByCeremony(ceremonyId);
       res.json(meals);
     } catch (error) {
+      console.error(`Error fetching meal options for ceremony:`, error);
       res.status(500).json({ message: 'Failed to fetch meals' });
     }
   });
@@ -1595,12 +1644,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mealId = parseInt(req.params.id);
       const mealData = insertMealOptionSchema.partial().parse(req.body);
+      
+      // First get the current meal option to verify event and ceremony context
+      const currentMeal = await storage.getMealOption(mealId);
+      if (!currentMeal) {
+        console.warn(`Meal option with ID ${mealId} not found when updating`);
+        return res.status(404).json({ message: 'Meal option not found' });
+      }
+      
+      // Verify eventId hasn't changed or if it has, it's a valid operation
+      if (mealData.eventId && mealData.eventId !== currentMeal.eventId) {
+        console.warn(`Attempted to change eventId from ${currentMeal.eventId} to ${mealData.eventId} for meal option ${mealId}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Cannot change the event association of a meal option'
+        });
+      }
+      
+      // If ceremonyId is being changed, verify the new ceremony belongs to the same event
+      if (mealData.ceremonyId && mealData.ceremonyId !== currentMeal.ceremonyId) {
+        const newCeremony = await storage.getCeremony(mealData.ceremonyId);
+        if (!newCeremony) {
+          console.warn(`New ceremony with ID ${mealData.ceremonyId} not found when updating meal option`);
+          return res.status(404).json({ message: 'New ceremony not found' });
+        }
+        
+        if (newCeremony.eventId !== currentMeal.eventId) {
+          console.warn(`Cross-event operation attempted: Moving meal option ${mealId} (event ${currentMeal.eventId}) to ceremony ${mealData.ceremonyId} (event ${newCeremony.eventId})`);
+          return res.status(403).json({ 
+            message: 'Access denied',
+            details: 'Cannot associate meal option with a ceremony from a different event'
+          });
+        }
+      }
+      
+      console.log(`Updating meal option ${mealId} in event ${currentMeal.eventId}`);
       const updatedMeal = await storage.updateMealOption(mealId, mealData);
       if (!updatedMeal) {
         return res.status(404).json({ message: 'Meal option not found' });
       }
       res.json(updatedMeal);
     } catch (error) {
+      console.error(`Error updating meal option:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1612,9 +1697,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/guests/:guestId/meal-selections', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.guestId);
+      
+      // First verify that the guest exists and note its event context
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when fetching meal selections`);
+        return res.status(404).json({ message: 'Guest not found' });
+      }
+      
+      console.log(`Fetching meal selections for guest ${guestId} in event ${guest.eventId}`);
       const selections = await storage.getGuestMealSelectionsByGuest(guestId);
       res.json(selections);
     } catch (error) {
+      console.error(`Error fetching meal selections for guest:`, error);
       res.status(500).json({ message: 'Failed to fetch meal selections' });
     }
   });
@@ -1952,10 +2047,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const template = await storage.getWhatsappTemplate(id);
       if (!template) {
+        console.warn(`WhatsApp template with ID ${id} not found`);
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
+      
+      console.log(`Successfully fetched WhatsApp template ${id} for event ${template.eventId}`);
       res.json(template);
     } catch (error) {
+      console.error(`Error fetching WhatsApp template:`, error);
       res.status(500).json({ message: 'Failed to fetch WhatsApp template' });
     }
   });
@@ -1978,12 +2077,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const data = insertWhatsappTemplateSchema.partial().parse(req.body);
+      
+      // Fetch the current template to check event context
+      const currentTemplate = await storage.getWhatsappTemplate(id);
+      if (!currentTemplate) {
+        console.warn(`WhatsApp template with ID ${id} not found when updating`);
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      
+      // If eventId is being changed, prevent it
+      if (data.eventId && data.eventId !== currentTemplate.eventId) {
+        console.warn(`Attempted to change eventId from ${currentTemplate.eventId} to ${data.eventId} for WhatsApp template ${id}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Cannot change the event association of a WhatsApp template'
+        });
+      }
+      
+      console.log(`Updating WhatsApp template ${id} for event ${currentTemplate.eventId}`);
       const template = await storage.updateWhatsappTemplate(id, data);
       if (!template) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json(template);
     } catch (error) {
+      console.error(`Error updating WhatsApp template:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1994,12 +2112,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/whatsapp-templates/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // First verify the template exists before deletion and note its event context
+      const template = await storage.getWhatsappTemplate(id);
+      if (!template) {
+        console.warn(`WhatsApp template with ID ${id} not found when attempting deletion`);
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      
+      console.log(`Deleting WhatsApp template ${id} from event ${template.eventId}`);
       const success = await storage.deleteWhatsappTemplate(id);
       if (!success) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json({ message: 'WhatsApp template deleted successfully' });
     } catch (error) {
+      console.error(`Error deleting WhatsApp template:`, error);
       res.status(500).json({ message: 'Failed to delete WhatsApp template' });
     }
   });
@@ -2007,12 +2135,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/whatsapp-templates/:id/mark-used', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // First verify the template exists
+      const existingTemplate = await storage.getWhatsappTemplate(id);
+      if (!existingTemplate) {
+        console.warn(`WhatsApp template with ID ${id} not found when marking as used`);
+        return res.status(404).json({ message: 'WhatsApp template not found' });
+      }
+      
+      console.log(`Marking WhatsApp template ${id} as used for event ${existingTemplate.eventId}`);
       const template = await storage.markWhatsappTemplateAsUsed(id);
       if (!template) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json(template);
     } catch (error) {
+      console.error(`Error marking WhatsApp template as used:`, error);
       res.status(500).json({ message: 'Failed to mark WhatsApp template as used' });
     }
   });
