@@ -11,7 +11,9 @@ import {
   guestMealSelections, type GuestMealSelection, type InsertGuestMealSelection,
   coupleMessages, type CoupleMessage, type InsertCoupleMessage,
   relationshipTypes, type RelationshipType, type InsertRelationshipType,
-  whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate
+  whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate,
+  rsvpFollowupTemplates, type RsvpFollowupTemplate, type InsertRsvpFollowupTemplate,
+  rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
@@ -108,6 +110,18 @@ export interface IStorage {
   updateWhatsappTemplate(id: number, template: Partial<InsertWhatsappTemplate>): Promise<WhatsappTemplate | undefined>;
   deleteWhatsappTemplate(id: number): Promise<boolean>;
   markWhatsappTemplateAsUsed(id: number): Promise<WhatsappTemplate | undefined>;
+  
+  // RSVP Follow-up Template operations
+  getRsvpFollowupTemplate(id: number): Promise<RsvpFollowupTemplate | undefined>;
+  getRsvpFollowupTemplateByType(eventId: number, type: string): Promise<RsvpFollowupTemplate | undefined>;
+  getRsvpFollowupTemplatesByEvent(eventId: number): Promise<RsvpFollowupTemplate[]>;
+  createRsvpFollowupTemplate(template: InsertRsvpFollowupTemplate): Promise<RsvpFollowupTemplate>;
+  updateRsvpFollowupTemplate(id: number, template: Partial<InsertRsvpFollowupTemplate>): Promise<RsvpFollowupTemplate | undefined>;
+  deleteRsvpFollowupTemplate(id: number): Promise<boolean>;
+  
+  // RSVP Follow-up Log operations
+  getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
+  createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
 }
 
 export class MemStorage implements IStorage {

@@ -273,6 +273,42 @@ export const insertWhatsappTemplateSchema = createInsertSchema(whatsappTemplates
   lastUsed: true,
 });
 
+// RSVP Follow-up Message Templates
+export const rsvpFollowupTemplates = pgTable("rsvp_followup_templates", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  type: text("type").notNull(), // "confirmation" or "decline"
+  emailTemplate: text("email_template"), // HTML template for email
+  emailSubject: text("email_subject"), // Subject line for email
+  whatsappTemplate: text("whatsapp_template"), // Text-only template for WhatsApp
+  sendImmediately: boolean("send_immediately").default(true), // Whether to send immediately after RSVP
+  scheduledDate: date("scheduled_date"), // If not sending immediately, date to send
+  scheduledTime: text("scheduled_time"), // If not sending immediately, time to send
+  enabled: boolean("enabled").default(true), // Whether this followup is enabled
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const insertRsvpFollowupTemplateSchema = createInsertSchema(rsvpFollowupTemplates).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+// RSVP Follow-up Message Logs - tracking sent messages
+export const rsvpFollowupLogs = pgTable("rsvp_followup_logs", {
+  id: serial("id").primaryKey(),
+  guestId: integer("guest_id").notNull(),
+  templateId: integer("template_id").notNull(),
+  channel: text("channel").notNull(), // "email" or "whatsapp"
+  status: text("status").notNull(), // "sent", "delivered", "failed"
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+});
+
+export const insertRsvpFollowupLogSchema = createInsertSchema(rsvpFollowupLogs).omit({
+  id: true,
+  sentAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -312,3 +348,9 @@ export type InsertRelationshipType = z.infer<typeof insertRelationshipTypeSchema
 
 export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
 export type InsertWhatsappTemplate = z.infer<typeof insertWhatsappTemplateSchema>;
+
+export type RsvpFollowupTemplate = typeof rsvpFollowupTemplates.$inferSelect;
+export type InsertRsvpFollowupTemplate = z.infer<typeof insertRsvpFollowupTemplateSchema>;
+
+export type RsvpFollowupLog = typeof rsvpFollowupLogs.$inferSelect;
+export type InsertRsvpFollowupLog = z.infer<typeof insertRsvpFollowupLogSchema>;
