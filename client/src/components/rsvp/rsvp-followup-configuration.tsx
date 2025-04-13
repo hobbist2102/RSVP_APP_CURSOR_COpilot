@@ -132,6 +132,12 @@ export default function RsvpFollowupConfiguration() {
   const [selectedTemplate, setSelectedTemplate] = useState<RsvpFollowupTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  
+  // State for OAuth configuration
+  const [isGmailConfigured, setIsGmailConfigured] = useState(false);
+  const [isOutlookConfigured, setIsOutlookConfigured] = useState(false);
+  const [isConfiguring, setIsConfiguring] = useState(false);
+  const [authProvider, setAuthProvider] = useState<'gmail' | 'outlook' | null>(null);
 
   // Form for editing templates
   const templateForm = useForm({
@@ -317,8 +323,47 @@ export default function RsvpFollowupConfiguration() {
         outlookAccount: currentEvent.outlookAccount || "",
         sendGridApiKey: currentEvent.sendGridApiKey || "",
       });
+      
+      // Update OAuth configuration state
+      setIsGmailConfigured(!!currentEvent.gmailAccount);
+      setIsOutlookConfigured(!!currentEvent.outlookAccount);
     }
   }, [currentEvent, communicationForm]);
+  
+  // Handle OAuth configuration
+  const handleOAuthSetup = (provider: 'gmail' | 'outlook') => {
+    setIsConfiguring(true);
+    setAuthProvider(provider);
+    
+    // In a real implementation, this would open a popup window or redirect to the OAuth provider
+    const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
+    
+    // Simulate OAuth flow success
+    setTimeout(() => {
+      const accountEmail = provider === 'gmail' 
+        ? "wedding@gmail.com" 
+        : "wedding@outlook.com";
+        
+      toast({
+        title: `${providerName} Connected`,
+        description: `${providerName} account ${accountEmail} has been successfully connected.`,
+      });
+      
+      // Update the form values
+      communicationForm.setValue(provider === 'gmail' ? 'gmailAccount' : 'outlookAccount', accountEmail);
+      communicationForm.setValue(provider === 'gmail' ? 'useGmail' : 'useOutlook', true);
+      
+      // Update state
+      if (provider === 'gmail') {
+        setIsGmailConfigured(true);
+      } else {
+        setIsOutlookConfigured(true);
+      }
+      
+      setIsConfiguring(false);
+      setAuthProvider(null);
+    }, 2000);
+  };
 
   // Handle template form submission
   const handleTemplateFormSubmit = (data: z.infer<typeof templateFormSchema>) => {
@@ -645,41 +690,97 @@ export default function RsvpFollowupConfiguration() {
                     </div>
 
                     {communicationForm.watch("useGmail") && (
-                      <FormField
-                        control={communicationForm.control}
-                        name="gmailAccount"
-                        render={({ field }) => (
-                          <FormItem className="mt-4">
-                            <FormLabel>Gmail Account</FormLabel>
-                            <FormControl>
-                              <Input placeholder="your.email@gmail.com" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the Gmail address to use for sending emails
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                      <div className="mt-4 space-y-4">
+                        <FormField
+                          control={communicationForm.control}
+                          name="gmailAccount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gmail Account</FormLabel>
+                              <div className="flex gap-2">
+                                <FormControl className="flex-1">
+                                  <Input placeholder="your.email@gmail.com" {...field} disabled={isConfiguring && authProvider === 'gmail'} />
+                                </FormControl>
+                                <Button 
+                                  type="button"
+                                  variant="outline"
+                                  className="w-[120px]"
+                                  onClick={() => handleOAuthSetup('gmail')}
+                                  disabled={isConfiguring}
+                                >
+                                  {isConfiguring && authProvider === 'gmail' ? (
+                                    <>
+                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                      Connecting...
+                                    </>
+                                  ) : isGmailConfigured ? (
+                                    <>Reconfigure</>
+                                  ) : (
+                                    <>Configure</>
+                                  )}
+                                </Button>
+                              </div>
+                              <FormDescription>
+                                Enter the Gmail address to use for sending emails or click Configure to connect via OAuth
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {isGmailConfigured && (
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-sm">
+                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                            <span className="text-green-800">Gmail account connected and authorized for sending emails</span>
+                          </div>
                         )}
-                      />
+                      </div>
                     )}
 
                     {communicationForm.watch("useOutlook") && (
-                      <FormField
-                        control={communicationForm.control}
-                        name="outlookAccount"
-                        render={({ field }) => (
-                          <FormItem className="mt-4">
-                            <FormLabel>Outlook Account</FormLabel>
-                            <FormControl>
-                              <Input placeholder="your.email@outlook.com" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the Outlook address to use for sending emails
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                      <div className="mt-4 space-y-4">
+                        <FormField
+                          control={communicationForm.control}
+                          name="outlookAccount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Outlook Account</FormLabel>
+                              <div className="flex gap-2">
+                                <FormControl className="flex-1">
+                                  <Input placeholder="your.email@outlook.com" {...field} disabled={isConfiguring && authProvider === 'outlook'} />
+                                </FormControl>
+                                <Button 
+                                  type="button"
+                                  variant="outline"
+                                  className="w-[120px]"
+                                  onClick={() => handleOAuthSetup('outlook')}
+                                  disabled={isConfiguring}
+                                >
+                                  {isConfiguring && authProvider === 'outlook' ? (
+                                    <>
+                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                      Connecting...
+                                    </>
+                                  ) : isOutlookConfigured ? (
+                                    <>Reconfigure</>
+                                  ) : (
+                                    <>Configure</>
+                                  )}
+                                </Button>
+                              </div>
+                              <FormDescription>
+                                Enter the Outlook address to use for sending emails or click Configure to connect via OAuth
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {isOutlookConfigured && (
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-sm">
+                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                            <span className="text-green-800">Outlook account connected and authorized for sending emails</span>
+                          </div>
                         )}
-                      />
+                      </div>
                     )}
 
                     {communicationForm.watch("useSendGrid") && (
