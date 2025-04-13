@@ -17,6 +17,9 @@ import {
   type RSVPCombinedResponse
 } from "./rsvp-schema";
 
+// Import the RSVP follow-up service
+import { rsvpFollowupService } from "./rsvp-followup";
+
 export class RSVPService {
   private static readonly TOKEN_EXPIRY_DAYS = 90; // 90 days expiry for RSVP tokens
   private static readonly SECRET_KEY = process.env.RSVP_SECRET_KEY || 'wedding_rsvp_default_secret_key';
