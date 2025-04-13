@@ -15,7 +15,20 @@ import { PanelLeftOpen, BarChart3, CalendarDays, Users, Send } from "lucide-reac
 import { useQuery } from "@tanstack/react-query";
 import { formatDate, getRsvpStatusColor, calculateRsvpProgress } from "@/lib/utils";
 import DataTable from "@/components/ui/data-table";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { queryClient } from "@/lib/queryClient";
 import RsvpForm from "@/components/rsvp/rsvp-form";
+import RsvpStage1Form from "@/components/rsvp/rsvp-stage1-form";
+import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
+import RsvpLinkGenerator from "@/components/rsvp/rsvp-link-generator";
+import RsvpStatusDisplay from "@/components/rsvp/rsvp-status-display";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -249,7 +262,7 @@ export default function RsvpManagement() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+        <TabsList className="grid grid-cols-5 w-full max-w-3xl">
           <TabsTrigger value="dashboard">
             <BarChart3 className="mr-2 h-4 w-4" /> Dashboard
           </TabsTrigger>
@@ -261,6 +274,9 @@ export default function RsvpManagement() {
           </TabsTrigger>
           <TabsTrigger value="messages">
             <PanelLeftOpen className="mr-2 h-4 w-4" /> Messages
+          </TabsTrigger>
+          <TabsTrigger value="invitations">
+            <Send className="mr-2 h-4 w-4" /> Invitations
           </TabsTrigger>
         </TabsList>
         
@@ -438,6 +454,105 @@ export default function RsvpManagement() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="invitations">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Two-Stage RSVP Process</CardTitle>
+                <CardDescription>
+                  Manage invitations for our two-stage RSVP system - collect basic attendance information first, 
+                  then travel and accommodation details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="mb-6 space-y-2">
+                  <h3 className="text-lg font-medium">How it works</h3>
+                  <ol className="list-decimal pl-5 space-y-1">
+                    <li>Generate personalized RSVP links for your guests</li>
+                    <li>Send invitations via email, WhatsApp, or both</li>
+                    <li>Track who has confirmed attendance (Stage 1) and who has provided travel details (Stage 2)</li>
+                    <li>Send targeted reminders based on each guest's current stage</li>
+                  </ol>
+                </div>
+                
+                <div className="p-4 border rounded-md bg-amber-50 mb-6">
+                  <h3 className="font-medium mb-2">RSVP Stages Explained</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Badge className="mb-1">Stage 1</Badge>
+                      <h4 className="text-sm font-medium">Basic Attendance</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Guests confirm if they're attending, which ceremonies they'll join, 
+                        and provide any meal preferences or dietary restrictions.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Badge className="mb-1">Stage 2</Badge>
+                      <h4 className="text-sm font-medium">Travel & Accommodation</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Out-of-town guests provide arrival/departure dates and preferences
+                        for hotel accommodations and transportation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <RsvpLinkGenerator 
+              guests={Array.isArray(guests) ? guests : []} 
+              onSuccess={() => {
+                // Invalidate guests query to refresh status
+                queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
+              }}
+            />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>RSVP Completion Status</CardTitle>
+                <CardDescription>
+                  Track which guests have completed each stage of the RSVP process
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Contact</TableHead>
+                        <TableHead>RSVP Status</TableHead>
+                        <TableHead>Responded On</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Array.isArray(guests) && guests.map(guest => (
+                        <TableRow key={guest.id}>
+                          <TableCell>
+                            {guest.firstName} {guest.lastName}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col text-xs">
+                              {guest.email && <span>{guest.email}</span>}
+                              {guest.phone && <span>{guest.phone}</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <RsvpStatusDisplay guest={guest} />
+                          </TableCell>
+                          <TableCell>
+                            {guest.rsvpStatus !== "pending" ? formatDate(guest.updatedAt) : "Not yet responded"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
       

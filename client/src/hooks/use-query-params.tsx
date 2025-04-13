@@ -10,9 +10,10 @@ export function useQueryParams(): Record<string, string> {
     );
     
     const params: Record<string, string> = {};
-    for (const [key, value] of searchParams.entries()) {
+    // Convert iterator to array first to avoid downlevelIteration issues
+    Array.from(searchParams.entries()).forEach(([key, value]) => {
       params[key] = value;
-    }
+    });
     
     return params;
   }, [location]);
