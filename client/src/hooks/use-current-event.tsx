@@ -15,9 +15,13 @@ export interface CurrentEvent {
 
 export function useCurrentEvent() {
   // Query to get the current event from server session
-  const { data: currentEvent, isLoading } = useQuery<CurrentEvent>({
+  const { 
+    data: currentEvent, 
+    isLoading,
+    refetch: refetchCurrentEvent 
+  } = useQuery<CurrentEvent>({
     queryKey: ['/api/current-event'],
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * 1000, // 30 seconds - reduced from 1 hour to catch changes more quickly
     retry: 1, // Retry once in case of initial session setup
   });
   
@@ -28,7 +32,11 @@ export function useCurrentEvent() {
   const setCurrentEventMutation = useMutation({
     mutationFn: async (eventId: number) => {
       const response = await apiRequest("POST", "/api/current-event", { eventId });
-      return response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to set current event' }));
+        throw new Error(errorData.message || 'Failed to set current event');
+      }
+      return await response.json();
     }
   });
   
@@ -36,67 +44,64 @@ export function useCurrentEvent() {
   const setCurrentEvent = async (event: CurrentEvent) => {
     console.log(`EVENT SWITCH: Switching to event ID: ${event.id} (${event.title})`);
     
-    // Log the current state of the query cache
-    console.log('EVENT SWITCH: Before clearing - Query cache keys:', 
-      queryClient.getQueryCache().getAll().map(query => query.queryKey));
-    
-    // First, remove all related guest data from the cache to prevent incorrect display of guests
-    // This line is key to fixing the issue with guests appearing in wrong events
-    queryClient.clear();
-    
-    console.log('EVENT SWITCH: After clearing - Query cache is now empty');
-    
-    // Update local cache immediately for responsive UI
-    queryClient.setQueryData(['/api/current-event'], event);
-    console.log('EVENT SWITCH: Set current event in cache:', event.id);
-    
-    // Save to server session
     try {
+      // First, update the server-side session
       console.log('EVENT SWITCH: Saving to server session...');
-      await setCurrentEventMutation.mutateAsync(event.id);
+      const updatedEvent = await setCurrentEventMutation.mutateAsync(event.id);
       console.log('EVENT SWITCH: Successfully saved event to server session:', event.id);
-    } catch (error) {
-      console.error('EVENT SWITCH: Failed to save event to server session:', error);
-    }
-    
-    // Invalidate related queries to force data refresh
-    console.log('EVENT SWITCH: Starting query invalidations for event:', event.id);
-    
-    queryClient.invalidateQueries({ 
-      queryKey: [`/api/events/${event.id}`] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: [`/api/events/${event.id}/guests`] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: ['/api/events'] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: ['guests'] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: [`/api/events/${event.id}/ceremonies`] 
-    });
-    queryClient.invalidateQueries({ 
-      queryKey: [`/api/events/${event.id}/accommodations`] 
-    });
-    queryClient.invalidateQueries({
-      queryKey: [`/api/events/${event.id}/statistics`] 
-    });
-    
-    console.log('EVENT SWITCH: All relevant queries invalidated for new event context');
-    
-    // Force a window refresh after a short delay - extreme measure to ensure complete reset
-    setTimeout(() => {
+      
+      // After successful server update, clear the client cache
+      console.log('EVENT SWITCH: Before clearing - Query cache keys:', 
+        queryClient.getQueryCache().getAll().map(query => query.queryKey));
+        
+      // Clear all query cache to ensure no stale data remains
+      queryClient.clear();
+      console.log('EVENT SWITCH: After clearing - Query cache is now empty');
+      
+      // Set the updated event from server in the cache
+      queryClient.setQueryData(['/api/current-event'], updatedEvent);
+      console.log('EVENT SWITCH: Set current event in cache:', updatedEvent.id);
+      
+      // Invalidate and prefetch key queries for the new event context
+      console.log('EVENT SWITCH: Starting query invalidations for event:', event.id);
+      
+      // Make sure these query keys match exactly what's used in components
+      await Promise.all([
+        // Invalidate general event queries
+        queryClient.invalidateQueries({ queryKey: ['/api/events'] }),
+        
+        // Invalidate the current event query
+        queryClient.invalidateQueries({ queryKey: ['/api/current-event'] }),
+        
+        // Invalidate all event-specific queries with proper format
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] }),
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/guests`] }),
+        queryClient.invalidateQueries({ queryKey: ['guests', event.id] }), // Match the key format in use-guests-by-event.tsx
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/ceremonies`] }),
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/accommodations`] }),
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/statistics`] })
+      ]);
+      
+      console.log('EVENT SWITCH: All relevant queries invalidated for new event context');
+      
+      // Force a refetch of the current event to ensure it's up to date
+      await refetchCurrentEvent();
+      
       console.log('EVENT SWITCH: Forcing refetch of all active queries');
-      queryClient.refetchQueries();
-    }, 300);
+      await queryClient.refetchQueries({ type: 'active' });
+      
+      return updatedEvent;
+    } catch (error) {
+      console.error('EVENT SWITCH: Error during event switch:', error);
+      throw error;
+    }
   };
   
   return {
     currentEvent,
     currentEventId,
     isLoading,
-    setCurrentEvent
+    setCurrentEvent,
+    refetchCurrentEvent
   };
 }

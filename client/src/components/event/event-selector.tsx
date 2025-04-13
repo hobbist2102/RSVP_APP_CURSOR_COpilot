@@ -73,37 +73,54 @@ export function EventSelector() {
 
   const handleEventChange = async (value: string) => {
     try {
-      // Set the selected event ID
+      // Set the selected event ID in local state
       setSelectedEventId(value);
       
-      // Find the selected event
+      // Find the selected event from the events list
       const selectedEvent = events.find(event => String(event.id) === value);
       
       if (selectedEvent) {
         console.log(`Event selector: Switching to event ID: ${selectedEvent.id} (${selectedEvent.title})`);
         
-        // We use setCurrentEvent from our hook which now handles all the cache clearing
-        // and server-side session update in one function
+        // Show loading toast
+        toast({
+          title: "Switching Events",
+          description: `Loading ${selectedEvent.title}...`,
+        });
+        
+        // Use the improved setCurrentEvent function that properly syncs with the server
+        // and handles all the cache invalidation and refetching
         await setCurrentEvent(selectedEvent);
         
-        // Show toast notifying the user
+        // Show success toast
         toast({
           title: "Event Changed",
           description: `Now viewing: ${selectedEvent.title}`,
         });
         
-        // EXTREME MEASURE: Hard reload the page after switching events
-        // This is a last resort to ensure all React Query cache is completely reset
-        // and we start with a fresh state
-        console.log("EVENT SELECTOR: Forcing page reload to ensure complete reset");
+        // Instead of a hard page reload, we'll force a URL-based navigation
+        // This preserves the React app state but ensures route-level component remounting
+        const currentPath = window.location.pathname;
         
-        // Slight delay to ensure the toast is shown and server request is complete
-        setTimeout(() => {
-          window.location.href = window.location.pathname;
-        }, 800);
+        if (currentPath === '/') {
+          // If we're on the dashboard already, navigate to it with a timestamp
+          // parameter to force React to treat it as a new navigation
+          window.history.pushState({}, '', `/?ts=${Date.now()}`);
+          // Dispatch a popstate event to trigger route update
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        } else {
+          // If we're on another page, navigate to the dashboard
+          window.location.href = '/';
+        }
       }
     } catch (error) {
       console.error("Error changing event:", error);
+      
+      // Reset the selected event ID to match the current event
+      if (currentEvent) {
+        setSelectedEventId(String(currentEvent.id));
+      }
+      
       toast({
         variant: "destructive",
         title: "Error Changing Event",
