@@ -18,7 +18,7 @@ import {
 } from "./rsvp-schema";
 
 // Import the RSVP follow-up service
-import { rsvpFollowupService } from "./rsvp-followup";
+import { rsvpFollowupService } from './rsvp-followup';
 
 export class RSVPService {
   private static readonly TOKEN_EXPIRY_DAYS = 90; // 90 days expiry for RSVP tokens
@@ -327,6 +327,14 @@ export class RSVPService {
         }
       }
       
+      // Trigger follow-up communication for Stage 2 completion
+      try {
+        await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
+      } catch (followupError) {
+        console.error('Error sending Stage 2 RSVP follow-up:', followupError);
+        // Continue with the response even if follow-up fails
+      }
+      
       return { 
         success: true, 
         guest: await storage.getGuest(guest.id) // Return updated guest data
@@ -542,6 +550,14 @@ export class RSVPService {
           eventId: event.id,
           message: response.message
         });
+      }
+      
+      // Trigger follow-up communication after RSVP is processed
+      try {
+        await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
+      } catch (followupError) {
+        console.error('Error sending legacy RSVP follow-up:', followupError);
+        // Continue with the response even if follow-up fails
       }
       
       return { success: true };

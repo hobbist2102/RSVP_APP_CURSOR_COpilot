@@ -53,7 +53,8 @@ export class RsvpFollowupService {
   /**
    * Determine the appropriate template type based on RSVP status
    */
-  private determineFollowupTemplateType(rsvpStatus: string): string | null {
+  private determineFollowupTemplateType(rsvpStatus: string | null): string | null {
+    if (!rsvpStatus) return null;
     switch (rsvpStatus.toLowerCase()) {
       case 'confirmed':
         return 'attendance_confirmed';
