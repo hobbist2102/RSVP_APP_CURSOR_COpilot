@@ -1,0 +1,74 @@
+I've been testing the application and would like to share some updates, successes, and enhancement suggestions.
+
+Successes Logged:
+1. Event Creation:
+    * Successfully created multiple events with proper isolation for data between them.
+    * Event switching works as expected, redirecting appropriately without conflicts.
+2. Guest Management:
+    * Successfully created guests in different events with proper scoping.
+    * Guests are isolated to their respective events and do not appear in unrelated event data.
+3. RSVP Testing:
+    * The RSVP form is functional, and initial responses can be captured correctly.
+    * Guest creation and isolation are working as intended.
+
+Enhancements for RSVP Flow:
+1. Split RSVP into Two Stages:
+To simplify and streamline the RSVP process, we propose splitting it into two stages:
+Stage 1: Initial RSVP Form
+* Focus on collecting essential attendance details:
+    * Attendance Confirmation: Yes/No.
+    * Plus One Details: Option to add a plus one name (if applicable).
+    * Dietary Preferences: Collect dietary restrictions or allergies.
+    * Event Selection: Allow guests to select which events they will attend.
+    * Local vs. Outstation Guests: Allow guests to confirm if they are local or outstation, impacting later fields dynamically.
+Stage 2: Follow-Up RSVP (For Confirmed Guests Only)
+* Triggered only for guests who confirm attendance in Stage 1.
+* Collect detailed information based on event settings:
+    * Accommodation:
+        * Options:
+            * Provide accommodation for all outstation guests.
+            * Guests manage their own accommodation.
+            * Special deals with hotels (hotel names, links, contact details).
+            * Provide accommodation for selected guests (dropdown: Accommodation Provided or Manage Own Accommodation).
+        * Automatically exclude local guests from accommodation-related fields.
+    * Transport:
+        * Options:
+            * Provide transport for all outstation guests.
+            * Guests manage their own transport.
+            * Special arrangements with transport providers (details of providers).
+            * Provide transport for selected guests (dropdown: Transport Provided or Manage Own Transport).
+        * Allow guests to provide details based on arrival modes (flight, train, bus, road).
+    * Flight Details:
+        * Options:
+            * Provide flights for all outstation guests.
+            * Guests arrange their own flights.
+            * Special deals with airlines (airline names, links, contact details).
+            * Provide flights for selected guests (dropdown: Flights Provided or Manage Own Flights).
+        * Capture preferred departure and return dates/times and airport preferences.
+
+2. RSVP Form Enhancements:
+1. Message from the Couple/Family:
+    * Add a customizable section in the RSVP form for a personal message from the couple or family (e.g., gratitude, instructions, or special notes).
+2. Auto-Populate Guest Information:
+    * Fields like Email, First Name, and Last Name should be auto-filled based on the guest data provided by the couple.
+    * Allow guests to edit these fields to correct any inaccuracies or provide updates.
+
+Request:
+1. Event Creation Form Updates:
+    * Add dropdowns for managing Accommodation, Transport, and Flights with the following options:
+        * Provide for all outstation guests.
+        * Guests manage their own.
+        * Special deals (include fields for names, links, and contact details).
+        * Provide for selected guests (dropdown for each guest: Provided or Manage Own).
+    * Ensure local guests are excluded from fields that do not apply to them.
+2. RSVP Flow Updates:
+    * Split RSVP into two stages as described:
+        * Stage 1: Attendance confirmation and basic details.
+        * Stage 2: Detailed accommodation, transport, and flight information for confirmed guests.
+3. RSVP Form Enhancements:
+    * Add a Message from the Couple/Family section.
+    * Implement auto-population of guest information fields with editable options.
+4. Log Successes:
+    * Log the successes in event creation, guest isolation, and RSVP functionality as completed milestones.
+5. Final Testing:
+    * Once these enhancements are implemented, I will test them further to verify functionality and provide additional feedback.
