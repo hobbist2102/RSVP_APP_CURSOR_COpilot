@@ -79,9 +79,9 @@ export class RsvpFollowupService {
       const template = await storage.createRsvpFollowupTemplate({
         eventId,
         type: templateType,
-        subject: `${this.getDefaultTemplateSubject(templateType)}`,
-        message: templateContent,
-        isActive: true
+        emailSubject: `${this.getDefaultTemplateSubject(templateType)}`,
+        emailTemplate: templateContent,
+        enabled: true
       });
       
       return template;
@@ -184,8 +184,11 @@ Warm regards,
   ): Promise<boolean> {
     try {
       // Replace template variables
-      const personalizedMessage = this.personalizeMessage(guest, event, template.emailTemplate || "");
-      const personalizedSubject = this.personalizeMessage(guest, event, template.emailSubject || "");
+      const templateMessage = template.emailTemplate || template.message || "";
+      const templateSubject = template.emailSubject || template.subject || "Wedding RSVP Follow-up";
+      
+      const personalizedMessage = this.personalizeMessage(guest, event, templateMessage);
+      const personalizedSubject = this.personalizeMessage(guest, event, templateSubject);
 
       // Determine communication channel (email or WhatsApp)
       let sent = false;
@@ -206,8 +209,7 @@ Warm regards,
           guestId: guest.id,
           templateId: template.id,
           channel: guest.phone && event.whatsappConfigured ? 'whatsapp' : 'email',
-          status: 'sent',
-          success: true
+          status: 'sent'
         });
       }
 
@@ -240,7 +242,9 @@ Warm regards,
     personalizedMessage = personalizedMessage.replace(/{{last_name}}/g, guest.lastName);
     personalizedMessage = personalizedMessage.replace(/{{couple_names}}/g, event.coupleNames);
     personalizedMessage = personalizedMessage.replace(/{{event_name}}/g, event.title);
-    personalizedMessage = personalizedMessage.replace(/{{rsvp_status}}/g, guest.rsvpStatus);
+    if (guest.rsvpStatus) {
+      personalizedMessage = personalizedMessage.replace(/{{rsvp_status}}/g, guest.rsvpStatus);
+    }
     
     // Generate RSVP link
     const rsvpLink = `${process.env.APP_URL || 'https://your-wedding-site.com'}/rsvp?eid=${event.id}&gid=${guest.id}`;
