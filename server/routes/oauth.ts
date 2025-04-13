@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
+import axios from "axios";
+import { randomBytes } from "crypto";
 
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
@@ -14,27 +16,22 @@ const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   }
   res.status(403).json({ message: 'Forbidden' });
 };
-import axios from "axios";
-import { randomBytes } from "crypto";
 
 const router = Router();
 
 // OAuth state management to prevent CSRF attacks
 const stateCache = new Map<string, { provider: string; eventId: number; expiresAt: number }>();
 
-// Gmail OAuth Configuration
-const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
-const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
-const GMAIL_REDIRECT_URI = process.env.GMAIL_REDIRECT_URI || "http://localhost:5000/api/oauth/gmail/callback";
+// Default redirect URIs
+const DEFAULT_GMAIL_REDIRECT_URI = "http://localhost:5000/api/oauth/gmail/callback";
+const DEFAULT_OUTLOOK_REDIRECT_URI = "http://localhost:5000/api/oauth/outlook/callback";
+
+// OAuth scopes
 const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/gmail.send", 
   "https://www.googleapis.com/auth/userinfo.email"
 ];
 
-// Outlook OAuth Configuration
-const OUTLOOK_CLIENT_ID = process.env.OUTLOOK_CLIENT_ID;
-const OUTLOOK_CLIENT_SECRET = process.env.OUTLOOK_CLIENT_SECRET;
-const OUTLOOK_REDIRECT_URI = process.env.OUTLOOK_REDIRECT_URI || "http://localhost:5000/api/oauth/outlook/callback";
 const OUTLOOK_SCOPES = [
   "offline_access", 
   "https://graph.microsoft.com/mail.send", 
@@ -44,14 +41,26 @@ const OUTLOOK_SCOPES = [
 // Start Gmail OAuth flow
 router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    // Validate required environment variables
-    if (!GMAIL_CLIENT_ID) {
-      return res.status(500).json({ message: "Gmail client ID not configured" });
-    }
-
     const eventId = parseInt(req.query.eventId as string);
     if (isNaN(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    // Get event details to retrieve OAuth credentials
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Use event-specific credentials or fall back to environment variables
+    const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
+    const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
+
+    // Validate required credentials
+    if (!clientId) {
+      return res.status(500).json({ 
+        message: "Gmail client ID not configured. Please configure OAuth credentials in event settings." 
+      });
     }
 
     // Generate and store a state parameter to prevent CSRF
@@ -64,19 +73,23 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
 
     // Build the authorization URL
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    authUrl.searchParams.append("client_id", GMAIL_CLIENT_ID);
-    authUrl.searchParams.append("redirect_uri", GMAIL_REDIRECT_URI);
+    authUrl.searchParams.append("client_id", clientId);
+    authUrl.searchParams.append("redirect_uri", redirectUri);
     authUrl.searchParams.append("response_type", "code");
     authUrl.searchParams.append("scope", GMAIL_SCOPES.join(" "));
     authUrl.searchParams.append("access_type", "offline");
     authUrl.searchParams.append("prompt", "consent");
     authUrl.searchParams.append("state", state);
 
-    // Redirect to Google's authorization page
+    // Return the authorization URL
     res.json({ authUrl: authUrl.toString() });
   } catch (error) {
     console.error("Gmail OAuth initiation error:", error);
-    res.status(500).json({ message: "Failed to initiate Gmail authorization" });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ 
+      message: "Failed to initiate Gmail authorization", 
+      error: errorMessage 
+    });
   }
 });
 
@@ -94,14 +107,31 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     // Clear the used state
     stateCache.delete(state as string);
     
+    // Get event to retrieve client credentials
+    const event = await storage.getEvent(stateData.eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    
+    // Use event-specific credentials or fall back to environment variables
+    const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
+    const clientSecret = event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
+    const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
+    
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ 
+        message: "Gmail OAuth credentials not configured properly" 
+      });
+    }
+    
     // Exchange the authorization code for tokens
     const tokenResponse = await axios.post(
       "https://oauth2.googleapis.com/token",
       new URLSearchParams({
         code: code as string,
-        client_id: GMAIL_CLIENT_ID as string,
-        client_secret: GMAIL_CLIENT_SECRET as string,
-        redirect_uri: GMAIL_REDIRECT_URI,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }).toString(),
       {
@@ -151,14 +181,26 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
 // Start Outlook OAuth flow
 router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    // Validate required environment variables
-    if (!OUTLOOK_CLIENT_ID) {
-      return res.status(500).json({ message: "Outlook client ID not configured" });
-    }
-
     const eventId = parseInt(req.query.eventId as string);
     if (isNaN(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    // Get event details to retrieve OAuth credentials
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Use event-specific credentials or fall back to environment variables
+    const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
+    const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
+
+    // Validate required credentials
+    if (!clientId) {
+      return res.status(500).json({ 
+        message: "Outlook client ID not configured. Please configure OAuth credentials in event settings." 
+      });
     }
 
     // Generate and store a state parameter to prevent CSRF
@@ -171,17 +213,21 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
 
     // Build the authorization URL
     const authUrl = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
-    authUrl.searchParams.append("client_id", OUTLOOK_CLIENT_ID);
-    authUrl.searchParams.append("redirect_uri", OUTLOOK_REDIRECT_URI);
+    authUrl.searchParams.append("client_id", clientId);
+    authUrl.searchParams.append("redirect_uri", redirectUri);
     authUrl.searchParams.append("response_type", "code");
     authUrl.searchParams.append("scope", OUTLOOK_SCOPES.join(" "));
     authUrl.searchParams.append("state", state);
 
-    // Redirect to Microsoft's authorization page
+    // Return the authorization URL
     res.json({ authUrl: authUrl.toString() });
   } catch (error) {
     console.error("Outlook OAuth initiation error:", error);
-    res.status(500).json({ message: "Failed to initiate Outlook authorization" });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ 
+      message: "Failed to initiate Outlook authorization", 
+      error: errorMessage 
+    });
   }
 });
 
@@ -199,14 +245,31 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     // Clear the used state
     stateCache.delete(state as string);
     
+    // Get event to retrieve client credentials
+    const event = await storage.getEvent(stateData.eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    
+    // Use event-specific credentials or fall back to environment variables
+    const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
+    const clientSecret = event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
+    const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
+    
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ 
+        message: "Outlook OAuth credentials not configured properly" 
+      });
+    }
+    
     // Exchange the authorization code for tokens
     const tokenResponse = await axios.post(
       "https://login.microsoftonline.com/common/oauth2/v2.0/token",
       new URLSearchParams({
         code: code as string,
-        client_id: OUTLOOK_CLIENT_ID,
-        client_secret: OUTLOOK_CLIENT_SECRET,
-        redirect_uri: OUTLOOK_REDIRECT_URI,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }).toString(),
       {

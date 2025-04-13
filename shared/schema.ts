@@ -49,14 +49,23 @@ export const weddingEvents = pgTable("wedding_events", {
   useGmail: boolean("use_gmail").default(false),
   useOutlook: boolean("use_outlook").default(false),
   useSendGrid: boolean("use_sendgrid").default(false),
+  // Gmail settings
+  gmailClientId: text("gmail_client_id"),
+  gmailClientSecret: text("gmail_client_secret"),
+  gmailRedirectUri: text("gmail_redirect_uri"),
   gmailAccount: text("gmail_account"),
   gmailAccessToken: text("gmail_access_token"),
   gmailRefreshToken: text("gmail_refresh_token"),
   gmailTokenExpiry: timestamp("gmail_token_expiry"),
+  // Outlook settings
+  outlookClientId: text("outlook_client_id"),
+  outlookClientSecret: text("outlook_client_secret"),
+  outlookRedirectUri: text("outlook_redirect_uri"),
   outlookAccount: text("outlook_account"),
   outlookAccessToken: text("outlook_access_token"),
   outlookRefreshToken: text("outlook_refresh_token"),
   outlookTokenExpiry: timestamp("outlook_token_expiry"),
+  // SendGrid settings
   sendGridApiKey: text("sendgrid_api_key"),
   // General metadata
   createdBy: integer("created_by").notNull(),
