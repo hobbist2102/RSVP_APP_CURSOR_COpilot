@@ -138,6 +138,8 @@ export class MemStorage implements IStorage {
   private coupleMessagesMap: Map<number, CoupleMessage>;
   private relationshipTypesMap: Map<number, RelationshipType>;
   private whatsappTemplatesMap: Map<number, WhatsappTemplate>;
+  private rsvpFollowupTemplatesMap: Map<number, RsvpFollowupTemplate>;
+  private rsvpFollowupLogsMap: Map<number, RsvpFollowupLog>;
   
   private userIdCounter: number;
   private eventIdCounter: number;
@@ -152,6 +154,8 @@ export class MemStorage implements IStorage {
   private coupleMessageIdCounter: number;
   private relationshipTypeIdCounter: number;
   private whatsappTemplateIdCounter: number;
+  private rsvpFollowupTemplateIdCounter: number;
+  private rsvpFollowupLogIdCounter: number;
 
   constructor() {
     this.usersMap = new Map();
@@ -167,6 +171,8 @@ export class MemStorage implements IStorage {
     this.coupleMessagesMap = new Map();
     this.relationshipTypesMap = new Map();
     this.whatsappTemplatesMap = new Map();
+    this.rsvpFollowupTemplatesMap = new Map();
+    this.rsvpFollowupLogsMap = new Map();
     
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
@@ -181,6 +187,8 @@ export class MemStorage implements IStorage {
     this.coupleMessageIdCounter = 1;
     this.relationshipTypeIdCounter = 1;
     this.whatsappTemplateIdCounter = 1;
+    this.rsvpFollowupTemplateIdCounter = 1;
+    this.rsvpFollowupLogIdCounter = 1;
     
     // Initialize with default admin user
     this.createUser({
@@ -1315,6 +1323,63 @@ export class MemStorage implements IStorage {
     this.whatsappTemplatesMap.set(id, updatedWhatsappTemplate);
     return updatedWhatsappTemplate;
   }
+  
+  // RSVP Follow-up Template operations
+  async getRsvpFollowupTemplate(id: number): Promise<RsvpFollowupTemplate | undefined> {
+    return this.rsvpFollowupTemplatesMap.get(id);
+  }
+
+  async getRsvpFollowupTemplateByType(eventId: number, type: string): Promise<RsvpFollowupTemplate | undefined> {
+    return Array.from(this.rsvpFollowupTemplatesMap.values()).find(
+      template => template.eventId === eventId && template.type === type
+    );
+  }
+
+  async getRsvpFollowupTemplatesByEvent(eventId: number): Promise<RsvpFollowupTemplate[]> {
+    return Array.from(this.rsvpFollowupTemplatesMap.values()).filter(
+      template => template.eventId === eventId
+    );
+  }
+
+  async createRsvpFollowupTemplate(template: InsertRsvpFollowupTemplate): Promise<RsvpFollowupTemplate> {
+    const id = this.rsvpFollowupTemplateIdCounter++;
+    const lastUpdated = new Date();
+    const newTemplate: RsvpFollowupTemplate = { ...template, id, lastUpdated };
+    this.rsvpFollowupTemplatesMap.set(id, newTemplate);
+    return newTemplate;
+  }
+
+  async updateRsvpFollowupTemplate(id: number, template: Partial<InsertRsvpFollowupTemplate>): Promise<RsvpFollowupTemplate | undefined> {
+    const existingTemplate = this.rsvpFollowupTemplatesMap.get(id);
+    if (!existingTemplate) return undefined;
+    
+    const updatedTemplate: RsvpFollowupTemplate = { 
+      ...existingTemplate, 
+      ...template, 
+      lastUpdated: new Date() 
+    };
+    this.rsvpFollowupTemplatesMap.set(id, updatedTemplate);
+    return updatedTemplate;
+  }
+
+  async deleteRsvpFollowupTemplate(id: number): Promise<boolean> {
+    return this.rsvpFollowupTemplatesMap.delete(id);
+  }
+  
+  // RSVP Follow-up Log operations
+  async getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]> {
+    return Array.from(this.rsvpFollowupLogsMap.values()).filter(
+      log => log.guestId === guestId
+    );
+  }
+
+  async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
+    const id = this.rsvpFollowupLogIdCounter++;
+    const sentAt = new Date();
+    const newLog: RsvpFollowupLog = { ...log, id, sentAt };
+    this.rsvpFollowupLogsMap.set(id, newLog);
+    return newLog;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1990,6 +2055,54 @@ export class DatabaseStorage implements IStorage {
       .set({ lastUsed: new Date() })
       .where(eq(whatsappTemplates.id, id))
       .returning();
+    return result[0];
+  }
+
+  // RSVP Follow-up Template operations
+  async getRsvpFollowupTemplate(id: number): Promise<RsvpFollowupTemplate | undefined> {
+    const result = await db.select().from(rsvpFollowupTemplates).where(eq(rsvpFollowupTemplates.id, id));
+    return result[0];
+  }
+
+  async getRsvpFollowupTemplateByType(eventId: number, type: string): Promise<RsvpFollowupTemplate | undefined> {
+    const result = await db.select().from(rsvpFollowupTemplates).where(
+      and(
+        eq(rsvpFollowupTemplates.eventId, eventId),
+        eq(rsvpFollowupTemplates.type, type)
+      )
+    );
+    return result[0];
+  }
+
+  async getRsvpFollowupTemplatesByEvent(eventId: number): Promise<RsvpFollowupTemplate[]> {
+    return db.select().from(rsvpFollowupTemplates).where(eq(rsvpFollowupTemplates.eventId, eventId));
+  }
+
+  async createRsvpFollowupTemplate(template: InsertRsvpFollowupTemplate): Promise<RsvpFollowupTemplate> {
+    const result = await db.insert(rsvpFollowupTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateRsvpFollowupTemplate(id: number, template: Partial<InsertRsvpFollowupTemplate>): Promise<RsvpFollowupTemplate | undefined> {
+    const result = await db.update(rsvpFollowupTemplates)
+      .set(template)
+      .where(eq(rsvpFollowupTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteRsvpFollowupTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(rsvpFollowupTemplates).where(eq(rsvpFollowupTemplates.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // RSVP Follow-up Log operations
+  async getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]> {
+    return db.select().from(rsvpFollowupLogs).where(eq(rsvpFollowupLogs.guestId, guestId));
+  }
+
+  async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
+    const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
   }
 }
