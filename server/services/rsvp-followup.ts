@@ -1,6 +1,6 @@
 import { storage } from '../storage';
 import { RsvpFollowupTemplate, RsvpFollowupLog, Guest, WeddingEvent } from '@shared/schema';
-import { whatsappService } from './whatsapp';
+import { WhatsAppService } from './whatsapp';
 
 export class RsvpFollowupService {
   /**
@@ -183,8 +183,8 @@ Warm regards,
   ): Promise<boolean> {
     try {
       // Replace template variables
-      const personalizedMessage = this.personalizeMessage(guest, event, template.message);
-      const personalizedSubject = this.personalizeMessage(guest, event, template.subject);
+      const personalizedMessage = this.personalizeMessage(guest, event, template.emailTemplate || "");
+      const personalizedSubject = this.personalizeMessage(guest, event, template.emailSubject || "");
 
       // Determine communication channel (email or WhatsApp)
       let sent = false;
@@ -204,7 +204,8 @@ Warm regards,
         await storage.createRsvpFollowupLog({
           guestId: guest.id,
           templateId: template.id,
-          messageType: guest.phone && event.whatsappConfigured ? 'whatsapp' : 'email',
+          channel: guest.phone && event.whatsappConfigured ? 'whatsapp' : 'email',
+          status: 'sent',
           success: true
         });
       }
@@ -217,9 +218,9 @@ Warm regards,
       await storage.createRsvpFollowupLog({
         guestId: guest.id,
         templateId: template.id,
-        messageType: 'unknown',
-        success: false,
-        errorMessage: error.message || 'Unknown error'
+        channel: 'unknown',
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
       });
       
       return false;
@@ -263,8 +264,18 @@ Warm regards,
    */
   private async sendWhatsAppMessage(guest: Guest, message: string): Promise<boolean> {
     try {
-      // Assume we have a WhatsApp service with a sendMessage method
-      const result = await whatsappService.sendDirectMessage(guest.phone, message);
+      // Create WhatsApp service for the guest's event
+      const whatsappService = new WhatsAppService(guest.eventId);
+      
+      // Use the appropriate WhatsApp template for follow-up messages
+      const templateName = 'rsvp_followup';
+      const parameters = {
+        name: `${guest.firstName} ${guest.lastName}`,
+        message: message
+      };
+      
+      // Send the message
+      const result = await whatsappService.sendMessage(guest, templateName, parameters);
       return result.success;
     } catch (error) {
       console.error('Error sending WhatsApp message:', error);
