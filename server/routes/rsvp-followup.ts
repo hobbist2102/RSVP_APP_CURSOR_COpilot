@@ -1,7 +1,14 @@
+/**
+ * RSVP Follow-up Routes
+ * Handles the creation, retrieval, updating and deletion of RSVP follow-up templates
+ * and configuration of email settings for RSVP follow-up communications.
+ */
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
+import { insertRsvpFollowupTemplateSchema, insertRsvpFollowupLogSchema } from '@shared/schema';
 import { z } from 'zod';
-import { insertRsvpFollowupTemplateSchema } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { rsvpFollowupTemplates } from '@shared/schema';
 
 const router = Router();
 
@@ -11,6 +18,10 @@ const router = Router();
 router.get('/events/:eventId/rsvp-followup-templates', async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+    }
+    
     const templates = await storage.getRsvpFollowupTemplatesByEvent(eventId);
     res.json(templates);
   } catch (error) {
@@ -25,17 +36,14 @@ router.get('/events/:eventId/rsvp-followup-templates', async (req: Request, res:
 router.get('/events/:eventId/rsvp-followup-templates/:templateId', async (req: Request, res: Response) => {
   try {
     const templateId = parseInt(req.params.templateId);
-    const template = await storage.getRsvpFollowupTemplate(templateId);
+    if (isNaN(templateId)) {
+      return res.status(400).json({ message: 'Invalid template ID' });
+    }
     
+    const template = await storage.getRsvpFollowupTemplate(templateId);
     if (!template) {
       return res.status(404).json({ message: 'Template not found' });
     }
-    
-    // Check that the template belongs to the specified event
-    if (template.eventId !== parseInt(req.params.eventId)) {
-      return res.status(403).json({ message: 'Template does not belong to the specified event' });
-    }
-    
     res.json(template);
   } catch (error) {
     console.error('Error fetching RSVP follow-up template:', error);
@@ -49,41 +57,26 @@ router.get('/events/:eventId/rsvp-followup-templates/:templateId', async (req: R
 router.post('/events/:eventId/rsvp-followup-templates', async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    
-    // Validate the request body
-    const schema = insertRsvpFollowupTemplateSchema.extend({
-      eventId: z.number()
-    });
-    
-    const validationResult = schema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Invalid template data', 
-        errors: validationResult.error.errors 
-      });
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
     }
     
-    // Make sure the eventId in the body matches the URL parameter
-    if (req.body.eventId !== eventId) {
-      return res.status(400).json({ message: 'Event ID in body does not match URL parameter' });
-    }
+    // Add eventId to the request body
+    const templateData = {
+      ...req.body,
+      eventId
+    };
     
-    // Check if a template of the same type already exists for this event
-    const existingTemplates = await storage.getRsvpFollowupTemplatesByEvent(eventId);
-    const existingTemplate = existingTemplates.find(t => t.type === req.body.type);
-    
-    if (existingTemplate) {
-      return res.status(409).json({ 
-        message: 'A template with this type already exists for this event',
-        existingTemplateId: existingTemplate.id
-      });
-    }
+    // Validate the template data
+    const validatedData = insertRsvpFollowupTemplateSchema.parse(templateData);
     
     // Create the template
-    const template = await storage.createRsvpFollowupTemplate(req.body);
+    const template = await storage.createRsvpFollowupTemplate(validatedData);
     res.status(201).json(template);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: error.errors });
+    }
     console.error('Error creating RSVP follow-up template:', error);
     res.status(500).json({ message: 'Failed to create RSVP follow-up template' });
   }
@@ -94,39 +87,27 @@ router.post('/events/:eventId/rsvp-followup-templates', async (req: Request, res
  */
 router.put('/events/:eventId/rsvp-followup-templates/:templateId', async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
     const templateId = parseInt(req.params.templateId);
-    
-    // Get the existing template
-    const existingTemplate = await storage.getRsvpFollowupTemplate(templateId);
-    
-    if (!existingTemplate) {
-      return res.status(404).json({ message: 'Template not found' });
+    if (isNaN(templateId)) {
+      return res.status(400).json({ message: 'Invalid template ID' });
     }
     
-    // Check that the template belongs to the specified event
-    if (existingTemplate.eventId !== eventId) {
-      return res.status(403).json({ message: 'Template does not belong to the specified event' });
-    }
+    // Validate the template data with partial schema (all fields optional)
+    const templateData = insertRsvpFollowupTemplateSchema.partial().parse(req.body);
     
-    // Validate the request body
-    const schema = insertRsvpFollowupTemplateSchema.partial().extend({
-      type: z.string().optional(),
-    });
-    
-    const validationResult = schema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Invalid template data', 
-        errors: validationResult.error.errors 
-      });
-    }
+    // Update lastUpdated timestamp
+    templateData.lastUpdated = new Date();
     
     // Update the template
-    const updatedTemplate = await storage.updateRsvpFollowupTemplate(templateId, req.body);
-    res.json(updatedTemplate);
+    const template = await storage.updateRsvpFollowupTemplate(templateId, templateData);
+    if (!template) {
+      return res.status(404).json({ message: 'Template not found' });
+    }
+    res.json(template);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: error.errors });
+    }
     console.error('Error updating RSVP follow-up template:', error);
     res.status(500).json({ message: 'Failed to update RSVP follow-up template' });
   }
@@ -137,29 +118,16 @@ router.put('/events/:eventId/rsvp-followup-templates/:templateId', async (req: R
  */
 router.delete('/events/:eventId/rsvp-followup-templates/:templateId', async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
     const templateId = parseInt(req.params.templateId);
+    if (isNaN(templateId)) {
+      return res.status(400).json({ message: 'Invalid template ID' });
+    }
     
-    // Get the existing template
-    const existingTemplate = await storage.getRsvpFollowupTemplate(templateId);
-    
-    if (!existingTemplate) {
+    const success = await storage.deleteRsvpFollowupTemplate(templateId);
+    if (!success) {
       return res.status(404).json({ message: 'Template not found' });
     }
-    
-    // Check that the template belongs to the specified event
-    if (existingTemplate.eventId !== eventId) {
-      return res.status(403).json({ message: 'Template does not belong to the specified event' });
-    }
-    
-    // Delete the template
-    const success = await storage.deleteRsvpFollowupTemplate(templateId);
-    
-    if (success) {
-      res.json({ message: 'Template deleted successfully' });
-    } else {
-      res.status(500).json({ message: 'Failed to delete template' });
-    }
+    res.json({ message: 'Template successfully deleted' });
   } catch (error) {
     console.error('Error deleting RSVP follow-up template:', error);
     res.status(500).json({ message: 'Failed to delete RSVP follow-up template' });
@@ -172,38 +140,41 @@ router.delete('/events/:eventId/rsvp-followup-templates/:templateId', async (req
 router.put('/events/:eventId/communication-settings', async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+    }
     
-    // Validate the request body
-    const schema = z.object({
+    // Validate the event data
+    const eventSchema = z.object({
       emailFrom: z.string().email().optional(),
       emailReplyTo: z.string().email().optional(),
-      whatsappNumber: z.string().optional(),
       useGmail: z.boolean().optional(),
       useOutlook: z.boolean().optional(),
       useSendGrid: z.boolean().optional(),
-      gmailAccount: z.string().email().optional(),
-      outlookAccount: z.string().email().optional(),
+      gmailAccount: z.string().optional(),
+      outlookAccount: z.string().optional(),
       sendGridApiKey: z.string().optional(),
+      whatsappBusinessNumber: z.string().optional(),
+      whatsappBusinessPhoneId: z.string().optional(),
+      whatsappBusinessAccountId: z.string().optional(),
+      whatsappAccessToken: z.string().optional(),
+      whatsappConfigured: z.boolean().optional(),
+      emailConfigured: z.boolean().optional()
     });
     
-    const validationResult = schema.safeParse(req.body);
+    const validatedData = eventSchema.parse(req.body);
     
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Invalid communication settings', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    // Update the event with communication settings
-    const updatedEvent = await storage.updateEvent(eventId, req.body);
-    
+    // Update the event
+    const updatedEvent = await storage.updateEvent(eventId, validatedData);
     if (!updatedEvent) {
       return res.status(404).json({ message: 'Event not found' });
     }
     
     res.json(updatedEvent);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: error.errors });
+    }
     console.error('Error updating communication settings:', error);
     res.status(500).json({ message: 'Failed to update communication settings' });
   }

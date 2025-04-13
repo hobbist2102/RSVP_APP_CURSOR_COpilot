@@ -183,9 +183,9 @@ Warm regards,
     template: RsvpFollowupTemplate
   ): Promise<boolean> {
     try {
-      // Replace template variables
-      const templateMessage = template.emailTemplate || template.message || "";
-      const templateSubject = template.emailSubject || template.subject || "Wedding RSVP Follow-up";
+      // Get template content from the new field names in our schema
+      const templateMessage = template.emailTemplate || "";
+      const templateSubject = template.emailSubject || "Wedding RSVP Follow-up";
       
       const personalizedMessage = this.personalizeMessage(guest, event, templateMessage);
       const personalizedSubject = this.personalizeMessage(guest, event, templateSubject);

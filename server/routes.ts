@@ -36,6 +36,9 @@ import { registerRSVPRoutes } from "./routes/rsvp";
 // Import WhatsApp routes
 import { registerWhatsAppRoutes } from "./routes/whatsapp";
 
+// Import RSVP follow-up routes
+import rsvpFollowupRoutes from "./routes/rsvp-followup";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -2172,6 +2175,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register WhatsApp routes
   registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
+  
+  // Register RSVP Follow-up routes
+  app.use('/api', isAuthenticated, rsvpFollowupRoutes);
   
   return httpServer;
 }
