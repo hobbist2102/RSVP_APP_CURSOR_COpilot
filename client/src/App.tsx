@@ -6,6 +6,7 @@ import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import GuestList from "@/pages/guest-list";
 import RsvpManagement from "@/pages/rsvp-management";
+import RsvpPage from "@/pages/rsvp-page";
 import Events from "@/pages/events";
 import Travel from "@/pages/travel";
 import Accommodations from "@/pages/accommodations";
@@ -19,6 +20,7 @@ function App() {
     <AuthProvider>
       <Switch>
         <Route path="/auth" component={AuthPage} />
+        <Route path="/guest-rsvp" component={RsvpPage} />
         <Route path="/">
           {() => (
             <PrivateRoute>
