@@ -11,6 +11,32 @@ export interface CurrentEvent {
   groomName: string;
   location: string;
   description?: string;
+  // Email Communication Settings
+  emailFrom?: string;
+  emailReplyTo?: string;
+  useGmail?: boolean;
+  useOutlook?: boolean;
+  useSendGrid?: boolean;
+  // Gmail settings
+  gmailClientId?: string;
+  gmailClientSecret?: string;
+  gmailRedirectUri?: string;
+  gmailAccount?: string;
+  gmailAccessToken?: string;
+  gmailRefreshToken?: string;
+  gmailTokenExpiry?: Date;
+  // Outlook settings
+  outlookClientId?: string;
+  outlookClientSecret?: string;
+  outlookRedirectUri?: string;
+  outlookAccount?: string;
+  outlookAccessToken?: string;
+  outlookRefreshToken?: string;
+  outlookTokenExpiry?: Date;
+  // SendGrid settings
+  sendGridApiKey?: string;
+  // WhatsApp settings
+  whatsappBusinessNumber?: string;
 }
 
 export function useCurrentEvent() {

@@ -160,14 +160,14 @@ export const OAuthConfiguration = () => {
   
   // Start OAuth process for Outlook
   const initiateOutlookAuth = async () => {
-    if (!event?.id) return;
+    if (!currentEvent?.id) return;
     
     setIsConnecting({ ...isConnecting, outlook: true });
     
     try {
       const res = await apiRequest(
         "GET",
-        `/api/oauth/outlook/authorize?eventId=${event.id}`,
+        `/api/oauth/outlook/authorize?eventId=${currentEvent.id}`,
         null
       );
       
@@ -205,9 +205,9 @@ export const OAuthConfiguration = () => {
   const renderConnectedAccount = (provider: "gmail" | "outlook") => {
     const account = 
       provider === "gmail" 
-        ? event?.gmailAccount 
+        ? currentEvent?.gmailAccount 
         : provider === "outlook"
-        ? event?.outlookAccount
+        ? currentEvent?.outlookAccount
         : null;
       
     if (!account) return null;
@@ -465,7 +465,7 @@ export const OAuthConfiguration = () => {
       </CardContent>
       
       <CardFooter className="flex justify-between">
-        <Button variant="outline" type="button" onClick={() => refetchEvent()}>
+        <Button variant="outline" type="button" onClick={() => refetchCurrentEvent()}>
           Reset
         </Button>
         <Button 
