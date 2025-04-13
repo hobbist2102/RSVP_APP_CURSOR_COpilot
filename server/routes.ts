@@ -1041,13 +1041,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/ceremonies/:id', isAuthenticated, async (req, res) => {
     try {
       const ceremonyId = parseInt(req.params.id);
-      const ceremonyData = insertCeremonySchema.partial().parse(req.body);
+      
+      // First try to get event context from query parameters
+      let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If no event context in query, try to get it from session
+      if (!contextEventId && req.session.currentEvent) {
+        contextEventId = req.session.currentEvent.id;
+        console.log(`Using session event context: ${contextEventId} for ceremony update`);
+      }
+      
+      // Always require event context for multi-tenant operations
+      if (!contextEventId) {
+        console.warn(`No event context available for ceremony ${ceremonyId} update`);
+        return res.status(400).json({ 
+          message: 'Event context required',
+          details: 'Please provide an event ID or select an event first' 
+        });
+      }
+      
+      // Verify the event exists
+      const event = await storage.getEvent(contextEventId);
+      if (!event) {
+        console.warn(`Event ID ${contextEventId} not found when updating ceremony`);
+        return res.status(404).json({ 
+          message: 'Event not found',
+          details: `The specified event ID ${contextEventId} does not exist` 
+        });
+      }
+      
+      // Verify this ceremony belongs to the correct event
+      const ceremony = await storage.getCeremony(ceremonyId);
+      if (!ceremony) {
+        console.warn(`Ceremony with ID ${ceremonyId} not found`);
+        return res.status(404).json({ message: 'Ceremony not found' });
+      }
+      
+      if (ceremony.eventId !== contextEventId) {
+        console.warn(`Ceremony ${ceremonyId} belongs to event ${ceremony.eventId}, not requested event ${contextEventId}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'This ceremony does not belong to the selected event' 
+        });
+      }
+      
+      // Proceed with update, ensuring eventId remains unchanged
+      const ceremonyData = insertCeremonySchema.partial().parse({
+        ...req.body, 
+        eventId: ceremony.eventId // Keep the original eventId to prevent event reassignment
+      });
+      
       const updatedCeremony = await storage.updateCeremony(ceremonyId, ceremonyData);
       if (!updatedCeremony) {
         return res.status(404).json({ message: 'Ceremony not found' });
       }
       res.json(updatedCeremony);
     } catch (error) {
+      console.error(`Error updating ceremony:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1058,12 +1108,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/ceremonies/:id', isAuthenticated, async (req, res) => {
     try {
       const ceremonyId = parseInt(req.params.id);
+      
+      // First try to get event context from query parameters
+      let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+      
+      // If no event context in query, try to get it from session
+      if (!contextEventId && req.session.currentEvent) {
+        contextEventId = req.session.currentEvent.id;
+        console.log(`Using session event context: ${contextEventId} for ceremony deletion`);
+      }
+      
+      // Always require event context for multi-tenant operations
+      if (!contextEventId) {
+        console.warn(`No event context available for ceremony ${ceremonyId} deletion`);
+        return res.status(400).json({ 
+          message: 'Event context required',
+          details: 'Please provide an event ID or select an event first' 
+        });
+      }
+      
+      // Verify the event exists
+      const event = await storage.getEvent(contextEventId);
+      if (!event) {
+        console.warn(`Event ID ${contextEventId} not found when deleting ceremony`);
+        return res.status(404).json({ 
+          message: 'Event not found',
+          details: `The specified event ID ${contextEventId} does not exist` 
+        });
+      }
+      
+      // Verify this ceremony belongs to the correct event
+      const ceremony = await storage.getCeremony(ceremonyId);
+      if (!ceremony) {
+        console.warn(`Ceremony with ID ${ceremonyId} not found`);
+        return res.status(404).json({ message: 'Ceremony not found' });
+      }
+      
+      if (ceremony.eventId !== contextEventId) {
+        console.warn(`Ceremony ${ceremonyId} belongs to event ${ceremony.eventId}, not requested event ${contextEventId}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'This ceremony does not belong to the selected event' 
+        });
+      }
+      
+      // Proceed with deletion since we've verified this ceremony belongs to the event
       const success = await storage.deleteCeremony(ceremonyId);
       if (!success) {
         return res.status(404).json({ message: 'Ceremony not found' });
       }
+      
+      console.log(`Successfully deleted ceremony ${ceremonyId} from event ${contextEventId}`);
       res.json({ message: 'Ceremony deleted successfully' });
     } catch (error) {
+      console.error(`Error deleting ceremony:`, error);
       res.status(500).json({ message: 'Failed to delete ceremony' });
     }
   });
@@ -1093,17 +1191,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const guestId = parseInt(req.params.guestId);
       const attendanceData = insertGuestCeremonySchema.parse({ ...req.body, guestId });
+      const ceremonyId = attendanceData.ceremonyId;
+      
+      // First get the guest with event context
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when creating attendance`);
+        return res.status(404).json({ 
+          message: 'Guest not found' 
+        });
+      }
+      
+      // Then get the ceremony
+      const ceremony = await storage.getCeremony(ceremonyId);
+      if (!ceremony) {
+        console.warn(`Ceremony with ID ${ceremonyId} not found when creating attendance`);
+        return res.status(404).json({ 
+          message: 'Ceremony not found' 
+        });
+      }
+      
+      // Verify both guest and ceremony belong to the same event
+      if (guest.eventId !== ceremony.eventId) {
+        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Ceremony ${ceremonyId} (event ${ceremony.eventId})`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Guest and ceremony must belong to the same event'
+        });
+      }
       
       // Check if already exists
-      const existing = await storage.getGuestCeremony(guestId, attendanceData.ceremonyId);
+      const existing = await storage.getGuestCeremony(guestId, ceremonyId);
       if (existing) {
+        console.log(`Updating existing attendance for guest ${guestId} at ceremony ${ceremonyId}`);
         const updated = await storage.updateGuestCeremony(existing.id, { attending: attendanceData.attending });
         return res.json(updated);
       }
       
+      console.log(`Creating new attendance for guest ${guestId} at ceremony ${ceremonyId} in event ${guest.eventId}`);
       const attendance = await storage.createGuestCeremony(attendanceData);
       res.status(201).json(attendance);
     } catch (error) {
+      console.error(`Error managing guest attendance:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1346,9 +1475,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const guestId = parseInt(req.params.guestId);
       const selectionData = insertGuestMealSelectionSchema.parse({ ...req.body, guestId });
+      const ceremonyId = selectionData.ceremonyId;
+      const mealOptionId = selectionData.mealOptionId;
+      
+      // First get the guest
+      const guest = await storage.getGuest(guestId);
+      if (!guest) {
+        console.warn(`Guest with ID ${guestId} not found when creating meal selection`);
+        return res.status(404).json({ 
+          message: 'Guest not found' 
+        });
+      }
+      
+      // Then get the ceremony
+      const ceremony = await storage.getCeremony(ceremonyId);
+      if (!ceremony) {
+        console.warn(`Ceremony with ID ${ceremonyId} not found when creating meal selection`);
+        return res.status(404).json({ 
+          message: 'Ceremony not found' 
+        });
+      }
+      
+      // Verify both guest and ceremony belong to the same event
+      if (guest.eventId !== ceremony.eventId) {
+        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Ceremony ${ceremonyId} (event ${ceremony.eventId})`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Guest and ceremony must belong to the same event'
+        });
+      }
+      
+      // Get the meal option and verify it belongs to the ceremony
+      const mealOption = await storage.getMealOption(mealOptionId);
+      if (!mealOption) {
+        console.warn(`Meal option with ID ${mealOptionId} not found when creating meal selection`);
+        return res.status(404).json({ 
+          message: 'Meal option not found' 
+        });
+      }
+      
+      // Verify meal option belongs to the specified ceremony
+      if (mealOption.ceremonyId !== ceremonyId) {
+        console.warn(`Cross-ceremony operation attempted: Meal option ${mealOptionId} (ceremony ${mealOption.ceremonyId}) used with ceremony ${ceremonyId}`);
+        return res.status(403).json({ 
+          message: 'Access denied',
+          details: 'Meal option does not belong to the specified ceremony'
+        });
+      }
+      
+      console.log(`Creating meal selection for guest ${guestId} at ceremony ${ceremonyId} with option ${mealOptionId} in event ${guest.eventId}`);
       const selection = await storage.createGuestMealSelection(selectionData);
       res.status(201).json(selection);
     } catch (error) {
+      console.error(`Error creating meal selection:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1360,12 +1539,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const selectionId = parseInt(req.params.id);
       const selectionData = insertGuestMealSelectionSchema.partial().parse(req.body);
+      
+      // First get the current meal selection
+      const currentSelection = await storage.getGuestMealSelection(selectionId);
+      if (!currentSelection) {
+        console.warn(`Meal selection with ID ${selectionId} not found when updating`);
+        return res.status(404).json({ message: 'Meal selection not found' });
+      }
+      
+      // If ceremony ID is being changed, verify it belongs to the same event
+      if (selectionData.ceremonyId && selectionData.ceremonyId !== currentSelection.ceremonyId) {
+        // Get the guest
+        const guest = await storage.getGuest(currentSelection.guestId);
+        if (!guest) {
+          console.warn(`Guest with ID ${currentSelection.guestId} not found when updating meal selection`);
+          return res.status(404).json({ message: 'Guest not found' });
+        }
+        
+        // Get the new ceremony
+        const newCeremony = await storage.getCeremony(selectionData.ceremonyId);
+        if (!newCeremony) {
+          console.warn(`Ceremony with ID ${selectionData.ceremonyId} not found when updating meal selection`);
+          return res.status(404).json({ message: 'Ceremony not found' });
+        }
+        
+        // Verify both guest and ceremony belong to the same event
+        if (guest.eventId !== newCeremony.eventId) {
+          console.warn(`Cross-event operation attempted: Guest ${currentSelection.guestId} (event ${guest.eventId}) and Ceremony ${selectionData.ceremonyId} (event ${newCeremony.eventId})`);
+          return res.status(403).json({ 
+            message: 'Access denied',
+            details: 'Guest and ceremony must belong to the same event'
+          });
+        }
+      }
+      
+      // If meal option ID is being changed, verify it belongs to the ceremony
+      if (selectionData.mealOptionId && selectionData.mealOptionId !== currentSelection.mealOptionId) {
+        const ceremonyId = selectionData.ceremonyId || currentSelection.ceremonyId;
+        const mealOption = await storage.getMealOption(selectionData.mealOptionId);
+        
+        if (!mealOption) {
+          console.warn(`Meal option with ID ${selectionData.mealOptionId} not found when updating meal selection`);
+          return res.status(404).json({ message: 'Meal option not found' });
+        }
+        
+        if (mealOption.ceremonyId !== ceremonyId) {
+          console.warn(`Cross-ceremony operation attempted: Meal option ${selectionData.mealOptionId} (ceremony ${mealOption.ceremonyId}) used with ceremony ${ceremonyId}`);
+          return res.status(403).json({ 
+            message: 'Access denied',
+            details: 'Meal option does not belong to the specified ceremony'
+          });
+        }
+      }
+      
+      console.log(`Updating meal selection ${selectionId} for guest ${currentSelection.guestId}`);
       const updatedSelection = await storage.updateGuestMealSelection(selectionId, selectionData);
       if (!updatedSelection) {
         return res.status(404).json({ message: 'Meal selection not found' });
       }
       res.json(updatedSelection);
     } catch (error) {
+      console.error(`Error updating meal selection:`, error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
