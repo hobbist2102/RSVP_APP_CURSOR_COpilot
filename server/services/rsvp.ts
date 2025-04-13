@@ -106,10 +106,10 @@ export class RSVPService {
    */
   static async processRSVPResponse(response: RSVPResponse): Promise<{ success: boolean; message?: string }> {
     try {
-      // Validate guest and event exist
-      const guest = await storage.getGuest(response.guestId);
+      // Validate guest and event exist with proper context validation
+      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
       if (!guest) {
-        return { success: false, message: 'Guest not found' };
+        return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
       const event = await storage.getEvent(response.eventId);

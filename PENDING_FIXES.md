@@ -35,6 +35,18 @@
 - ⬜ Update all routes calling the function to use `_dbGetGuestsByEvent`
 - ⬜ Add consistent error handling across all API routes
 
+### 4. Multi-Tenant Data Isolation
+
+**Issue:**
+- Potential data leakage between different wedding events due to non-context-aware data access methods
+
+**Fix Status:**
+- ✅ Added event context validation to critical RSVP routes
+- ✅ Implemented `getGuestWithEventContext` method to enforce isolation
+- ✅ Added warnings to non-context-aware methods like `getGuest`
+- ✅ Created comprehensive documentation in `docs/MULTI_TENANT_ISOLATION.md`
+- ⬜ Continue to update all API routes to use context-aware methods
+
 ## Feature Development
 
 ### 1. Email Service Integration

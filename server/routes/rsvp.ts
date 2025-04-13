@@ -517,7 +517,8 @@ export function registerRSVPRoutes(
       }
       
       // Send confirmation email if guest has email
-      const guest = await storage.getGuest(response.guestId);
+      // Use event context verification to maintain isolation
+      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
       const event = await storage.getEvent(response.eventId);
       
       if (guest && event && guest.email) {
@@ -672,13 +673,14 @@ export function registerRSVPRoutes(
         rsvpLink?: string;
       }> = [];
       for (const guestId of guestIds) {
-        const guest = await storage.getGuest(guestId);
+        // Use event context verification to maintain isolation
+        const guest = await storage.getGuestWithEventContext(guestId, eventId);
         
         if (!guest) {
           results.push({
             guestId,
             success: false,
-            message: 'Guest not found'
+            message: 'Guest not found or does not belong to this event'
           });
           continue;
         }
