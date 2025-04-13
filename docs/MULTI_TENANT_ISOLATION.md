@@ -68,11 +68,22 @@ async getGuestWithEventContext(id: number, eventId: number): Promise<Guest | und
 
 ### 3. API Route Protection
 
-All API routes that access guest data (especially RSVP-related routes) have been updated to use context-aware methods:
+All API routes that access guest data have been updated to use context-aware methods:
 
+#### RSVP Routes
 - `/api/rsvp/verify`: Uses `getGuestWithEventContext` to validate RSVP tokens
 - `/api/rsvp/submit`: Uses `getGuestWithEventContext` via `RSVPService.processRSVPResponse`
 - `/api/admin/rsvp/send-invites`: Uses `getGuestWithEventContext` to validate guest access
+
+#### Guest Management Routes
+- `/api/guests/:id`: Now requires event context from query parameter or session
+- `/api/events/:eventId/guests`: Uses event context for retrieving guests
+- `/api/guests/:id` (PUT): Validates guest belongs to the correct event before updating
+- `/api/guests/:id` (DELETE): Requires event context and validates guest belongs to event
+
+#### WhatsApp Communication Routes
+- `/api/whatsapp/send-message`: Uses `getGuestWithEventContext` to validate recipient context
+- `/api/whatsapp/send-bulk`: Uses `getGuestWithEventContext` for all recipients
 
 ### 4. Error Handling & Logging
 
@@ -101,3 +112,26 @@ Enhanced error handling ensures that any attempt to access data across event bou
 ## Conclusion
 
 The platform uses a multi-layered approach to ensure event data isolation. The combination of database schema design, context-aware methods, and API route protection provides robust protection against cross-event data leakage while maintaining a clean and maintainable codebase.
+
+## Recent Implementation Progress
+
+As of April 13, 2025, the following progress has been made:
+
+1. Implemented context-aware guest access method `getGuestWithEventContext`
+2. Added warning logs and documentation for unsafe non-context methods
+3. Updated all core guest management routes to use context validation:
+   - GET/PUT/DELETE individual guest endpoints
+   - Bulk guest listing endpoint 
+4. Updated WhatsApp communication routes for proper isolation:
+   - Individual message sending
+   - Bulk message distribution
+5. Updated RSVP routes for proper isolation:
+   - Guest verification
+   - RSVP submission
+   - Invitation sending
+
+Remaining work includes applying similar isolation techniques to:
+- Ceremony attendance routes
+- Travel information routes
+- Accommodation allocation routes
+- Meal selection routes

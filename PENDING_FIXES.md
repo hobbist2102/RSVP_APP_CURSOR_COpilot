@@ -45,7 +45,9 @@
 - ✅ Implemented `getGuestWithEventContext` method to enforce isolation
 - ✅ Added warnings to non-context-aware methods like `getGuest`
 - ✅ Created comprehensive documentation in `docs/MULTI_TENANT_ISOLATION.md`
-- ⬜ Continue to update all API routes to use context-aware methods
+- ✅ Updated WhatsApp routes to use context-aware methods
+- ✅ Verified individual guest routes for proper event context validation
+- ⬜ Continue to update remaining API routes to use context-aware methods
 
 ## Feature Development
 

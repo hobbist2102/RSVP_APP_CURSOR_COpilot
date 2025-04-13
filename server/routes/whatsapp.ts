@@ -46,20 +46,21 @@ router.post('/send-message', async (req: Request, res: Response) => {
     
     const { guestId, eventId, templateName, parameters } = validationResult.data;
     
-    // Get guest and event information
-    const guest = await storage.getGuest(guestId);
-    if (!guest) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Guest not found' 
-      });
-    }
-    
+    // Get event information first
     const event = await storage.getEvent(eventId);
     if (!event) {
       return res.status(404).json({ 
         success: false, 
         message: 'Event not found' 
+      });
+    }
+    
+    // Get guest with proper event context validation
+    const guest = await storage.getGuestWithEventContext(guestId, eventId);
+    if (!guest) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Guest not found or does not belong to this event' 
       });
     }
     
@@ -146,16 +147,16 @@ router.post('/send-bulk', async (req: Request, res: Response) => {
       });
     }
     
-    // Send messages to all guests
+    // Send messages to all guests with event context validation
     const results = [];
     for (const guestId of guestIds) {
-      const guest = await storage.getGuest(guestId);
+      const guest = await storage.getGuestWithEventContext(guestId, eventId);
       
       if (!guest) {
         results.push({
           guestId,
           success: false,
-          message: 'Guest not found'
+          message: 'Guest not found or does not belong to this event'
         });
         continue;
       }
