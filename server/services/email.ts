@@ -8,9 +8,6 @@ import { Guest, WeddingEvent } from '@shared/schema';
 export class EmailService {
   // Provider types we support
   private static readonly PROVIDER_RESEND = 'resend';
-  private static readonly PROVIDER_GMAIL = 'gmail';
-  private static readonly PROVIDER_OUTLOOK = 'outlook';
-  private static readonly PROVIDER_SENDGRID = 'sendgrid';
   // In the future we can add other providers like PROVIDER_SENDGRID = 'sendgrid'
 
   private provider: string;

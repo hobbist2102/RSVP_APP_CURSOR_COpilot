@@ -54,22 +54,12 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
 
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
-    const clientSecret = event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
     const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
 
-    // Log credential source for debugging
-    console.log(`Gmail OAuth - Event ${eventId}: Using ${event.gmailClientId ? 'event-specific' : 'global'} credentials`);
-
     // Validate required credentials
-    if (!clientId || !clientSecret) {
-      const missingCreds = [];
-      if (!clientId) missingCreds.push('Client ID');
-      if (!clientSecret) missingCreds.push('Client Secret');
-      
-      console.error(`Gmail OAuth - Event ${eventId}: Missing credentials:`, missingCreds);
+    if (!clientId) {
       return res.status(500).json({ 
-        message: `Gmail OAuth credentials not configured properly. Missing: ${missingCreds.join(', ')}. Please configure credentials in event settings or environment variables.`,
-        missingCredentials: missingCreds
+        message: "Gmail client ID not configured. Please configure OAuth credentials in event settings." 
       });
     }
 
