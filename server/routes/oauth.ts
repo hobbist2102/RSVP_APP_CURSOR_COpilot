@@ -46,20 +46,33 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
+    console.log(`[OAuth] Starting Gmail authorization flow for event ID: ${eventId}`);
+
     // Get event details to retrieve OAuth credentials
     const event = await storage.getEvent(eventId);
     if (!event) {
+      console.error(`[OAuth] Event not found for ID: ${eventId}`);
       return res.status(404).json({ message: "Event not found" });
     }
 
+    console.log(`[OAuth] Retrieved event: ${event.title} (ID: ${event.id})`);
+    
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
     const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
 
+    console.log(`[OAuth] Gmail credentials check:
+      - Event gmailClientId exists: ${!!event.gmailClientId}
+      - Using fallback env GMAIL_CLIENT_ID: ${!event.gmailClientId && !!process.env.GMAIL_CLIENT_ID}
+      - Final clientId exists: ${!!clientId}
+      - Redirect URI: ${redirectUri}
+    `);
+
     // Validate required credentials
     if (!clientId) {
+      console.error(`[OAuth] Gmail client ID not configured for event ${eventId}`);
       return res.status(500).json({ 
-        message: "Gmail client ID not configured. Please configure OAuth credentials in event settings." 
+        message: "Gmail client ID not configured. Please configure OAuth credentials in event settings or set GMAIL_CLIENT_ID environment variable." 
       });
     }
 
@@ -81,6 +94,8 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
     authUrl.searchParams.append("prompt", "consent");
     authUrl.searchParams.append("state", state);
 
+    console.log(`[OAuth] Generated Gmail authorization URL with state: ${state}`);
+
     // Return the authorization URL
     res.json({ authUrl: authUrl.toString() });
   } catch (error) {
@@ -98,11 +113,21 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
   try {
     const { code, state } = req.query;
     
+    console.log(`[OAuth] Gmail callback received with state: ${state}`);
+    
+    if (!code) {
+      console.error(`[OAuth] Missing 'code' parameter in Gmail callback`);
+      return res.status(400).json({ message: "Missing authorization code" });
+    }
+    
     // Validate state to prevent CSRF
     const stateData = stateCache.get(state as string);
     if (!stateData || stateData.provider !== "gmail" || stateData.expiresAt < Date.now()) {
+      console.error(`[OAuth] Invalid or expired state: ${state}. Cache has ${stateCache.size} entries.`);
       return res.status(400).json({ message: "Invalid or expired OAuth state" });
     }
+    
+    console.log(`[OAuth] Gmail callback - valid state for event ID: ${stateData.eventId}`);
     
     // Clear the used state
     stateCache.delete(state as string);
@@ -110,6 +135,7 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     // Get event to retrieve client credentials
     const event = await storage.getEvent(stateData.eventId);
     if (!event) {
+      console.error(`[OAuth] Event not found for ID: ${stateData.eventId}`);
       return res.status(404).json({ message: "Event not found" });
     }
     
@@ -118,59 +144,114 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     const clientSecret = event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
     const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
     
+    console.log(`[OAuth] Gmail callback using:
+      - Client ID: ${clientId ? '✓' : '✗'}
+      - Client Secret: ${clientSecret ? '✓' : '✗'}
+      - Redirect URI: ${redirectUri}
+    `);
+    
     if (!clientId || !clientSecret) {
+      console.error(`[OAuth] Gmail OAuth credentials not configured properly for event ${stateData.eventId}`);
       return res.status(500).json({ 
-        message: "Gmail OAuth credentials not configured properly" 
+        message: "Gmail OAuth credentials not configured properly. Please check your event settings." 
       });
     }
     
-    // Exchange the authorization code for tokens
-    const tokenResponse = await axios.post(
-      "https://oauth2.googleapis.com/token",
-      new URLSearchParams({
-        code: code as string,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: "authorization_code",
-      }).toString(),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+    try {
+      console.log(`[OAuth] Exchanging code for tokens...`);
+      
+      // Exchange the authorization code for tokens
+      const tokenResponse = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        new URLSearchParams({
+          code: code as string,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
 
-    const { access_token, refresh_token, expires_in } = tokenResponse.data;
-    
-    // Get user's email from Google
-    const userInfoResponse = await axios.get(
-      "https://www.googleapis.com/userinfo/v2/me",
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+      console.log(`[OAuth] Successfully exchanged code for tokens`);
+      
+      const { access_token, refresh_token, expires_in } = tokenResponse.data;
+      
+      if (!access_token || !refresh_token) {
+        console.error(`[OAuth] Missing tokens in response: access_token=${!!access_token}, refresh_token=${!!refresh_token}`);
+        return res.status(500).json({ message: "Failed to retrieve necessary tokens from Google" });
       }
-    );
-    
-    const email = userInfoResponse.data.email;
-    
-    // Store the tokens in your database
-    await storage.updateEventEmailConfig(stateData.eventId, {
-      gmailAccount: email,
-      gmailAccessToken: access_token,
-      gmailRefreshToken: refresh_token,
-      gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
-      useGmail: true,
-    });
-    
-    // Return success with the authenticated email
-    res.json({ 
-      success: true, 
-      provider: "gmail", 
-      email,
-      message: "Gmail account successfully connected" 
-    });
+      
+      try {
+        console.log(`[OAuth] Fetching user info with access token...`);
+        
+        // Get user's email from Google
+        const userInfoResponse = await axios.get(
+          "https://www.googleapis.com/userinfo/v2/me",
+          {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          }
+        );
+        
+        const email = userInfoResponse.data.email;
+        
+        if (!email) {
+          console.error(`[OAuth] No email returned from Google API`);
+          return res.status(500).json({ message: "Failed to retrieve email from Google profile" });
+        }
+        
+        console.log(`[OAuth] Successfully retrieved user email: ${email}`);
+        
+        // Store the tokens in your database
+        console.log(`[OAuth] Updating event email config for event ${stateData.eventId}`);
+        
+        await storage.updateEventEmailConfig(stateData.eventId, {
+          gmailAccount: email,
+          gmailAccessToken: access_token,
+          gmailRefreshToken: refresh_token,
+          gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
+          useGmail: true,
+        });
+        
+        console.log(`[OAuth] Gmail authentication completed successfully`);
+        
+        // Return success with the authenticated email
+        res.json({ 
+          success: true, 
+          provider: "gmail", 
+          email,
+          message: "Gmail account successfully connected" 
+        });
+      } catch (userInfoError) {
+        console.error(`[OAuth] Error fetching Gmail user info:`, userInfoError);
+        res.status(500).json({ 
+          message: "Failed to retrieve user info from Google", 
+          error: userInfoError instanceof Error ? userInfoError.message : String(userInfoError) 
+        });
+      }
+    } catch (error) {
+      const tokenError = error as any;
+      console.error(`[OAuth] Error exchanging code for Gmail tokens:`, tokenError);
+      // Check for specific Google error responses
+      if (tokenError.response?.data?.error) {
+        console.error(`[OAuth] Google API error:`, tokenError.response.data);
+        res.status(500).json({ 
+          message: `Google API error: ${tokenError.response.data.error}`, 
+          details: tokenError.response.data.error_description || 'Check redirect URI matches the one configured in Google Cloud Console'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to exchange authorization code for tokens", 
+          error: tokenError instanceof Error ? tokenError.message : String(tokenError) 
+        });
+      }
+    }
   } catch (error) {
     console.error("Gmail OAuth callback error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -186,20 +267,33 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
+    console.log(`[OAuth] Starting Outlook authorization flow for event ID: ${eventId}`);
+
     // Get event details to retrieve OAuth credentials
     const event = await storage.getEvent(eventId);
     if (!event) {
+      console.error(`[OAuth] Event not found for ID: ${eventId}`);
       return res.status(404).json({ message: "Event not found" });
     }
+
+    console.log(`[OAuth] Retrieved event: ${event.title} (ID: ${event.id})`);
 
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
     const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
 
+    console.log(`[OAuth] Outlook credentials check:
+      - Event outlookClientId exists: ${!!event.outlookClientId}
+      - Using fallback env OUTLOOK_CLIENT_ID: ${!event.outlookClientId && !!process.env.OUTLOOK_CLIENT_ID}
+      - Final clientId exists: ${!!clientId}
+      - Redirect URI: ${redirectUri}
+    `);
+
     // Validate required credentials
     if (!clientId) {
+      console.error(`[OAuth] Outlook client ID not configured for event ${eventId}`);
       return res.status(500).json({ 
-        message: "Outlook client ID not configured. Please configure OAuth credentials in event settings." 
+        message: "Outlook client ID not configured. Please configure OAuth credentials in event settings or set OUTLOOK_CLIENT_ID environment variable." 
       });
     }
 
@@ -219,6 +313,8 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
     authUrl.searchParams.append("scope", OUTLOOK_SCOPES.join(" "));
     authUrl.searchParams.append("state", state);
 
+    console.log(`[OAuth] Generated Outlook authorization URL with state: ${state}`);
+
     // Return the authorization URL
     res.json({ authUrl: authUrl.toString() });
   } catch (error) {
@@ -236,11 +332,21 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
   try {
     const { code, state } = req.query;
     
+    console.log(`[OAuth] Outlook callback received with state: ${state}`);
+    
+    if (!code) {
+      console.error(`[OAuth] Missing 'code' parameter in Outlook callback`);
+      return res.status(400).json({ message: "Missing authorization code" });
+    }
+    
     // Validate state to prevent CSRF
     const stateData = stateCache.get(state as string);
     if (!stateData || stateData.provider !== "outlook" || stateData.expiresAt < Date.now()) {
+      console.error(`[OAuth] Invalid or expired state: ${state}. Cache has ${stateCache.size} entries.`);
       return res.status(400).json({ message: "Invalid or expired OAuth state" });
     }
+    
+    console.log(`[OAuth] Outlook callback - valid state for event ID: ${stateData.eventId}`);
     
     // Clear the used state
     stateCache.delete(state as string);
@@ -248,6 +354,7 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     // Get event to retrieve client credentials
     const event = await storage.getEvent(stateData.eventId);
     if (!event) {
+      console.error(`[OAuth] Event not found for ID: ${stateData.eventId}`);
       return res.status(404).json({ message: "Event not found" });
     }
     
@@ -256,59 +363,114 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     const clientSecret = event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
     const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
     
+    console.log(`[OAuth] Outlook callback using:
+      - Client ID: ${clientId ? '✓' : '✗'}
+      - Client Secret: ${clientSecret ? '✓' : '✗'}
+      - Redirect URI: ${redirectUri}
+    `);
+    
     if (!clientId || !clientSecret) {
+      console.error(`[OAuth] Outlook OAuth credentials not configured properly for event ${stateData.eventId}`);
       return res.status(500).json({ 
-        message: "Outlook OAuth credentials not configured properly" 
+        message: "Outlook OAuth credentials not configured properly. Please check your event settings." 
       });
     }
     
-    // Exchange the authorization code for tokens
-    const tokenResponse = await axios.post(
-      "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-      new URLSearchParams({
-        code: code as string,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: "authorization_code",
-      }).toString(),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+    try {
+      console.log(`[OAuth] Exchanging code for tokens...`);
+      
+      // Exchange the authorization code for tokens
+      const tokenResponse = await axios.post(
+        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        new URLSearchParams({
+          code: code as string,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+      
+      console.log(`[OAuth] Successfully exchanged code for tokens`);
+      
+      const { access_token, refresh_token, expires_in } = tokenResponse.data;
+      
+      if (!access_token || !refresh_token) {
+        console.error(`[OAuth] Missing tokens in response: access_token=${!!access_token}, refresh_token=${!!refresh_token}`);
+        return res.status(500).json({ message: "Failed to retrieve necessary tokens from Microsoft" });
       }
-    );
-
-    const { access_token, refresh_token, expires_in } = tokenResponse.data;
-    
-    // Get user's email from Microsoft Graph API
-    const userInfoResponse = await axios.get(
-      "https://graph.microsoft.com/v1.0/me",
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+      
+      try {
+        console.log(`[OAuth] Fetching user info with access token...`);
+        
+        // Get user's email from Microsoft Graph API
+        const userInfoResponse = await axios.get(
+          "https://graph.microsoft.com/v1.0/me",
+          {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          }
+        );
+        
+        const email = userInfoResponse.data.mail || userInfoResponse.data.userPrincipalName;
+        
+        if (!email) {
+          console.error(`[OAuth] No email returned from Microsoft Graph API`);
+          return res.status(500).json({ message: "Failed to retrieve email from Microsoft profile" });
+        }
+        
+        console.log(`[OAuth] Successfully retrieved user email: ${email}`);
+        
+        // Store the tokens in your database
+        console.log(`[OAuth] Updating event email config for event ${stateData.eventId}`);
+        
+        await storage.updateEventEmailConfig(stateData.eventId, {
+          outlookAccount: email,
+          outlookAccessToken: access_token,
+          outlookRefreshToken: refresh_token,
+          outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
+          useOutlook: true,
+        });
+        
+        console.log(`[OAuth] Outlook authentication completed successfully`);
+        
+        // Return success with the authenticated email
+        res.json({ 
+          success: true, 
+          provider: "outlook", 
+          email,
+          message: "Outlook account successfully connected" 
+        });
+      } catch (userInfoError) {
+        console.error(`[OAuth] Error fetching Outlook user info:`, userInfoError);
+        res.status(500).json({ 
+          message: "Failed to retrieve user info from Microsoft", 
+          error: userInfoError instanceof Error ? userInfoError.message : String(userInfoError) 
+        });
       }
-    );
-    
-    const email = userInfoResponse.data.mail || userInfoResponse.data.userPrincipalName;
-    
-    // Store the tokens in your database
-    await storage.updateEventEmailConfig(stateData.eventId, {
-      outlookAccount: email,
-      outlookAccessToken: access_token,
-      outlookRefreshToken: refresh_token,
-      outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
-      useOutlook: true,
-    });
-    
-    // Return success with the authenticated email
-    res.json({ 
-      success: true, 
-      provider: "outlook", 
-      email,
-      message: "Outlook account successfully connected" 
-    });
+    } catch (error) {
+      const tokenError = error as any;
+      console.error(`[OAuth] Error exchanging code for Outlook tokens:`, tokenError);
+      // Check for specific Microsoft error responses
+      if (tokenError.response?.data?.error) {
+        console.error(`[OAuth] Microsoft API error:`, tokenError.response.data);
+        res.status(500).json({ 
+          message: `Microsoft API error: ${tokenError.response.data.error}`, 
+          details: tokenError.response.data.error_description || 'Check redirect URI matches the one configured in Microsoft Azure Portal'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to exchange authorization code for tokens", 
+          error: tokenError instanceof Error ? tokenError.message : String(tokenError) 
+        });
+      }
+    }
   } catch (error) {
     console.error("Outlook OAuth callback error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

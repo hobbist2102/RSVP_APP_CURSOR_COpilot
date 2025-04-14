@@ -1,0 +1,36 @@
+We need to refactor the Gmail and Outlook OAuth configuration in the Wedding RSVP application. The goal is to move the OAuth credentials (client ID, client secret, redirect URI) to the frontend so that they can be configured for each event during the communication setup.
+
+**Requirements:**
+
+1. **Frontend Changes:**
+   - Update the `Communication Setup` section in the event admin page to include input fields for:
+     - Gmail Client ID (`gmailClientId`)
+     - Gmail Client Secret (`gmailClientSecret`)
+     - Gmail Redirect URI (`gmailRedirectUri`)
+     - Outlook Client ID (`outlookClientId`)
+     - Outlook Client Secret (`outlookClientSecret`)
+     - Outlook Redirect URI (`outlookRedirectUri`)
+   - Add validations for these fields:
+     - Ensure all fields are filled before saving.
+     - Validate the format of the redirect URIs.
+   - Provide a "Save" button to store these credentials for the specific event.
+
+2. **Backend Changes:**
+   - Update the API to allow saving and retrieving OAuth credentials from the `wedding_events` table for each event.
+   - Ensure these credentials are fetched dynamically during the OAuth flow.
+
+3. **OAuth Flow Changes:**
+   - Update the Gmail and Outlook OAuth authorization and callback routes to:
+     - Fetch the credentials from the frontend or event-specific configuration.
+     - Use these credentials during the OAuth flow.
+   - Add fallback logic to handle cases where credentials are missing.
+
+4. **Testing:**
+   - Test the updated frontend to ensure admins can configure OAuth credentials for each event.
+   - Verify the OAuth flow works correctly using these event-specific credentials.
+   - Test error handling for missing or invalid credentials.
+
+**Expected Results:**
+- OAuth credentials for Gmail and Outlook are configurable through the frontend for each event.
+- The OAuth flow uses these event-specific credentials during authorization and token exchange.
+- The UI provides clear feedback for errors (e.g., missing credentials, invalid redirect URI).
