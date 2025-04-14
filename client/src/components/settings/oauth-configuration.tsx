@@ -91,10 +91,35 @@ export const OAuthConfiguration = () => {
       return await res.json();
     },
     onSuccess: () => {
+      // Determine which providers were enabled
+      const enabledProviders = [];
+      if (credentials.useGmail) enabledProviders.push("Gmail");
+      if (credentials.useOutlook) enabledProviders.push("Outlook");
+      if (credentials.useSendGrid) enabledProviders.push("SendGrid");
+      
+      const providersText = enabledProviders.length > 0 
+        ? `Enabled providers: ${enabledProviders.join(", ")}.` 
+        : "No email providers currently enabled.";
+        
       toast({
         title: "Configuration updated",
-        description: "Email provider settings have been saved successfully.",
+        description: `Email provider settings have been saved successfully. ${providersText}`,
       });
+      
+      // Provide guidance on next steps if OAuth providers are enabled
+      if (credentials.useGmail && hasCredentials("gmail") && !currentEvent?.gmailAccount) {
+        toast({
+          title: "Gmail Setup Required",
+          description: "Gmail credentials saved. Click the 'Configure Gmail OAuth' button to connect your Gmail account.",
+        });
+      }
+      
+      if (credentials.useOutlook && hasCredentials("outlook") && !currentEvent?.outlookAccount) {
+        toast({
+          title: "Outlook Setup Required",
+          description: "Outlook credentials saved. Click the 'Configure Outlook OAuth' button to connect your Outlook account.",
+        });
+      }
       
       // Invalidate the current event query to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/current-event"] });
@@ -122,6 +147,36 @@ export const OAuthConfiguration = () => {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate the form before submission
+    const gmailErrors = credentials.useGmail ? getValidationErrors("gmail") : [];
+    const outlookErrors = credentials.useOutlook ? getValidationErrors("outlook") : [];
+    const sendGridErrors = credentials.useSendGrid && !credentials.sendGridApiKey ? ["SendGrid API Key is required"] : [];
+    
+    const allErrors = [...gmailErrors, ...outlookErrors, ...sendGridErrors];
+    
+    if (allErrors.length > 0) {
+      toast({
+        title: "Validation Errors",
+        description: "Please fix the highlighted errors before saving",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // If using both Gmail and Outlook, check if they have complete credentials
+    if (credentials.useGmail && credentials.useOutlook) {
+      if (!hasCredentials("gmail") || !hasCredentials("outlook")) {
+        toast({
+          title: "Incomplete Configuration",
+          description: "Please complete the credentials for all enabled email providers",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // All validations passed, save the configuration
     updateCredentialsMutation.mutate(credentials);
   };
   
@@ -199,6 +254,38 @@ export const OAuthConfiguration = () => {
       return !!credentials.outlookClientId && !!credentials.outlookClientSecret;
     }
     return false;
+  };
+  
+  // Helper to validate redirect URIs
+  const validateRedirectUri = (uri: string | undefined): boolean => {
+    if (!uri) return true; // Empty is valid (will use default)
+    try {
+      const url = new URL(uri);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  // Get validation errors for display
+  const getValidationErrors = (service: "gmail" | "outlook") => {
+    const errors: string[] = [];
+    
+    if (service === "gmail" && credentials.useGmail) {
+      if (!credentials.gmailClientId) errors.push("Client ID is required");
+      if (!credentials.gmailClientSecret) errors.push("Client Secret is required");
+      if (credentials.gmailRedirectUri && !validateRedirectUri(credentials.gmailRedirectUri)) {
+        errors.push("Redirect URI must be a valid URL with http:// or https:// protocol");
+      }
+    } else if (service === "outlook" && credentials.useOutlook) {
+      if (!credentials.outlookClientId) errors.push("Client ID is required");
+      if (!credentials.outlookClientSecret) errors.push("Client Secret is required");
+      if (credentials.outlookRedirectUri && !validateRedirectUri(credentials.outlookRedirectUri)) {
+        errors.push("Redirect URI must be a valid URL with http:// or https:// protocol");
+      }
+    }
+    
+    return errors;
   };
   
   // Display connected account info
@@ -334,15 +421,33 @@ export const OAuthConfiguration = () => {
                     </p>
                   </div>
                   
-                  {!hasCredentials("gmail") && credentials.useGmail && (
-                    <Alert>
+                  {credentials.useGmail && getValidationErrors("gmail").length > 0 && (
+                    <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Required Fields</AlertTitle>
+                      <AlertTitle>Validation Errors</AlertTitle>
                       <AlertDescription>
-                        Please enter your Gmail Client ID and Client Secret before configuring OAuth.
+                        <ul className="list-disc ml-4 mt-2">
+                          {getValidationErrors("gmail").map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
                       </AlertDescription>
                     </Alert>
                   )}
+                  
+                  <Alert className="bg-muted">
+                    <Mail className="h-4 w-4" />
+                    <AlertTitle>How to Configure Gmail OAuth</AlertTitle>
+                    <AlertDescription className="text-sm mt-2">
+                      <p className="mb-1">1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a>.</p>
+                      <p className="mb-1">2. Create a new project or select an existing one.</p>
+                      <p className="mb-1">3. Navigate to "APIs & Services" → "Credentials".</p>
+                      <p className="mb-1">4. Click "Create Credentials" → "OAuth client ID".</p>
+                      <p className="mb-1">5. Set "Application type" to "Web application".</p>
+                      <p className="mb-1">6. Add your redirect URI (typically https://your-domain.com/api/oauth/gmail/callback)</p>
+                      <p className="mb-1">7. Copy the Client ID and Client Secret to the fields above.</p>
+                    </AlertDescription>
+                  </Alert>
                   
                   {renderConnectedAccount("gmail")}
                 </div>
@@ -415,15 +520,33 @@ export const OAuthConfiguration = () => {
                     </p>
                   </div>
                   
-                  {!hasCredentials("outlook") && credentials.useOutlook && (
-                    <Alert>
+                  {credentials.useOutlook && getValidationErrors("outlook").length > 0 && (
+                    <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Required Fields</AlertTitle>
+                      <AlertTitle>Validation Errors</AlertTitle>
                       <AlertDescription>
-                        Please enter your Outlook Client ID and Client Secret before configuring OAuth.
+                        <ul className="list-disc ml-4 mt-2">
+                          {getValidationErrors("outlook").map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
                       </AlertDescription>
                     </Alert>
                   )}
+                  
+                  <Alert className="bg-muted">
+                    <Mail className="h-4 w-4" />
+                    <AlertTitle>How to Configure Outlook OAuth</AlertTitle>
+                    <AlertDescription className="text-sm mt-2">
+                      <p className="mb-1">1. Go to the <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Microsoft Azure Portal</a>.</p>
+                      <p className="mb-1">2. Register a new application or select an existing one.</p>
+                      <p className="mb-1">3. In the "Authentication" section, add a platform and select "Web".</p>
+                      <p className="mb-1">4. Add your redirect URI (typically https://your-domain.com/api/oauth/outlook/callback)</p>
+                      <p className="mb-1">5. Under "Certificates & secrets", create a new client secret.</p>
+                      <p className="mb-1">6. Under "API permissions", add Microsoft Graph permissions for Mail.Send and User.Read.</p> 
+                      <p className="mb-1">7. Copy the Application (client) ID and client secret to the fields above.</p>
+                    </AlertDescription>
+                  </Alert>
                   
                   {renderConnectedAccount("outlook")}
                 </div>
