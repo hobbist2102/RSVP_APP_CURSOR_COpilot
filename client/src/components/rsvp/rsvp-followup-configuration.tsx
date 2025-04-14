@@ -48,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -648,6 +649,17 @@ export default function RsvpFollowupConfiguration() {
             <CardContent>
               <Form {...communicationForm}>
                 <form onSubmit={communicationForm.handleSubmit(handleCommunicationFormSubmit)} className="space-y-6">
+                  <Alert className="mb-6">
+                    <AlertTitle>Important OAuth Setup Instructions</AlertTitle>
+                    <AlertDescription>
+                      <ol className="list-decimal ml-5 space-y-2">
+                        <li><strong>First:</strong> Enter your "From" and "Reply-To" email addresses below</li>
+                        <li><strong>Second:</strong> Save your configuration by clicking the <strong>"Save Settings"</strong> button</li>
+                        <li><strong>Finally:</strong> Use the <strong>"Configure"</strong> buttons to connect your Gmail or Outlook account</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
+                  
                   <div>
                     <h3 className="text-lg font-medium mb-4">Email Configuration</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -756,6 +768,19 @@ export default function RsvpFollowupConfiguration() {
 
                     {communicationForm.watch("useGmail") && (
                       <div className="mt-4 space-y-4">
+                        <div className="p-4 border rounded-md bg-blue-50 border-blue-200">
+                          <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+                            <Mail className="h-4 w-4 mr-2" />
+                            Gmail Configuration Steps
+                          </h4>
+                          <ol className="text-sm text-blue-700 list-decimal ml-5 space-y-1">
+                            <li>Make sure you have <strong>saved your settings</strong> before connecting</li>
+                            <li>Click the <strong>Configure</strong> button to connect your Gmail account</li>
+                            <li>Sign in to your Gmail account when prompted in the popup window</li>
+                            <li>Grant the necessary permissions to send emails</li>
+                          </ol>
+                        </div>
+                        
                         <FormField
                           control={communicationForm.control}
                           name="gmailAccount"
@@ -768,8 +793,8 @@ export default function RsvpFollowupConfiguration() {
                                 </FormControl>
                                 <Button 
                                   type="button"
-                                  variant="outline"
-                                  className="w-[120px]"
+                                  variant={isGmailConfigured ? "outline" : "secondary"}
+                                  className={`w-[120px] ${!isGmailConfigured ? "font-medium" : ""}`}
                                   onClick={() => handleOAuthSetup('gmail')}
                                   disabled={isConfiguring}
                                 >
@@ -803,6 +828,19 @@ export default function RsvpFollowupConfiguration() {
 
                     {communicationForm.watch("useOutlook") && (
                       <div className="mt-4 space-y-4">
+                        <div className="p-4 border rounded-md bg-blue-50 border-blue-200">
+                          <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+                            <Mail className="h-4 w-4 mr-2" />
+                            Outlook Configuration Steps
+                          </h4>
+                          <ol className="text-sm text-blue-700 list-decimal ml-5 space-y-1">
+                            <li>Make sure you have <strong>saved your settings</strong> before connecting</li>
+                            <li>Click the <strong>Configure</strong> button to connect your Outlook account</li>
+                            <li>Sign in to your Microsoft account when prompted in the popup window</li>
+                            <li>Grant the necessary permissions to send emails</li>
+                          </ol>
+                        </div>
+                        
                         <FormField
                           control={communicationForm.control}
                           name="outlookAccount"
@@ -815,8 +853,8 @@ export default function RsvpFollowupConfiguration() {
                                 </FormControl>
                                 <Button 
                                   type="button"
-                                  variant="outline"
-                                  className="w-[120px]"
+                                  variant={isOutlookConfigured ? "outline" : "secondary"}
+                                  className={`w-[120px] ${!isOutlookConfigured ? "font-medium" : ""}`}
                                   onClick={() => handleOAuthSetup('outlook')}
                                   disabled={isConfiguring}
                                 >
