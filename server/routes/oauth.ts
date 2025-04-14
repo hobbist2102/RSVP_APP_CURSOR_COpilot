@@ -43,7 +43,12 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
   try {
     const eventId = parseInt(req.query.eventId as string);
     if (isNaN(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Invalid event ID", 
+        code: "INVALID_EVENT_ID",
+        details: "The event ID provided must be a valid number"
+      });
     }
 
     console.log(`[OAuth] Starting Gmail authorization flow for event ID: ${eventId}`);
@@ -52,7 +57,12 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
     const event = await storage.getEvent(eventId);
     if (!event) {
       console.error(`[OAuth] Event not found for ID: ${eventId}`);
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Event not found", 
+        code: "EVENT_NOT_FOUND",
+        details: `No event exists with ID ${eventId}`
+      });
     }
 
     console.log(`[OAuth] Retrieved event: ${event.title} (ID: ${event.id})`);
@@ -71,8 +81,11 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
     // Validate required credentials
     if (!clientId) {
       console.error(`[OAuth] Gmail client ID not configured for event ${eventId}`);
-      return res.status(500).json({ 
-        message: "Gmail client ID not configured. Please configure OAuth credentials in event settings or set GMAIL_CLIENT_ID environment variable." 
+      return res.status(400).json({ 
+        success: false,
+        message: "Gmail client ID not configured", 
+        code: "MISSING_CLIENT_ID",
+        details: "You need to save Gmail OAuth credentials in your event settings before configuring the connection. Please enter your Client ID and Client Secret, then save your changes." 
       });
     }
 
@@ -264,7 +277,12 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
   try {
     const eventId = parseInt(req.query.eventId as string);
     if (isNaN(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Invalid event ID", 
+        code: "INVALID_EVENT_ID",
+        details: "The event ID provided must be a valid number"
+      });
     }
 
     console.log(`[OAuth] Starting Outlook authorization flow for event ID: ${eventId}`);
@@ -273,7 +291,12 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
     const event = await storage.getEvent(eventId);
     if (!event) {
       console.error(`[OAuth] Event not found for ID: ${eventId}`);
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Event not found", 
+        code: "EVENT_NOT_FOUND",
+        details: `No event exists with ID ${eventId}`
+      });
     }
 
     console.log(`[OAuth] Retrieved event: ${event.title} (ID: ${event.id})`);
@@ -292,8 +315,11 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
     // Validate required credentials
     if (!clientId) {
       console.error(`[OAuth] Outlook client ID not configured for event ${eventId}`);
-      return res.status(500).json({ 
-        message: "Outlook client ID not configured. Please configure OAuth credentials in event settings or set OUTLOOK_CLIENT_ID environment variable." 
+      return res.status(400).json({ 
+        success: false,
+        message: "Outlook client ID not configured", 
+        code: "MISSING_CLIENT_ID",
+        details: "You need to save Outlook OAuth credentials in your event settings before configuring the connection. Please enter your Client ID and Client Secret, then save your changes." 
       });
     }
 

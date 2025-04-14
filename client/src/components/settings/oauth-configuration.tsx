@@ -187,22 +187,43 @@ export const OAuthConfiguration = () => {
     setIsConnecting({ ...isConnecting, gmail: true });
     
     try {
+      // First check if the credentials were already saved to the server
+      if (credentials.gmailClientId !== currentEvent.gmailClientId ||
+          credentials.gmailClientSecret !== currentEvent.gmailClientSecret) {
+        toast({
+          title: "Save Required",
+          description: "Please save your Gmail credentials before configuring the OAuth connection.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const res = await apiRequest(
         "GET",
         `/api/oauth/gmail/authorize?eventId=${currentEvent.id}`,
         null
       );
       
+      const errorData = await res.json();
+      
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to initiate Gmail authentication");
+        // Handle structured error responses
+        if (errorData.code === "MISSING_CLIENT_ID") {
+          toast({
+            title: "Configuration Required",
+            description: errorData.details || "Gmail client ID is missing. Please complete the configuration and save.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(errorData.message || "Failed to initiate Gmail authentication");
+        }
+        return;
       }
       
-      const data = await res.json();
-      
       // Open the authorization URL in a new window
-      window.open(data.authUrl, "GmailAuth", "width=600,height=700");
+      window.open(errorData.authUrl, "GmailAuth", "width=600,height=700");
     } catch (error) {
+      console.error("Gmail authentication error:", error);
       toast({
         title: "Gmail Authentication Error",
         description: error instanceof Error ? error.message : "An error occurred during Gmail authentication",
@@ -220,22 +241,43 @@ export const OAuthConfiguration = () => {
     setIsConnecting({ ...isConnecting, outlook: true });
     
     try {
+      // First check if the credentials were already saved to the server
+      if (credentials.outlookClientId !== currentEvent.outlookClientId ||
+          credentials.outlookClientSecret !== currentEvent.outlookClientSecret) {
+        toast({
+          title: "Save Required",
+          description: "Please save your Outlook credentials before configuring the OAuth connection.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const res = await apiRequest(
         "GET",
         `/api/oauth/outlook/authorize?eventId=${currentEvent.id}`,
         null
       );
       
+      const errorData = await res.json();
+      
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to initiate Outlook authentication");
+        // Handle structured error responses
+        if (errorData.code === "MISSING_CLIENT_ID") {
+          toast({
+            title: "Configuration Required",
+            description: errorData.details || "Outlook client ID is missing. Please complete the configuration and save.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(errorData.message || "Failed to initiate Outlook authentication");
+        }
+        return;
       }
       
-      const data = await res.json();
-      
       // Open the authorization URL in a new window
-      window.open(data.authUrl, "OutlookAuth", "width=600,height=700");
+      window.open(errorData.authUrl, "OutlookAuth", "width=600,height=700");
     } catch (error) {
+      console.error("Outlook authentication error:", error);
       toast({
         title: "Outlook Authentication Error",
         description: error instanceof Error ? error.message : "An error occurred during Outlook authentication",
@@ -370,14 +412,33 @@ export const OAuthConfiguration = () => {
                   <Label htmlFor="useGmail">Use Gmail for sending emails</Label>
                 </div>
                 
-                {hasCredentials("gmail") && (
+                {credentials.useGmail && (
                   <Button 
                     type="button" 
                     onClick={initiateGmailAuth}
-                    disabled={isConnecting.gmail || !credentials.useGmail}
+                    disabled={
+                      isConnecting.gmail || 
+                      !hasCredentials("gmail") || 
+                      updateCredentialsMutation.isPending || 
+                      // Check if credentials were saved but differ from current state
+                      (
+                        hasCredentials("gmail") && 
+                        (
+                          credentials.gmailClientId !== currentEvent?.gmailClientId ||
+                          credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
+                          credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri
+                        )
+                      )
+                    }
                     variant="outline"
                   >
-                    {isConnecting.gmail ? "Connecting..." : "Configure Gmail OAuth"}
+                    {isConnecting.gmail ? "Connecting..." : 
+                      hasCredentials("gmail") && 
+                      credentials.gmailClientId === currentEvent?.gmailClientId && 
+                      credentials.gmailClientSecret === currentEvent?.gmailClientSecret
+                      ? "Configure Gmail OAuth" 
+                      : "Save Before Configuring"
+                    }
                   </Button>
                 )}
               </div>
@@ -469,14 +530,33 @@ export const OAuthConfiguration = () => {
                   <Label htmlFor="useOutlook">Use Outlook for sending emails</Label>
                 </div>
                 
-                {hasCredentials("outlook") && (
+                {credentials.useOutlook && (
                   <Button 
                     type="button" 
                     onClick={initiateOutlookAuth}
-                    disabled={isConnecting.outlook || !credentials.useOutlook}
+                    disabled={
+                      isConnecting.outlook || 
+                      !hasCredentials("outlook") || 
+                      updateCredentialsMutation.isPending || 
+                      // Check if credentials were saved but differ from current state
+                      (
+                        hasCredentials("outlook") && 
+                        (
+                          credentials.outlookClientId !== currentEvent?.outlookClientId ||
+                          credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
+                          credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri
+                        )
+                      )
+                    }
                     variant="outline"
                   >
-                    {isConnecting.outlook ? "Connecting..." : "Configure Outlook OAuth"}
+                    {isConnecting.outlook ? "Connecting..." : 
+                      hasCredentials("outlook") && 
+                      credentials.outlookClientId === currentEvent?.outlookClientId && 
+                      credentials.outlookClientSecret === currentEvent?.outlookClientSecret
+                      ? "Configure Outlook OAuth" 
+                      : "Save Before Configuring"
+                    }
                   </Button>
                 )}
               </div>
