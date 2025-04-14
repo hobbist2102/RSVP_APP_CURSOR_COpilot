@@ -1,13 +1,24 @@
 // Email configuration interface for OAuth integration
 export interface EmailConfig {
+  // Gmail Configuration
+  gmailClientId?: string;
+  gmailClientSecret?: string;
+  gmailRedirectUri?: string;
   gmailAccount?: string;
   gmailAccessToken?: string;
   gmailRefreshToken?: string;
   gmailTokenExpiry?: Date;
+  
+  // Outlook Configuration
+  outlookClientId?: string;
+  outlookClientSecret?: string;
+  outlookRedirectUri?: string;
   outlookAccount?: string;
   outlookAccessToken?: string;
   outlookRefreshToken?: string;
   outlookTokenExpiry?: Date;
+  
+  // Email Provider Settings
   useGmail?: boolean;
   useOutlook?: boolean;
   emailFrom?: string;
