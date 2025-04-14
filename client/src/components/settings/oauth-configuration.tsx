@@ -363,6 +363,17 @@ export const OAuthConfiguration = () => {
       </CardHeader>
       
       <CardContent>
+        <Alert className="mb-6">
+          <AlertTitle>Important OAuth Setup Instructions</AlertTitle>
+          <AlertDescription>
+            <ol className="list-decimal ml-5 space-y-2">
+              <li><strong>First:</strong> Enter your OAuth credentials for either Gmail or Outlook</li>
+              <li><strong>Second:</strong> Click the <strong>"Save Configuration"</strong> button at the bottom of this card</li>
+              <li><strong>Finally:</strong> Click the <strong>"Configure OAuth"</strong> button to connect your account</li>
+            </ol>
+          </AlertDescription>
+        </Alert>
+        
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -430,15 +441,31 @@ export const OAuthConfiguration = () => {
                         )
                       )
                     }
-                    variant="outline"
+                    variant={
+                      hasCredentials("gmail") && 
+                      credentials.gmailClientId === currentEvent?.gmailClientId && 
+                      credentials.gmailClientSecret === currentEvent?.gmailClientSecret
+                      ? "outline" 
+                      : "destructive"
+                    }
+                    className="relative"
                   >
                     {isConnecting.gmail ? "Connecting..." : 
                       hasCredentials("gmail") && 
                       credentials.gmailClientId === currentEvent?.gmailClientId && 
                       credentials.gmailClientSecret === currentEvent?.gmailClientSecret
                       ? "Configure Gmail OAuth" 
-                      : "Save Before Configuring"
+                      : "Save Credentials First"
                     }
+                    {hasCredentials("gmail") && (
+                      credentials.gmailClientId !== currentEvent?.gmailClientId ||
+                      credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
+                      credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri
+                    ) && (
+                      <div className="absolute -top-10 left-0 right-0 bg-destructive text-white text-xs p-1 rounded-sm whitespace-nowrap">
+                        Click "Save Configuration" first
+                      </div>
+                    )}
                   </Button>
                 )}
               </div>
@@ -548,15 +575,31 @@ export const OAuthConfiguration = () => {
                         )
                       )
                     }
-                    variant="outline"
+                    variant={
+                      hasCredentials("outlook") && 
+                      credentials.outlookClientId === currentEvent?.outlookClientId && 
+                      credentials.outlookClientSecret === currentEvent?.outlookClientSecret
+                      ? "outline" 
+                      : "destructive"
+                    }
+                    className="relative"
                   >
                     {isConnecting.outlook ? "Connecting..." : 
                       hasCredentials("outlook") && 
                       credentials.outlookClientId === currentEvent?.outlookClientId && 
                       credentials.outlookClientSecret === currentEvent?.outlookClientSecret
                       ? "Configure Outlook OAuth" 
-                      : "Save Before Configuring"
+                      : "Save Credentials First"
                     }
+                    {hasCredentials("outlook") && (
+                      credentials.outlookClientId !== currentEvent?.outlookClientId ||
+                      credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
+                      credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri
+                    ) && (
+                      <div className="absolute -top-10 left-0 right-0 bg-destructive text-white text-xs p-1 rounded-sm whitespace-nowrap">
+                        Click "Save Configuration" first
+                      </div>
+                    )}
                   </Button>
                 )}
               </div>
@@ -675,8 +718,27 @@ export const OAuthConfiguration = () => {
           type="button" 
           onClick={handleSubmit}
           disabled={updateCredentialsMutation.isPending}
+          size="lg"
+          className={
+            (credentials.gmailClientId !== currentEvent?.gmailClientId ||
+            credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
+            credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri ||
+            credentials.outlookClientId !== currentEvent?.outlookClientId ||
+            credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
+            credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri) 
+            ? "bg-destructive text-white hover:bg-destructive/90 animate-pulse" 
+            : ""
+          }
         >
           {updateCredentialsMutation.isPending ? "Saving..." : "Save Configuration"}
+          {(credentials.gmailClientId !== currentEvent?.gmailClientId ||
+            credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
+            credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri ||
+            credentials.outlookClientId !== currentEvent?.outlookClientId ||
+            credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
+            credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri) && (
+            <span className="ml-2">*</span>
+          )}
         </Button>
       </CardFooter>
     </Card>
