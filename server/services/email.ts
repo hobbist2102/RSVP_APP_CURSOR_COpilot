@@ -443,6 +443,168 @@ ${event.brideName} & ${event.groomName}
   }
 
   /**
+   * Refresh OAuth token for the current provider
+   * Returns true if the token was successfully refreshed
+   */
+  private async refreshOAuthToken(): Promise<boolean> {
+    if (!this.event) {
+      console.error('Cannot refresh OAuth token: No event data available');
+      return false;
+    }
+
+    try {
+      if (this.provider === EmailService.PROVIDER_GMAIL) {
+        // Refresh Gmail token
+        if (!this.event.gmailRefreshToken) {
+          console.error('Cannot refresh Gmail token: No refresh token available');
+          return false;
+        }
+        
+        // Use event-specific credentials or fall back to environment variables
+        const clientId = this.event.gmailClientId || process.env.GMAIL_CLIENT_ID;
+        const clientSecret = this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
+        
+        if (!clientId || !clientSecret) {
+          console.error('Cannot refresh Gmail token: OAuth credentials not configured properly');
+          return false;
+        }
+        
+        console.log(`Refreshing Gmail token for event ${this.eventId}...`);
+        
+        const response = await axios.post(
+          "https://oauth2.googleapis.com/token",
+          new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: this.event.gmailRefreshToken,
+            grant_type: "refresh_token",
+          }).toString(),
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          }
+        );
+        
+        const { access_token, expires_in } = response.data;
+        
+        if (!access_token) {
+          console.error('Failed to retrieve access token from Google');
+          return false;
+        }
+        
+        // Update the token in the database
+        await storage.updateEventEmailConfig(this.eventId, {
+          gmailAccessToken: access_token,
+          gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
+        });
+        
+        // Update the current instance
+        this.apiKey = access_token;
+        
+        // Reinitialize the transport with the new token
+        const transport = {
+          service: 'gmail',
+          auth: {
+            type: 'OAuth2',
+            user: this.event.gmailAccount,
+            clientId,
+            clientSecret,
+            refreshToken: this.event.gmailRefreshToken,
+            accessToken: access_token
+          }
+        };
+        
+        this.nodemailerTransport = nodemailer.createTransport(transport as any);
+        
+        console.log(`Successfully refreshed Gmail token for event ${this.eventId}`);
+        return true;
+      }
+      else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
+        // Refresh Outlook token
+        if (!this.event.outlookRefreshToken) {
+          console.error('Cannot refresh Outlook token: No refresh token available');
+          return false;
+        }
+        
+        // Use event-specific credentials or fall back to environment variables
+        const clientId = this.event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
+        const clientSecret = this.event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
+        
+        if (!clientId || !clientSecret) {
+          console.error('Cannot refresh Outlook token: OAuth credentials not configured properly');
+          return false;
+        }
+        
+        console.log(`Refreshing Outlook token for event ${this.eventId}...`);
+        
+        const response = await axios.post(
+          "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+          new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: this.event.outlookRefreshToken,
+            grant_type: "refresh_token",
+            scope: "https://outlook.office.com/SMTP.Send offline_access",
+          }).toString(),
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          }
+        );
+        
+        const { access_token, expires_in, refresh_token } = response.data;
+        
+        if (!access_token) {
+          console.error('Failed to retrieve access token from Microsoft');
+          return false;
+        }
+        
+        // Update tokens in the database
+        const updateData: any = {
+          outlookAccessToken: access_token,
+          outlookTokenExpiry: new Date(Date.now() + expires_in * 1000)
+        };
+        
+        // If a new refresh token was provided, update that too
+        if (refresh_token) {
+          updateData.outlookRefreshToken = refresh_token;
+        }
+        
+        await storage.updateEventEmailConfig(this.eventId, updateData);
+        
+        // Update the current instance
+        this.apiKey = access_token;
+        
+        // Reinitialize the transport with the new token
+        const transport = {
+          service: 'Outlook365',
+          auth: {
+            type: 'OAuth2',
+            user: this.event.outlookAccount,
+            clientId,
+            clientSecret,
+            refreshToken: refresh_token || this.event.outlookRefreshToken,
+            accessToken: access_token
+          }
+        };
+        
+        this.nodemailerTransport = nodemailer.createTransport(transport as any);
+        
+        console.log(`Successfully refreshed Outlook token for event ${this.eventId}`);
+        return true;
+      }
+      
+      console.error(`Token refresh not implemented for provider: ${this.provider}`);
+      return false;
+    } catch (error) {
+      console.error(`Failed to refresh ${this.provider} token:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Create an EmailService instance from an event object
    */
   public static fromEvent(event: WeddingEvent): EmailService {
