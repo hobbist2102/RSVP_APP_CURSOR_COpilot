@@ -18,13 +18,18 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 
-type OAuthConfigurationProps = {
+type ConnectionStatus = {
+  connected: boolean;
+  email?: string;
+};
+
+interface OAuthConfigurationProps {
   provider: 'gmail' | 'outlook';
   eventId?: number;
   readOnly?: boolean;
   onConnected?: () => void;
-  onStatusChange?: (status: {connected: boolean, email?: string}) => void;
-};
+  onStatusChange?: (status: ConnectionStatus) => void;
+}
 
 export default function OAuthConfiguration({ 
   provider, 
@@ -128,6 +133,18 @@ export default function OAuthConfiguration({
     },
   });
 
+  // Call the onStatusChange callback when connection status changes
+  useEffect(() => {
+    if (onStatusChange && connectionStatus) {
+      // Ensure we're passing a properly typed object to the callback
+      const statusData: ConnectionStatus = {
+        connected: !!connectionStatus && connectionStatus.connected === true,
+        email: connectionStatus && connectionStatus.email ? connectionStatus.email : undefined
+      };
+      onStatusChange(statusData);
+    }
+  }, [connectionStatus, onStatusChange]);
+
   // Monitor OAuth popup window status
   useEffect(() => {
     let checkPopupInterval: NodeJS.Timeout | null = null;
@@ -184,8 +201,9 @@ export default function OAuthConfiguration({
   };
 
   const displayName = provider === 'gmail' ? 'Gmail' : 'Outlook';
-  const isConnected = connectionStatus?.connected === true;
-  const connectedEmail = connectionStatus?.email || '';
+  // Safely access connectionStatus properties with type checking
+  const isConnected = !!connectionStatus && connectionStatus.connected === true;
+  const connectedEmail = connectionStatus && connectionStatus.email ? connectionStatus.email : '';
   
   // Determine if credentials exist but they're not connected
   const hasCredentialsButNotConnected = oauthConfig && !isConnected;
@@ -214,13 +232,13 @@ export default function OAuthConfiguration({
           </div>
           
           <div className="flex items-center space-x-2">
-            {!oauthConfig && (
+            {!oauthConfig && !readOnly && (
               <Link to="/event-settings" className="text-sm text-blue-600 hover:text-blue-800">
                 Configure OAuth Credentials
               </Link>
             )}
             
-            {oauthConfig && (
+            {oauthConfig && !readOnly && (
               <>
                 {isConnected ? (
                   <Button 
