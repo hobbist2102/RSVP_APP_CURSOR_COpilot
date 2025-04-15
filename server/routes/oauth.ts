@@ -244,13 +244,12 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
         // Also update directly in the database to ensure compatibility with column names
         console.log(`[OAuth] Ensuring database fields are properly set for event ${stateData.eventId}`);
         await db.execute(
-          `UPDATE wedding_events 
-           SET email_configured = true, 
-               email_provider = 'gmail', 
-               email_from = $1, 
-               email_from_address = $1 
-           WHERE id = $2`,
-          [email, stateData.eventId]
+          sql`UPDATE wedding_events 
+              SET email_configured = true, 
+                  email_provider = 'gmail', 
+                  email_from = ${email}, 
+                  email_from_address = ${email} 
+              WHERE id = ${stateData.eventId}`
         );
         
         console.log(`[OAuth] Gmail authentication completed successfully`);
@@ -497,13 +496,12 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
         // Also update directly in the database to ensure compatibility with column names
         console.log(`[OAuth] Ensuring database fields are properly set for event ${stateData.eventId}`);
         await db.execute(
-          `UPDATE wedding_events 
-           SET email_configured = true, 
-               email_provider = 'outlook', 
-               email_from = $1, 
-               email_from_address = $1 
-           WHERE id = $2`,
-          [email, stateData.eventId]
+          sql`UPDATE wedding_events 
+              SET email_configured = true, 
+                  email_provider = 'outlook', 
+                  email_from = ${email}, 
+                  email_from_address = ${email} 
+              WHERE id = ${stateData.eventId}`
         );
         
         console.log(`[OAuth] Outlook authentication completed successfully`);
@@ -603,10 +601,9 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
       
       // Also ensure database fields are properly set
       await db.execute(
-        `UPDATE wedding_events 
-         SET email_configured = true
-         WHERE id = $1 AND email_provider = 'gmail'`,
-        [eventId]
+        sql`UPDATE wedding_events 
+            SET email_configured = true
+            WHERE id = ${eventId} AND email_provider = 'gmail'`
       );
       
       return res.json({ success: true, message: "Gmail token refreshed successfully" });
@@ -652,10 +649,9 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
       
       // Also ensure database fields are properly set
       await db.execute(
-        `UPDATE wedding_events 
-         SET email_configured = true
-         WHERE id = $1 AND email_provider = 'outlook'`,
-        [eventId]
+        sql`UPDATE wedding_events 
+            SET email_configured = true
+            WHERE id = ${eventId} AND email_provider = 'outlook'`
       );
       
       return res.json({ success: true, message: "Outlook token refreshed successfully" });
