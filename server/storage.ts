@@ -1,3 +1,5 @@
+import type { Json } from "drizzle-orm";
+
 // Email configuration interface for OAuth integration
 export interface EmailConfig {
   // Gmail Configuration
@@ -37,6 +39,7 @@ import {
   ceremonies, type Ceremony, type InsertCeremony,
   guestCeremonies, type GuestCeremony, type InsertGuestCeremony,
   travelInfo, type TravelInfo, type InsertTravelInfo,
+  hotels, type Hotel, type InsertHotel,
   accommodations, type Accommodation, type InsertAccommodation,
   roomAllocations, type RoomAllocation, type InsertRoomAllocation,
   mealOptions, type MealOption, type InsertMealOption,
