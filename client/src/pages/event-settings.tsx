@@ -1,132 +1,371 @@
-import { useEffect, useState } from "react";
-import { useCurrentEvent } from "@/hooks/use-current-event";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Loader2, Settings, Mail, MessageSquare, AlertCircle } from "lucide-react";
-import OAuthConfiguration from "@/components/settings/oauth-configuration";
-import { 
-  Alert,
-  AlertTitle,
-  AlertDescription 
-} from "@/components/ui/alert";
+import { useState } from "react";
 import { useLocation } from "wouter";
+import { useCurrentEvent } from "@/hooks/use-current-event";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardContent 
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage, 
+  FormDescription
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Separator } from "@/components/ui/separator";
+import { 
+  AlertCircle, 
+  ArrowLeft, 
+  Check, 
+  ExternalLink, 
+  Mail
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function EventSettings() {
-  const { currentEvent, isLoading, refetchCurrentEvent } = useCurrentEvent();
-  const [activeTab, setActiveTab] = useState<string>("oauth");
-  const [_, navigate] = useLocation();
+// Form schema for OAuth configurations
+const oauthFormSchema = z.object({
+  // Gmail settings
+  gmailClientId: z.string().optional(),
+  gmailClientSecret: z.string().optional(),
+  gmailRedirectUri: z.string().url("Please enter a valid URL").optional(),
+  
+  // Outlook settings
+  outlookClientId: z.string().optional(),
+  outlookClientSecret: z.string().optional(),
+  outlookRedirectUri: z.string().url("Please enter a valid URL").optional(),
+});
 
-  // If no event is selected, prompt user to choose one
-  useEffect(() => {
-    if (!isLoading && !currentEvent) {
-      navigate("/");
+type OAuthFormValues = z.infer<typeof oauthFormSchema>;
+
+export default function EventSettingsPage() {
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const { currentEvent, currentEventId } = useCurrentEvent();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("oauth");
+
+  // If there's no event selected, redirect to events page
+  if (!currentEventId) {
+    navigate("/events");
+    return null;
+  }
+
+  // Fetch current event settings
+  const { data: eventSettings, isLoading: isLoadingSettings } = useQuery({
+    queryKey: [`/api/events/${currentEventId}`],
+    enabled: !!currentEventId,
+  });
+
+  // Form to handle OAuth settings
+  const oauthForm = useForm<OAuthFormValues>({
+    resolver: zodResolver(oauthFormSchema),
+    defaultValues: {
+      gmailClientId: eventSettings?.gmailClientId || "",
+      gmailClientSecret: eventSettings?.gmailClientSecret || "",
+      gmailRedirectUri: eventSettings?.gmailRedirectUri || window.location.origin + "/api/oauth/gmail/callback",
+      outlookClientId: eventSettings?.outlookClientId || "",
+      outlookClientSecret: eventSettings?.outlookClientSecret || "",
+      outlookRedirectUri: eventSettings?.outlookRedirectUri || window.location.origin + "/api/oauth/outlook/callback",
     }
-  }, [currentEvent, isLoading, navigate]);
+  });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="ml-2 text-lg">Loading settings...</span>
-      </div>
-    );
+  // Update form when event settings are loaded
+  if (eventSettings && !isLoadingSettings && !oauthForm.formState.isDirty) {
+    oauthForm.reset({
+      gmailClientId: eventSettings.gmailClientId || "",
+      gmailClientSecret: eventSettings.gmailClientSecret || "",
+      gmailRedirectUri: eventSettings.gmailRedirectUri || window.location.origin + "/api/oauth/gmail/callback",
+      outlookClientId: eventSettings.outlookClientId || "",
+      outlookClientSecret: eventSettings.outlookClientSecret || "",
+      outlookRedirectUri: eventSettings.outlookRedirectUri || window.location.origin + "/api/oauth/outlook/callback",
+    });
   }
 
-  // Error state handling removed since the hook doesn't provide error
+  // Mutation to update OAuth settings
+  const { mutate: updateOAuthSettings, isPending: isUpdatingOAuth } = useMutation({
+    mutationFn: async (values: OAuthFormValues) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/events/${currentEventId}/oauth-config`,
+        values
+      );
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings updated",
+        description: "OAuth configuration has been saved successfully.",
+      });
+      
+      // Invalidate queries
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/events/${currentEventId}`] 
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving settings",
+        description: "There was an error saving your OAuth configuration. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
-  if (!currentEvent) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>No Event Selected</AlertTitle>
-          <AlertDescription>
-            Please select an event from the dropdown menu to manage settings.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  // Handle form submission
+  const onSubmitOAuthForm = (values: OAuthFormValues) => {
+    updateOAuthSettings(values);
+  };
+
+  // Check OAuth connection status
+  const { data: gmailStatus, isLoading: isLoadingGmailStatus } = useQuery({
+    queryKey: [`/api/oauth/status/gmail`, currentEventId],
+    enabled: !!currentEventId,
+  });
+
+  const { data: outlookStatus, isLoading: isLoadingOutlookStatus } = useQuery({
+    queryKey: [`/api/oauth/status/outlook`, currentEventId],
+    enabled: !!currentEventId,
+  });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center">
-          <Settings className="mr-2 h-8 w-8 text-primary" /> Event Settings
-        </h1>
-        <p className="text-muted-foreground">
-          Configure settings for <span className="font-medium text-foreground">{currentEvent.title}</span>
-        </p>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center mb-6">
+        <Button 
+          variant="ghost" 
+          className="mr-2"
+          onClick={() => navigate("/events")}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold font-playfair">Event Settings</h1>
+          <p className="text-muted-foreground">
+            Configure settings for {currentEvent?.title || "your event"}
+          </p>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:w-auto">
-          <TabsTrigger value="oauth" className="flex items-center">
-            <Mail className="mr-2 h-4 w-4" />
-            Email OAuth
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="oauth">
+            <Mail className="h-4 w-4 mr-2" />
+            OAuth Configuration
           </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="flex items-center">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            WhatsApp
-          </TabsTrigger>
-          <TabsTrigger value="general" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            General
-          </TabsTrigger>
+          {/* Additional settings tabs can be added here */}
         </TabsList>
 
-        <TabsContent value="oauth" className="space-y-4">
+        <TabsContent value="oauth">
           <Card>
             <CardHeader>
-              <CardTitle>Email OAuth Configuration</CardTitle>
+              <CardTitle>OAuth Configuration</CardTitle>
               <CardDescription>
-                Configure OAuth credentials for Gmail and Outlook to send emails directly from your authorized accounts.
+                Configure OAuth credentials for email services. These settings allow you
+                to send personalized emails from your Gmail or Outlook account.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {currentEvent && (
-                <OAuthConfiguration eventId={currentEvent.id} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="whatsapp" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>WhatsApp Business API Configuration</CardTitle>
-              <CardDescription>
-                Configure WhatsApp Business API credentials for sending messages to guests.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Alert className="mb-4">
+              <Alert className="mb-6">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Coming Soon</AlertTitle>
+                <AlertTitle>Important Setup Information</AlertTitle>
                 <AlertDescription>
-                  WhatsApp Business API configuration will be available in a future update.
+                  To use OAuth with Gmail or Outlook, you need to set up a project in Google Cloud Console
+                  or Microsoft Azure Portal to obtain your client ID and client secret. Make sure to set the 
+                  redirect URIs exactly as shown below.
                 </AlertDescription>
               </Alert>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="general" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Manage general settings for this event.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Alert className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Coming Soon</AlertTitle>
-                <AlertDescription>
-                  General settings configuration will be available in a future update.
-                </AlertDescription>
-              </Alert>
+              <Form {...oauthForm}>
+                <form onSubmit={oauthForm.handleSubmit(onSubmitOAuthForm)} className="space-y-8">
+                  {/* Gmail Configuration */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Gmail Configuration</h3>
+                      {isLoadingGmailStatus ? (
+                        <Skeleton className="h-6 w-24" />
+                      ) : gmailStatus?.connected ? (
+                        <div className="flex items-center text-green-600">
+                          <Check className="h-4 w-4 mr-1" />
+                          <span>Connected</span>
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground text-sm">Not connected</div>
+                      )}
+                    </div>
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="gmailClientId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your Gmail Client ID" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            From the Google Cloud Console
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="gmailClientSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client Secret</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="Enter your Gmail Client Secret"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            From the Google Cloud Console
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="gmailRedirectUri"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Redirect URI</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Add this exact URL to your authorized redirect URIs in Google Cloud Console
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="pt-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="flex items-center"
+                        onClick={() => window.open("https://console.cloud.google.com/", "_blank")}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Google Cloud Console
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Outlook Configuration */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Outlook/Microsoft Configuration</h3>
+                      {isLoadingOutlookStatus ? (
+                        <Skeleton className="h-6 w-24" />
+                      ) : outlookStatus?.connected ? (
+                        <div className="flex items-center text-green-600">
+                          <Check className="h-4 w-4 mr-1" />
+                          <span>Connected</span>
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground text-sm">Not connected</div>
+                      )}
+                    </div>
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="outlookClientId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your Microsoft Client ID" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            From the Microsoft Azure Portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="outlookClientSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client Secret</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="Enter your Microsoft Client Secret"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            From the Microsoft Azure Portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={oauthForm.control}
+                      name="outlookRedirectUri"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Redirect URI</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Add this exact URL to your authorized redirect URIs in Microsoft Azure Portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="pt-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="flex items-center"
+                        onClick={() => window.open("https://portal.azure.com/", "_blank")}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Microsoft Azure Portal
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Button type="submit" disabled={isUpdatingOAuth}>
+                    {isUpdatingOAuth ? "Saving..." : "Save OAuth Settings"}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
