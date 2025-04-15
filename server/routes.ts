@@ -1371,10 +1371,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/accommodations', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      console.log(`Fetching accommodations for event ${eventId}`);
+      
+      // First check if event exists
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        console.log(`Event ${eventId} not found when fetching accommodations`);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
       const accommodations = await storage.getAccommodationsByEvent(eventId);
-      res.json(accommodations);
+      console.log(`Found ${accommodations.length} accommodations for event ${eventId}`);
+      
+      // Fetch hotel information for accommodations with hotelId
+      const accommodationsWithHotelDetails = await Promise.all(
+        accommodations.map(async (acc) => {
+          if (acc.hotelId) {
+            try {
+              const hotel = await storage.getHotel(acc.hotelId);
+              return {
+                ...acc,
+                hotel: hotel ? {
+                  id: hotel.id,
+                  name: hotel.name,
+                  location: hotel.location
+                } : null
+              };
+            } catch (err) {
+              console.error(`Error fetching hotel ${acc.hotelId} for accommodation ${acc.id}:`, err);
+              return acc;
+            }
+          }
+          return acc;
+        })
+      );
+      
+      res.json(accommodationsWithHotelDetails);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch accommodations' });
+      console.error('Error fetching accommodations:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch accommodations',
+        details: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
