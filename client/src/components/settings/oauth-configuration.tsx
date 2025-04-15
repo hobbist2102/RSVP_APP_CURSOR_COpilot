@@ -417,62 +417,67 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
               {credentials.useGmail && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="gmailClientId">
-                        Client ID
-                        {getValidationErrors("gmail").includes("Client ID is required") && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </Label>
-                      <Input
-                        id="gmailClientId"
-                        name="gmailClientId"
-                        value={credentials.gmailClientId}
-                        onChange={handleInputChange}
-                        placeholder="Your Gmail OAuth Client ID"
-                        className={getValidationErrors("gmail").includes("Client ID is required") ? "border-red-500" : ""}
-                      />
-                    </div>
+                  {/* Only show OAuth fields if Direct SMTP is NOT enabled */}
+                  {!credentials.useGmailDirectSMTP && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="gmailClientId">
+                            Client ID
+                            {getValidationErrors("gmail").includes("Client ID is required") && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </Label>
+                          <Input
+                            id="gmailClientId"
+                            name="gmailClientId"
+                            value={credentials.gmailClientId}
+                            onChange={handleInputChange}
+                            placeholder="Your Gmail OAuth Client ID"
+                            className={getValidationErrors("gmail").includes("Client ID is required") ? "border-red-500" : ""}
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="gmailClientSecret">
-                        Client Secret
-                        {getValidationErrors("gmail").includes("Client Secret is required") && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </Label>
-                      <Input
-                        id="gmailClientSecret"
-                        name="gmailClientSecret"
-                        value={credentials.gmailClientSecret}
-                        onChange={handleInputChange}
-                        placeholder="Your Gmail OAuth Client Secret"
-                        type="password"
-                        className={getValidationErrors("gmail").includes("Client Secret is required") ? "border-red-500" : ""}
-                      />
-                    </div>
-                  </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="gmailClientSecret">
+                            Client Secret
+                            {getValidationErrors("gmail").includes("Client Secret is required") && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </Label>
+                          <Input
+                            id="gmailClientSecret"
+                            name="gmailClientSecret"
+                            value={credentials.gmailClientSecret}
+                            onChange={handleInputChange}
+                            placeholder="Your Gmail OAuth Client Secret"
+                            type="password"
+                            className={getValidationErrors("gmail").includes("Client Secret is required") ? "border-red-500" : ""}
+                          />
+                        </div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="gmailRedirectUri">
-                      Redirect URI (Required)
-                      {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                    </Label>
-                    <Input
-                      id="gmailRedirectUri"
-                      name="gmailRedirectUri"
-                      value={credentials.gmailRedirectUri}
-                      onChange={handleInputChange}
-                      placeholder={DEFAULT_GMAIL_REDIRECT_URI}
-                      className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
-                    />
-                    <p className="text-sm text-text-muted">
-                      Copy and paste exactly this URL to your Google Cloud Console Authorized Redirect URIs: <strong>{DEFAULT_GMAIL_REDIRECT_URI}</strong>
-                    </p>
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gmailRedirectUri">
+                          Redirect URI (Required)
+                          {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          id="gmailRedirectUri"
+                          name="gmailRedirectUri"
+                          value={credentials.gmailRedirectUri}
+                          onChange={handleInputChange}
+                          placeholder={DEFAULT_GMAIL_REDIRECT_URI}
+                          className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
+                        />
+                        <p className="text-sm text-text-muted">
+                          Copy and paste exactly this URL to your Google Cloud Console Authorized Redirect URIs: <strong>{DEFAULT_GMAIL_REDIRECT_URI}</strong>
+                        </p>
+                      </div>
+                    </>
+                  )}
 
                   {/* Direct SMTP Access Option */}
                   <div className="mt-6 pt-6 border-t border-gray-200">
