@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import { useQueryParams } from "../hooks/use-query-params";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,14 @@ enum RSVPStage {
   SUCCESS = "success",
 }
 
-export default function RsvpPage() {
-  const { token } = useQueryParams();
+export default function RsvpPage({ params }: { params?: { token?: string } }) {
+  // Extract token from either path parameter or query parameter for backward compatibility
+  const queryParams = useQueryParams();
+  const [matched, routeParams] = useRoute("/guest-rsvp/:token");
+  
+  // Get token from path param first, then fallback to query param for backward compatibility
+  const token = params?.token || routeParams?.token || queryParams.token;
+  
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [stage, setStage] = useState<RSVPStage>(RSVPStage.LOADING);
@@ -35,6 +41,7 @@ export default function RsvpPage() {
       }
       
       try {
+        // Use the token to verify, regardless of how it was passed
         const response = await apiRequest("GET", `/api/rsvp/verify?token=${token}`);
         const data = await response.json();
         

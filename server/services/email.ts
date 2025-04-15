@@ -700,5 +700,5 @@ ${event.brideName} & ${event.groomName}
  * Get the RSVP link for a guest
  */
 export function generateRSVPLink(baseUrl: string, eventId: number, guestId: number, token: string): string {
-  return `${baseUrl}/guest-rsvp?token=${token}`;
+  return `${baseUrl}/guest-rsvp/${token}`;
 }
