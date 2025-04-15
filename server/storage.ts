@@ -25,6 +25,9 @@ export interface EmailConfig {
   emailReplyTo?: string;
   useSendGrid?: boolean;
   sendGridApiKey?: string;
+  emailProvider?: string;
+  emailFromAddress?: string;
+  emailConfigured?: boolean;
 }
 
 import {

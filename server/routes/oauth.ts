@@ -233,6 +233,10 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
           gmailRefreshToken: refresh_token,
           gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
           useGmail: true,
+          emailConfigured: true,
+          emailProvider: 'gmail',
+          emailFrom: email,
+          emailFromAddress: email,
         });
         
         console.log(`[OAuth] Gmail authentication completed successfully`);
@@ -470,6 +474,10 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
           outlookRefreshToken: refresh_token,
           outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
           useOutlook: true,
+          emailConfigured: true,
+          emailProvider: 'outlook',
+          emailFrom: email,
+          emailFromAddress: email,
         });
         
         console.log(`[OAuth] Outlook authentication completed successfully`);
