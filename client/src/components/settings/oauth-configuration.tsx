@@ -50,15 +50,21 @@ interface OAuthConfigurationProps {
 export default function OAuthConfiguration({ settings, eventId }: OAuthConfigurationProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Define Replit domain for redirects
+  const REPLIT_DOMAIN = "https://f6f88cec-f189-42d1-9bbe-d818fd70b49c-00-4k1motpw4fis.worf.replit.dev";
+  const DEFAULT_GMAIL_REDIRECT_URI = `${REPLIT_DOMAIN}/api/oauth/gmail/callback`;
+  const DEFAULT_OUTLOOK_REDIRECT_URI = `${REPLIT_DOMAIN}/api/oauth/outlook/callback`;
+  
   const [credentials, setCredentials] = useState<OAuthCredentials>({
     // Set initial values from the settings if available
     gmailClientId: settings?.gmailClientId || "",
     gmailClientSecret: settings?.gmailClientSecret || "",
-    gmailRedirectUri: settings?.gmailRedirectUri || "",
+    gmailRedirectUri: settings?.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI,
 
     outlookClientId: settings?.outlookClientId || "",
     outlookClientSecret: settings?.outlookClientSecret || "",
-    outlookRedirectUri: settings?.outlookRedirectUri || "",
+    outlookRedirectUri: settings?.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI,
 
     sendGridApiKey: settings?.sendGridApiKey || "",
 
@@ -422,7 +428,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
                   <div className="space-y-2">
                     <Label htmlFor="gmailRedirectUri">
-                      Redirect URI (Optional)
+                      Redirect URI (Required)
                       {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
                         <span className="text-red-500 ml-1">*</span>
                       )}
@@ -432,11 +438,11 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       name="gmailRedirectUri"
                       value={credentials.gmailRedirectUri}
                       onChange={handleInputChange}
-                      placeholder="https://yourdomain.com/oauth/gmail/callback"
+                      placeholder={DEFAULT_GMAIL_REDIRECT_URI}
                       className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
                     />
-                    <p className="text-sm text-gray-500">
-                      If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Google Cloud Console.
+                    <p className="text-sm text-text-muted">
+                      Copy and paste exactly this URL to your Google Cloud Console Authorized Redirect URIs: <strong>{DEFAULT_GMAIL_REDIRECT_URI}</strong>
                     </p>
                   </div>
 

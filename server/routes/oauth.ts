@@ -22,13 +22,10 @@ const router = Router();
 // OAuth state management to prevent CSRF attacks
 const stateCache = new Map<string, { provider: string; eventId: number; expiresAt: number }>();
 
-// Default redirect URIs - Using the Replit domain
-const BASE_URL = process.env.NODE_ENV === 'production' 
-  ? "https://f6f88cec-f189-42d1-9bbe-d818fd70b49c-00-4k1motpw4fis.worf.replit.dev"
-  : "http://localhost:5000";
-
-const DEFAULT_GMAIL_REDIRECT_URI = `${BASE_URL}/api/oauth/gmail/callback`;
-const DEFAULT_OUTLOOK_REDIRECT_URI = `${BASE_URL}/api/oauth/outlook/callback`;
+// Default redirect URIs - Always use Replit domain
+const REPLIT_URL = "https://f6f88cec-f189-42d1-9bbe-d818fd70b49c-00-4k1motpw4fis.worf.replit.dev";
+const DEFAULT_GMAIL_REDIRECT_URI = `${REPLIT_URL}/api/oauth/gmail/callback`;
+const DEFAULT_OUTLOOK_REDIRECT_URI = `${REPLIT_URL}/api/oauth/outlook/callback`;
 
 // OAuth scopes
 const GMAIL_SCOPES = [
