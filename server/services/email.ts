@@ -75,10 +75,27 @@ export class EmailService {
    * Check if the email service is configured and ready to use
    */
   public isConfigured(): boolean {
-    if (this.provider === EmailService.PROVIDER_RESEND) {
-      return !!this.resendClient && !!this.defaultFromEmail;
+    // Check if we have a from email address
+    if (!this.defaultFromEmail) {
+      console.warn(`No from email address configured for event ${this.eventId}`);
+      return false;
     }
-    // Add other provider checks as needed
+
+    // Check provider-specific configuration
+    if (this.provider === EmailService.PROVIDER_RESEND) {
+      return !!this.resendClient;
+    }
+    else if (this.provider === EmailService.PROVIDER_SENDGRID) {
+      return !!this.sendGridClient;
+    }
+    else if (this.provider === EmailService.PROVIDER_GMAIL) {
+      return !!this.nodemailerTransport;
+    }
+    else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
+      return !!this.nodemailerTransport;
+    }
+    
+    console.warn(`Unknown email provider: ${this.provider} for event ${this.eventId}`);
     return false;
   }
 
@@ -103,12 +120,14 @@ export class EmailService {
     }
 
     try {
+      // Format recipient(s) as an array
+      const toAddresses = Array.isArray(to) ? to : [to];
+      
+      // Handle different providers
       if (this.provider === EmailService.PROVIDER_RESEND) {
         if (!this.resendClient) {
           return { success: false, error: 'Resend client not initialized' };
         }
-
-        const toAddresses = Array.isArray(to) ? to : [to];
         
         const response = await this.resendClient.emails.send({
           from: fromEmail,
@@ -119,7 +138,7 @@ export class EmailService {
         });
 
         if (response.error) {
-          console.error(`Email sending failed: ${response.error.message}`);
+          console.error(`Resend email sending failed: ${response.error.message}`);
           return {
             success: false,
             error: response.error.message
@@ -131,9 +150,91 @@ export class EmailService {
           id: response.data?.id
         };
       }
+      
+      else if (this.provider === EmailService.PROVIDER_SENDGRID) {
+        if (!this.sendGridClient) {
+          return { success: false, error: 'SendGrid client not initialized' };
+        }
+        
+        const msg = {
+          to: toAddresses,
+          from: fromEmail,
+          subject: subject,
+          text: text || '',
+          html: html,
+        };
+        
+        try {
+          const response = await this.sendGridClient.send(msg);
+          console.log('SendGrid email sent successfully:', response);
+          
+          return {
+            success: true,
+            id: response?.[0]?.headers['x-message-id'] || 'unknown'
+          };
+        } catch (error: any) {
+          console.error('SendGrid email error:', error);
+          
+          if (error.response) {
+            // Extract more detailed error information
+            const errorDetails = error.response.body?.errors?.map((err: any) => err.message).join(', ') 
+              || error.message;
+              
+            return {
+              success: false,
+              error: `SendGrid error: ${errorDetails}`
+            };
+          }
+          
+          return {
+            success: false,
+            error: `SendGrid error: ${error.message}`
+          };
+        }
+      }
+      
+      else if (this.provider === EmailService.PROVIDER_GMAIL || this.provider === EmailService.PROVIDER_OUTLOOK) {
+        if (!this.nodemailerTransport) {
+          return { 
+            success: false, 
+            error: `${this.provider} transport not initialized` 
+          };
+        }
+        
+        // For nodemailer, we need to extract the email address from the formatted from string
+        // if it's in the format "Name <email@example.com>"
+        let fromEmailAddress = fromEmail;
+        if (fromEmail.includes('<') && fromEmail.includes('>')) {
+          fromEmailAddress = fromEmail.match(/<([^>]+)>/)?.[1] || fromEmail;
+        }
+        
+        try {
+          const mailOptions = {
+            from: fromEmail,
+            to: toAddresses.join(', '),
+            subject: subject,
+            text: text || '',
+            html: html
+          };
+          
+          const info = await this.nodemailerTransport.sendMail(mailOptions);
+          console.log(`${this.provider} email sent:`, info.messageId);
+          
+          return {
+            success: true,
+            id: info.messageId
+          };
+        } catch (error: any) {
+          console.error(`${this.provider} email error:`, error);
+          
+          return {
+            success: false,
+            error: `${this.provider} error: ${error.message}`
+          };
+        }
+      }
 
-      // Add other provider implementations here
-
+      // If we get here, the provider is not supported
       return {
         success: false,
         error: `Unsupported email provider: ${this.provider}`
