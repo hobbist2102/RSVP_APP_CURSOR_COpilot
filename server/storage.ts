@@ -1178,6 +1178,47 @@ export class MemStorage implements IStorage {
     return updatedAccommodation;
   }
   
+  async deleteAccommodation(id: number): Promise<boolean> {
+    if (!this.accommodationsMap.has(id)) return false;
+    return this.accommodationsMap.delete(id);
+  }
+  
+  // Hotel methods
+  async getHotel(id: number): Promise<Hotel | undefined> {
+    return this.hotelsMap.get(id);
+  }
+  
+  async getHotelsByEvent(eventId: number): Promise<Hotel[]> {
+    return Array.from(this.hotelsMap.values()).filter(
+      hotel => hotel.eventId === eventId
+    );
+  }
+  
+  async createHotel(hotel: InsertHotel): Promise<Hotel> {
+    const id = this.hotelIdCounter++;
+    const createdHotel: Hotel = {
+      id,
+      createdAt: new Date(),
+      ...hotel
+    };
+    this.hotelsMap.set(id, createdHotel);
+    return createdHotel;
+  }
+  
+  async updateHotel(id: number, hotel: Partial<InsertHotel>): Promise<Hotel | undefined> {
+    const existingHotel = this.hotelsMap.get(id);
+    if (!existingHotel) return undefined;
+    
+    const updatedHotel = { ...existingHotel, ...hotel };
+    this.hotelsMap.set(id, updatedHotel);
+    return updatedHotel;
+  }
+  
+  async deleteHotel(id: number): Promise<boolean> {
+    if (!this.hotelsMap.has(id)) return false;
+    return this.hotelsMap.delete(id);
+  }
+  
   // Room Allocation methods
   async getRoomAllocation(id: number): Promise<RoomAllocation | undefined> {
     return this.roomAllocationsMap.get(id);
