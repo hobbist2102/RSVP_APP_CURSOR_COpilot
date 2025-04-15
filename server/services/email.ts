@@ -1,18 +1,24 @@
 import { Resend } from 'resend';
 import { Guest, WeddingEvent } from '@shared/schema';
+import * as SendGrid from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
 /**
  * Email service that supports multiple providers
- * Currently implemented: Resend
+ * Currently implemented: Gmail, Outlook, SendGrid, Resend
  */
 export class EmailService {
   // Provider types we support
   private static readonly PROVIDER_RESEND = 'resend';
-  // In the future we can add other providers like PROVIDER_SENDGRID = 'sendgrid'
+  private static readonly PROVIDER_SENDGRID = 'sendgrid';
+  private static readonly PROVIDER_GMAIL = 'gmail';
+  private static readonly PROVIDER_OUTLOOK = 'outlook';
 
   private provider: string;
   private apiKey: string | null;
   private resendClient: Resend | null = null;
+  private sendGridClient: any = null;
+  private nodemailerTransport: any = null;
   private eventId: number;
   private defaultFromEmail: string;
   private eventName: string;
@@ -25,8 +31,43 @@ export class EmailService {
     this.eventName = eventName;
 
     // Initialize the appropriate client based on provider
-    if (this.provider === EmailService.PROVIDER_RESEND && this.apiKey) {
-      this.resendClient = new Resend(this.apiKey);
+    try {
+      if (this.provider === EmailService.PROVIDER_RESEND && this.apiKey) {
+        this.resendClient = new Resend(this.apiKey);
+        console.log(`Initialized Resend client for event ${eventId}`);
+      } 
+      else if (this.provider === EmailService.PROVIDER_SENDGRID && this.apiKey) {
+        this.sendGridClient = SendGrid;
+        this.sendGridClient.setApiKey(this.apiKey);
+        console.log(`Initialized SendGrid client for event ${eventId}`);
+      }
+      else if (this.provider === EmailService.PROVIDER_GMAIL && this.apiKey) {
+        // For Gmail and Outlook, we'll use Nodemailer with OAuth2
+        this.nodemailerTransport = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            type: 'OAuth2',
+            user: defaultFromEmail,
+            accessToken: this.apiKey
+          }
+        });
+        console.log(`Initialized Gmail client for event ${eventId}`);
+      }
+      else if (this.provider === EmailService.PROVIDER_OUTLOOK && this.apiKey) {
+        this.nodemailerTransport = nodemailer.createTransport({
+          host: 'smtp.office365.com',
+          port: 587,
+          secure: false,
+          auth: {
+            type: 'OAuth2',
+            user: defaultFromEmail,
+            accessToken: this.apiKey
+          }
+        });
+        console.log(`Initialized Outlook client for event ${eventId}`);
+      }
+    } catch (error) {
+      console.error(`Failed to initialize email client for provider ${provider}:`, error);
     }
   }
 
