@@ -1444,6 +1444,106 @@ export class MemStorage implements IStorage {
     this.rsvpFollowupLogsMap.set(id, newLog);
     return newLog;
   }
+  
+  // OAuth Configuration methods
+  async getOAuthConfig(
+    eventId: number, 
+    provider: 'gmail' | 'outlook'
+  ): Promise<OAuthConfiguration | undefined> {
+    const configs = await this.getAllOAuthConfigsByEvent(eventId);
+    return configs.find(config => config.provider === provider);
+  }
+
+  async getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined> {
+    return this.oauthConfigurationsMap.get(id);
+  }
+
+  async getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]> {
+    return Array.from(this.oauthConfigurationsMap.values()).filter(
+      config => config.eventId === eventId
+    );
+  }
+
+  async saveOAuthConfig(
+    eventId: number, 
+    provider: 'gmail' | 'outlook', 
+    config: {
+      clientId: string;
+      encryptedClientSecret: string;
+      accessToken?: string;
+      refreshToken?: string;
+      tokenExpiry?: Date;
+      email?: string;
+    }
+  ): Promise<OAuthConfiguration> {
+    // Check if configuration already exists
+    const existingConfig = await this.getOAuthConfig(eventId, provider);
+    
+    if (existingConfig) {
+      // Update existing configuration
+      const updatedConfig: OAuthConfiguration = {
+        ...existingConfig,
+        clientId: config.clientId,
+        clientSecret: config.encryptedClientSecret,
+        accessToken: config.accessToken || existingConfig.accessToken,
+        refreshToken: config.refreshToken || existingConfig.refreshToken,
+        tokenExpiry: config.tokenExpiry || existingConfig.tokenExpiry,
+        email: config.email || existingConfig.email,
+        updatedAt: new Date()
+      };
+      this.oauthConfigurationsMap.set(existingConfig.id, updatedConfig);
+      return updatedConfig;
+    } else {
+      // Create new configuration
+      const id = this.oauthConfigurationIdCounter++;
+      const createdAt = new Date();
+      const updatedAt = new Date();
+      const newConfig: OAuthConfiguration = {
+        id,
+        eventId,
+        provider,
+        clientId: config.clientId,
+        clientSecret: config.encryptedClientSecret,
+        accessToken: config.accessToken || null,
+        refreshToken: config.refreshToken || null,
+        tokenExpiry: config.tokenExpiry || null,
+        email: config.email || null,
+        createdAt,
+        updatedAt
+      };
+      this.oauthConfigurationsMap.set(id, newConfig);
+      return newConfig;
+    }
+  }
+
+  async updateOAuthTokens(
+    id: number, 
+    tokens: {
+      accessToken: string;
+      refreshToken?: string;
+      tokenExpiry?: Date;
+      email?: string;
+    }
+  ): Promise<OAuthConfiguration | undefined> {
+    const config = this.oauthConfigurationsMap.get(id);
+    if (!config) return undefined;
+    
+    const updatedConfig: OAuthConfiguration = {
+      ...config,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken || config.refreshToken,
+      tokenExpiry: tokens.tokenExpiry || config.tokenExpiry,
+      email: tokens.email || config.email,
+      updatedAt: new Date()
+    };
+    
+    this.oauthConfigurationsMap.set(id, updatedConfig);
+    return updatedConfig;
+  }
+
+  async deleteOAuthConfig(id: number): Promise<boolean> {
+    return this.oauthConfigurationsMap.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
