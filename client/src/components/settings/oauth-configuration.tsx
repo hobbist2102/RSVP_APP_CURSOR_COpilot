@@ -22,7 +22,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export interface OAuthCredentials {
+interface OAuthCredentials {
   // Gmail
   gmailClientId?: string;
   gmailClientSecret?: string;
@@ -50,48 +50,47 @@ interface OAuthConfigurationProps {
 export default function OAuthConfiguration({ settings, eventId }: OAuthConfigurationProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
   const [credentials, setCredentials] = useState<OAuthCredentials>({
     // Set initial values from the settings if available
     gmailClientId: settings?.gmailClientId || "",
     gmailClientSecret: settings?.gmailClientSecret || "",
     gmailRedirectUri: settings?.gmailRedirectUri || "",
-    
+
     outlookClientId: settings?.outlookClientId || "",
     outlookClientSecret: settings?.outlookClientSecret || "",
     outlookRedirectUri: settings?.outlookRedirectUri || "",
-    
+
     sendGridApiKey: settings?.sendGridApiKey || "",
-    
+
     emailFrom: settings?.emailFrom || "",
     emailReplyTo: settings?.emailReplyTo || "",
-    
+
     useGmail: settings?.useGmail || false,
     useOutlook: settings?.useOutlook || false,
     useSendGrid: settings?.useSendGrid || false,
   });
-  
-  const [isConnecting, setIsConnecting] = useState({
+
+  const [isConfiguring, setIsConfiguring] = useState({
     gmail: false,
-    outlook: false,
+    outlook: false
   });
-  
+
   // Mutation to update the OAuth credentials
   const updateCredentialsMutation = useMutation({
     mutationFn: async (data: OAuthCredentials) => {
       if (!eventId) throw new Error("Event ID is required");
-      
+
       const res = await apiRequest(
         "PATCH",
         `/api/event-settings/${eventId}/settings`,
         { oauth: data }
       );
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to update OAuth credentials");
       }
-      
+
       return await res.json();
     },
     onSuccess: () => {
@@ -100,16 +99,16 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       if (credentials.useGmail) enabledProviders.push("Gmail");
       if (credentials.useOutlook) enabledProviders.push("Outlook");
       if (credentials.useSendGrid) enabledProviders.push("SendGrid");
-      
-      const providersText = enabledProviders.length > 0 
-        ? `Enabled providers: ${enabledProviders.join(", ")}.` 
+
+      const providersText = enabledProviders.length > 0
+        ? `Enabled providers: ${enabledProviders.join(", ")}.`
         : "No email providers currently enabled.";
-        
+
       toast({
         title: "Configuration updated",
         description: `Email provider settings have been saved successfully. ${providersText}`,
       });
-      
+
       // Provide guidance on next steps if OAuth providers are enabled
       if (credentials.useGmail && hasCredentials("gmail") && !settings?.gmailAccount) {
         toast({
@@ -117,14 +116,14 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
           description: "Gmail credentials saved. Click the 'Configure Gmail OAuth' button to connect your Gmail account.",
         });
       }
-      
+
       if (credentials.useOutlook && hasCredentials("outlook") && !settings?.outlookAccount) {
         toast({
           title: "Outlook Setup Required",
           description: "Outlook credentials saved. Click the 'Configure Outlook OAuth' button to connect your Outlook account.",
         });
       }
-      
+
       // Invalidate the settings query to refresh the data
       queryClient.invalidateQueries({ queryKey: [`/api/event-settings/${eventId}/settings`] });
     },
@@ -136,28 +135,28 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       });
     },
   });
-  
+
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    
+
     setCredentials((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-  
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate the form before submission
     const gmailErrors = credentials.useGmail ? getValidationErrors("gmail") : [];
     const outlookErrors = credentials.useOutlook ? getValidationErrors("outlook") : [];
     const sendGridErrors = credentials.useSendGrid && !credentials.sendGridApiKey ? ["SendGrid API Key is required"] : [];
-    
+
     const allErrors = [...gmailErrors, ...outlookErrors, ...sendGridErrors];
-    
+
     if (allErrors.length > 0) {
       toast({
         title: "Validation Errors",
@@ -166,7 +165,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       });
       return;
     }
-    
+
     // If using both Gmail and Outlook, check if they have complete credentials
     if (credentials.useGmail && credentials.useOutlook) {
       if (!hasCredentials("gmail") || !hasCredentials("outlook")) {
@@ -178,119 +177,63 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
         return;
       }
     }
-    
+
     // All validations passed, save the configuration
     updateCredentialsMutation.mutate(credentials);
   };
-  
-  // Start OAuth process for Gmail
-  const initiateGmailAuth = async () => {
-    if (!eventId) return;
-    
-    setIsConnecting({ ...isConnecting, gmail: true });
-    
-    try {
-      // First check if the credentials were already saved to the server
-      if (credentials.gmailClientId !== settings?.gmailClientId ||
-          credentials.gmailClientSecret !== settings?.gmailClientSecret) {
-        toast({
-          title: "Save Required",
-          description: "Please save your Gmail credentials before configuring the OAuth connection.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      const res = await apiRequest(
-        "GET",
-        `/api/oauth/gmail/authorize?eventId=${eventId}`,
-        null
-      );
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        // Handle structured error responses
-        if (data.code === "MISSING_CLIENT_ID") {
-          toast({
-            title: "Configuration Required",
-            description: data.details || "Gmail client ID is missing. Please complete the configuration and save.",
-            variant: "destructive",
-          });
-        } else {
-          throw new Error(data.message || "Failed to initiate Gmail authentication");
-        }
-        return;
-      }
-      
-      // Open the authorization URL in a new window
-      window.open(data.authUrl, "GmailAuth", "width=600,height=700");
-    } catch (error) {
-      console.error("Gmail authentication error:", error);
+
+  // Handle OAuth configuration
+  const handleOAuthSetup = async (provider: 'gmail' | 'outlook') => {
+    if (!eventId) {
       toast({
-        title: "Gmail Authentication Error",
-        description: error instanceof Error ? error.message : "An error occurred during Gmail authentication",
-        variant: "destructive",
+        title: "Error",
+        description: "Event ID is required",
+        variant: "destructive"
       });
-    } finally {
-      setIsConnecting({ ...isConnecting, gmail: false });
+      return;
+    }
+
+    try {
+      setIsConfiguring(prev => ({ ...prev, [provider]: true }));
+
+      // Get the authorization URL
+      const response = await fetch(`/api/oauth/${provider}/authorize?eventId=${eventId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Failed to initiate ${provider} authorization`);
+      }
+
+      // Open the authorization URL in a popup
+      const authWindow = window.open(
+        data.authUrl,
+        `${provider}Auth`,
+        'width=600,height=700'
+      );
+
+      // Poll for completion
+      const checkInterval = setInterval(() => {
+        if (authWindow?.closed) {
+          clearInterval(checkInterval);
+          setIsConfiguring(prev => ({ ...prev, [provider]: false }));
+
+          // Refresh settings to show the updated state
+          queryClient.invalidateQueries([`/api/event-settings/${eventId}/settings`]);
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error(`${provider} OAuth setup error:`, error);
+      toast({
+        title: `${provider === 'gmail' ? 'Gmail' : 'Outlook'} Configuration Failed`,
+        description: error instanceof Error ? error.message : `Failed to configure ${provider}`,
+        variant: "destructive"
+      });
+      setIsConfiguring(prev => ({ ...prev, [provider]: false }));
     }
   };
-  
-  // Start OAuth process for Outlook
-  const initiateOutlookAuth = async () => {
-    if (!eventId) return;
-    
-    setIsConnecting({ ...isConnecting, outlook: true });
-    
-    try {
-      // First check if the credentials were already saved to the server
-      if (credentials.outlookClientId !== settings?.outlookClientId ||
-          credentials.outlookClientSecret !== settings?.outlookClientSecret) {
-        toast({
-          title: "Save Required",
-          description: "Please save your Outlook credentials before configuring the OAuth connection.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      const res = await apiRequest(
-        "GET",
-        `/api/oauth/outlook/authorize?eventId=${eventId}`,
-        null
-      );
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        // Handle structured error responses
-        if (data.code === "MISSING_CLIENT_ID") {
-          toast({
-            title: "Configuration Required",
-            description: data.details || "Outlook client ID is missing. Please complete the configuration and save.",
-            variant: "destructive",
-          });
-        } else {
-          throw new Error(data.message || "Failed to initiate Outlook authentication");
-        }
-        return;
-      }
-      
-      // Open the authorization URL in a new window
-      window.open(data.authUrl, "OutlookAuth", "width=600,height=700");
-    } catch (error) {
-      console.error("Outlook authentication error:", error);
-      toast({
-        title: "Outlook Authentication Error",
-        description: error instanceof Error ? error.message : "An error occurred during Outlook authentication",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting({ ...isConnecting, outlook: false });
-    }
-  };
-  
+
+
   // Helper to check if credentials are filled for a service
   const hasCredentials = (service: "gmail" | "outlook") => {
     if (service === "gmail") {
@@ -300,7 +243,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     }
     return false;
   };
-  
+
   // Helper to validate redirect URIs
   const validateRedirectUri = (uri: string | undefined): boolean => {
     if (!uri) return true; // Empty is valid (will use default)
@@ -311,11 +254,11 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       return false;
     }
   };
-  
+
   // Get validation errors for display
   const getValidationErrors = (service: "gmail" | "outlook") => {
     const errors: string[] = [];
-    
+
     if (service === "gmail" && credentials.useGmail) {
       if (!credentials.gmailClientId) errors.push("Client ID is required");
       if (!credentials.gmailClientSecret) errors.push("Client Secret is required");
@@ -329,21 +272,21 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
         errors.push("Redirect URI must be a valid URL with http:// or https:// protocol");
       }
     }
-    
+
     return errors;
   };
-  
+
   // Display connected account info
   const renderConnectedAccount = (provider: "gmail" | "outlook") => {
-    const account = 
-      provider === "gmail" 
-        ? settings?.gmailAccount 
+    const account =
+      provider === "gmail"
+        ? settings?.gmailAccount
         : provider === "outlook"
-        ? settings?.outlookAccount
-        : null;
-      
+          ? settings?.outlookAccount
+          : null;
+
     if (!account) return null;
-    
+
     return (
       <Alert className="mt-4">
         <CheckCircle2 className="h-4 w-4" />
@@ -355,7 +298,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       </Alert>
     );
   };
-  
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -364,7 +307,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
           Configure your OAuth credentials and email providers for sending communications
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         <Alert className="mb-6">
           <AlertTitle>Important OAuth Setup Instructions</AlertTitle>
@@ -376,7 +319,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
             </ol>
           </AlertDescription>
         </Alert>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -390,7 +333,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   placeholder="noreply@yourdomain.com"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="emailReplyTo">Reply-To Email Address</Label>
                 <Input
@@ -403,14 +346,14 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
               </div>
             </div>
           </div>
-          
+
           <Tabs defaultValue="gmail" className="mt-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="gmail">Gmail</TabsTrigger>
               <TabsTrigger value="outlook">Outlook</TabsTrigger>
               <TabsTrigger value="sendgrid">SendGrid</TabsTrigger>
             </TabsList>
-            
+
             {/* Gmail Configuration */}
             <TabsContent value="gmail" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
@@ -419,24 +362,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     id="useGmail"
                     name="useGmail"
                     checked={credentials.useGmail}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setCredentials((prev) => ({ ...prev, useGmail: checked }))
                     }
                   />
                   <Label htmlFor="useGmail">Use Gmail for sending emails</Label>
                 </div>
-                
+
                 {credentials.useGmail && (
-                  <Button 
-                    type="button" 
-                    onClick={initiateGmailAuth}
-                    disabled={
-                      isConnecting.gmail || 
-                      !hasCredentials("gmail") || 
-                      updateCredentialsMutation.isPending || 
-                      // Check if credentials were saved but differ from current state
+                  <Button
+                    type="button"
+                    onClick={() => handleOAuthSetup('gmail')}
+                    disabled={isConfiguring.gmail || !hasCredentials("gmail") || updateCredentialsMutation.isPending ||
                       (
-                        hasCredentials("gmail") && 
+                        hasCredentials("gmail") &&
                         (
                           credentials.gmailClientId !== settings?.gmailClientId ||
                           credentials.gmailClientSecret !== settings?.gmailClientSecret ||
@@ -446,17 +385,17 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     }
                     variant="outline"
                   >
-                    {isConnecting.gmail ? "Connecting..." : "Configure Gmail OAuth"}
+                    {isConfiguring.gmail ? "Configuring..." : "Configure Gmail OAuth"}
                   </Button>
                 )}
               </div>
-              
+
               {credentials.useGmail && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="gmailClientId">
-                        Client ID 
+                        Client ID
                         {getValidationErrors("gmail").includes("Client ID is required") && (
                           <span className="text-red-500 ml-1">*</span>
                         )}
@@ -470,7 +409,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                         className={getValidationErrors("gmail").includes("Client ID is required") ? "border-red-500" : ""}
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="gmailClientSecret">
                         Client Secret
@@ -489,7 +428,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="gmailRedirectUri">
                       Redirect URI (Optional)
@@ -509,9 +448,9 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Google Cloud Console.
                     </p>
                   </div>
-                  
+
                   {renderConnectedAccount("gmail")}
-                  
+
                   {getValidationErrors("gmail").length > 0 && (
                     <div className="text-red-500 text-sm">
                       {getValidationErrors("gmail").map((error, index) => (
@@ -522,7 +461,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                 </div>
               )}
             </TabsContent>
-            
+
             {/* Outlook Configuration */}
             <TabsContent value="outlook" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
@@ -531,24 +470,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     id="useOutlook"
                     name="useOutlook"
                     checked={credentials.useOutlook}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setCredentials((prev) => ({ ...prev, useOutlook: checked }))
                     }
                   />
                   <Label htmlFor="useOutlook">Use Outlook for sending emails</Label>
                 </div>
-                
+
                 {credentials.useOutlook && (
-                  <Button 
-                    type="button" 
-                    onClick={initiateOutlookAuth}
-                    disabled={
-                      isConnecting.outlook || 
-                      !hasCredentials("outlook") || 
-                      updateCredentialsMutation.isPending || 
-                      // Check if credentials were saved but differ from current state
+                  <Button
+                    type="button"
+                    onClick={() => handleOAuthSetup('outlook')}
+                    disabled={isConfiguring.outlook || !hasCredentials("outlook") || updateCredentialsMutation.isPending ||
                       (
-                        hasCredentials("outlook") && 
+                        hasCredentials("outlook") &&
                         (
                           credentials.outlookClientId !== settings?.outlookClientId ||
                           credentials.outlookClientSecret !== settings?.outlookClientSecret ||
@@ -558,17 +493,17 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     }
                     variant="outline"
                   >
-                    {isConnecting.outlook ? "Connecting..." : "Configure Outlook OAuth"}
+                    {isConfiguring.outlook ? "Configuring..." : "Configure Outlook OAuth"}
                   </Button>
                 )}
               </div>
-              
+
               {credentials.useOutlook && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="outlookClientId">
-                        Client ID 
+                        Client ID
                         {getValidationErrors("outlook").includes("Client ID is required") && (
                           <span className="text-red-500 ml-1">*</span>
                         )}
@@ -582,7 +517,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                         className={getValidationErrors("outlook").includes("Client ID is required") ? "border-red-500" : ""}
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="outlookClientSecret">
                         Client Secret
@@ -601,7 +536,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="outlookRedirectUri">
                       Redirect URI (Optional)
@@ -621,9 +556,9 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Azure Portal.
                     </p>
                   </div>
-                  
+
                   {renderConnectedAccount("outlook")}
-                  
+
                   {getValidationErrors("outlook").length > 0 && (
                     <div className="text-red-500 text-sm">
                       {getValidationErrors("outlook").map((error, index) => (
@@ -634,7 +569,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                 </div>
               )}
             </TabsContent>
-            
+
             {/* SendGrid Configuration */}
             <TabsContent value="sendgrid" className="space-y-4 mt-4">
               <div className="flex items-center space-x-2">
@@ -642,13 +577,13 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   id="useSendGrid"
                   name="useSendGrid"
                   checked={credentials.useSendGrid}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setCredentials((prev) => ({ ...prev, useSendGrid: checked }))
                   }
                 />
                 <Label htmlFor="useSendGrid">Use SendGrid for sending emails</Label>
               </div>
-              
+
               {credentials.useSendGrid && (
                 <div className="space-y-2">
                   <Label htmlFor="sendGridApiKey">
@@ -669,7 +604,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   <p className="text-sm text-gray-500">
                     Generate an API key with at least "Mail Send" permissions from your SendGrid account.
                   </p>
-                  
+
                   {credentials.useSendGrid && !credentials.sendGridApiKey && (
                     <div className="text-red-500 text-sm mt-2">
                       SendGrid API Key is required when SendGrid is enabled
@@ -679,10 +614,10 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
               )}
             </TabsContent>
           </Tabs>
-          
+
           <div className="mt-6">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={updateCredentialsMutation.isPending}
               className="w-full md:w-auto"
             >
