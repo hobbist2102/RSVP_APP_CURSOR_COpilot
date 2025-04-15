@@ -429,10 +429,19 @@ ${event.brideName} & ${event.groomName}
       emailApiKey = event.emailApiKey;
       console.log(`Using direct email API key for event ${event.id}`);
     }
-    // If Gmail is configured and selected as provider, use Gmail OAuth tokens
-    else if (event.useGmail && emailProvider === 'gmail' && event.gmailAccessToken) {
-      emailApiKey = event.gmailAccessToken;
-      console.log(`Using Gmail OAuth token for event ${event.id}`);
+    // If Gmail is configured and selected as provider
+    else if (event.useGmail && emailProvider === 'gmail') {
+      // Check if we're using direct SMTP or OAuth
+      if (event.useGmailDirectSMTP) {
+        // For direct SMTP, the API key is still null, but we'll use the password stored in the event
+        emailApiKey = null; // Not used for direct SMTP
+        console.log(`Using Gmail Direct SMTP for event ${event.id}`);
+      } 
+      // If using OAuth, use the access token
+      else if (event.gmailAccessToken) {
+        emailApiKey = event.gmailAccessToken;
+        console.log(`Using Gmail OAuth token for event ${event.id}`);
+      }
     }
     // If Outlook is configured and selected as provider, use Outlook OAuth tokens
     else if (event.useOutlook && emailProvider === 'outlook' && event.outlookAccessToken) {
@@ -450,7 +459,8 @@ ${event.brideName} & ${event.groomName}
       console.log(`Using environment RESEND_API_KEY for event ${event.id}`);
     }
     
-    if (!emailApiKey) {
+    // Special handling for Gmail Direct SMTP - we don't have an API key but it's still valid
+    if (!emailApiKey && !(emailProvider === 'gmail' && event.useGmailDirectSMTP)) {
       console.warn(`No email API key found for event ${event.id} with provider ${emailProvider}`);
     }
     
@@ -462,10 +472,15 @@ ${event.brideName} & ${event.groomName}
     const formattedFromEmail = `${fromName} <${fromEmail}>`;
 
     // Log the email configuration (without API key details for security)
+    let configMethod = !!emailApiKey ? "API Key" : "No API Key";
+    if (emailProvider === 'gmail' && event.useGmailDirectSMTP) {
+      configMethod = "Direct SMTP";
+    }
+
     console.log(`Email service configuration for event ${event.id}:
       - Provider: ${emailProvider}
       - From: ${formattedFromEmail}
-      - API Key configured: ${!!emailApiKey}
+      - Configuration Method: ${configMethod}
     `);
 
     return new EmailService(
