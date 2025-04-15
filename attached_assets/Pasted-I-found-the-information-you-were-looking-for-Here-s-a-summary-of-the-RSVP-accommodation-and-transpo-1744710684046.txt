@@ -1,0 +1,54 @@
+I found the information you were looking for! Here's a summary of the RSVP accommodation and transport scenarios we discussed before implementing the two-stage RSVP process:
+
+Accommodation Scenarios (from our earlier conversations):
+Couple Provides Accommodation for All Outstation Guests
+
+System automatically manages accommodation for all non-local guests
+No accommodation options shown to local guests
+Guests Manage Their Own Accommodation
+
+Couple doesn't provide any accommodation
+Guests are responsible for booking their own stays
+Special Deals with Hotels
+
+Couple negotiates special rates with specific hotels
+System provides hotel names, links, and contact details to guests
+Guests book directly with preferred rate codes
+Accommodation for Selected Guests Only
+
+Mixed approach where some guests receive accommodation
+For each guest: dropdown option to select "Accommodation Provided" or "Manage Own Accommodation"
+System tracks which guests receive accommodation
+Transport Scenarios:
+Couple Provides Transport for All Outstation Guests
+
+System manages pickup/dropoff for all non-local guests
+Local guests don't see transport options
+Guests Manage Their Own Transport
+
+No transport provided by the couple
+Guests arrange their own transportation
+Special Arrangements with Transport Providers
+
+Couple shares details of preferred transport providers
+Guests contact the providers directly with special codes/rates
+Transport for Selected Guests Only
+
+Some guests receive transport while others don't
+Each guest has a dropdown: "Transport Provided" or "Manage Own Transport"
+Flight Scenarios:
+Couple Provides Flights for All Outstation Guests
+
+Couple books and pays for guest flights
+Guests Arrange Their Own Flights
+
+Guests book and pay for their own air travel
+Special Deals with Airlines
+
+Couple negotiates special airline rates
+System provides airline names, links, and contact details
+Flights for Selected Guests Only
+
+Some guests have flights provided, others don't
+Dropdown for each guest: "Flights Provided" or "Manage Own Flights"
+These scenarios were incorporated into the Event Settings page design with the appropriate configuration options for each scenario, allowing the couple to select which approach they want to use for each aspect of guest travel and accommodation.
