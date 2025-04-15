@@ -237,13 +237,16 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
         
         console.log(`[OAuth] Gmail authentication completed successfully`);
         
-        // Return success with the authenticated email
-        res.json({ 
+        // Redirect to the success page with the response data
+        const responseData = { 
           success: true, 
           provider: "gmail", 
           email,
           message: "Gmail account successfully connected" 
-        });
+        };
+        
+        res.redirect(`/oauth/callback/gmail?response=${encodeURIComponent(JSON.stringify(responseData))}`);
+        
       } catch (userInfoError) {
         console.error(`[OAuth] Error fetching Gmail user info:`, userInfoError);
         res.status(500).json({ 
@@ -471,13 +474,16 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
         
         console.log(`[OAuth] Outlook authentication completed successfully`);
         
-        // Return success with the authenticated email
-        res.json({ 
+        // Redirect to the success page with the response data
+        const responseData = { 
           success: true, 
           provider: "outlook", 
           email,
           message: "Outlook account successfully connected" 
-        });
+        };
+        
+        res.redirect(`/oauth/callback/outlook?response=${encodeURIComponent(JSON.stringify(responseData))}`);
+        
       } catch (userInfoError) {
         console.error(`[OAuth] Error fetching Outlook user info:`, userInfoError);
         res.status(500).json({ 

@@ -15,6 +15,7 @@ import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import EventSettings from "@/pages/event-settings";
 import PrivateRoute from "@/components/auth/private-route";
+import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Switch>
         <Route path="/auth" component={AuthPage} />
         <Route path="/guest-rsvp" component={RsvpPage} />
+        <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
         <Route path="/">
           {() => (
             <PrivateRoute>
