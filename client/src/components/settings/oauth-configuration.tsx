@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -18,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
@@ -44,29 +42,33 @@ export interface OAuthCredentials {
   useSendGrid?: boolean;
 }
 
-export const OAuthConfiguration = () => {
-  const { currentEvent, refetchCurrentEvent } = useCurrentEvent();
+interface OAuthConfigurationProps {
+  settings: any;
+  eventId: number | undefined;
+}
+
+export default function OAuthConfiguration({ settings, eventId }: OAuthConfigurationProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
   const [credentials, setCredentials] = useState<OAuthCredentials>({
-    // Set initial values from the event if available
-    gmailClientId: currentEvent?.gmailClientId || "",
-    gmailClientSecret: currentEvent?.gmailClientSecret || "",
-    gmailRedirectUri: currentEvent?.gmailRedirectUri || "",
+    // Set initial values from the settings if available
+    gmailClientId: settings?.gmailClientId || "",
+    gmailClientSecret: settings?.gmailClientSecret || "",
+    gmailRedirectUri: settings?.gmailRedirectUri || "",
     
-    outlookClientId: currentEvent?.outlookClientId || "",
-    outlookClientSecret: currentEvent?.outlookClientSecret || "",
-    outlookRedirectUri: currentEvent?.outlookRedirectUri || "",
+    outlookClientId: settings?.outlookClientId || "",
+    outlookClientSecret: settings?.outlookClientSecret || "",
+    outlookRedirectUri: settings?.outlookRedirectUri || "",
     
-    sendGridApiKey: currentEvent?.sendGridApiKey || "",
+    sendGridApiKey: settings?.sendGridApiKey || "",
     
-    emailFrom: currentEvent?.emailFrom || "",
-    emailReplyTo: currentEvent?.emailReplyTo || "",
+    emailFrom: settings?.emailFrom || "",
+    emailReplyTo: settings?.emailReplyTo || "",
     
-    useGmail: currentEvent?.useGmail || false,
-    useOutlook: currentEvent?.useOutlook || false,
-    useSendGrid: currentEvent?.useSendGrid || false,
+    useGmail: settings?.useGmail || false,
+    useOutlook: settings?.useOutlook || false,
+    useSendGrid: settings?.useSendGrid || false,
   });
   
   const [isConnecting, setIsConnecting] = useState({
@@ -74,18 +76,20 @@ export const OAuthConfiguration = () => {
     outlook: false,
   });
   
-  // Mutation to update the event's OAuth credentials
+  // Mutation to update the OAuth credentials
   const updateCredentialsMutation = useMutation({
     mutationFn: async (data: OAuthCredentials) => {
+      if (!eventId) throw new Error("Event ID is required");
+      
       const res = await apiRequest(
         "PATCH",
-        `/api/events/${currentEvent?.id}/oauth-config`,
-        data
+        `/api/event-settings/${eventId}/settings`,
+        { oauth: data }
       );
       
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update credentials");
+        throw new Error(errorData.message || "Failed to update OAuth credentials");
       }
       
       return await res.json();
@@ -107,23 +111,22 @@ export const OAuthConfiguration = () => {
       });
       
       // Provide guidance on next steps if OAuth providers are enabled
-      if (credentials.useGmail && hasCredentials("gmail") && !currentEvent?.gmailAccount) {
+      if (credentials.useGmail && hasCredentials("gmail") && !settings?.gmailAccount) {
         toast({
           title: "Gmail Setup Required",
           description: "Gmail credentials saved. Click the 'Configure Gmail OAuth' button to connect your Gmail account.",
         });
       }
       
-      if (credentials.useOutlook && hasCredentials("outlook") && !currentEvent?.outlookAccount) {
+      if (credentials.useOutlook && hasCredentials("outlook") && !settings?.outlookAccount) {
         toast({
           title: "Outlook Setup Required",
           description: "Outlook credentials saved. Click the 'Configure Outlook OAuth' button to connect your Outlook account.",
         });
       }
       
-      // Invalidate the current event query to refresh the data
-      queryClient.invalidateQueries({ queryKey: ["/api/current-event"] });
-      refetchCurrentEvent();
+      // Invalidate the settings query to refresh the data
+      queryClient.invalidateQueries({ queryKey: [`/api/event-settings/${eventId}/settings`] });
     },
     onError: (error) => {
       toast({
@@ -182,14 +185,14 @@ export const OAuthConfiguration = () => {
   
   // Start OAuth process for Gmail
   const initiateGmailAuth = async () => {
-    if (!currentEvent?.id) return;
+    if (!eventId) return;
     
     setIsConnecting({ ...isConnecting, gmail: true });
     
     try {
       // First check if the credentials were already saved to the server
-      if (credentials.gmailClientId !== currentEvent.gmailClientId ||
-          credentials.gmailClientSecret !== currentEvent.gmailClientSecret) {
+      if (credentials.gmailClientId !== settings?.gmailClientId ||
+          credentials.gmailClientSecret !== settings?.gmailClientSecret) {
         toast({
           title: "Save Required",
           description: "Please save your Gmail credentials before configuring the OAuth connection.",
@@ -200,28 +203,28 @@ export const OAuthConfiguration = () => {
       
       const res = await apiRequest(
         "GET",
-        `/api/oauth/gmail/authorize?eventId=${currentEvent.id}`,
+        `/api/oauth/gmail/authorize?eventId=${eventId}`,
         null
       );
       
-      const errorData = await res.json();
+      const data = await res.json();
       
       if (!res.ok) {
         // Handle structured error responses
-        if (errorData.code === "MISSING_CLIENT_ID") {
+        if (data.code === "MISSING_CLIENT_ID") {
           toast({
             title: "Configuration Required",
-            description: errorData.details || "Gmail client ID is missing. Please complete the configuration and save.",
+            description: data.details || "Gmail client ID is missing. Please complete the configuration and save.",
             variant: "destructive",
           });
         } else {
-          throw new Error(errorData.message || "Failed to initiate Gmail authentication");
+          throw new Error(data.message || "Failed to initiate Gmail authentication");
         }
         return;
       }
       
       // Open the authorization URL in a new window
-      window.open(errorData.authUrl, "GmailAuth", "width=600,height=700");
+      window.open(data.authUrl, "GmailAuth", "width=600,height=700");
     } catch (error) {
       console.error("Gmail authentication error:", error);
       toast({
@@ -236,14 +239,14 @@ export const OAuthConfiguration = () => {
   
   // Start OAuth process for Outlook
   const initiateOutlookAuth = async () => {
-    if (!currentEvent?.id) return;
+    if (!eventId) return;
     
     setIsConnecting({ ...isConnecting, outlook: true });
     
     try {
       // First check if the credentials were already saved to the server
-      if (credentials.outlookClientId !== currentEvent.outlookClientId ||
-          credentials.outlookClientSecret !== currentEvent.outlookClientSecret) {
+      if (credentials.outlookClientId !== settings?.outlookClientId ||
+          credentials.outlookClientSecret !== settings?.outlookClientSecret) {
         toast({
           title: "Save Required",
           description: "Please save your Outlook credentials before configuring the OAuth connection.",
@@ -254,28 +257,28 @@ export const OAuthConfiguration = () => {
       
       const res = await apiRequest(
         "GET",
-        `/api/oauth/outlook/authorize?eventId=${currentEvent.id}`,
+        `/api/oauth/outlook/authorize?eventId=${eventId}`,
         null
       );
       
-      const errorData = await res.json();
+      const data = await res.json();
       
       if (!res.ok) {
         // Handle structured error responses
-        if (errorData.code === "MISSING_CLIENT_ID") {
+        if (data.code === "MISSING_CLIENT_ID") {
           toast({
             title: "Configuration Required",
-            description: errorData.details || "Outlook client ID is missing. Please complete the configuration and save.",
+            description: data.details || "Outlook client ID is missing. Please complete the configuration and save.",
             variant: "destructive",
           });
         } else {
-          throw new Error(errorData.message || "Failed to initiate Outlook authentication");
+          throw new Error(data.message || "Failed to initiate Outlook authentication");
         }
         return;
       }
       
       // Open the authorization URL in a new window
-      window.open(errorData.authUrl, "OutlookAuth", "width=600,height=700");
+      window.open(data.authUrl, "OutlookAuth", "width=600,height=700");
     } catch (error) {
       console.error("Outlook authentication error:", error);
       toast({
@@ -334,9 +337,9 @@ export const OAuthConfiguration = () => {
   const renderConnectedAccount = (provider: "gmail" | "outlook") => {
     const account = 
       provider === "gmail" 
-        ? currentEvent?.gmailAccount 
+        ? settings?.gmailAccount 
         : provider === "outlook"
-        ? currentEvent?.outlookAccount
+        ? settings?.outlookAccount
         : null;
       
     if (!account) return null;
@@ -435,109 +438,87 @@ export const OAuthConfiguration = () => {
                       (
                         hasCredentials("gmail") && 
                         (
-                          credentials.gmailClientId !== currentEvent?.gmailClientId ||
-                          credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
-                          credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri
+                          credentials.gmailClientId !== settings?.gmailClientId ||
+                          credentials.gmailClientSecret !== settings?.gmailClientSecret ||
+                          credentials.gmailRedirectUri !== settings?.gmailRedirectUri
                         )
                       )
                     }
-                    variant={
-                      hasCredentials("gmail") && 
-                      credentials.gmailClientId === currentEvent?.gmailClientId && 
-                      credentials.gmailClientSecret === currentEvent?.gmailClientSecret
-                      ? "outline" 
-                      : "destructive"
-                    }
-                    className="relative"
+                    variant="outline"
                   >
-                    {isConnecting.gmail ? "Connecting..." : 
-                      hasCredentials("gmail") && 
-                      credentials.gmailClientId === currentEvent?.gmailClientId && 
-                      credentials.gmailClientSecret === currentEvent?.gmailClientSecret
-                      ? "Configure Gmail OAuth" 
-                      : "Save Credentials First"
-                    }
-                    {hasCredentials("gmail") && (
-                      credentials.gmailClientId !== currentEvent?.gmailClientId ||
-                      credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
-                      credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri
-                    ) && (
-                      <div className="absolute -top-10 left-0 right-0 bg-destructive text-white text-xs p-1 rounded-sm whitespace-nowrap">
-                        Click "Save Configuration" first
-                      </div>
-                    )}
+                    {isConnecting.gmail ? "Connecting..." : "Configure Gmail OAuth"}
                   </Button>
                 )}
               </div>
               
               {credentials.useGmail && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="gmailClientId">Client ID</Label>
-                    <Input
-                      id="gmailClientId"
-                      name="gmailClientId"
-                      value={credentials.gmailClientId}
-                      onChange={handleInputChange}
-                      placeholder="Enter your Gmail OAuth Client ID"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="gmailClientId">
+                        Client ID 
+                        {getValidationErrors("gmail").includes("Client ID is required") && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <Input
+                        id="gmailClientId"
+                        name="gmailClientId"
+                        value={credentials.gmailClientId}
+                        onChange={handleInputChange}
+                        placeholder="Your Gmail OAuth Client ID"
+                        className={getValidationErrors("gmail").includes("Client ID is required") ? "border-red-500" : ""}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="gmailClientSecret">
+                        Client Secret
+                        {getValidationErrors("gmail").includes("Client Secret is required") && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <Input
+                        id="gmailClientSecret"
+                        name="gmailClientSecret"
+                        value={credentials.gmailClientSecret}
+                        onChange={handleInputChange}
+                        placeholder="Your Gmail OAuth Client Secret"
+                        type="password"
+                        className={getValidationErrors("gmail").includes("Client Secret is required") ? "border-red-500" : ""}
+                      />
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="gmailClientSecret">Client Secret</Label>
-                    <Input
-                      id="gmailClientSecret"
-                      name="gmailClientSecret"
-                      type="password"
-                      value={credentials.gmailClientSecret}
-                      onChange={handleInputChange}
-                      placeholder="Enter your Gmail OAuth Client Secret"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="gmailRedirectUri">Redirect URI (Optional)</Label>
+                    <Label htmlFor="gmailRedirectUri">
+                      Redirect URI (Optional)
+                      {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Label>
                     <Input
                       id="gmailRedirectUri"
                       name="gmailRedirectUri"
                       value={credentials.gmailRedirectUri}
                       onChange={handleInputChange}
-                      placeholder="http://localhost:5000/api/oauth/gmail/callback"
+                      placeholder="https://yourdomain.com/oauth/gmail/callback"
+                      className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Leave blank to use the default redirect URI
+                    <p className="text-sm text-gray-500">
+                      If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Google Cloud Console.
                     </p>
                   </div>
                   
-                  {credentials.useGmail && getValidationErrors("gmail").length > 0 && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Validation Errors</AlertTitle>
-                      <AlertDescription>
-                        <ul className="list-disc ml-4 mt-2">
-                          {getValidationErrors("gmail").map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Alert className="bg-muted">
-                    <Mail className="h-4 w-4" />
-                    <AlertTitle>How to Configure Gmail OAuth</AlertTitle>
-                    <AlertDescription className="text-sm mt-2">
-                      <p className="mb-1">1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a>.</p>
-                      <p className="mb-1">2. Create a new project or select an existing one.</p>
-                      <p className="mb-1">3. Navigate to "APIs & Services" → "Credentials".</p>
-                      <p className="mb-1">4. Click "Create Credentials" → "OAuth client ID".</p>
-                      <p className="mb-1">5. Set "Application type" to "Web application".</p>
-                      <p className="mb-1">6. Add your redirect URI (typically https://your-domain.com/api/oauth/gmail/callback)</p>
-                      <p className="mb-1">7. Copy the Client ID and Client Secret to the fields above.</p>
-                    </AlertDescription>
-                  </Alert>
-                  
                   {renderConnectedAccount("gmail")}
+                  
+                  {getValidationErrors("gmail").length > 0 && (
+                    <div className="text-red-500 text-sm">
+                      {getValidationErrors("gmail").map((error, index) => (
+                        <div key={index}>{error}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -569,109 +550,87 @@ export const OAuthConfiguration = () => {
                       (
                         hasCredentials("outlook") && 
                         (
-                          credentials.outlookClientId !== currentEvent?.outlookClientId ||
-                          credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
-                          credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri
+                          credentials.outlookClientId !== settings?.outlookClientId ||
+                          credentials.outlookClientSecret !== settings?.outlookClientSecret ||
+                          credentials.outlookRedirectUri !== settings?.outlookRedirectUri
                         )
                       )
                     }
-                    variant={
-                      hasCredentials("outlook") && 
-                      credentials.outlookClientId === currentEvent?.outlookClientId && 
-                      credentials.outlookClientSecret === currentEvent?.outlookClientSecret
-                      ? "outline" 
-                      : "destructive"
-                    }
-                    className="relative"
+                    variant="outline"
                   >
-                    {isConnecting.outlook ? "Connecting..." : 
-                      hasCredentials("outlook") && 
-                      credentials.outlookClientId === currentEvent?.outlookClientId && 
-                      credentials.outlookClientSecret === currentEvent?.outlookClientSecret
-                      ? "Configure Outlook OAuth" 
-                      : "Save Credentials First"
-                    }
-                    {hasCredentials("outlook") && (
-                      credentials.outlookClientId !== currentEvent?.outlookClientId ||
-                      credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
-                      credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri
-                    ) && (
-                      <div className="absolute -top-10 left-0 right-0 bg-destructive text-white text-xs p-1 rounded-sm whitespace-nowrap">
-                        Click "Save Configuration" first
-                      </div>
-                    )}
+                    {isConnecting.outlook ? "Connecting..." : "Configure Outlook OAuth"}
                   </Button>
                 )}
               </div>
               
               {credentials.useOutlook && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="outlookClientId">Client ID</Label>
-                    <Input
-                      id="outlookClientId"
-                      name="outlookClientId"
-                      value={credentials.outlookClientId}
-                      onChange={handleInputChange}
-                      placeholder="Enter your Outlook OAuth Client ID"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="outlookClientId">
+                        Client ID 
+                        {getValidationErrors("outlook").includes("Client ID is required") && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <Input
+                        id="outlookClientId"
+                        name="outlookClientId"
+                        value={credentials.outlookClientId}
+                        onChange={handleInputChange}
+                        placeholder="Your Outlook OAuth Client ID"
+                        className={getValidationErrors("outlook").includes("Client ID is required") ? "border-red-500" : ""}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="outlookClientSecret">
+                        Client Secret
+                        {getValidationErrors("outlook").includes("Client Secret is required") && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <Input
+                        id="outlookClientSecret"
+                        name="outlookClientSecret"
+                        value={credentials.outlookClientSecret}
+                        onChange={handleInputChange}
+                        placeholder="Your Outlook OAuth Client Secret"
+                        type="password"
+                        className={getValidationErrors("outlook").includes("Client Secret is required") ? "border-red-500" : ""}
+                      />
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="outlookClientSecret">Client Secret</Label>
-                    <Input
-                      id="outlookClientSecret"
-                      name="outlookClientSecret"
-                      type="password"
-                      value={credentials.outlookClientSecret}
-                      onChange={handleInputChange}
-                      placeholder="Enter your Outlook OAuth Client Secret"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="outlookRedirectUri">Redirect URI (Optional)</Label>
+                    <Label htmlFor="outlookRedirectUri">
+                      Redirect URI (Optional)
+                      {getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Label>
                     <Input
                       id="outlookRedirectUri"
                       name="outlookRedirectUri"
                       value={credentials.outlookRedirectUri}
                       onChange={handleInputChange}
-                      placeholder="http://localhost:5000/api/oauth/outlook/callback"
+                      placeholder="https://yourdomain.com/oauth/outlook/callback"
+                      className={getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Leave blank to use the default redirect URI
+                    <p className="text-sm text-gray-500">
+                      If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Azure Portal.
                     </p>
                   </div>
                   
-                  {credentials.useOutlook && getValidationErrors("outlook").length > 0 && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Validation Errors</AlertTitle>
-                      <AlertDescription>
-                        <ul className="list-disc ml-4 mt-2">
-                          {getValidationErrors("outlook").map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Alert className="bg-muted">
-                    <Mail className="h-4 w-4" />
-                    <AlertTitle>How to Configure Outlook OAuth</AlertTitle>
-                    <AlertDescription className="text-sm mt-2">
-                      <p className="mb-1">1. Go to the <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Microsoft Azure Portal</a>.</p>
-                      <p className="mb-1">2. Register a new application or select an existing one.</p>
-                      <p className="mb-1">3. In the "Authentication" section, add a platform and select "Web".</p>
-                      <p className="mb-1">4. Add your redirect URI (typically https://your-domain.com/api/oauth/outlook/callback)</p>
-                      <p className="mb-1">5. Under "Certificates & secrets", create a new client secret.</p>
-                      <p className="mb-1">6. Under "API permissions", add Microsoft Graph permissions for Mail.Send and User.Read.</p> 
-                      <p className="mb-1">7. Copy the Application (client) ID and client secret to the fields above.</p>
-                    </AlertDescription>
-                  </Alert>
-                  
                   {renderConnectedAccount("outlook")}
+                  
+                  {getValidationErrors("outlook").length > 0 && (
+                    <div className="text-red-500 text-sm">
+                      {getValidationErrors("outlook").map((error, index) => (
+                        <div key={index}>{error}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -691,58 +650,47 @@ export const OAuthConfiguration = () => {
               </div>
               
               {credentials.useSendGrid && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="sendGridApiKey">SendGrid API Key</Label>
-                    <Input
-                      id="sendGridApiKey"
-                      name="sendGridApiKey"
-                      type="password"
-                      value={credentials.sendGridApiKey}
-                      onChange={handleInputChange}
-                      placeholder="Enter your SendGrid API Key"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sendGridApiKey">
+                    API Key
+                    {credentials.useSendGrid && !credentials.sendGridApiKey && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </Label>
+                  <Input
+                    id="sendGridApiKey"
+                    name="sendGridApiKey"
+                    value={credentials.sendGridApiKey}
+                    onChange={handleInputChange}
+                    placeholder="Your SendGrid API Key"
+                    type="password"
+                    className={credentials.useSendGrid && !credentials.sendGridApiKey ? "border-red-500" : ""}
+                  />
+                  <p className="text-sm text-gray-500">
+                    Generate an API key with at least "Mail Send" permissions from your SendGrid account.
+                  </p>
+                  
+                  {credentials.useSendGrid && !credentials.sendGridApiKey && (
+                    <div className="text-red-500 text-sm mt-2">
+                      SendGrid API Key is required when SendGrid is enabled
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-6">
+            <Button 
+              type="submit" 
+              disabled={updateCredentialsMutation.isPending}
+              className="w-full md:w-auto"
+            >
+              {updateCredentialsMutation.isPending ? "Saving..." : "Save Configuration"}
+            </Button>
+          </div>
         </form>
       </CardContent>
-      
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" type="button" onClick={() => refetchCurrentEvent()}>
-          Reset
-        </Button>
-        <Button 
-          type="button" 
-          onClick={handleSubmit}
-          disabled={updateCredentialsMutation.isPending}
-          size="lg"
-          className={
-            (credentials.gmailClientId !== currentEvent?.gmailClientId ||
-            credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
-            credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri ||
-            credentials.outlookClientId !== currentEvent?.outlookClientId ||
-            credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
-            credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri) 
-            ? "bg-destructive text-white hover:bg-destructive/90 animate-pulse" 
-            : ""
-          }
-        >
-          {updateCredentialsMutation.isPending ? "Saving..." : "Save Configuration"}
-          {(credentials.gmailClientId !== currentEvent?.gmailClientId ||
-            credentials.gmailClientSecret !== currentEvent?.gmailClientSecret ||
-            credentials.gmailRedirectUri !== currentEvent?.gmailRedirectUri ||
-            credentials.outlookClientId !== currentEvent?.outlookClientId ||
-            credentials.outlookClientSecret !== currentEvent?.outlookClientSecret ||
-            credentials.outlookRedirectUri !== currentEvent?.outlookRedirectUri) && (
-            <span className="ml-2">*</span>
-          )}
-        </Button>
-      </CardFooter>
     </Card>
   );
-};
-
-export default OAuthConfiguration;
+}
