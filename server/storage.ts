@@ -101,6 +101,14 @@ export interface IStorage {
   getAccommodationsByEvent(eventId: number): Promise<Accommodation[]>;
   createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation>;
   updateAccommodation(id: number, accommodation: Partial<InsertAccommodation>): Promise<Accommodation | undefined>;
+  deleteAccommodation(id: number): Promise<boolean>;
+  
+  // Hotel operations
+  getHotel(id: number): Promise<Hotel | undefined>;
+  getHotelsByEvent(eventId: number): Promise<Hotel[]>;
+  createHotel(hotel: InsertHotel): Promise<Hotel>;
+  updateHotel(id: number, hotel: Partial<InsertHotel>): Promise<Hotel | undefined>;
+  deleteHotel(id: number): Promise<boolean>;
   
   // Room Allocation operations
   getRoomAllocation(id: number): Promise<RoomAllocation | undefined>;
