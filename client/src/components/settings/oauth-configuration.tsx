@@ -373,16 +373,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   <Button
                     type="button"
                     onClick={() => handleOAuthSetup('gmail')}
-                    disabled={isConfiguring.gmail || !hasCredentials("gmail") || updateCredentialsMutation.isPending ||
-                      (
-                        hasCredentials("gmail") &&
-                        (
-                          credentials.gmailClientId !== settings?.gmailClientId ||
-                          credentials.gmailClientSecret !== settings?.gmailClientSecret ||
-                          credentials.gmailRedirectUri !== settings?.gmailRedirectUri
-                        )
-                      )
-                    }
+                    disabled={isConfiguring.gmail || !hasCredentials("gmail") || updateCredentialsMutation.isPending}
                     variant="outline"
                   >
                     {isConfiguring.gmail ? "Configuring..." : "Configure Gmail OAuth"}
@@ -481,16 +472,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   <Button
                     type="button"
                     onClick={() => handleOAuthSetup('outlook')}
-                    disabled={isConfiguring.outlook || !hasCredentials("outlook") || updateCredentialsMutation.isPending ||
-                      (
-                        hasCredentials("outlook") &&
-                        (
-                          credentials.outlookClientId !== settings?.outlookClientId ||
-                          credentials.outlookClientSecret !== settings?.outlookClientSecret ||
-                          credentials.outlookRedirectUri !== settings?.outlookRedirectUri
-                        )
-                      )
-                    }
+                    disabled={isConfiguring.outlook || !hasCredentials("outlook") || updateCredentialsMutation.isPending}
                     variant="outline"
                   >
                     {isConfiguring.outlook ? "Configuring..." : "Configure Outlook OAuth"}
