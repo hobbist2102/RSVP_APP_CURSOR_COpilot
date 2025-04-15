@@ -281,13 +281,20 @@ export function OAuthSetupGuide({ provider, onCredentialsSaved }: OAuthSetupGuid
           <AccordionContent className="text-sm space-y-2">
             <p>Enter the credentials in the OAuth Configuration section:</p>
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Go to the Event Settings page</li>
+              <li>
+                Go to the <a href="/event-settings" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-500 hover:underline inline-flex items-center">
+                  Event Settings page <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
+              </li>
               <li>Navigate to the "OAuth Configuration" tab</li>
               <li>Enter your Client ID and Client Secret for Outlook</li>
               <li>The Redirect URI should be: <code className="bg-gray-100 px-2 py-1 rounded">{window.location.origin}/api/oauth/outlook/callback</code></li>
-              <li>Click "Save OAuth Configuration"</li>
+              <li>Click "Save Outlook OAuth" button</li>
             </ol>
-            <p className="mt-2">Once your credentials are saved, return to this page and click "Configure Outlook" to complete the setup.</p>
+            <p className="mt-2">Once your credentials are saved, return to this page and click "I've Saved My Credentials" to complete the setup.</p>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

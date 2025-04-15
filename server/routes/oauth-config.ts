@@ -1,192 +1,225 @@
 /**
  * OAuth Configuration Routes
- * Provides endpoints for saving OAuth credentials directly
+ * 
+ * These routes handle the management of OAuth credentials for Gmail and Outlook
+ * on a per-event basis. This allows each wedding event to have its own OAuth
+ * configuration for sending emails.
  */
-import { Router, Request, Response } from 'express';
-import { storage } from '../storage';
+
+import express from 'express';
 import { z } from 'zod';
-import { isAuthenticated, isAdmin } from '../middleware';
+import { storage } from '../storage';
+import { encrypt, decrypt } from '../lib/oauth-security';
 
-const router = Router();
+const router = express.Router();
 
-// Schema for validating OAuth credentials
-const oauthCredentialsSchema = z.object({
+// Schema for validating OAuth configuration input
+const oauthConfigSchema = z.object({
+  provider: z.enum(['gmail', 'outlook']),
   clientId: z.string().min(1, "Client ID is required"),
   clientSecret: z.string().min(1, "Client Secret is required"),
-  provider: z.enum(["gmail", "outlook"])
 });
 
 /**
- * Save OAuth credentials for a specific provider and event
- * This provides a direct way to save OAuth credentials even if the Settings page is not available
+ * Get Gmail OAuth configuration status
+ * Returns whether credentials are configured, the client ID (if any),
+ * and whether a client secret is stored (but not the secret itself)
  */
-router.post("/:provider/save", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.get('/gmail/status', async (req, res) => {
   try {
-    const { provider } = req.params;
     const eventId = parseInt(req.query.eventId as string);
     
-    // Validate provider
-    if (provider !== 'gmail' && provider !== 'outlook') {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid provider",
-        code: "INVALID_PROVIDER",
-        details: "Provider must be either 'gmail' or 'outlook'"
-      });
-    }
-    
-    // Validate event ID
     if (isNaN(eventId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid event ID",
-        code: "INVALID_EVENT_ID",
-        details: "The event ID provided must be a valid number"
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid event ID' 
       });
     }
     
-    // Get event to check if it exists
+    // Verify the event exists
     const event = await storage.getEvent(eventId);
     if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: "Event not found",
-        code: "EVENT_NOT_FOUND",
-        details: `No event exists with ID ${eventId}`
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Event not found' 
       });
     }
     
-    // Validate request body
-    const validationResult = oauthCredentialsSchema.safeParse(req.body);
-    if (!validationResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OAuth credentials",
-        code: "INVALID_CREDENTIALS",
-        details: validationResult.error.format()
-      });
-    }
+    // Get OAuth configuration for Gmail
+    const oauthConfig = await storage.getOAuthConfig(eventId, 'gmail');
+    const isConfigured = !!oauthConfig && !!oauthConfig.clientId && !!oauthConfig.encryptedClientSecret;
     
-    const { clientId, clientSecret } = validationResult.data;
-    
-    // Generate standard redirect URI
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-    const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
-    
-    // Update event with OAuth credentials
-    const updateData: any = {};
-    
-    if (provider === 'gmail') {
-      updateData.gmailClientId = clientId;
-      updateData.gmailClientSecret = clientSecret;
-      updateData.gmailRedirectUri = redirectUri;
-    } else {
-      updateData.outlookClientId = clientId;
-      updateData.outlookClientSecret = clientSecret;
-      updateData.outlookRedirectUri = redirectUri;
-    }
-    
-    // Update the event with the new credentials
-    const updatedEvent = await storage.updateEvent(eventId, updateData);
-    
-    if (!updatedEvent) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to save OAuth credentials",
-        code: "UPDATE_FAILED",
-        details: "Event update returned no data"
-      });
-    }
-    
-    // Return success
-    res.json({
+    return res.json({
       success: true,
-      message: `${provider === 'gmail' ? 'Gmail' : 'Outlook'} OAuth credentials saved successfully`,
-      redirectUri
+      isConfigured,
+      clientId: oauthConfig?.clientId || null,
+      hasClientSecret: !!oauthConfig?.encryptedClientSecret,
+      redirectUri: `${req.protocol}://${req.get('host')}/api/oauth/gmail/callback`
     });
-    
   } catch (error) {
-    console.error(`Error saving OAuth credentials:`, error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while saving OAuth credentials",
-      error: error instanceof Error ? error.message : String(error)
+    console.error('Error checking Gmail OAuth configuration status:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to check OAuth configuration' 
     });
   }
 });
 
 /**
- * Get OAuth configuration status for a specific provider and event
+ * Get Outlook OAuth configuration status
+ * Returns whether credentials are configured, the client ID (if any),
+ * and whether a client secret is stored (but not the secret itself)
  */
-router.get("/:provider/status", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.get('/outlook/status', async (req, res) => {
   try {
-    const { provider } = req.params;
     const eventId = parseInt(req.query.eventId as string);
     
-    // Validate provider
-    if (provider !== 'gmail' && provider !== 'outlook') {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid provider",
-        code: "INVALID_PROVIDER",
-        details: "Provider must be either 'gmail' or 'outlook'"
-      });
-    }
-    
-    // Validate event ID
     if (isNaN(eventId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid event ID",
-        code: "INVALID_EVENT_ID",
-        details: "The event ID provided must be a valid number"
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid event ID' 
       });
     }
     
-    // Get event to check status
+    // Verify the event exists
     const event = await storage.getEvent(eventId);
     if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: "Event not found",
-        code: "EVENT_NOT_FOUND",
-        details: `No event exists with ID ${eventId}`
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Event not found' 
       });
     }
     
-    // Check if OAuth is configured for this provider and event
-    let isConfigured = false;
-    let clientId = null;
-    let hasClientSecret = false;
-    let redirectUri = null;
+    // Get OAuth configuration for Outlook
+    const oauthConfig = await storage.getOAuthConfig(eventId, 'outlook');
+    const isConfigured = !!oauthConfig && !!oauthConfig.clientId && !!oauthConfig.encryptedClientSecret;
     
-    if (provider === 'gmail') {
-      isConfigured = !!event.gmailClientId && !!event.gmailClientSecret;
-      clientId = event.gmailClientId;
-      hasClientSecret = !!event.gmailClientSecret;
-      redirectUri = event.gmailRedirectUri;
-    } else {
-      isConfigured = !!event.outlookClientId && !!event.outlookClientSecret;
-      clientId = event.outlookClientId;
-      hasClientSecret = !!event.outlookClientSecret;
-      redirectUri = event.outlookRedirectUri;
-    }
-    
-    // Return configuration status
-    res.json({
+    return res.json({
       success: true,
       isConfigured,
+      clientId: oauthConfig?.clientId || null,
+      hasClientSecret: !!oauthConfig?.encryptedClientSecret,
+      redirectUri: `${req.protocol}://${req.get('host')}/api/oauth/outlook/callback`
+    });
+  } catch (error) {
+    console.error('Error checking Outlook OAuth configuration status:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to check OAuth configuration' 
+    });
+  }
+});
+
+/**
+ * Save Gmail OAuth configuration
+ */
+router.post('/gmail/save', async (req, res) => {
+  try {
+    const eventId = parseInt(req.query.eventId as string);
+    
+    if (isNaN(eventId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid event ID' 
+      });
+    }
+    
+    // Verify the event exists
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Event not found' 
+      });
+    }
+    
+    // Validate request body
+    const validationResult = oauthConfigSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid OAuth configuration', 
+        errors: validationResult.error.errors 
+      });
+    }
+    
+    const { clientId, clientSecret } = validationResult.data;
+    
+    // Encrypt the client secret for secure storage
+    const encryptedClientSecret = encrypt(clientSecret);
+    
+    // Save the OAuth configuration
+    await storage.saveOAuthConfig(eventId, 'gmail', {
       clientId,
-      hasClientSecret,
-      redirectUri
+      encryptedClientSecret,
     });
     
+    return res.json({
+      success: true,
+      message: 'Gmail OAuth configuration saved successfully'
+    });
   } catch (error) {
-    console.error(`Error checking OAuth configuration status:`, error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while checking OAuth configuration status",
-      error: error instanceof Error ? error.message : String(error)
+    console.error('Error saving Gmail OAuth configuration:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to save OAuth configuration' 
+    });
+  }
+});
+
+/**
+ * Save Outlook OAuth configuration
+ */
+router.post('/outlook/save', async (req, res) => {
+  try {
+    const eventId = parseInt(req.query.eventId as string);
+    
+    if (isNaN(eventId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid event ID' 
+      });
+    }
+    
+    // Verify the event exists
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Event not found' 
+      });
+    }
+    
+    // Validate request body
+    const validationResult = oauthConfigSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid OAuth configuration', 
+        errors: validationResult.error.errors 
+      });
+    }
+    
+    const { clientId, clientSecret } = validationResult.data;
+    
+    // Encrypt the client secret for secure storage
+    const encryptedClientSecret = encrypt(clientSecret);
+    
+    // Save the OAuth configuration
+    await storage.saveOAuthConfig(eventId, 'outlook', {
+      clientId,
+      encryptedClientSecret,
+    });
+    
+    return res.json({
+      success: true,
+      message: 'Outlook OAuth configuration saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving Outlook OAuth configuration:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to save OAuth configuration' 
     });
   }
 });

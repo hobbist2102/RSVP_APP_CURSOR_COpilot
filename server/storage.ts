@@ -2152,6 +2152,81 @@ export class DatabaseStorage implements IStorage {
     const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
   }
+
+  // OAuth Configuration operations
+  async getOAuthConfig(eventId: number, provider: 'gmail' | 'outlook'): Promise<OAuthConfiguration | undefined> {
+    const result = await db.select().from(oauthConfigurations).where(
+      and(
+        eq(oauthConfigurations.eventId, eventId),
+        eq(oauthConfigurations.provider, provider)
+      )
+    );
+    return result[0];
+  }
+
+  async getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined> {
+    const result = await db.select().from(oauthConfigurations).where(eq(oauthConfigurations.id, id));
+    return result[0];
+  }
+
+  async getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]> {
+    return await db.select().from(oauthConfigurations).where(eq(oauthConfigurations.eventId, eventId));
+  }
+
+  async saveOAuthConfig(eventId: number, provider: 'gmail' | 'outlook', config: {
+    clientId: string;
+    encryptedClientSecret: string;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiry?: Date;
+    email?: string;
+  }): Promise<OAuthConfiguration> {
+    // Check if configuration already exists
+    const existingConfig = await this.getOAuthConfig(eventId, provider);
+    
+    if (existingConfig) {
+      // Update existing configuration
+      const result = await db.update(oauthConfigurations)
+        .set({
+          ...config,
+          updatedAt: new Date()
+        })
+        .where(eq(oauthConfigurations.id, existingConfig.id))
+        .returning();
+      return result[0];
+    } else {
+      // Create new configuration
+      const result = await db.insert(oauthConfigurations)
+        .values({
+          eventId,
+          provider,
+          ...config
+        })
+        .returning();
+      return result[0];
+    }
+  }
+
+  async updateOAuthTokens(id: number, tokens: {
+    accessToken: string;
+    refreshToken?: string;
+    tokenExpiry?: Date;
+    email?: string;
+  }): Promise<OAuthConfiguration | undefined> {
+    const result = await db.update(oauthConfigurations)
+      .set({
+        ...tokens,
+        updatedAt: new Date()
+      })
+      .where(eq(oauthConfigurations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteOAuthConfig(id: number): Promise<boolean> {
+    const result = await db.delete(oauthConfigurations).where(eq(oauthConfigurations.id, id));
+    return !!result;
+  }
 }
 
 // Use DatabaseStorage for PostgreSQL database

@@ -64,59 +64,70 @@ export default function OAuthConfiguration({ eventId }: OAuthConfigurationProps)
     },
   });
   
+  // Define types for OAuth configuration status
+  interface OAuthStatusResponse {
+    success: boolean;
+    isConfigured: boolean;
+    clientId: string | null;
+    hasClientSecret: boolean;
+    redirectUri: string | null;
+  }
+
   // Check Gmail configuration status
-  const { data: gmailStatus, isLoading: isLoadingGmail } = useQuery({
+  const { data: gmailStatus, isLoading: isLoadingGmail } = useQuery<OAuthStatusResponse, Error>({
     queryKey: ['/api/oauth-config/gmail/status', eventId],
     queryFn: async () => {
       const response = await fetch(`/api/oauth-config/gmail/status?eventId=${eventId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch Gmail configuration status');
       }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.isConfigured) {
-        setGmailConfigured(true);
-      }
-      if (data.clientId) {
-        setGmailClientId(data.clientId);
-        gmailForm.setValue('clientId', data.clientId);
-      }
-      if (data.hasClientSecret) {
-        gmailForm.setValue('clientSecret', '••••••••••••••••••••••••');
-      }
-    },
-    onError: (error) => {
-      console.error('Error fetching Gmail configuration:', error);
+      return response.json() as Promise<OAuthStatusResponse>;
     }
   });
   
+  // Use effect to handle form updates when Gmail status changes
+  useEffect(() => {
+    if (gmailStatus) {
+      if (gmailStatus.isConfigured) {
+        setGmailConfigured(true);
+      }
+      if (gmailStatus.clientId) {
+        setGmailClientId(gmailStatus.clientId);
+        gmailForm.setValue('clientId', gmailStatus.clientId);
+      }
+      if (gmailStatus.hasClientSecret) {
+        gmailForm.setValue('clientSecret', '••••••••••••••••••••••••');
+      }
+    }
+  }, [gmailStatus, gmailForm]);
+  
   // Check Outlook configuration status
-  const { data: outlookStatus, isLoading: isLoadingOutlook } = useQuery({
+  const { data: outlookStatus, isLoading: isLoadingOutlook } = useQuery<OAuthStatusResponse, Error>({
     queryKey: ['/api/oauth-config/outlook/status', eventId],
     queryFn: async () => {
       const response = await fetch(`/api/oauth-config/outlook/status?eventId=${eventId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch Outlook configuration status');
       }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.isConfigured) {
-        setOutlookConfigured(true);
-      }
-      if (data.clientId) {
-        setOutlookClientId(data.clientId);
-        outlookForm.setValue('clientId', data.clientId);
-      }
-      if (data.hasClientSecret) {
-        outlookForm.setValue('clientSecret', '••••••••••••••••••••••••');
-      }
-    },
-    onError: (error) => {
-      console.error('Error fetching Outlook configuration:', error);
+      return response.json() as Promise<OAuthStatusResponse>;
     }
   });
+  
+  // Use effect to handle form updates when Outlook status changes
+  useEffect(() => {
+    if (outlookStatus) {
+      if (outlookStatus.isConfigured) {
+        setOutlookConfigured(true);
+      }
+      if (outlookStatus.clientId) {
+        setOutlookClientId(outlookStatus.clientId);
+        outlookForm.setValue('clientId', outlookStatus.clientId);
+      }
+      if (outlookStatus.hasClientSecret) {
+        outlookForm.setValue('clientSecret', '••••••••••••••••••••••••');
+      }
+    }
+  }, [outlookStatus, outlookForm]);
   
   // Save Gmail OAuth credentials mutation
   const saveGmailMutation = useMutation({
