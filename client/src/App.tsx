@@ -10,6 +10,7 @@ import RsvpPage from "@/pages/rsvp-page";
 import Events from "@/pages/events";
 import Travel from "@/pages/travel";
 import Accommodations from "@/pages/accommodations";
+import Hotels from "@/pages/hotels";
 import Meals from "@/pages/meals";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
@@ -70,6 +71,13 @@ function App() {
           {() => (
             <PrivateRoute>
               <Accommodations />
+            </PrivateRoute>
+          )}
+        </Route>
+        <Route path="/hotels">
+          {() => (
+            <PrivateRoute>
+              <Hotels />
             </PrivateRoute>
           )}
         </Route>

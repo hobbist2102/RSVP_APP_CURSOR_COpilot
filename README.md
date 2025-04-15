@@ -1,21 +1,21 @@
-# Indian Wedding Management Platform
+# Indian Wedding RSVP Platform
 
-![Platform Banner](https://img.shields.io/badge/Wedding%20Management-Platform-purple)
+![Platform Banner](https://img.shields.io/badge/Wedding%20RSVP-Platform-purple)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![React](https://img.shields.io/badge/React-18.2-blue)
 ![Express](https://img.shields.io/badge/Express-4.18-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 
-A comprehensive wedding management platform tailored for Indian weddings, providing robust event-specific management with isolated data storage and granular control over event details.
+A comprehensive wedding RSVP platform tailored for Indian weddings, providing robust event-specific management with isolated data storage, dynamic RSVP tracking, and integrated communication tools.
 
 ## 🎯 Project Purpose
 
-The Indian Wedding Management Platform is designed to help wedding agencies and planners manage complex Indian wedding events efficiently. Indian weddings often involve multiple ceremonies, large guest lists, and intricate logistics spanning several days. This platform provides a centralized system for managing:
+The Indian Wedding RSVP Platform is designed to help wedding agencies and planners manage complex Indian wedding events efficiently. Indian weddings often involve multiple ceremonies, large guest lists, and intricate logistics spanning several days. This platform provides a centralized system for managing:
 
-- Guest lists with RSVP tracking
+- Guest lists with multi-stage RSVP tracking
 - Multiple ceremony scheduling
 - Accommodation and travel logistics
-- WhatsApp communication
+- Multi-channel communication (Email, WhatsApp)
 - Reporting and analytics
 
 The platform supports both client-facing (couple) and backend (agency staff) interfaces, ensuring all stakeholders can access the information they need.
@@ -27,45 +27,59 @@ The platform supports both client-facing (couple) and backend (agency staff) int
 - **PostgreSQL Database**: Relational database with tenant-based isolation
 - **Drizzle ORM**: Type-safe database queries and schema management
 - **RESTful API**: Clean API architecture for frontend communication
+- **Multi-Provider Email Integration**: Gmail, Outlook, and SendGrid support
 
 ### Frontend
 - **React**: Component-based UI library
 - **TanStack Query (React Query)**: Data fetching and cache management
 - **shadcn/ui & Tailwind CSS**: Component library and utility-first CSS
 - **TypeScript**: Type-safe client-side code
+- **Multi-step Wizard Forms**: Intuitive user experience for complex data entry
 
 ### Security & Authentication
 - **Session-based Authentication**: Secure session management
 - **Event-level Data Isolation**: Multi-tenant architecture with strict data boundaries
+- **OAuth Token Management**: Secure integration with third-party email providers
 
-## 🚀 Key Features
+## 🚀 Key Features & Implementation Status
 
-### Multi-Event Management
+### Multi-Event Management ✅
 - Support for multiple concurrent wedding projects
 - Complete data isolation between different wedding events
-- Event-specific branding and customization
+- Event context switching with proper cache invalidation
+- Multi-step event creation wizard
 
-### Comprehensive Guest Management
+### Comprehensive Guest Management ✅
 - Excel import/export functionality
-- WhatsApp messaging capabilities
 - RSVP tracking and reporting
 - Relationship management (plus-ones, children)
 - Guest categorization ("Bride's Side" or "Groom's Side")
 - Enhanced child tracking with detailed information
 
-### Ceremony & Logistics Planning
-- Multi-day event scheduling
-- Travel and accommodation management
-- Ceremony-specific guest invitations
-- Meal selection and dietary requirements tracking
+### Hotel & Accommodation Management ✅
+- Multiple hotel support for venues with limited inventory
+- Room type and capacity tracking
+- Guest accommodation assignment
+- Check-in/check-out tracking
 
-### Communication System
-- WhatsApp Business API integration
-- Template management for communications
-- Personalized guest messaging
-- Dynamic follow-up messaging based on RSVP responses
-- Multi-channel communication (WhatsApp, Email)
-- Event-specific OAuth configuration for Gmail and Outlook
+### Travel & Transportation 🔄
+- Travel detail collection in RSVP forms
+- Transportation arrangements tracking
+- Airport pickup coordination
+- Guest arrival and departure management
+
+### Communication System 🔄
+- OAuth integration with Gmail and Outlook
+- SendGrid API support
+- Template-based messaging
+- Dynamic follow-up communication based on RSVP responses
+- WhatsApp Business API integration (in progress)
+
+### Ceremony & Scheduling 🔄
+- Multi-ceremony support within events
+- Ceremony-specific guest invitations
+- Automated ceremony calendar management
+- Meal selection and dietary requirements tracking
 
 ## 🛠️ Project Setup
 
@@ -122,21 +136,24 @@ All data is isolated at the event level using an event ID as a tenant identifier
 
 ### Phase 1: Core Functionality ✅
 - Authentication and user management
-- Event creation and basic configuration
+- Multi-event management with data isolation
 - Guest list management and import/export
-- Basic dashboard and reporting
+- Basic email integration
+- Hotel and accommodation management
 
 ### Phase 2: Enhanced Features 🔄
-- Ceremony management
-- Travel and accommodation planning
-- WhatsApp integration
-- Advanced reporting
+- Ceremony management and scheduling
+- Travel logistics and transportation
+- Dynamic RSVP follow-up communication
+- WhatsApp Business API integration
+- Event-specific email provider configuration
 
-### Phase 3: Client-Facing Portal 📅
-- Couple access portal
-- Guest self-service RSVP system
+### Phase 3: Advanced Features 📅
+- Reporting and analytics dashboard
+- Guest self-service RSVP portal
 - Mobile optimization
-- Real-time updates
+- Performance enhancements for large guest lists
+- Template customization and personalization
 
 ## 🔧 Technical Implementation
 
