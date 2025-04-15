@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useToast } from "@/hooks/use-toast";
+import OAuthSetupGuide from "@/components/settings/oauth-setup-guide";
 
 import {
   Card,
@@ -292,8 +293,8 @@ export default function RsvpFollowupConfiguration() {
         emailTemplate: selectedTemplate.emailTemplate || "",
         whatsappTemplate: selectedTemplate.whatsappTemplate || "",
         sendImmediately: selectedTemplate.sendImmediately || true,
-        scheduledDate: selectedTemplate.scheduledDate || null,
-        scheduledTime: selectedTemplate.scheduledTime || null,
+        scheduledDate: selectedTemplate.scheduledDate ? selectedTemplate.scheduledDate : undefined,
+        scheduledTime: selectedTemplate.scheduledTime ? selectedTemplate.scheduledTime : undefined,
         enabled: selectedTemplate.enabled || true,
       });
     } else {
@@ -303,8 +304,8 @@ export default function RsvpFollowupConfiguration() {
         emailTemplate: "",
         whatsappTemplate: "",
         sendImmediately: true,
-        scheduledDate: null,
-        scheduledTime: null,
+        scheduledDate: undefined,
+        scheduledTime: undefined,
         enabled: true,
       });
     }
@@ -330,17 +331,32 @@ export default function RsvpFollowupConfiguration() {
       setIsOutlookConfigured(!!currentEvent.outlookAccount);
     }
   }, [currentEvent, communicationForm]);
+
+  // State for showing OAuth setup guide
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
   
   // Handle OAuth configuration
   const handleOAuthSetup = async (provider: 'gmail' | 'outlook') => {
     try {
-      setIsConfiguring(true);
       setAuthProvider(provider);
+      setIsConfiguring(true);
       
       const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
       
       // Call our server to get the auth URL
       const response = await fetch(`/api/oauth/${provider}/authorize?eventId=${currentEventId}`);
+      
+      // If credentials are not configured, show the setup guide
+      if (response.status === 400) {
+        const errorData = await response.json();
+        if (errorData.code === "MISSING_CLIENT_ID") {
+          console.log(`${provider} OAuth credentials not configured`);
+          setShowSetupGuide(true);
+          return;
+        }
+        throw new Error(errorData.message || `Failed to initiate ${providerName} authorization`);
+      }
+      
       if (!response.ok) {
         throw new Error(`Failed to initiate ${providerName} authorization`);
       }
@@ -428,6 +444,23 @@ export default function RsvpFollowupConfiguration() {
       });
       setIsConfiguring(false);
       setAuthProvider(null);
+    }
+  };
+  
+  // Handle OAuth setup guide completion
+  const handleSetupGuideComplete = () => {
+    setShowSetupGuide(false);
+    toast({
+      title: "Great! Let's continue the setup",
+      description: "Now that you've saved your credentials, let's proceed with authorizing your account.",
+    });
+    
+    // Check if we have an active provider
+    if (authProvider) {
+      // Wait a moment to ensure credentials are fully saved and reloaded
+      setTimeout(() => {
+        handleOAuthSetup(authProvider);
+      }, 1000);
     }
   };
 
@@ -1199,6 +1232,33 @@ export default function RsvpFollowupConfiguration() {
           )}
           <DialogFooter>
             <Button onClick={() => setShowPreview(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* OAuth Setup Guide Dialog */}
+      <Dialog open={showSetupGuide} onOpenChange={setShowSetupGuide}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {authProvider === 'gmail' ? 'Gmail OAuth Setup Required' : 'Outlook OAuth Setup Required'}
+            </DialogTitle>
+            <DialogDescription>
+              Follow these steps to configure your {authProvider === 'gmail' ? 'Gmail' : 'Outlook'} OAuth credentials
+            </DialogDescription>
+          </DialogHeader>
+          
+          {authProvider && (
+            <OAuthSetupGuide 
+              provider={authProvider} 
+              onCredentialsSaved={handleSetupGuideComplete} 
+            />
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSetupGuide(false)}>
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
