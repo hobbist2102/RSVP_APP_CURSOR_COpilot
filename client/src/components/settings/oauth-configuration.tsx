@@ -27,6 +27,9 @@ interface OAuthCredentials {
   gmailClientId?: string;
   gmailClientSecret?: string;
   gmailRedirectUri?: string;
+  // Gmail Direct SMTP (alternative to OAuth)
+  useGmailDirectSMTP?: boolean;
+  gmailPassword?: string;
   // Outlook
   outlookClientId?: string;
   outlookClientSecret?: string;
@@ -228,7 +231,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
           setIsConfiguring(prev => ({ ...prev, [provider]: false }));
 
           // Refresh settings to show the updated state
-          queryClient.invalidateQueries([`/api/event-settings/${eventId}/settings`]);
+          queryClient.invalidateQueries({ queryKey: [`/api/event-settings/${eventId}/settings`] });
         }
       }, 1000);
 
@@ -247,7 +250,13 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
   // Helper to check if credentials are filled for a service
   const hasCredentials = (service: "gmail" | "outlook") => {
     if (service === "gmail") {
-      return !!credentials.gmailClientId && !!credentials.gmailClientSecret;
+      // Check if we're using direct SMTP
+      if (credentials.useGmailDirectSMTP) {
+        return !!credentials.gmailPassword;
+      } else {
+        // Standard OAuth validation
+        return !!credentials.gmailClientId && !!credentials.gmailClientSecret;
+      }
     } else if (service === "outlook") {
       return !!credentials.outlookClientId && !!credentials.outlookClientSecret;
     }
@@ -270,10 +279,18 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     const errors: string[] = [];
 
     if (service === "gmail" && credentials.useGmail) {
-      if (!credentials.gmailClientId) errors.push("Client ID is required");
-      if (!credentials.gmailClientSecret) errors.push("Client Secret is required");
-      if (credentials.gmailRedirectUri && !validateRedirectUri(credentials.gmailRedirectUri)) {
-        errors.push("Redirect URI must be a valid URL with http:// or https:// protocol");
+      // If using direct SMTP access, we only need the password
+      if (credentials.useGmailDirectSMTP) {
+        if (!credentials.gmailPassword) {
+          errors.push("Gmail password is required when using direct SMTP access");
+        }
+      } else {
+        // Standard OAuth validation
+        if (!credentials.gmailClientId) errors.push("Client ID is required");
+        if (!credentials.gmailClientSecret) errors.push("Client Secret is required");
+        if (credentials.gmailRedirectUri && !validateRedirectUri(credentials.gmailRedirectUri)) {
+          errors.push("Redirect URI must be a valid URL with http:// or https:// protocol");
+        }
       }
     } else if (service === "outlook" && credentials.useOutlook) {
       if (!credentials.outlookClientId) errors.push("Client ID is required");
@@ -379,7 +396,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   <Label htmlFor="useGmail">Use Gmail for sending emails</Label>
                 </div>
 
-                {credentials.useGmail && (
+                {credentials.useGmail && !credentials.useGmailDirectSMTP && (
                   <Button
                     type="button"
                     onClick={() => handleOAuthSetup('gmail')}
@@ -388,6 +405,13 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   >
                     {isConfiguring.gmail ? "Configuring..." : "Configure Gmail OAuth"}
                   </Button>
+                )}
+                
+                {credentials.useGmail && credentials.useGmailDirectSMTP && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Using Direct SMTP</span>
+                  </div>
                 )}
               </div>
 
@@ -448,6 +472,54 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     <p className="text-sm text-text-muted">
                       Copy and paste exactly this URL to your Google Cloud Console Authorized Redirect URIs: <strong>{DEFAULT_GMAIL_REDIRECT_URI}</strong>
                     </p>
+                  </div>
+
+                  {/* Direct SMTP Access Option */}
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Switch
+                        id="useGmailDirectSMTP"
+                        name="useGmailDirectSMTP"
+                        checked={credentials.useGmailDirectSMTP}
+                        onCheckedChange={(checked) =>
+                          setCredentials((prev) => ({ ...prev, useGmailDirectSMTP: checked }))
+                        }
+                      />
+                      <Label htmlFor="useGmailDirectSMTP">Use Direct SMTP Access (Alternative to OAuth)</Label>
+                    </div>
+                    
+                    {credentials.useGmailDirectSMTP && (
+                      <div className="space-y-4">
+                        <Alert>
+                          <AlertTitle className="flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-2" />
+                            Direct SMTP Access
+                          </AlertTitle>
+                          <AlertDescription>
+                            <p className="mb-2">This option lets you use your Gmail password directly for sending emails instead of OAuth.</p>
+                            <p className="mb-2"><strong>Important:</strong> For this to work, you must enable "Less secure app access" in your Google account settings or create an app password.</p>
+                            <p>This method is less secure but more reliable in certain environments.</p>
+                          </AlertDescription>
+                        </Alert>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="gmailPassword">
+                            Gmail Password or App Password
+                          </Label>
+                          <Input
+                            id="gmailPassword"
+                            name="gmailPassword"
+                            value={credentials.gmailPassword}
+                            onChange={handleInputChange}
+                            placeholder="Your Gmail password or app password"
+                            type="password"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            For better security, we recommend using an app-specific password generated in your Google Account.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {renderConnectedAccount("gmail")}
