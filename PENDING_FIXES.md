@@ -55,6 +55,23 @@
 - ⬜ Apply context validation to relationship types and templates
 - ⬜ Review statistics and reporting endpoints for proper isolation
 
+### 5. OAuth Configuration Issues
+
+**Issue:**
+- Previously, OAuth credentials for Gmail and Outlook were stored only in environment variables, limiting customization per event
+- The RsvpFollowupConfiguration component lacked clear instructions and proper UI guidance for setup
+
+**Fix Status:**
+- ✅ Implemented event-specific OAuth credentials storage in the database
+- ✅ Created fallback mechanism from event-specific credentials to environment variables
+- ✅ Enhanced the OAuth routes with improved error handling and detailed logging
+- ✅ Updated RsvpFollowupConfiguration UI with clear instructional alerts
+- ✅ Added step-by-step guidance for both Gmail and Outlook configuration
+- ✅ Improved button styling and visual indicators for connection status
+- ⬜ Create comprehensive documentation for OAuth integration
+- ⬜ Add improved error handling for OAuth token expiration and refresh
+- ⬜ Implement automated testing for OAuth-related functions
+
 ## Feature Development
 
 ### 1. Email Service Integration
@@ -62,10 +79,22 @@
 **Status:**
 - ✅ Basic email service framework created with Resend integration
 - ✅ Schema updated with email configuration fields
+- ✅ Implemented dynamic email provider selection (Gmail/Outlook/SendGrid)
+- ✅ Added event-specific OAuth configuration for Gmail and Outlook
 - ⬜ Email template system for RSVP notifications
 - ⬜ Email configuration in event setup UI
 
-### 2. RSVP Module
+### 2. RSVP Follow-up Communication
+
+**Status:**
+- ✅ Backend framework for dynamic follow-up messages based on RSVP responses
+- ✅ UI for configuring communication channels (email, WhatsApp)
+- ✅ Enhanced OAuth configuration UI with clear guidance
+- ⬜ Template editor with variable support for personalization
+- ⬜ Scheduling system for delayed follow-up messages
+- ⬜ Analytics for tracking message delivery and open rates
+
+### 3. RSVP Module
 
 **Status:**
 - ⬜ Backend API routes for RSVP submission and status

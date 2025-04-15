@@ -63,6 +63,9 @@ The platform supports both client-facing (couple) and backend (agency staff) int
 - WhatsApp Business API integration
 - Template management for communications
 - Personalized guest messaging
+- Dynamic follow-up messaging based on RSVP responses
+- Multi-channel communication (WhatsApp, Email)
+- Event-specific OAuth configuration for Gmail and Outlook
 
 ## 🛠️ Project Setup
 
