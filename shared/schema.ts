@@ -220,10 +220,35 @@ export const insertTravelInfoSchema = createInsertSchema(travelInfo).omit({
   id: true,
 });
 
-// Accommodations
+// Hotels for accommodation
+export const hotels = pgTable("hotels", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  phone: text("phone"),
+  website: text("website"),
+  description: text("description"),
+  isDefault: boolean("is_default").default(false),
+  priceRange: text("price_range"), // Price range (e.g., "₹5000-10000")
+  distanceFromVenue: text("distance_from_venue"), // Distance from main venue
+  amenities: text("amenities"), // Comma-separated list of amenities
+  images: text("images"), // Comma-separated URLs of hotel images
+  specialNotes: text("special_notes"), // Any special notes for guests
+  bookingInstructions: text("booking_instructions"), // Instructions for booking
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertHotelSchema = createInsertSchema(hotels).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Accommodations (room types within hotels)
 export const accommodations = pgTable("accommodations", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull(),
+  hotelId: integer("hotel_id").references(() => hotels.id), // Link to hotel
   name: text("name").notNull(),
   roomType: text("room_type").notNull(),
   capacity: integer("capacity").notNull(),
@@ -396,6 +421,9 @@ export type InsertGuestCeremony = z.infer<typeof insertGuestCeremonySchema>;
 
 export type TravelInfo = typeof travelInfo.$inferSelect;
 export type InsertTravelInfo = z.infer<typeof insertTravelInfoSchema>;
+
+export type Hotel = typeof hotels.$inferSelect;
+export type InsertHotel = z.infer<typeof insertHotelSchema>;
 
 export type Accommodation = typeof accommodations.$inferSelect;
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
