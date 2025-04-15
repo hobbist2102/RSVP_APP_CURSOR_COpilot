@@ -1484,7 +1484,7 @@ export class MemStorage implements IStorage {
       const updatedConfig: OAuthConfiguration = {
         ...existingConfig,
         clientId: config.clientId,
-        clientSecret: config.encryptedClientSecret,
+        encryptedClientSecret: config.encryptedClientSecret,
         accessToken: config.accessToken || existingConfig.accessToken,
         refreshToken: config.refreshToken || existingConfig.refreshToken,
         tokenExpiry: config.tokenExpiry || existingConfig.tokenExpiry,
@@ -1503,7 +1503,7 @@ export class MemStorage implements IStorage {
         eventId,
         provider,
         clientId: config.clientId,
-        clientSecret: config.encryptedClientSecret,
+        encryptedClientSecret: config.encryptedClientSecret,
         accessToken: config.accessToken || null,
         refreshToken: config.refreshToken || null,
         tokenExpiry: config.tokenExpiry || null,
