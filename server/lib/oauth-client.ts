@@ -7,6 +7,11 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import { createOAuthLogger } from './logger';
 
+// Define a custom error shape for logging purposes
+interface ErrorWithContext extends Error {
+  [key: string]: any;
+}
+
 // Create logger for OAuth client operations
 const logger = createOAuthLogger(undefined, undefined, 'http-client');
 
@@ -141,9 +146,7 @@ oauthClient.interceptors.response.use(
       logger.error('OAuth request failed - no response', errorInfo);
     } else {
       // Request setup error
-      logger.error('OAuth request setup error', {
-        message: error.message
-      });
+      logger.error('OAuth request setup error', error);
     }
     
     return Promise.reject(error);

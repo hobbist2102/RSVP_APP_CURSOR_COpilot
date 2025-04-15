@@ -41,6 +41,7 @@ import rsvpFollowupRoutes from "./routes/rsvp-followup";
 
 // Import OAuth routes
 import oauthRoutes from "./routes/oauth";
+import oauthImprovedRoutes from "./routes/oauth-improved";
 
 // Import Event Settings routes
 import eventSettingsRoutes from "./routes/event-settings";

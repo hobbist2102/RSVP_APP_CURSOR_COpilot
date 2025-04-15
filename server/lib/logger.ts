@@ -141,15 +141,27 @@ export const createOAuthLogger = (
       logger.info(message, { ...context, ...additionalContext });
     },
     
-    error: (message: string, error?: Error, additionalContext: Record<string, any> = {}) => {
+    error: (message: string, error?: Error | Record<string, any>, additionalContext: Record<string, any> = {}) => {
+      // Handle different error types
+      let errorInfo: Record<string, any> | undefined = undefined;
+      
+      if (error) {
+        if (error instanceof Error) {
+          errorInfo = { 
+            message: error.message, 
+            stack: error.stack,
+            name: error.name
+          };
+        } else {
+          // If error is already an object with properties
+          errorInfo = error;
+        }
+      }
+      
       logger.error(message, { 
         ...context, 
         ...additionalContext, 
-        error: error ? { 
-          message: error.message, 
-          stack: error.stack,
-          name: error.name
-        } : undefined 
+        error: errorInfo
       });
     },
     
