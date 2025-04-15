@@ -276,17 +276,54 @@ export default function EventWizard({
   
   const form = useForm({
     resolver: zodResolver(currentSchema),
-    defaultValues: wizardData[steps[currentStep].title.toLowerCase().replace(/[&\\s]+/g, '')] || {},
+    defaultValues: getStepData(currentStep) || {},
   });
+  
+  // Helper function to get data for the current step
+  function getStepData(stepIndex: number) {
+    const stepKey = steps[stepIndex].title.toLowerCase().replace(/[&\\s]+/g, '');
+    switch(stepKey) {
+      case 'basiceventdetails':
+        return wizardData.basicInfo;
+      case 'eventstructure':
+        return wizardData.eventStructure;
+      case 'guestmanagement':
+        return wizardData.guestManagement;
+      case 'travel&accommodation':
+        return wizardData.travelAccommodation;
+      case 'communicationsettings':
+        return wizardData.communication;
+      default:
+        return {};
+    }
+  }
 
   // Navigation functions
   const nextStep = (data: any) => {
-    // Save data from current step
+    // Save data from current step based on the current step index
     const stepKey = steps[currentStep].title.toLowerCase().replace(/[&\\s]+/g, '');
-    setWizardData(prev => ({
-      ...prev,
-      [stepKey]: data,
-    }));
+    let updatedData = { ...wizardData };
+    
+    // Map the stepKey to the correct property in the wizardData object
+    switch(stepKey) {
+      case 'basiceventdetails':
+        updatedData.basicInfo = data;
+        break;
+      case 'eventstructure':
+        updatedData.eventStructure = data;
+        break;
+      case 'guestmanagement':
+        updatedData.guestManagement = data;
+        break;
+      case 'travel&accommodation':
+        updatedData.travelAccommodation = data;
+        break;
+      case 'communicationsettings':
+        updatedData.communication = data;
+        break;
+    }
+    
+    setWizardData(updatedData);
     
     // Move to next step
     if (currentStep < steps.length - 1) {

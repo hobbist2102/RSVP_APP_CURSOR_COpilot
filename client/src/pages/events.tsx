@@ -723,156 +723,16 @@ export default function Events() {
         </Dialog>
       )}
       
-      {/* Add/Edit Event Dialog */}
-      <Dialog 
-        open={showAddEventDialog || showEditEventDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setShowAddEventDialog(false);
-            setShowEditEventDialog(false);
-            setCurrentEvent(null);
-          }
+      {/* Event Wizard for multi-step event creation */}
+      <EventWizard 
+        isOpen={showAddEventDialog || showEditEventDialog}
+        onClose={() => {
+          setShowAddEventDialog(false);
+          setShowEditEventDialog(false);
+          setCurrentEvent(null);
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{currentEvent ? "Edit Event" : "Add New Event"}</DialogTitle>
-            <DialogDescription>
-              {currentEvent ? "Update the event details" : "Fill in the details for your wedding event"}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...eventForm}>
-            <form onSubmit={eventForm.handleSubmit(onSubmitEventForm)} className="space-y-4">
-              <FormField
-                control={eventForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sarah & Michael's Wedding" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={eventForm.control}
-                name="coupleNames"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Couple Names</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sarah & Michael" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={eventForm.control}
-                  name="brideName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bride's Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Sarah" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={eventForm.control}
-                  name="groomName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Groom's Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Michael" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={eventForm.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={eventForm.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={eventForm.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Grand Palace Hotel, New York" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={eventForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Add details about your wedding event..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button 
-                  type="submit" 
-                  className="gold-gradient"
-                  disabled={isCreatingEvent || isUpdatingEvent}
-                >
-                  {isCreatingEvent || isUpdatingEvent ? "Saving..." : currentEvent ? "Save Changes" : "Add Event"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+        existingEvent={currentEvent}
+      />
       
       {/* Add/Edit Ceremony Dialog */}
       <Dialog 
