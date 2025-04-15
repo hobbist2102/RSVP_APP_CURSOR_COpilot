@@ -2,6 +2,8 @@ import { Resend } from 'resend';
 import { Guest, WeddingEvent } from '@shared/schema';
 import * as SendGrid from '@sendgrid/mail';
 import nodemailer from 'nodemailer';
+import axios from 'axios';
+import { storage } from '../storage';
 
 /**
  * Email service that supports multiple providers
@@ -300,6 +302,36 @@ export class EmailService {
             // Check for common OAuth errors
             const errorMessage = (error as any)?.message || '';
             const errorCode = (error as any)?.code || '';
+            
+            const needsTokenRefresh = 
+              errorMessage.includes('invalid_grant') ||
+              errorMessage.includes('Invalid login') ||
+              errorMessage.includes('invalid access token') ||
+              errorCode === 'EAUTH';
+            
+            if (needsTokenRefresh && this.event) {
+              console.log(`Attempting to refresh OAuth token for ${this.provider}...`);
+              try {
+                const refreshed = await this.refreshOAuthToken();
+                if (refreshed) {
+                  console.log(`Successfully refreshed ${this.provider} OAuth token, retrying email send`);
+                  
+                  // Retry sending the email with the refreshed token
+                  const retryInfo = await this.nodemailerTransport.sendMail(mailOptions);
+                  console.log(`${this.provider} email sent successfully after token refresh:`, {
+                    messageId: retryInfo.messageId,
+                    response: retryInfo.response
+                  });
+                  
+                  return {
+                    success: true,
+                    id: retryInfo.messageId
+                  };
+                }
+              } catch (refreshError) {
+                console.error(`Failed to refresh OAuth token for ${this.provider}:`, refreshError);
+              }
+            }
             
             if (errorMessage.includes('invalid_grant')) {
               console.error(`OAuth token for ${this.provider} may have expired or been revoked`);
