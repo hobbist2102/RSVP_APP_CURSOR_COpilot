@@ -347,58 +347,65 @@ export default function EventWizard({
   };
 
   const submitForm = () => {
+    // Log the wizard data to check what's available
+    console.log("Wizard data collected:", wizardData);
+    
     // Prepare data for submission
     const formData = {
-      // Basic info fields
-      title: wizardData.basicInfo?.title,
-      coupleNames: wizardData.basicInfo?.coupleNames,
-      brideName: wizardData.basicInfo?.brideName,
-      groomName: wizardData.basicInfo?.groomName,
-      startDate: wizardData.basicInfo?.startDate,
-      endDate: wizardData.basicInfo?.endDate,
-      location: wizardData.basicInfo?.location,
-      description: wizardData.basicInfo?.description,
+      // Basic info fields - required fields
+      title: wizardData.basicInfo?.title || "",
+      coupleNames: wizardData.basicInfo?.coupleNames || "",
+      brideName: wizardData.basicInfo?.brideName || "",
+      groomName: wizardData.basicInfo?.groomName || "",
+      startDate: wizardData.basicInfo?.startDate || new Date().toISOString().split('T')[0],
+      endDate: wizardData.basicInfo?.endDate || new Date().toISOString().split('T')[0],
+      location: wizardData.basicInfo?.location || "",
+      description: wizardData.basicInfo?.description || null,
+      
+      // Optional for backward compatibility
+      date: wizardData.basicInfo?.startDate || null,
       
       // Guest management settings
-      allowPlusOnes: wizardData.guestManagement?.allowPlusOnes,
-      allowChildrenDetails: wizardData.guestManagement?.allowChildrenDetails,
-      trackRelationship: wizardData.guestManagement?.trackRelationship,
-      trackSide: wizardData.guestManagement?.trackSide,
-      rsvpDeadline: wizardData.guestManagement?.rsvpDeadline,
+      allowPlusOnes: wizardData.guestManagement?.allowPlusOnes !== undefined ? wizardData.guestManagement.allowPlusOnes : true,
+      allowChildrenDetails: wizardData.guestManagement?.allowChildrenDetails !== undefined ? wizardData.guestManagement.allowChildrenDetails : true,
+      rsvpDeadline: wizardData.guestManagement?.rsvpDeadline || null,
       
       // Travel & accommodation settings
-      accommodationMode: wizardData.travelAccommodation?.accommodationMode,
-      accommodationSpecialDeals: wizardData.travelAccommodation?.accommodationSpecialDeals,
-      accommodationInstructions: wizardData.travelAccommodation?.accommodationInstructions,
-      accommodationHotelName: wizardData.travelAccommodation?.accommodationHotelName,
-      accommodationHotelAddress: wizardData.travelAccommodation?.accommodationHotelAddress,
-      accommodationHotelPhone: wizardData.travelAccommodation?.accommodationHotelPhone,
-      accommodationHotelWebsite: wizardData.travelAccommodation?.accommodationHotelWebsite,
-      accommodationSpecialRates: wizardData.travelAccommodation?.accommodationSpecialRates,
+      accommodationMode: wizardData.travelAccommodation?.accommodationMode || PROVISION_MODES.NONE,
+      accommodationSpecialDeals: wizardData.travelAccommodation?.accommodationSpecialDeals || null,
+      accommodationInstructions: wizardData.travelAccommodation?.accommodationInstructions || null,
+      accommodationHotelName: wizardData.travelAccommodation?.accommodationHotelName || null,
+      accommodationHotelAddress: wizardData.travelAccommodation?.accommodationHotelAddress || null,
+      accommodationHotelPhone: wizardData.travelAccommodation?.accommodationHotelPhone || null,
+      accommodationHotelWebsite: wizardData.travelAccommodation?.accommodationHotelWebsite || null,
+      accommodationSpecialRates: wizardData.travelAccommodation?.accommodationSpecialRates || null,
       
-      transportMode: wizardData.travelAccommodation?.transportMode,
-      transportSpecialDeals: wizardData.travelAccommodation?.transportSpecialDeals,
-      transportInstructions: wizardData.travelAccommodation?.transportInstructions,
-      transportProviderName: wizardData.travelAccommodation?.transportProviderName,
-      transportProviderContact: wizardData.travelAccommodation?.transportProviderContact,
-      transportProviderWebsite: wizardData.travelAccommodation?.transportProviderWebsite,
-      defaultArrivalLocation: wizardData.travelAccommodation?.defaultArrivalLocation,
-      defaultDepartureLocation: wizardData.travelAccommodation?.defaultDepartureLocation,
+      transportMode: wizardData.travelAccommodation?.transportMode || PROVISION_MODES.NONE,
+      transportSpecialDeals: wizardData.travelAccommodation?.transportSpecialDeals || null,
+      transportInstructions: wizardData.travelAccommodation?.transportInstructions || null,
+      transportProviderName: wizardData.travelAccommodation?.transportProviderName || null,
+      transportProviderContact: wizardData.travelAccommodation?.transportProviderContact || null,
+      transportProviderWebsite: wizardData.travelAccommodation?.transportProviderWebsite || null,
+      defaultArrivalLocation: wizardData.travelAccommodation?.defaultArrivalLocation || null,
+      defaultDepartureLocation: wizardData.travelAccommodation?.defaultDepartureLocation || null,
       
-      flightMode: wizardData.travelAccommodation?.flightMode,
-      flightSpecialDeals: wizardData.travelAccommodation?.flightSpecialDeals,
-      flightInstructions: wizardData.travelAccommodation?.flightInstructions,
-      recommendedAirlines: wizardData.travelAccommodation?.recommendedAirlines,
-      airlineDiscountCodes: wizardData.travelAccommodation?.airlineDiscountCodes,
+      flightMode: wizardData.travelAccommodation?.flightMode || PROVISION_MODES.NONE,
+      flightSpecialDeals: wizardData.travelAccommodation?.flightSpecialDeals || null,
+      flightInstructions: wizardData.travelAccommodation?.flightInstructions || null,
+      recommendedAirlines: wizardData.travelAccommodation?.recommendedAirlines || null,
+      airlineDiscountCodes: wizardData.travelAccommodation?.airlineDiscountCodes || null,
       
       // Communication settings
-      emailFrom: wizardData.communication?.emailFrom,
-      emailReplyTo: wizardData.communication?.emailReplyTo,
-      sendRsvpReminders: wizardData.communication?.sendRsvpReminders,
-      sendRsvpConfirmations: wizardData.communication?.sendRsvpConfirmations,
-      sendTravelUpdates: wizardData.communication?.sendTravelUpdates,
-      whatsappBusinessNumber: wizardData.communication?.whatsappBusinessNumber,
+      emailFrom: wizardData.communication?.emailFrom || null,
+      emailReplyTo: wizardData.communication?.emailReplyTo || null,
+      sendRsvpReminders: wizardData.communication?.sendRsvpReminders !== undefined ? wizardData.communication.sendRsvpReminders : true,
+      sendRsvpConfirmations: wizardData.communication?.sendRsvpConfirmations !== undefined ? wizardData.communication.sendRsvpConfirmations : true,
+      sendTravelUpdates: wizardData.communication?.sendTravelUpdates !== undefined ? wizardData.communication.sendTravelUpdates : true,
+      whatsappBusinessNumber: wizardData.communication?.whatsappBusinessNumber || null,
     };
+    
+    // Log the form data to verify what we're sending
+    console.log("Event form data to submit:", formData);
     
     // Submit the form
     createEventMutation.mutate(formData);
