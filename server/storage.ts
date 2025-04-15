@@ -42,8 +42,7 @@ import {
   relationshipTypes, type RelationshipType, type InsertRelationshipType,
   whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate,
   rsvpFollowupTemplates, type RsvpFollowupTemplate, type InsertRsvpFollowupTemplate,
-  rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog,
-  oauthConfigurations, type OAuthConfiguration, type InsertOAuthConfiguration
+  rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
@@ -153,26 +152,6 @@ export interface IStorage {
   // RSVP Follow-up Log operations
   getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
   createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
-  
-  // OAuth Configuration operations
-  getOAuthConfig(eventId: number, provider: 'gmail' | 'outlook'): Promise<OAuthConfiguration | undefined>;
-  getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined>;
-  getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]>;
-  saveOAuthConfig(eventId: number, provider: 'gmail' | 'outlook', config: {
-    clientId: string;
-    encryptedClientSecret: string;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiry?: Date;
-    email?: string;
-  }): Promise<OAuthConfiguration>;
-  updateOAuthTokens(id: number, tokens: {
-    accessToken: string;
-    refreshToken?: string;
-    tokenExpiry?: Date;
-    email?: string;
-  }): Promise<OAuthConfiguration | undefined>;
-  deleteOAuthConfig(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -191,7 +170,6 @@ export class MemStorage implements IStorage {
   private whatsappTemplatesMap: Map<number, WhatsappTemplate>;
   private rsvpFollowupTemplatesMap: Map<number, RsvpFollowupTemplate>;
   private rsvpFollowupLogsMap: Map<number, RsvpFollowupLog>;
-  private oauthConfigurationsMap: Map<number, OAuthConfiguration>;
   
   private userIdCounter: number;
   private eventIdCounter: number;
@@ -208,7 +186,6 @@ export class MemStorage implements IStorage {
   private whatsappTemplateIdCounter: number;
   private rsvpFollowupTemplateIdCounter: number;
   private rsvpFollowupLogIdCounter: number;
-  private oauthConfigurationIdCounter: number;
 
   constructor() {
     this.usersMap = new Map();
@@ -226,7 +203,6 @@ export class MemStorage implements IStorage {
     this.whatsappTemplatesMap = new Map();
     this.rsvpFollowupTemplatesMap = new Map();
     this.rsvpFollowupLogsMap = new Map();
-    this.oauthConfigurationsMap = new Map();
     
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
@@ -243,7 +219,6 @@ export class MemStorage implements IStorage {
     this.whatsappTemplateIdCounter = 1;
     this.rsvpFollowupTemplateIdCounter = 1;
     this.rsvpFollowupLogIdCounter = 1;
-    this.oauthConfigurationIdCounter = 1;
     
     // Initialize with default admin user
     this.createUser({
@@ -1444,106 +1419,6 @@ export class MemStorage implements IStorage {
     this.rsvpFollowupLogsMap.set(id, newLog);
     return newLog;
   }
-  
-  // OAuth Configuration methods
-  async getOAuthConfig(
-    eventId: number, 
-    provider: 'gmail' | 'outlook'
-  ): Promise<OAuthConfiguration | undefined> {
-    const configs = await this.getAllOAuthConfigsByEvent(eventId);
-    return configs.find(config => config.provider === provider);
-  }
-
-  async getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined> {
-    return this.oauthConfigurationsMap.get(id);
-  }
-
-  async getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]> {
-    return Array.from(this.oauthConfigurationsMap.values()).filter(
-      config => config.eventId === eventId
-    );
-  }
-
-  async saveOAuthConfig(
-    eventId: number, 
-    provider: 'gmail' | 'outlook', 
-    config: {
-      clientId: string;
-      encryptedClientSecret: string;
-      accessToken?: string;
-      refreshToken?: string;
-      tokenExpiry?: Date;
-      email?: string;
-    }
-  ): Promise<OAuthConfiguration> {
-    // Check if configuration already exists
-    const existingConfig = await this.getOAuthConfig(eventId, provider);
-    
-    if (existingConfig) {
-      // Update existing configuration
-      const updatedConfig: OAuthConfiguration = {
-        ...existingConfig,
-        clientId: config.clientId,
-        encryptedClientSecret: config.encryptedClientSecret,
-        accessToken: config.accessToken || existingConfig.accessToken,
-        refreshToken: config.refreshToken || existingConfig.refreshToken,
-        tokenExpiry: config.tokenExpiry || existingConfig.tokenExpiry,
-        email: config.email || existingConfig.email,
-        updatedAt: new Date()
-      };
-      this.oauthConfigurationsMap.set(existingConfig.id, updatedConfig);
-      return updatedConfig;
-    } else {
-      // Create new configuration
-      const id = this.oauthConfigurationIdCounter++;
-      const createdAt = new Date();
-      const updatedAt = new Date();
-      const newConfig: OAuthConfiguration = {
-        id,
-        eventId,
-        provider,
-        clientId: config.clientId,
-        encryptedClientSecret: config.encryptedClientSecret,
-        accessToken: config.accessToken || null,
-        refreshToken: config.refreshToken || null,
-        tokenExpiry: config.tokenExpiry || null,
-        email: config.email || null,
-        createdAt,
-        updatedAt
-      };
-      this.oauthConfigurationsMap.set(id, newConfig);
-      return newConfig;
-    }
-  }
-
-  async updateOAuthTokens(
-    id: number, 
-    tokens: {
-      accessToken: string;
-      refreshToken?: string;
-      tokenExpiry?: Date;
-      email?: string;
-    }
-  ): Promise<OAuthConfiguration | undefined> {
-    const config = this.oauthConfigurationsMap.get(id);
-    if (!config) return undefined;
-    
-    const updatedConfig: OAuthConfiguration = {
-      ...config,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken || config.refreshToken,
-      tokenExpiry: tokens.tokenExpiry || config.tokenExpiry,
-      email: tokens.email || config.email,
-      updatedAt: new Date()
-    };
-    
-    this.oauthConfigurationsMap.set(id, updatedConfig);
-    return updatedConfig;
-  }
-
-  async deleteOAuthConfig(id: number): Promise<boolean> {
-    return this.oauthConfigurationsMap.delete(id);
-  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2276,81 +2151,6 @@ export class DatabaseStorage implements IStorage {
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
     const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
-  }
-
-  // OAuth Configuration operations
-  async getOAuthConfig(eventId: number, provider: 'gmail' | 'outlook'): Promise<OAuthConfiguration | undefined> {
-    const result = await db.select().from(oauthConfigurations).where(
-      and(
-        eq(oauthConfigurations.eventId, eventId),
-        eq(oauthConfigurations.provider, provider)
-      )
-    );
-    return result[0];
-  }
-
-  async getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined> {
-    const result = await db.select().from(oauthConfigurations).where(eq(oauthConfigurations.id, id));
-    return result[0];
-  }
-
-  async getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]> {
-    return await db.select().from(oauthConfigurations).where(eq(oauthConfigurations.eventId, eventId));
-  }
-
-  async saveOAuthConfig(eventId: number, provider: 'gmail' | 'outlook', config: {
-    clientId: string;
-    encryptedClientSecret: string;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiry?: Date;
-    email?: string;
-  }): Promise<OAuthConfiguration> {
-    // Check if configuration already exists
-    const existingConfig = await this.getOAuthConfig(eventId, provider);
-    
-    if (existingConfig) {
-      // Update existing configuration
-      const result = await db.update(oauthConfigurations)
-        .set({
-          ...config,
-          updatedAt: new Date()
-        })
-        .where(eq(oauthConfigurations.id, existingConfig.id))
-        .returning();
-      return result[0];
-    } else {
-      // Create new configuration
-      const result = await db.insert(oauthConfigurations)
-        .values({
-          eventId,
-          provider,
-          ...config
-        })
-        .returning();
-      return result[0];
-    }
-  }
-
-  async updateOAuthTokens(id: number, tokens: {
-    accessToken: string;
-    refreshToken?: string;
-    tokenExpiry?: Date;
-    email?: string;
-  }): Promise<OAuthConfiguration | undefined> {
-    const result = await db.update(oauthConfigurations)
-      .set({
-        ...tokens,
-        updatedAt: new Date()
-      })
-      .where(eq(oauthConfigurations.id, id))
-      .returning();
-    return result[0];
-  }
-
-  async deleteOAuthConfig(id: number): Promise<boolean> {
-    const result = await db.delete(oauthConfigurations).where(eq(oauthConfigurations.id, id));
-    return !!result;
   }
 }
 

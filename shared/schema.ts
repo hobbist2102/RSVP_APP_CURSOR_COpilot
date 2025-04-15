@@ -333,27 +333,6 @@ export const insertRsvpFollowupLogSchema = createInsertSchema(rsvpFollowupLogs).
   sentAt: true,
 });
 
-// OAuth Configurations table for storing OAuth credentials per event
-export const oauthConfigurations = pgTable("oauth_configurations", {
-  id: serial("id").primaryKey(),
-  eventId: integer("event_id").notNull(),
-  provider: text("provider").notNull(), // 'gmail' or 'outlook'
-  clientId: text("client_id").notNull(),
-  encryptedClientSecret: text("encrypted_client_secret").notNull(),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  tokenExpiry: timestamp("token_expiry"),
-  email: text("email"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertOAuthConfigurationSchema = createInsertSchema(oauthConfigurations).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -399,6 +378,3 @@ export type InsertRsvpFollowupTemplate = z.infer<typeof insertRsvpFollowupTempla
 
 export type RsvpFollowupLog = typeof rsvpFollowupLogs.$inferSelect;
 export type InsertRsvpFollowupLog = z.infer<typeof insertRsvpFollowupLogSchema>;
-
-export type OAuthConfiguration = typeof oauthConfigurations.$inferSelect;
-export type InsertOAuthConfiguration = z.infer<typeof insertOAuthConfigurationSchema>;
