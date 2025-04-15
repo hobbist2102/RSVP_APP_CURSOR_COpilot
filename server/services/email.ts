@@ -191,7 +191,39 @@ ${event.brideName} & ${event.groomName}
 
     // Extract email configuration from the event
     const emailProvider = event.emailProvider || 'resend';
-    const emailApiKey = event.emailApiKey || null;
+    
+    // Determine the API key to use based on the event's configuration
+    let emailApiKey = null;
+    
+    // First try the direct API key in the event object
+    if (event.emailApiKey) {
+      emailApiKey = event.emailApiKey;
+      console.log(`Using direct email API key for event ${event.id}`);
+    }
+    // If Gmail is configured and selected as provider, use Gmail OAuth tokens
+    else if (event.useGmail && emailProvider === 'gmail' && event.gmailAccessToken) {
+      emailApiKey = event.gmailAccessToken;
+      console.log(`Using Gmail OAuth token for event ${event.id}`);
+    }
+    // If Outlook is configured and selected as provider, use Outlook OAuth tokens
+    else if (event.useOutlook && emailProvider === 'outlook' && event.outlookAccessToken) {
+      emailApiKey = event.outlookAccessToken;
+      console.log(`Using Outlook OAuth token for event ${event.id}`);
+    }
+    // If SendGrid is configured and selected as provider, use SendGrid API key
+    else if (event.useSendGrid && emailProvider === 'sendgrid' && event.sendGridApiKey) {
+      emailApiKey = event.sendGridApiKey;
+      console.log(`Using SendGrid API key for event ${event.id}`);
+    }
+    // Fallback to environment variables if available
+    else if (process.env.RESEND_API_KEY && emailProvider === 'resend') {
+      emailApiKey = process.env.RESEND_API_KEY;
+      console.log(`Using environment RESEND_API_KEY for event ${event.id}`);
+    }
+    
+    if (!emailApiKey) {
+      console.warn(`No email API key found for event ${event.id} with provider ${emailProvider}`);
+    }
     
     // Determine from email address
     // Default format is "Wedding of [Couple] <noreply@domain.com>"
@@ -199,6 +231,13 @@ ${event.brideName} & ${event.groomName}
     const fromDomain = event.emailFromDomain || 'example.com';
     const fromEmail = event.emailFromAddress || `noreply@${fromDomain}`;
     const formattedFromEmail = `${fromName} <${fromEmail}>`;
+
+    // Log the email configuration (without API key details for security)
+    console.log(`Email service configuration for event ${event.id}:
+      - Provider: ${emailProvider}
+      - From: ${formattedFromEmail}
+      - API Key configured: ${!!emailApiKey}
+    `);
 
     return new EmailService(
       event.id,
