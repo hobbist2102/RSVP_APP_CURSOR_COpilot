@@ -61,6 +61,10 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     gmailClientId: settings?.gmailClientId || "",
     gmailClientSecret: settings?.gmailClientSecret || "",
     gmailRedirectUri: settings?.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI,
+    
+    // Direct SMTP configuration for Gmail
+    useGmailDirectSMTP: settings?.useGmailDirectSMTP || false,
+    gmailPassword: settings?.gmailPassword || "",
 
     outlookClientId: settings?.outlookClientId || "",
     outlookClientSecret: settings?.outlookClientSecret || "",

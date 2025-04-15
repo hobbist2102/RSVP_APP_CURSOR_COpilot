@@ -57,17 +57,34 @@ export class EmailService {
             userEmail = userEmail.match(/<([^>]+)>/)?.[1] || userEmail;
           }
           
-          const transport = {
-            service: 'gmail',
-            auth: {
-              type: 'OAuth2',
-              user: userEmail,
-              clientId: this.event.gmailClientId || process.env.GMAIL_CLIENT_ID,
-              clientSecret: this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET,
-              refreshToken: this.event.gmailRefreshToken,
-              accessToken: this.apiKey
-            }
-          };
+          let transport: any;
+          
+          // Check if we should use OAuth2 or direct SMTP
+          if (this.event.useGmailDirectSMTP && this.event.gmailPassword) {
+            // Use direct SMTP with password (less secure, but more reliable in some cases)
+            transport = {
+              service: 'gmail',
+              auth: {
+                user: userEmail,
+                pass: this.event.gmailPassword
+              }
+            };
+            console.log(`Using direct SMTP access for Gmail (less secure but more reliable)`);
+          } else {
+            // Use OAuth2 (more secure but requires proper OAuth setup)
+            transport = {
+              service: 'gmail',
+              auth: {
+                type: 'OAuth2',
+                user: userEmail,
+                clientId: this.event.gmailClientId || process.env.GMAIL_CLIENT_ID,
+                clientSecret: this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET,
+                refreshToken: this.event.gmailRefreshToken,
+                accessToken: this.apiKey
+              }
+            };
+            console.log(`Using OAuth2 authentication for Gmail`);
+          }
           
           this.nodemailerTransport = nodemailer.createTransport(transport as any);
           console.log(`Initialized Gmail client for event ${eventId}`);
@@ -258,13 +275,42 @@ export class EmailService {
             html: html
           };
           
-          const info = await this.nodemailerTransport.sendMail(mailOptions);
-          console.log(`${this.provider} email sent:`, info.messageId);
+          console.log(`Attempting to send ${this.provider} email with options:`, {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject
+          });
           
-          return {
-            success: true,
-            id: info.messageId
-          };
+          try {
+            const info = await this.nodemailerTransport.sendMail(mailOptions);
+            console.log(`${this.provider} email sent successfully:`, {
+              messageId: info.messageId,
+              response: info.response,
+              accepted: info.accepted,
+              rejected: info.rejected
+            });
+            
+            return {
+              success: true,
+              id: info.messageId
+            };
+          } catch (error) {
+            console.error(`${this.provider} email sending failed with detailed error:`, error);
+            
+            // Check for common OAuth errors
+            const errorMessage = (error as any)?.message || '';
+            const errorCode = (error as any)?.code || '';
+            
+            if (errorMessage.includes('invalid_grant')) {
+              console.error(`OAuth token for ${this.provider} may have expired or been revoked`);
+            }
+            
+            if (errorCode === 'EAUTH') {
+              console.error(`Authentication error with ${this.provider}. Check credentials and OAuth permissions.`);
+            }
+            
+            throw error;
+          }
         } catch (error: any) {
           console.error(`${this.provider} email error:`, error);
           
