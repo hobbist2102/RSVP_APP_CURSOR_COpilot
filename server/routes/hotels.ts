@@ -149,12 +149,12 @@ export function registerHotelRoutes(
       }
 
       // Check if any accommodations are linked to this hotel
-      const accommodationsCount = await db
-        .select({ count: db.fn.count() })
+      const linkedAccommodations = await db
+        .select()
         .from(accommodations)
         .where(eq(accommodations.hotelId, hotelId));
 
-      if (accommodationsCount[0].count > 0) {
+      if (linkedAccommodations.length > 0) {
         return res.status(400).json({
           message: 'Cannot delete hotel with linked accommodations. Remove accommodations first.'
         });

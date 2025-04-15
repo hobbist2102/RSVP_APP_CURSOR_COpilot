@@ -36,6 +36,9 @@ import { registerRSVPRoutes } from "./routes/rsvp";
 // Import WhatsApp routes
 import { registerWhatsAppRoutes } from "./routes/whatsapp";
 
+// Import Hotel routes
+import { registerHotelRoutes } from "./routes/hotels";
+
 // Import RSVP follow-up routes
 import rsvpFollowupRoutes from "./routes/rsvp-followup";
 
@@ -2181,6 +2184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register WhatsApp routes
   registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
+  
+  // Register Hotel routes
+  registerHotelRoutes(app, isAuthenticated, isAdmin);
   
   // Register RSVP Follow-up routes
   app.use('/api', isAuthenticated, rsvpFollowupRoutes);
