@@ -20,15 +20,27 @@ import { Link } from "wouter";
 
 type OAuthConfigurationProps = {
   provider: 'gmail' | 'outlook';
+  eventId?: number;
+  readOnly?: boolean;
   onConnected?: () => void;
+  onStatusChange?: (status: {connected: boolean, email?: string}) => void;
 };
 
-export default function OAuthConfiguration({ provider, onConnected }: OAuthConfigurationProps) {
+export default function OAuthConfiguration({ 
+  provider, 
+  eventId,
+  readOnly = false,
+  onConnected, 
+  onStatusChange 
+}: OAuthConfigurationProps) {
   const { toast } = useToast();
-  const { currentEventId } = useCurrentEvent();
+  const { currentEventId: contextEventId } = useCurrentEvent();
   const queryClient = useQueryClient();
   const [showOAuthDialog, setShowOAuthDialog] = useState(false);
   const [authUrl, setAuthUrl] = useState<string | null>(null);
+  
+  // Use provided eventId or fall back to context
+  const effectiveEventId = eventId || contextEventId;
 
   // Query existing OAuth configuration
   const { 
@@ -36,8 +48,8 @@ export default function OAuthConfiguration({ provider, onConnected }: OAuthConfi
     isLoading: isLoadingConfig,
     refetch: refetchConfig
   } = useQuery({
-    queryKey: [`/api/oauth/config/${provider}`, currentEventId],
-    enabled: !!currentEventId,
+    queryKey: [`/api/oauth/config/${provider}`, effectiveEventId],
+    enabled: !!effectiveEventId,
   });
 
   // Query connection status
@@ -46,8 +58,8 @@ export default function OAuthConfiguration({ provider, onConnected }: OAuthConfi
     isLoading: isLoadingStatus,
     refetch: refetchStatus
   } = useQuery({
-    queryKey: [`/api/oauth/status/${provider}`, currentEventId],
-    enabled: !!currentEventId && !!oauthConfig,
+    queryKey: [`/api/oauth/status/${provider}`, effectiveEventId],
+    enabled: !!effectiveEventId && !!oauthConfig,
   });
 
   // Mutation to get OAuth authorization URL
@@ -55,7 +67,7 @@ export default function OAuthConfiguration({ provider, onConnected }: OAuthConfi
     mutationFn: async () => {
       const response = await apiRequest(
         "POST",
-        `/api/oauth/${provider}/auth-url?eventId=${currentEventId}`
+        `/api/oauth/${provider}/auth-url?eventId=${effectiveEventId}`
       );
       return await response.json();
     },
@@ -85,7 +97,7 @@ export default function OAuthConfiguration({ provider, onConnected }: OAuthConfi
     mutationFn: async () => {
       const response = await apiRequest(
         "POST",
-        `/api/oauth/${provider}/disconnect?eventId=${currentEventId}`
+        `/api/oauth/${provider}/disconnect?eventId=${effectiveEventId}`
       );
       return await response.json();
     },
@@ -101,10 +113,10 @@ export default function OAuthConfiguration({ provider, onConnected }: OAuthConfi
       
       // Invalidate queries
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/oauth/status/${provider}`, currentEventId] 
+        queryKey: [`/api/oauth/status/${provider}`, effectiveEventId] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/oauth/config/${provider}`, currentEventId] 
+        queryKey: [`/api/oauth/config/${provider}`, effectiveEventId] 
       });
     },
     onError: (error) => {
