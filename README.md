@@ -88,18 +88,8 @@ npm install
 
 3. Set up environment variables
 ```
-# Database Configuration
 DATABASE_URL=postgresql://username:password@localhost:5432/wedding_management
 SESSION_SECRET=your_session_secret
-
-# OAuth Configuration (Optional - can also be configured per-event)
-GMAIL_CLIENT_ID=your_gmail_client_id
-GMAIL_CLIENT_SECRET=your_gmail_client_secret
-GMAIL_REDIRECT_URI=http://localhost:5000/api/oauth/gmail/callback
-
-OUTLOOK_CLIENT_ID=your_outlook_client_id
-OUTLOOK_CLIENT_SECRET=your_outlook_client_secret
-OUTLOOK_REDIRECT_URI=http://localhost:5000/api/oauth/outlook/callback
 ```
 
 4. Run database migrations
@@ -164,17 +154,6 @@ The platform uses session-based event context tracking with validation at both c
 - Server-side verification of event context on all API requests
 - Client-side hooks for consistent access to the current event
 - Defensive programming to prevent cross-event data leakage
-
-### OAuth Implementation
-The platform implements OAuth 2.0 for integrating with email service providers:
-
-- Event-specific OAuth credentials stored in the database
-- Fallback mechanism to environment variables when event-specific credentials are unavailable
-- Support for both Gmail and Outlook OAuth flows
-- Secure token storage and refresh mechanisms
-- User-friendly configuration UI with step-by-step guidance
-
-For more details, see [OAuth Implementation Documentation](docs/OAUTH_IMPLEMENTATION.md).
 
 ## 🤝 Contributing
 

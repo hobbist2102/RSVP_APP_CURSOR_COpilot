@@ -41,7 +41,6 @@ import rsvpFollowupRoutes from "./routes/rsvp-followup";
 
 // Import OAuth routes
 import oauthRoutes from "./routes/oauth";
-import oauthImprovedRoutes from "./routes/oauth-improved";
 
 // Import Event Settings routes
 import eventSettingsRoutes from "./routes/event-settings";
@@ -2187,12 +2186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', isAuthenticated, rsvpFollowupRoutes);
   
   // Register OAuth routes
-  // Use the improved OAuth routes with enhanced security and error handling
-  // Comment this line and uncomment the next line when ready to switch completely
   app.use('/api/oauth', oauthRoutes);
-  
-  // Register improved OAuth routes with better security, logging, and error handling
-  app.use('/api/oauth2', oauthImprovedRoutes);
   
   return httpServer;
 }
