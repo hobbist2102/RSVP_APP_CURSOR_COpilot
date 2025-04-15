@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 import {
   Form,
   FormControl,
@@ -19,14 +19,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Save } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Save, Calendar } from "lucide-react";
 
 // Define schema for RSVP settings
 const rsvpSettingsSchema = z.object({
+  // General RSVP settings
   allowPlusOnes: z.boolean().default(true),
   allowChildrenDetails: z.boolean().default(true),
-  customRsvpUrl: z.string().optional().nullable(),
+  customRsvpUrl: z.string().nullable().optional(),
+  rsvpDeadline: z.string().nullable().optional(),
 });
 
 type RsvpSettingsData = z.infer<typeof rsvpSettingsSchema>;
@@ -49,6 +51,7 @@ export default function RsvpSettings({ settings, eventId }: RsvpSettingsProps) {
       allowPlusOnes: settings?.allowPlusOnes ?? true,
       allowChildrenDetails: settings?.allowChildrenDetails ?? true,
       customRsvpUrl: settings?.customRsvpUrl ?? null,
+      rsvpDeadline: settings?.rsvpDeadline ?? null,
     },
   });
 
@@ -99,82 +102,106 @@ export default function RsvpSettings({ settings, eventId }: RsvpSettingsProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="allowPlusOnes"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Allow Plus Ones</FormLabel>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">General RSVP Settings</h3>
+              
+              <FormField
+                control={form.control}
+                name="rsvpDeadline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RSVP Deadline</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <Input
+                          type="date"
+                          placeholder="Select a deadline date"
+                          {...field}
+                          value={field.value || ""}
+                          className="w-full"
+                        />
+                        <Calendar className="ml-2 h-5 w-5 text-muted-foreground self-center" />
+                      </div>
+                    </FormControl>
                     <FormDescription>
-                      Let guests bring additional guests with them
+                      The date by which guests should respond to your invitation
                     </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="allowChildrenDetails"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Child Details</FormLabel>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="customRsvpUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custom RSVP URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., rsvp.example.com or a custom subdomain"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
                     <FormDescription>
-                      Allow guests to provide details about accompanying children
+                      Optional: Use a custom domain for your RSVP page
                     </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="customRsvpUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Custom RSVP URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://your-custom-rsvp-url.com"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Optional: Use a custom domain for your RSVP page
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {currentEvent && (
-              <Alert className="bg-amber-50 border-amber-300">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertTitle className="text-amber-800">Default RSVP Link</AlertTitle>
-                <AlertDescription className="text-amber-700">
-                  Your guests can RSVP at: {window.location.origin}/guest-rsvp?event={currentEvent.id}
-                </AlertDescription>
-              </Alert>
-            )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Separator className="my-6" />
+              
+              <h3 className="text-lg font-medium">Guest Options</h3>
+              
+              <FormField
+                control={form.control}
+                name="allowPlusOnes"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Allow Plus Ones</FormLabel>
+                      <FormDescription>
+                        Enable this to allow guests to bring additional companions
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="allowChildrenDetails"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Request Children Details</FormLabel>
+                      <FormDescription>
+                        Enable to collect information about children attending with guests
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <Button 
               type="submit" 
-              className="gold-gradient"
+              className="gold-gradient mt-6"
               disabled={isSaving}
             >
               {isSaving ? (

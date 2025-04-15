@@ -72,18 +72,18 @@ const rsvpSettingsSchema = z.object({
 const travelAccommodationSettingsSchema = z.object({
   // Travel settings
   offerTravelAssistance: z.boolean().optional(),
-  defaultArrivalLocation: z.string().optional(),
-  defaultDepartureLocation: z.string().optional(),
-  recommendedAirlines: z.array(z.string()).optional(),
+  defaultArrivalLocation: z.string().optional().nullable(),
+  defaultDepartureLocation: z.string().optional().nullable(),
+  recommendedAirlines: z.string().optional().nullable(),
   transportationProvided: z.boolean().optional(),
   
   // Accommodation settings
-  defaultHotelName: z.string().optional(),
-  defaultHotelAddress: z.string().optional(),
-  defaultHotelPhone: z.string().optional(),
-  defaultHotelWebsite: z.string().optional(),
-  specialHotelRates: z.boolean().optional(),
-  bookingInstructions: z.string().optional(),
+  defaultHotelName: z.string().optional().nullable(),
+  defaultHotelAddress: z.string().optional().nullable(),
+  defaultHotelPhone: z.string().optional().nullable(),
+  defaultHotelWebsite: z.string().optional().nullable(),
+  specialHotelRates: z.string().optional().nullable(),
+  bookingInstructions: z.string().optional().nullable(),
 });
 
 // Combined settings schema
@@ -357,6 +357,110 @@ router.patch("/:eventId/settings", isAuthenticated, isAdmin, async (req: Request
     res.status(500).json({ 
       success: false,
       message: "An error occurred while updating event settings", 
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/**
+ * Update RSVP Settings for an event
+ */
+router.patch("/:eventId/rsvp", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Validate the request body
+    const validationResult = rsvpSettingsSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        message: "Invalid RSVP settings", 
+        errors: validationResult.error.format() 
+      });
+    }
+
+    // Update event with RSVP settings
+    const updatedEvent = await storage.updateEvent(eventId, validationResult.data);
+    
+    if (!updatedEvent) {
+      return res.status(500).json({
+        message: "Failed to update RSVP settings",
+        details: "Event update returned no data"
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "RSVP settings updated successfully",
+      event: {
+        id: updatedEvent.id,
+        title: updatedEvent.title
+      }
+    });
+  } catch (error) {
+    console.error("Failed to update RSVP settings:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "An error occurred while updating RSVP settings", 
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/**
+ * Update Travel & Accommodation Settings for an event
+ */
+router.patch("/:eventId/travel-accommodation", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Validate the request body
+    const validationResult = travelAccommodationSettingsSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        message: "Invalid Travel & Accommodation settings", 
+        errors: validationResult.error.format() 
+      });
+    }
+
+    // Update event with Travel & Accommodation settings
+    const updatedEvent = await storage.updateEvent(eventId, validationResult.data);
+    
+    if (!updatedEvent) {
+      return res.status(500).json({
+        message: "Failed to update Travel & Accommodation settings",
+        details: "Event update returned no data"
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Travel & Accommodation settings updated successfully",
+      event: {
+        id: updatedEvent.id,
+        title: updatedEvent.title
+      }
+    });
+  } catch (error) {
+    console.error("Failed to update Travel & Accommodation settings:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "An error occurred while updating Travel & Accommodation settings", 
       error: error instanceof Error ? error.message : String(error)
     });
   }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 import {
   Form,
   FormControl,
@@ -17,26 +18,27 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Save, Plane, Building } from "lucide-react";
 
 // Define schema for Travel & Accommodation settings
 const travelAccommodationSettingsSchema = z.object({
   // Travel settings
   offerTravelAssistance: z.boolean().default(false),
-  defaultArrivalLocation: z.string().optional().nullable(),
-  defaultDepartureLocation: z.string().optional().nullable(),
-  recommendedAirlines: z.string().optional().nullable(),
   transportationProvided: z.boolean().default(false),
+  defaultArrivalLocation: z.string().nullable().optional(),
+  defaultDepartureLocation: z.string().nullable().optional(),
+  recommendedAirlines: z.string().nullable().optional(),
   
   // Accommodation settings
-  defaultHotelName: z.string().optional().nullable(),
-  defaultHotelAddress: z.string().optional().nullable(),
-  defaultHotelPhone: z.string().optional().nullable(),
-  defaultHotelWebsite: z.string().optional().nullable(),
-  specialHotelRates: z.string().optional().nullable(),
-  bookingInstructions: z.string().optional().nullable(),
+  defaultHotelName: z.string().nullable().optional(),
+  defaultHotelAddress: z.string().nullable().optional(),
+  defaultHotelPhone: z.string().nullable().optional(),
+  defaultHotelWebsite: z.string().nullable().optional(),
+  specialHotelRates: z.string().nullable().optional(),
+  bookingInstructions: z.string().nullable().optional(),
 });
 
 type TravelAccommodationSettingsData = z.infer<typeof travelAccommodationSettingsSchema>;
@@ -49,6 +51,7 @@ interface TravelAccommodationSettingsProps {
 export default function TravelAccommodationSettings({ settings, eventId }: TravelAccommodationSettingsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentEvent } = useCurrentEvent();
   const [isSaving, setIsSaving] = useState(false);
 
   // Set up form with default values from settings
@@ -56,11 +59,10 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
     resolver: zodResolver(travelAccommodationSettingsSchema),
     defaultValues: {
       offerTravelAssistance: settings?.offerTravelAssistance ?? false,
+      transportationProvided: settings?.transportationProvided ?? false,
       defaultArrivalLocation: settings?.defaultArrivalLocation ?? null,
       defaultDepartureLocation: settings?.defaultDepartureLocation ?? null,
       recommendedAirlines: settings?.recommendedAirlines ?? null,
-      transportationProvided: settings?.transportationProvided ?? false,
-      
       defaultHotelName: settings?.defaultHotelName ?? null,
       defaultHotelAddress: settings?.defaultHotelAddress ?? null,
       defaultHotelPhone: settings?.defaultHotelPhone ?? null,
@@ -85,7 +87,7 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
     onSuccess: () => {
       toast({
         title: "Travel & Accommodation settings updated",
-        description: "Your Travel & Accommodation settings have been saved successfully.",
+        description: "Your settings have been saved successfully.",
       });
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/event-settings/${eventId}`] });
@@ -118,7 +120,10 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Travel Settings</h3>
+              <div className="flex items-center gap-2">
+                <Plane className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-medium">Travel Arrangements</h3>
+              </div>
               
               <FormField
                 control={form.control}
@@ -128,7 +133,28 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Offer Travel Assistance</FormLabel>
                       <FormDescription>
-                        Enable to assist guests with travel arrangements
+                        Enable if you plan to assist guests with travel arrangements
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="transportationProvided"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Transportation Provided</FormLabel>
+                      <FormDescription>
+                        Enable if you are providing transportation for guests
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -149,13 +175,13 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                     <FormLabel>Default Arrival Location</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Delhi International Airport (DEL)"
+                        placeholder="e.g., Delhi International Airport"
                         {...field}
                         value={field.value || ""}
                       />
                     </FormControl>
                     <FormDescription>
-                      Main arrival location for guests
+                      Where most guests will arrive for your wedding
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -170,13 +196,13 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                     <FormLabel>Default Departure Location</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Delhi International Airport (DEL)"
+                        placeholder="e.g., Mumbai International Airport"
                         {...field}
                         value={field.value || ""}
                       />
                     </FormControl>
                     <FormDescription>
-                      Main departure location for guests
+                      Where most guests will depart from after your wedding
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -190,45 +216,26 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                   <FormItem>
                     <FormLabel>Recommended Airlines</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="e.g., Air India, IndiGo, Vistara"
-                        className="resize-none"
+                      <Input
+                        placeholder="e.g., Air India, IndiGo, SpiceJet"
                         {...field}
                         value={field.value || ""}
                       />
                     </FormControl>
                     <FormDescription>
-                      Preferred airlines for your guests
+                      List airlines you recommend for your guests
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="transportationProvided"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Transportation Provided</FormLabel>
-                      <FormDescription>
-                        Enable if you're providing transportation for guests
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="space-y-4 pt-6 border-t">
-              <h3 className="text-lg font-medium">Accommodation Settings</h3>
+              <Separator className="my-6" />
+              
+              <div className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-medium">Accommodation Details</h3>
+              </div>
               
               <FormField
                 control={form.control}
@@ -244,7 +251,7 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                       />
                     </FormControl>
                     <FormDescription>
-                      Primary hotel for guest accommodations
+                      Main hotel for your wedding guests
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -256,11 +263,10 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                 name="defaultHotelAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Default Hotel Address</FormLabel>
+                    <FormLabel>Hotel Address</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <Input
                         placeholder="Full address of the hotel"
-                        className="resize-none"
                         {...field}
                         value={field.value || ""}
                       />
@@ -279,7 +285,7 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                       <FormLabel>Hotel Phone Number</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="+91 xxxxx xxxxx"
+                          placeholder="e.g., +91 1234567890"
                           {...field}
                           value={field.value || ""}
                         />
@@ -297,7 +303,7 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                       <FormLabel>Hotel Website</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="https://www.hotel-website.com"
+                          placeholder="e.g., https://www.tajhotels.com"
                           {...field}
                           value={field.value || ""}
                         />
@@ -313,17 +319,16 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                 name="specialHotelRates"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Special Hotel Rates</FormLabel>
+                    <FormLabel>Special Hotel Rates Information</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Detail any special rates negotiated for your wedding"
-                        className="resize-none"
+                      <Input
+                        placeholder="e.g., Special wedding rate: ₹8,000 per night"
                         {...field}
                         value={field.value || ""}
                       />
                     </FormControl>
                     <FormDescription>
-                      Include booking codes if applicable
+                      Any special rates negotiated for your guests
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -338,12 +343,15 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
                     <FormLabel>Booking Instructions</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Instructions for guests to book their rooms"
-                        className="resize-none"
+                        placeholder="Instructions for guests to book their accommodation"
                         {...field}
                         value={field.value || ""}
+                        className="min-h-[100px]"
                       />
                     </FormControl>
+                    <FormDescription>
+                      How guests should book their rooms (e.g., booking code, contact person)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
