@@ -4,6 +4,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useToast } from "@/hooks/use-toast";
 import OAuthSetupGuide from "@/components/settings/oauth-setup-guide";
+import OAuthConfiguration from "@/components/settings/oauth-configuration";
 
 import {
   Card,
@@ -799,123 +800,60 @@ export default function RsvpFollowupConfiguration() {
                       />
                     </div>
 
-                    {communicationForm.watch("useGmail") && (
-                      <div className="mt-4 space-y-4">
+                    {(communicationForm.watch("useGmail") || communicationForm.watch("useOutlook")) && (
+                      <div className="mt-6 space-y-4">
                         <div className="p-4 border rounded-md bg-blue-50 border-blue-200">
                           <h4 className="font-medium text-blue-800 mb-2 flex items-center">
                             <Mail className="h-4 w-4 mr-2" />
-                            Gmail Configuration Steps
+                            Email Provider Configuration
                           </h4>
+                          <p className="text-sm text-blue-700 mb-2">
+                            Configure your OAuth credentials in the <strong>Event Settings</strong> page first, then connect your account here.
+                          </p>
                           <ol className="text-sm text-blue-700 list-decimal ml-5 space-y-1">
                             <li>Make sure you have <strong>saved your settings</strong> before connecting</li>
-                            <li>Click the <strong>Configure</strong> button to connect your Gmail account</li>
-                            <li>Sign in to your Gmail account when prompted in the popup window</li>
+                            <li>Use the email provider's "Connect" button to authorize your account</li>
+                            <li>Sign in when prompted in the popup window</li>
                             <li>Grant the necessary permissions to send emails</li>
                           </ol>
                         </div>
                         
-                        <FormField
-                          control={communicationForm.control}
-                          name="gmailAccount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Gmail Account</FormLabel>
-                              <div className="flex gap-2">
-                                <FormControl className="flex-1">
-                                  <Input placeholder="your.email@gmail.com" {...field} disabled={isConfiguring && authProvider === 'gmail'} />
-                                </FormControl>
-                                <Button 
-                                  type="button"
-                                  variant={isGmailConfigured ? "outline" : "secondary"}
-                                  className={`w-[120px] ${!isGmailConfigured ? "font-medium" : ""}`}
-                                  onClick={() => handleOAuthSetup('gmail')}
-                                  disabled={isConfiguring}
-                                >
-                                  {isConfiguring && authProvider === 'gmail' ? (
-                                    <>
-                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                                      Connecting...
-                                    </>
-                                  ) : isGmailConfigured ? (
-                                    <>Reconfigure</>
-                                  ) : (
-                                    <>Configure</>
-                                  )}
-                                </Button>
-                              </div>
-                              <FormDescription>
-                                Enter the Gmail address to use for sending emails or click Configure to connect via OAuth
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
+                        <div className="mt-4">
+                          <h3 className="text-lg font-medium mb-4">OAuth Authentication</h3>
+                          {communicationForm.watch("useGmail") && (
+                            <div className="mb-4">
+                              <h4 className="font-medium mb-2">Gmail Authentication</h4>
+                              <OAuthConfiguration 
+                                provider="gmail" 
+                                readOnly={false}
+                                eventId={currentEventId}
+                                onStatusChange={(status) => {
+                                  if (status.connected) {
+                                    setIsGmailConfigured(true);
+                                    communicationForm.setValue("gmailAccount", status.email || "");
+                                  }
+                                }}
+                              />
+                            </div>
                           )}
-                        />
-                        {isGmailConfigured && (
-                          <div className="p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-sm">
-                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                            <span className="text-green-800">Gmail account connected and authorized for sending emails</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {communicationForm.watch("useOutlook") && (
-                      <div className="mt-4 space-y-4">
-                        <div className="p-4 border rounded-md bg-blue-50 border-blue-200">
-                          <h4 className="font-medium text-blue-800 mb-2 flex items-center">
-                            <Mail className="h-4 w-4 mr-2" />
-                            Outlook Configuration Steps
-                          </h4>
-                          <ol className="text-sm text-blue-700 list-decimal ml-5 space-y-1">
-                            <li>Make sure you have <strong>saved your settings</strong> before connecting</li>
-                            <li>Click the <strong>Configure</strong> button to connect your Outlook account</li>
-                            <li>Sign in to your Microsoft account when prompted in the popup window</li>
-                            <li>Grant the necessary permissions to send emails</li>
-                          </ol>
+                          
+                          {communicationForm.watch("useOutlook") && (
+                            <div className="mb-4">
+                              <h4 className="font-medium mb-2">Outlook Authentication</h4>
+                              <OAuthConfiguration 
+                                provider="outlook" 
+                                readOnly={false}
+                                eventId={currentEventId}
+                                onStatusChange={(status) => {
+                                  if (status.connected) {
+                                    setIsOutlookConfigured(true);
+                                    communicationForm.setValue("outlookAccount", status.email || "");
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                        
-                        <FormField
-                          control={communicationForm.control}
-                          name="outlookAccount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Outlook Account</FormLabel>
-                              <div className="flex gap-2">
-                                <FormControl className="flex-1">
-                                  <Input placeholder="your.email@outlook.com" {...field} disabled={isConfiguring && authProvider === 'outlook'} />
-                                </FormControl>
-                                <Button 
-                                  type="button"
-                                  variant={isOutlookConfigured ? "outline" : "secondary"}
-                                  className={`w-[120px] ${!isOutlookConfigured ? "font-medium" : ""}`}
-                                  onClick={() => handleOAuthSetup('outlook')}
-                                  disabled={isConfiguring}
-                                >
-                                  {isConfiguring && authProvider === 'outlook' ? (
-                                    <>
-                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                                      Connecting...
-                                    </>
-                                  ) : isOutlookConfigured ? (
-                                    <>Reconfigure</>
-                                  ) : (
-                                    <>Configure</>
-                                  )}
-                                </Button>
-                              </div>
-                              <FormDescription>
-                                Enter the Outlook address to use for sending emails or click Configure to connect via OAuth
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        {isOutlookConfigured && (
-                          <div className="p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-sm">
-                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                            <span className="text-green-800">Outlook account connected and authorized for sending emails</span>
-                          </div>
-                        )}
                       </div>
                     )}
 
