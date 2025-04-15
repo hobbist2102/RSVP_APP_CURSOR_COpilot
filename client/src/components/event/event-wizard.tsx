@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -278,6 +278,83 @@ export default function EventWizard({
     resolver: zodResolver(currentSchema),
     defaultValues: getStepData(currentStep) || {},
   });
+  
+  // Update wizardData when existingEvent changes
+  useEffect(() => {
+    if (existingEvent) {
+      setWizardData({
+        basicInfo: {
+          title: existingEvent.title,
+          coupleNames: existingEvent.coupleNames,
+          brideName: existingEvent.brideName,
+          groomName: existingEvent.groomName,
+          startDate: existingEvent.startDate,
+          endDate: existingEvent.endDate,
+          location: existingEvent.location,
+          description: existingEvent.description,
+        },
+        eventStructure: {
+          includeSangeet: true,
+          includeHaldi: true,
+          includeMehndi: true,
+          includeWedding: true,
+          includeReception: true,
+          customCeremonies: [],
+        },
+        guestManagement: {
+          allowPlusOnes: existingEvent.allowPlusOnes,
+          allowChildrenDetails: existingEvent.allowChildrenDetails,
+          trackRelationship: true,
+          trackSide: true,
+          rsvpDeadline: existingEvent.rsvpDeadline,
+        },
+        travelAccommodation: {
+          accommodationMode: existingEvent.accommodationMode || PROVISION_MODES.NONE,
+          accommodationSpecialDeals: existingEvent.accommodationSpecialDeals,
+          accommodationInstructions: existingEvent.accommodationInstructions,
+          accommodationHotelName: existingEvent.accommodationHotelName,
+          accommodationHotelAddress: existingEvent.accommodationHotelAddress,
+          accommodationHotelPhone: existingEvent.accommodationHotelPhone,
+          accommodationHotelWebsite: existingEvent.accommodationHotelWebsite,
+          accommodationSpecialRates: existingEvent.accommodationSpecialRates,
+          transportMode: existingEvent.transportMode || PROVISION_MODES.NONE,
+          transportSpecialDeals: existingEvent.transportSpecialDeals,
+          transportInstructions: existingEvent.transportInstructions,
+          transportProviderName: existingEvent.transportProviderName,
+          transportProviderContact: existingEvent.transportProviderContact,
+          transportProviderWebsite: existingEvent.transportProviderWebsite,
+          defaultArrivalLocation: existingEvent.defaultArrivalLocation,
+          defaultDepartureLocation: existingEvent.defaultDepartureLocation,
+          flightMode: existingEvent.flightMode || PROVISION_MODES.NONE,
+          flightSpecialDeals: existingEvent.flightSpecialDeals,
+          flightInstructions: existingEvent.flightInstructions,
+          recommendedAirlines: existingEvent.recommendedAirlines,
+          airlineDiscountCodes: existingEvent.airlineDiscountCodes,
+        },
+        communication: {
+          emailFrom: existingEvent.emailFrom,
+          emailReplyTo: existingEvent.emailReplyTo,
+          sendRsvpReminders: existingEvent.sendRsvpReminders !== undefined ? existingEvent.sendRsvpReminders : true,
+          sendRsvpConfirmations: existingEvent.sendRsvpConfirmations !== undefined ? existingEvent.sendRsvpConfirmations : true,
+          sendTravelUpdates: existingEvent.sendTravelUpdates !== undefined ? existingEvent.sendTravelUpdates : true,
+          enableWhatsapp: !!existingEvent.whatsappBusinessNumber,
+          whatsappBusinessNumber: existingEvent.whatsappBusinessNumber,
+        },
+      });
+      console.log("Updated wizard data with existing event:", existingEvent);
+    }
+  }, [existingEvent]);
+  
+  // When the component mounts, when step changes, or after wizardData is updated
+  // we need to reset the form with the current values
+  useEffect(() => {
+    const currentValues = getStepData(currentStep);
+    if (currentValues) {
+      // Reset form with values from current step
+      form.reset(currentValues);
+      console.log(`Resetting form for step ${currentStep} with values:`, currentValues);
+    }
+  }, [currentStep, wizardData, form]);
   
   // Helper function to get data for the current step
   function getStepData(stepIndex: number) {
