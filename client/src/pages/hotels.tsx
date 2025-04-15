@@ -56,7 +56,7 @@ export default function HotelsPage() {
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   
-  const navigate = useNavigate();
+  const [_, setLocation] = useLocation();
 
   // Fetch hotels
   const { data: hotels, isLoading, error } = useQuery({
@@ -242,7 +242,7 @@ export default function HotelsPage() {
             Please select an event from the dashboard to manage hotels.
           </AlertDescription>
         </Alert>
-        <Button onClick={() => navigate("/events")}>Go to Events</Button>
+        <Button onClick={() => setLocation("/events")}>Go to Events</Button>
       </div>
     );
   }
