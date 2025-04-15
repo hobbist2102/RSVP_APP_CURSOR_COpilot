@@ -191,6 +191,7 @@ export class MemStorage implements IStorage {
   private whatsappTemplatesMap: Map<number, WhatsappTemplate>;
   private rsvpFollowupTemplatesMap: Map<number, RsvpFollowupTemplate>;
   private rsvpFollowupLogsMap: Map<number, RsvpFollowupLog>;
+  private oauthConfigurationsMap: Map<number, OAuthConfiguration>;
   
   private userIdCounter: number;
   private eventIdCounter: number;
@@ -207,6 +208,7 @@ export class MemStorage implements IStorage {
   private whatsappTemplateIdCounter: number;
   private rsvpFollowupTemplateIdCounter: number;
   private rsvpFollowupLogIdCounter: number;
+  private oauthConfigurationIdCounter: number;
 
   constructor() {
     this.usersMap = new Map();
@@ -224,6 +226,7 @@ export class MemStorage implements IStorage {
     this.whatsappTemplatesMap = new Map();
     this.rsvpFollowupTemplatesMap = new Map();
     this.rsvpFollowupLogsMap = new Map();
+    this.oauthConfigurationsMap = new Map();
     
     this.userIdCounter = 1;
     this.eventIdCounter = 1;
@@ -240,6 +243,7 @@ export class MemStorage implements IStorage {
     this.whatsappTemplateIdCounter = 1;
     this.rsvpFollowupTemplateIdCounter = 1;
     this.rsvpFollowupLogIdCounter = 1;
+    this.oauthConfigurationIdCounter = 1;
     
     // Initialize with default admin user
     this.createUser({
