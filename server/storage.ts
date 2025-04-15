@@ -42,7 +42,8 @@ import {
   relationshipTypes, type RelationshipType, type InsertRelationshipType,
   whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate,
   rsvpFollowupTemplates, type RsvpFollowupTemplate, type InsertRsvpFollowupTemplate,
-  rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
+  rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog,
+  oauthConfigurations, type OAuthConfiguration, type InsertOAuthConfiguration
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
