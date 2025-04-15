@@ -87,100 +87,101 @@ async function migrateOAuthCredentials() {
       return;
     }
     
-    // Start a transaction
-    await pgClient.begin();
-    logger.info('Transaction started');
-    
-    try {
-      // Add Gmail OAuth fields
-      logger.debug('Adding Gmail OAuth columns');
-      await pgClient`
-        ALTER TABLE wedding_events 
-        ADD COLUMN IF NOT EXISTS gmail_client_id TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_client_secret TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_redirect_uri TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_account TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_access_token TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_refresh_token TEXT,
-        ADD COLUMN IF NOT EXISTS gmail_token_expiry TIMESTAMP,
-        ADD COLUMN IF NOT EXISTS use_gmail BOOLEAN DEFAULT FALSE
-      `;
-      
-      logger.info('Added Gmail OAuth columns');
-      
-      // Add Outlook OAuth fields
-      logger.debug('Adding Outlook OAuth columns');
-      await pgClient`
-        ALTER TABLE wedding_events 
-        ADD COLUMN IF NOT EXISTS outlook_client_id TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_client_secret TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_redirect_uri TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_account TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_access_token TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_refresh_token TEXT,
-        ADD COLUMN IF NOT EXISTS outlook_token_expiry TIMESTAMP,
-        ADD COLUMN IF NOT EXISTS use_outlook BOOLEAN DEFAULT FALSE
-      `;
-      
-      logger.info('Added Outlook OAuth columns');
-      
-      // Add general email configuration fields
-      logger.debug('Adding email configuration columns');
-      await pgClient`
-        ALTER TABLE wedding_events 
-        ADD COLUMN IF NOT EXISTS email_from TEXT,
-        ADD COLUMN IF NOT EXISTS email_reply_to TEXT,
-        ADD COLUMN IF NOT EXISTS use_sendgrid BOOLEAN DEFAULT FALSE,
-        ADD COLUMN IF NOT EXISTS sendgrid_api_key TEXT
-      `;
-      
-      logger.info('Added email configuration columns');
-      
-      // Create indexes for performance
-      logger.debug('Creating indexes');
-      await pgClient`
-        CREATE INDEX IF NOT EXISTS idx_wedding_events_gmail_account ON wedding_events(gmail_account);
-        CREATE INDEX IF NOT EXISTS idx_wedding_events_outlook_account ON wedding_events(outlook_account);
-      `;
-      
-      logger.info('Created indexes for OAuth fields');
-      
-      // Verify the migration by checking column existence
-      logger.debug('Verifying migration');
-      const verificationResult = await pgClient`
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = 'wedding_events'
-        AND column_name IN ('gmail_client_id', 'outlook_client_id', 'email_from')
-      `;
-      
-      if (verificationResult.length < 3) {
-        throw new Error('Migration verification failed - not all columns were created');
+    // postgres.js has built-in transaction support using a callback approach
+    await pgClient.begin(async (tx) => {
+      try {
+        logger.info('Transaction started');
+        
+        // Use transaction object (tx) for all queries within the transaction
+        
+        // Add Gmail OAuth fields
+        logger.debug('Adding Gmail OAuth columns');
+        await tx`
+          ALTER TABLE wedding_events 
+          ADD COLUMN IF NOT EXISTS gmail_client_id TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_client_secret TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_redirect_uri TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_account TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_access_token TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_refresh_token TEXT,
+          ADD COLUMN IF NOT EXISTS gmail_token_expiry TIMESTAMP,
+          ADD COLUMN IF NOT EXISTS use_gmail BOOLEAN DEFAULT FALSE
+        `;
+        
+        logger.info('Added Gmail OAuth columns');
+        
+        // Add Outlook OAuth fields
+        logger.debug('Adding Outlook OAuth columns');
+        await tx`
+          ALTER TABLE wedding_events 
+          ADD COLUMN IF NOT EXISTS outlook_client_id TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_client_secret TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_redirect_uri TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_account TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_access_token TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_refresh_token TEXT,
+          ADD COLUMN IF NOT EXISTS outlook_token_expiry TIMESTAMP,
+          ADD COLUMN IF NOT EXISTS use_outlook BOOLEAN DEFAULT FALSE
+        `;
+        
+        logger.info('Added Outlook OAuth columns');
+        
+        // Add general email configuration fields
+        logger.debug('Adding email configuration columns');
+        await tx`
+          ALTER TABLE wedding_events 
+          ADD COLUMN IF NOT EXISTS email_from TEXT,
+          ADD COLUMN IF NOT EXISTS email_reply_to TEXT,
+          ADD COLUMN IF NOT EXISTS use_sendgrid BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS sendgrid_api_key TEXT
+        `;
+        
+        logger.info('Added email configuration columns');
+        
+        // Create indexes for performance
+        logger.debug('Creating indexes');
+        await tx`
+          CREATE INDEX IF NOT EXISTS idx_wedding_events_gmail_account ON wedding_events(gmail_account);
+          CREATE INDEX IF NOT EXISTS idx_wedding_events_outlook_account ON wedding_events(outlook_account);
+        `;
+        
+        logger.info('Created indexes for OAuth fields');
+        
+        // Verify the migration by checking column existence
+        logger.debug('Verifying migration');
+        const verificationResult = await tx`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_name = 'wedding_events'
+          AND column_name IN ('gmail_client_id', 'outlook_client_id', 'email_from')
+        `;
+        
+        if (verificationResult.length < 3) {
+          throw new Error('Migration verification failed - not all columns were created');
+        }
+        
+        // Log the current schema
+        const schemaResult = await tx`
+          SELECT column_name, data_type
+          FROM information_schema.columns
+          WHERE table_name = 'wedding_events'
+          AND (column_name LIKE '%gmail%' OR column_name LIKE '%outlook%')
+          ORDER BY column_name
+        `;
+        
+        logger.info('Schema after migration', {
+          columnCount: schemaResult.length,
+          columns: schemaResult.map(row => `${row.column_name} (${row.data_type})`)
+        });
+        
+        logger.info('Migration completed successfully!');
+        // Transaction will be automatically committed if no errors are thrown
+      } catch (error) {
+        // Transaction will be automatically rolled back when an error is thrown
+        logger.error('Migration failed, transaction rolled back', error as Error);
+        throw error;
       }
-      
-      // Log the current schema
-      const schemaResult = await pgClient`
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = 'wedding_events'
-        AND (column_name LIKE '%gmail%' OR column_name LIKE '%outlook%')
-        ORDER BY column_name
-      `;
-      
-      logger.info('Schema after migration', {
-        columnCount: schemaResult.length,
-        columns: schemaResult.map(row => `${row.column_name} (${row.data_type})`)
-      });
-      
-      // Commit the transaction
-      await pgClient.commit();
-      logger.info('Migration completed successfully!');
-    } catch (error) {
-      // Rollback the transaction in case of error
-      logger.error('Migration failed, rolling back transaction', error as Error);
-      await pgClient.rollback();
-      throw error;
-    }
+    });
   } catch (error) {
     logger.error('OAuth migration failed', error as Error);
     throw error;
