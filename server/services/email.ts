@@ -22,13 +22,15 @@ export class EmailService {
   private eventId: number;
   private defaultFromEmail: string;
   private eventName: string;
+  private event: WeddingEvent | null = null;
 
-  constructor(eventId: number, provider: string, apiKey: string | null = null, defaultFromEmail: string = '', eventName: string = '') {
+  constructor(eventId: number, provider: string, apiKey: string | null = null, defaultFromEmail: string = '', eventName: string = '', event: WeddingEvent | null = null) {
     this.eventId = eventId;
     this.provider = provider.toLowerCase();
     this.apiKey = apiKey;
     this.defaultFromEmail = defaultFromEmail;
     this.eventName = eventName;
+    this.event = event;
 
     // Initialize the appropriate client based on provider
     try {
@@ -42,29 +44,53 @@ export class EmailService {
         console.log(`Initialized SendGrid client for event ${eventId}`);
       }
       else if (this.provider === EmailService.PROVIDER_GMAIL && this.apiKey) {
-        // For Gmail and Outlook, we'll use Nodemailer with OAuth2
-        this.nodemailerTransport = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            type: 'OAuth2',
-            user: defaultFromEmail,
-            accessToken: this.apiKey
+        try {
+          // Use the stored event data for OAuth2 configuration
+          if (!this.event) {
+            console.warn(`No event data available for Gmail OAuth2 configuration`);
+            return;
           }
-        });
-        console.log(`Initialized Gmail client for event ${eventId}`);
+
+          this.nodemailerTransport = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+              type: 'OAuth2',
+              user: defaultFromEmail,
+              clientId: this.event.gmailClientId || process.env.GMAIL_CLIENT_ID,
+              clientSecret: this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET,
+              refreshToken: this.event.gmailRefreshToken,
+              accessToken: this.apiKey
+            }
+          });
+          console.log(`Initialized Gmail client for event ${eventId}`);
+        } catch (err) {
+          console.error(`Failed to initialize Gmail client:`, err);
+        }
       }
       else if (this.provider === EmailService.PROVIDER_OUTLOOK && this.apiKey) {
-        this.nodemailerTransport = nodemailer.createTransport({
-          host: 'smtp.office365.com',
-          port: 587,
-          secure: false,
-          auth: {
-            type: 'OAuth2',
-            user: defaultFromEmail,
-            accessToken: this.apiKey
-          }
-        });
-        console.log(`Initialized Outlook client for event ${eventId}`);
+        try {
+          // Get the event to retrieve the refresh token
+          const event = global.currentEvent || {};
+          
+          this.nodemailerTransport = nodemailer.createTransport({
+            host: 'smtp.office365.com',
+            port: 587,
+            secure: false,
+            auth: {
+              type: 'OAuth2',
+              user: defaultFromEmail,
+              clientId: event.outlookClientId || process.env.OUTLOOK_CLIENT_ID,
+              clientSecret: event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET,
+              refreshToken: event.outlookRefreshToken,
+              accessToken: this.apiKey
+            }
+          });
+          console.log(`Initialized Outlook client for event ${eventId}`);
+        } catch (err) {
+          console.error(`Failed to initialize Outlook client:`, err);
+        }
       }
     } catch (error) {
       console.error(`Failed to initialize email client for provider ${provider}:`, error);
@@ -386,7 +412,8 @@ ${event.brideName} & ${event.groomName}
       emailProvider,
       emailApiKey,
       formattedFromEmail,
-      event.title
+      event.title,
+      event
     );
   }
 }
@@ -395,5 +422,5 @@ ${event.brideName} & ${event.groomName}
  * Get the RSVP link for a guest
  */
 export function generateRSVPLink(baseUrl: string, eventId: number, guestId: number, token: string): string {
-  return `${baseUrl}/rsvp/${eventId}/${guestId}?token=${token}`;
+  return `${baseUrl}/guest-rsvp?token=${token}`;
 }
