@@ -108,6 +108,7 @@ Enhanced error handling ensures that any attempt to access data across event bou
 1. **Audit Logging**: Implement comprehensive audit logging for all cross-event access attempts
 2. **Authentication Integration**: Enhance the system to use event-specific authentication tokens
 3. **Row-Level Security**: Consider implementing database-level row security policies
+4. **OAuth Context Validation**: Enhanced validation of OAuth token usage across event boundaries (see [OAuth Implementation](OAUTH_IMPLEMENTATION.md) for details)
 
 ## Conclusion
 

@@ -141,8 +141,10 @@ The **Indian Wedding Management Platform** is designed to streamline the managem
 ### 2025-04-15
 - Updated project review with recent OAuth implementation improvements
 - Added documentation for RSVP follow-up configuration
-- Created comprehensive OAuth implementation documentation
+- Created comprehensive OAuth implementation documentation in docs/OAUTH_IMPLEMENTATION.md
 - Updated issue tracking with resolved items and new priorities
+- Added docs/README.md to improve documentation navigation
+- Enhanced README.md with OAuth implementation details and environment variables
 
 ### 2025-04-12
 - Added initial project review and recommendations
