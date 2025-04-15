@@ -74,13 +74,21 @@ export class EmailService {
             console.log(`Using direct SMTP access for Gmail (less secure but more reliable)`);
           } else {
             // Use OAuth2 (more secure but requires proper OAuth setup)
+            const clientId = this.event.gmailClientId || process.env.GMAIL_CLIENT_ID;
+            const clientSecret = this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
+            
+            if (!clientId || !clientSecret) {
+              console.error("Missing Gmail OAuth credentials. Please check event settings.");
+              throw new Error("Gmail OAuth credentials not properly configured");
+            }
+            
             transport = {
               service: 'gmail',
               auth: {
                 type: 'OAuth2',
                 user: userEmail,
-                clientId: this.event.gmailClientId || process.env.GMAIL_CLIENT_ID,
-                clientSecret: this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET,
+                clientId: clientId,
+                clientSecret: clientSecret,
                 refreshToken: this.event.gmailRefreshToken,
                 accessToken: this.apiKey
               }
