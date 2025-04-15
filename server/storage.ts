@@ -2211,6 +2211,74 @@ export class DatabaseStorage implements IStorage {
     const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
   }
+
+  // Accommodation operations
+  async getAccommodation(id: number): Promise<Accommodation | undefined> {
+    const result = await db.select().from(accommodations).where(eq(accommodations.id, id));
+    return result[0];
+  }
+
+  async getAccommodationsByEvent(eventId: number): Promise<Accommodation[]> {
+    try {
+      const result = await db.select().from(accommodations).where(eq(accommodations.eventId, eventId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching accommodations for event ${eventId}:`, error);
+      return [];
+    }
+  }
+
+  async createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation> {
+    const result = await db.insert(accommodations).values(accommodation).returning();
+    return result[0];
+  }
+
+  async updateAccommodation(id: number, accommodation: Partial<InsertAccommodation>): Promise<Accommodation | undefined> {
+    const result = await db.update(accommodations)
+      .set(accommodation)
+      .where(eq(accommodations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAccommodation(id: number): Promise<boolean> {
+    const result = await db.delete(accommodations).where(eq(accommodations.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Hotel operations
+  async getHotel(id: number): Promise<Hotel | undefined> {
+    const result = await db.select().from(hotels).where(eq(hotels.id, id));
+    return result[0];
+  }
+
+  async getHotelsByEvent(eventId: number): Promise<Hotel[]> {
+    try {
+      const result = await db.select().from(hotels).where(eq(hotels.eventId, eventId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching hotels for event ${eventId}:`, error);
+      return [];
+    }
+  }
+
+  async createHotel(hotel: InsertHotel): Promise<Hotel> {
+    const result = await db.insert(hotels).values(hotel).returning();
+    return result[0];
+  }
+
+  async updateHotel(id: number, hotel: Partial<InsertHotel>): Promise<Hotel | undefined> {
+    const result = await db.update(hotels)
+      .set(hotel)
+      .where(eq(hotels.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteHotel(id: number): Promise<boolean> {
+    const result = await db.delete(hotels).where(eq(hotels.id, id)).returning();
+    return result.length > 0;
+  }
 }
 
 // Use DatabaseStorage for PostgreSQL database
