@@ -66,6 +66,7 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import DataTable from "@/components/ui/data-table";
+import EventWizard from "@/components/event/event-wizard";
 
 // Define form schemas
 const eventFormSchema = z.object({
