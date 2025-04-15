@@ -13,6 +13,7 @@ import Accommodations from "@/pages/accommodations";
 import Meals from "@/pages/meals";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
+import EventSettings from "@/pages/event-settings";
 import PrivateRoute from "@/components/auth/private-route";
 
 function App() {
@@ -88,6 +89,13 @@ function App() {
           {() => (
             <PrivateRoute>
               <Settings />
+            </PrivateRoute>
+          )}
+        </Route>
+        <Route path="/event-settings">
+          {() => (
+            <PrivateRoute>
+              <EventSettings />
             </PrivateRoute>
           )}
         </Route>
