@@ -2188,5 +2188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register OAuth routes
   app.use('/api/oauth', oauthRoutes);
   
+  // Register Event Settings routes
+  app.use('/api/event-settings', eventSettingsRoutes);
+  
   return httpServer;
 }
