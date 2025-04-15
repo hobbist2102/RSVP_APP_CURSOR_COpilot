@@ -51,19 +51,25 @@ export class EmailService {
             return;
           }
 
-          this.nodemailerTransport = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
+          // Extract the email address from the formatted email if needed
+          let userEmail = defaultFromEmail;
+          if (userEmail.includes('<') && userEmail.includes('>')) {
+            userEmail = userEmail.match(/<([^>]+)>/)?.[1] || userEmail;
+          }
+          
+          const transport = {
+            service: 'gmail',
             auth: {
               type: 'OAuth2',
-              user: defaultFromEmail,
+              user: userEmail,
               clientId: this.event.gmailClientId || process.env.GMAIL_CLIENT_ID,
               clientSecret: this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET,
               refreshToken: this.event.gmailRefreshToken,
               accessToken: this.apiKey
             }
-          });
+          };
+          
+          this.nodemailerTransport = nodemailer.createTransport(transport as any);
           console.log(`Initialized Gmail client for event ${eventId}`);
         } catch (err) {
           console.error(`Failed to initialize Gmail client:`, err);
@@ -71,22 +77,31 @@ export class EmailService {
       }
       else if (this.provider === EmailService.PROVIDER_OUTLOOK && this.apiKey) {
         try {
-          // Get the event to retrieve the refresh token
-          const event = global.currentEvent || {};
+          // Use the stored event data for Outlook OAuth2 configuration
+          if (!this.event) {
+            console.warn(`No event data available for Outlook OAuth2 configuration`);
+            return;
+          }
           
-          this.nodemailerTransport = nodemailer.createTransport({
-            host: 'smtp.office365.com',
-            port: 587,
-            secure: false,
+          // Extract the email address from the formatted email if needed
+          let userEmail = defaultFromEmail;
+          if (userEmail.includes('<') && userEmail.includes('>')) {
+            userEmail = userEmail.match(/<([^>]+)>/)?.[1] || userEmail;
+          }
+          
+          const transport = {
+            service: 'Outlook365',
             auth: {
               type: 'OAuth2',
-              user: defaultFromEmail,
-              clientId: event.outlookClientId || process.env.OUTLOOK_CLIENT_ID,
-              clientSecret: event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET,
-              refreshToken: event.outlookRefreshToken,
+              user: userEmail,
+              clientId: this.event.outlookClientId || process.env.OUTLOOK_CLIENT_ID,
+              clientSecret: this.event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET,
+              refreshToken: this.event.outlookRefreshToken,
               accessToken: this.apiKey
             }
-          });
+          };
+          
+          this.nodemailerTransport = nodemailer.createTransport(transport as any);
           console.log(`Initialized Outlook client for event ${eventId}`);
         } catch (err) {
           console.error(`Failed to initialize Outlook client:`, err);
