@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
+import { db } from "../db";
+import { sql } from "drizzle-orm";
 import axios from "axios";
 import { randomBytes } from "crypto";
 
@@ -238,6 +240,18 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
           emailFrom: email,
           emailFromAddress: email,
         });
+        
+        // Also update directly in the database to ensure compatibility with column names
+        console.log(`[OAuth] Ensuring database fields are properly set for event ${stateData.eventId}`);
+        await db.execute(
+          `UPDATE wedding_events 
+           SET email_configured = true, 
+               email_provider = 'gmail', 
+               email_from = $1, 
+               email_from_address = $1 
+           WHERE id = $2`,
+          [email, stateData.eventId]
+        );
         
         console.log(`[OAuth] Gmail authentication completed successfully`);
         
@@ -480,6 +494,18 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
           emailFromAddress: email,
         });
         
+        // Also update directly in the database to ensure compatibility with column names
+        console.log(`[OAuth] Ensuring database fields are properly set for event ${stateData.eventId}`);
+        await db.execute(
+          `UPDATE wedding_events 
+           SET email_configured = true, 
+               email_provider = 'outlook', 
+               email_from = $1, 
+               email_from_address = $1 
+           WHERE id = $2`,
+          [email, stateData.eventId]
+        );
+        
         console.log(`[OAuth] Outlook authentication completed successfully`);
         
         // Redirect to the success page with the response data
@@ -575,6 +601,14 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
         gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
       });
       
+      // Also ensure database fields are properly set
+      await db.execute(
+        `UPDATE wedding_events 
+         SET email_configured = true
+         WHERE id = $1 AND email_provider = 'gmail'`,
+        [eventId]
+      );
+      
       return res.json({ success: true, message: "Gmail token refreshed successfully" });
     } else if (provider === "outlook") {
       // Refresh Outlook token
@@ -615,6 +649,14 @@ router.post("/refresh-token", isAuthenticated, isAdmin, async (req: Request, res
         outlookRefreshToken: refresh_token, // Microsoft may issue a new refresh token
         outlookTokenExpiry: new Date(Date.now() + expires_in * 1000),
       });
+      
+      // Also ensure database fields are properly set
+      await db.execute(
+        `UPDATE wedding_events 
+         SET email_configured = true
+         WHERE id = $1 AND email_provider = 'outlook'`,
+        [eventId]
+      );
       
       return res.json({ success: true, message: "Outlook token refreshed successfully" });
     } else {
