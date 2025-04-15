@@ -156,12 +156,72 @@ const combinedSchema = z.object({
   communication: communicationSchema,
 });
 
+// Define types for each form section
+type BasicInfoData = z.infer<typeof basicInfoSchema>;
+type EventStructureData = z.infer<typeof eventStructureSchema>;
+type GuestManagementData = z.infer<typeof guestManagementSchema>;
+type TravelAccommodationData = z.infer<typeof travelAccommodationSchema>;
+type CommunicationData = z.infer<typeof communicationSchema>;
+
+// Combined form data type
 type EventWizardFormData = z.infer<typeof combinedSchema>;
+
+// ExistingEvent type definition
+interface ExistingEvent {
+  id?: number;
+  title: string;
+  coupleNames: string;
+  brideName: string;
+  groomName: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  description?: string | null;
+  date?: string | null;
+  
+  // Guest management
+  allowPlusOnes?: boolean | null;
+  allowChildrenDetails?: boolean | null;
+  rsvpDeadline?: string | null;
+  
+  // Travel & Accommodation
+  accommodationMode?: string | null;
+  accommodationSpecialDeals?: string | null;
+  accommodationInstructions?: string | null;
+  accommodationHotelName?: string | null;
+  accommodationHotelAddress?: string | null;
+  accommodationHotelPhone?: string | null;
+  accommodationHotelWebsite?: string | null;
+  accommodationSpecialRates?: string | null;
+  
+  transportMode?: string | null;
+  transportSpecialDeals?: string | null;
+  transportInstructions?: string | null;
+  transportProviderName?: string | null;
+  transportProviderContact?: string | null;
+  transportProviderWebsite?: string | null;
+  defaultArrivalLocation?: string | null;
+  defaultDepartureLocation?: string | null;
+  
+  flightMode?: string | null;
+  flightSpecialDeals?: string | null;
+  flightInstructions?: string | null;
+  recommendedAirlines?: string | null;
+  airlineDiscountCodes?: string | null;
+  
+  // Communication
+  emailFrom?: string | null;
+  emailReplyTo?: string | null;
+  sendRsvpReminders?: boolean;
+  sendRsvpConfirmations?: boolean;
+  sendTravelUpdates?: boolean;
+  whatsappBusinessNumber?: string | null;
+}
 
 interface EventWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  existingEvent?: any;
+  existingEvent?: ExistingEvent;
 }
 
 export default function EventWizard({ 
@@ -241,9 +301,60 @@ export default function EventWizard({
     { title: "Communication Settings", schema: communicationSchema, icon: Mail },
   ];
 
+  // Define type for the API request data
+  type EventApiData = {
+    title: string;
+    coupleNames: string;
+    brideName: string;
+    groomName: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    description: string | null;
+    date: string | null;
+    
+    // Guest management
+    allowPlusOnes: boolean;
+    allowChildrenDetails: boolean;
+    rsvpDeadline: string | null;
+    
+    // Travel & Accommodation
+    accommodationMode: string;
+    accommodationSpecialDeals: string | null;
+    accommodationInstructions: string | null;
+    accommodationHotelName: string | null;
+    accommodationHotelAddress: string | null;
+    accommodationHotelPhone: string | null;
+    accommodationHotelWebsite: string | null;
+    accommodationSpecialRates: string | null;
+    
+    transportMode: string;
+    transportSpecialDeals: string | null;
+    transportInstructions: string | null;
+    transportProviderName: string | null;
+    transportProviderContact: string | null;
+    transportProviderWebsite: string | null;
+    defaultArrivalLocation: string | null;
+    defaultDepartureLocation: string | null;
+    
+    flightMode: string;
+    flightSpecialDeals: string | null;
+    flightInstructions: string | null;
+    recommendedAirlines: string | null;
+    airlineDiscountCodes: string | null;
+    
+    // Communication
+    emailFrom: string | null;
+    emailReplyTo: string | null;
+    sendRsvpReminders: boolean;
+    sendRsvpConfirmations: boolean;
+    sendTravelUpdates: boolean;
+    whatsappBusinessNumber: string | null;
+  };
+  
   // Set up create/update event mutation
   const createEventMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: EventApiData) => {
       const endpoint = existingEvent 
         ? `/api/events/${existingEvent.id}` 
         : '/api/events';
@@ -357,19 +468,19 @@ export default function EventWizard({
   }, [currentStep, wizardData, form]);
   
   // Helper function to get data for the current step
-  function getStepData(stepIndex: number) {
+  function getStepData(stepIndex: number): BasicInfoData | EventStructureData | GuestManagementData | TravelAccommodationData | CommunicationData | Record<string, never> {
     const stepKey = steps[stepIndex].title.toLowerCase().replace(/[&\\s]+/g, '');
     switch(stepKey) {
       case 'basiceventdetails':
-        return wizardData.basicInfo;
+        return wizardData.basicInfo || {} as BasicInfoData;
       case 'eventstructure':
-        return wizardData.eventStructure;
+        return wizardData.eventStructure || {} as EventStructureData;
       case 'guestmanagement':
-        return wizardData.guestManagement;
+        return wizardData.guestManagement || {} as GuestManagementData;
       case 'travel&accommodation':
-        return wizardData.travelAccommodation;
+        return wizardData.travelAccommodation || {} as TravelAccommodationData;
       case 'communicationsettings':
-        return wizardData.communication;
+        return wizardData.communication || {} as CommunicationData;
       default:
         return {};
     }
@@ -428,7 +539,7 @@ export default function EventWizard({
     console.log("Wizard data collected:", wizardData);
     
     // Prepare data for submission
-    const formData = {
+    const formData: EventApiData = {
       // Basic info fields - required fields
       title: wizardData.basicInfo?.title || "",
       coupleNames: wizardData.basicInfo?.coupleNames || "",
