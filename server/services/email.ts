@@ -157,9 +157,51 @@ export class EmailService {
       return !!this.sendGridClient;
     }
     else if (this.provider === EmailService.PROVIDER_GMAIL) {
+      // The transport might be initialized but with incorrect credentials
+      // Check if the event data is available
+      if (!this.event) {
+        console.warn('Gmail email service is not properly configured - missing event data');
+        return false;
+      }
+      
+      // For Gmail, we need to check if either direct SMTP or OAuth is properly configured
+      if (this.event.useGmailDirectSMTP) {
+        // Direct SMTP requires a password
+        if (!this.event.gmailPassword) {
+          console.warn('Gmail direct SMTP is enabled but no password is configured');
+          return false;
+        }
+      } else {
+        // OAuth requires client ID, client secret, and refresh token
+        const hasClientId = !!(this.event.gmailClientId || process.env.GMAIL_CLIENT_ID);
+        const hasClientSecret = !!(this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET);
+        const hasRefreshToken = !!this.event.gmailRefreshToken;
+        
+        if (!hasClientId || !hasClientSecret || !hasRefreshToken) {
+          console.warn(`Gmail OAuth not properly configured - missing credentials: ${!hasClientId ? 'clientId ' : ''}${!hasClientSecret ? 'clientSecret ' : ''}${!hasRefreshToken ? 'refreshToken' : ''}`);
+          return false;
+        }
+      }
+      
       return !!this.nodemailerTransport;
     }
     else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
+      // Check similar configuration requirements for Outlook
+      if (!this.event) {
+        console.warn('Outlook email service is not properly configured - missing event data');
+        return false;
+      }
+      
+      // OAuth requires client ID, client secret, and refresh token
+      const hasClientId = !!(this.event.outlookClientId || process.env.OUTLOOK_CLIENT_ID);
+      const hasClientSecret = !!(this.event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET);
+      const hasRefreshToken = !!this.event.outlookRefreshToken;
+      
+      if (!hasClientId || !hasClientSecret || !hasRefreshToken) {
+        console.warn(`Outlook OAuth not properly configured - missing credentials: ${!hasClientId ? 'clientId ' : ''}${!hasClientSecret ? 'clientSecret ' : ''}${!hasRefreshToken ? 'refreshToken' : ''}`);
+        return false;
+      }
+      
       return !!this.nodemailerTransport;
     }
     
