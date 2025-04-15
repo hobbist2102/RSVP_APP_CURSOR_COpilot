@@ -153,6 +153,26 @@ export interface IStorage {
   // RSVP Follow-up Log operations
   getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
   createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
+  
+  // OAuth Configuration operations
+  getOAuthConfig(eventId: number, provider: 'gmail' | 'outlook'): Promise<OAuthConfiguration | undefined>;
+  getOAuthConfigById(id: number): Promise<OAuthConfiguration | undefined>;
+  getAllOAuthConfigsByEvent(eventId: number): Promise<OAuthConfiguration[]>;
+  saveOAuthConfig(eventId: number, provider: 'gmail' | 'outlook', config: {
+    clientId: string;
+    encryptedClientSecret: string;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiry?: Date;
+    email?: string;
+  }): Promise<OAuthConfiguration>;
+  updateOAuthTokens(id: number, tokens: {
+    accessToken: string;
+    refreshToken?: string;
+    tokenExpiry?: Date;
+    email?: string;
+  }): Promise<OAuthConfiguration | undefined>;
+  deleteOAuthConfig(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
