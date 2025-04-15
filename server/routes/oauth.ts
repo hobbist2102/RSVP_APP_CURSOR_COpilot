@@ -70,7 +70,8 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
     
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
-    const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
+    // Force the redirect URI to be the Replit URL regardless of what's stored
+    const redirectUri = REPLIT_URL + "/api/oauth/gmail/callback";
 
     console.log(`[OAuth] Gmail credentials check:
       - Event gmailClientId exists: ${!!event.gmailClientId}
@@ -156,7 +157,8 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.gmailClientId || process.env.GMAIL_CLIENT_ID;
     const clientSecret = event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
-    const redirectUri = event.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI;
+    // Force the redirect URI to be the Replit URL regardless of what's stored
+    const redirectUri = REPLIT_URL + "/api/oauth/gmail/callback";
     
     console.log(`[OAuth] Gmail callback using:
       - Client ID: ${clientId ? '✓' : '✗'}
@@ -304,7 +306,8 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
 
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
-    const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
+    // Force the redirect URI to be the Replit URL regardless of what's stored
+    const redirectUri = REPLIT_URL + "/api/oauth/outlook/callback";
 
     console.log(`[OAuth] Outlook credentials check:
       - Event outlookClientId exists: ${!!event.outlookClientId}
@@ -388,7 +391,8 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     // Use event-specific credentials or fall back to environment variables
     const clientId = event.outlookClientId || process.env.OUTLOOK_CLIENT_ID;
     const clientSecret = event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
-    const redirectUri = event.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI;
+    // Force the redirect URI to be the Replit URL regardless of what's stored
+    const redirectUri = REPLIT_URL + "/api/oauth/outlook/callback";
     
     console.log(`[OAuth] Outlook callback using:
       - Client ID: ${clientId ? '✓' : '✗'}

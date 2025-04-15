@@ -527,7 +527,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
                   <div className="space-y-2">
                     <Label htmlFor="outlookRedirectUri">
-                      Redirect URI (Optional)
+                      Redirect URI (Required)
                       {getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
                         <span className="text-red-500 ml-1">*</span>
                       )}
@@ -537,11 +537,11 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       name="outlookRedirectUri"
                       value={credentials.outlookRedirectUri}
                       onChange={handleInputChange}
-                      placeholder="https://yourdomain.com/oauth/outlook/callback"
+                      placeholder={DEFAULT_OUTLOOK_REDIRECT_URI}
                       className={getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
                     />
-                    <p className="text-sm text-gray-500">
-                      If left blank, a default redirect URI will be used. Make sure this matches what you configured in your Azure Portal.
+                    <p className="text-sm text-text-muted">
+                      Copy and paste exactly this URL to your Microsoft Azure Portal Redirect URIs: <strong>{DEFAULT_OUTLOOK_REDIRECT_URI}</strong>
                     </p>
                   </div>
 
