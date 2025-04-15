@@ -32,18 +32,22 @@ import RsvpStatusDisplay from "@/components/rsvp/rsvp-status-display";
 import RsvpFollowupConfiguration from "@/components/rsvp/rsvp-followup-configuration";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentEvent } from "@/hooks/use-current-event";
 
 export default function RsvpManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [previewRsvpForm, setPreviewRsvpForm] = useState(false);
   const { toast } = useToast();
 
-  // Fetch the first event
+  // Use the current event from the context
+  const { currentEventId } = useCurrentEvent();
+  
+  // Fallback to first event only if currentEventId is not available
   const { data: events = [] } = useQuery<any[]>({
     queryKey: ['/api/events'],
   });
   
-  const eventId = events?.[0]?.id || 1;
+  const eventId = currentEventId || events?.[0]?.id || 1;
   
   // Fetch guests
   const { data: guests = [], isLoading: isLoadingGuests } = useQuery<any[]>({
