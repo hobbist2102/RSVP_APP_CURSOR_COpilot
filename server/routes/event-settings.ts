@@ -68,16 +68,46 @@ const rsvpSettingsSchema = z.object({
   emailConfigured: z.boolean().optional(),
 });
 
-// Schema for Travel & Accommodation settings
+// Define provision modes as constants
+const PROVISION_MODES = {
+  NONE: "none",
+  ALL: "all",
+  SPECIAL_DEAL: "special_deal",
+  SELECTED: "selected"
+};
+
+// Schema for Travel & Accommodation settings with new fields
 const travelAccommodationSettingsSchema = z.object({
-  // Travel settings
-  offerTravelAssistance: z.boolean().optional(),
+  // Accommodation Settings
+  accommodationMode: z.string().optional(),
+  accommodationSpecialDeals: z.string().optional().nullable(),
+  accommodationInstructions: z.string().optional().nullable(),
+  accommodationHotelName: z.string().optional().nullable(),
+  accommodationHotelAddress: z.string().optional().nullable(),
+  accommodationHotelPhone: z.string().optional().nullable(),
+  accommodationHotelWebsite: z.string().optional().nullable(),
+  accommodationSpecialRates: z.string().optional().nullable(),
+  
+  // Transport Settings
+  transportMode: z.string().optional(),
+  transportSpecialDeals: z.string().optional().nullable(),
+  transportInstructions: z.string().optional().nullable(),
+  transportProviderName: z.string().optional().nullable(),
+  transportProviderContact: z.string().optional().nullable(),
+  transportProviderWebsite: z.string().optional().nullable(),
   defaultArrivalLocation: z.string().optional().nullable(),
   defaultDepartureLocation: z.string().optional().nullable(),
-  recommendedAirlines: z.string().optional().nullable(),
-  transportationProvided: z.boolean().optional(),
   
-  // Accommodation settings
+  // Flight Settings
+  flightMode: z.string().optional(),
+  flightSpecialDeals: z.string().optional().nullable(),
+  flightInstructions: z.string().optional().nullable(),
+  recommendedAirlines: z.string().optional().nullable(),
+  airlineDiscountCodes: z.string().optional().nullable(),
+  
+  // Legacy fields for backward compatibility
+  offerTravelAssistance: z.boolean().optional(),
+  transportationProvided: z.boolean().optional(),
   defaultHotelName: z.string().optional().nullable(),
   defaultHotelAddress: z.string().optional().nullable(),
   defaultHotelPhone: z.string().optional().nullable(),
@@ -254,22 +284,44 @@ router.get("/:eventId/settings", isAuthenticated, isAdmin, async (req: Request, 
         emailConfigured: event.emailConfigured,
       },
       
-      // Travel & Accommodation settings (may be empty in initial implementation)
+      // Travel & Accommodation settings
       travelAccommodation: {
-        // Travel settings
-        offerTravelAssistance: event.offerTravelAssistance,
+        // Accommodation Settings
+        accommodationMode: event.accommodationMode,
+        accommodationSpecialDeals: event.accommodationSpecialDeals,
+        accommodationInstructions: event.accommodationInstructions,
+        accommodationHotelName: event.accommodationHotelName || event.defaultHotelName,
+        accommodationHotelAddress: event.accommodationHotelAddress || event.defaultHotelAddress,
+        accommodationHotelPhone: event.accommodationHotelPhone || event.defaultHotelPhone,
+        accommodationHotelWebsite: event.accommodationHotelWebsite || event.defaultHotelWebsite,
+        accommodationSpecialRates: event.accommodationSpecialRates || event.specialHotelRates,
+        
+        // Transport Settings
+        transportMode: event.transportMode,
+        transportSpecialDeals: event.transportSpecialDeals,
+        transportInstructions: event.transportInstructions,
+        transportProviderName: event.transportProviderName,
+        transportProviderContact: event.transportProviderContact,
+        transportProviderWebsite: event.transportProviderWebsite,
         defaultArrivalLocation: event.defaultArrivalLocation,
         defaultDepartureLocation: event.defaultDepartureLocation,
-        recommendedAirlines: event.recommendedAirlines,
-        transportationProvided: event.transportationProvided,
         
-        // Accommodation settings
+        // Flight Settings
+        flightMode: event.flightMode,
+        flightSpecialDeals: event.flightSpecialDeals,
+        flightInstructions: event.flightInstructions,
+        recommendedAirlines: event.recommendedAirlines,
+        airlineDiscountCodes: event.airlineDiscountCodes,
+        
+        // Legacy fields for backward compatibility
+        offerTravelAssistance: event.offerTravelAssistance,
+        transportationProvided: event.transportationProvided,
         defaultHotelName: event.defaultHotelName,
         defaultHotelAddress: event.defaultHotelAddress,
         defaultHotelPhone: event.defaultHotelPhone,
         defaultHotelWebsite: event.defaultHotelWebsite,
         specialHotelRates: event.specialHotelRates,
-        bookingInstructions: event.bookingInstructions,
+        bookingInstructions: event.bookingInstructions || event.accommodationInstructions,
       },
     };
 

@@ -75,11 +75,37 @@ export const weddingEvents = pgTable("wedding_events", {
   // SendGrid settings
   sendGridApiKey: text("sendgrid_api_key"),
   // Travel & Accommodation Settings
+  
+  // Accommodation Settings
+  accommodationMode: text("accommodation_mode").default("none"), // 'all', 'none', 'selected', 'special_deal'
+  accommodationSpecialDeals: text("accommodation_special_deals"), // Details for special hotel deals
+  accommodationInstructions: text("accommodation_instructions"), // Instructions for booking
+  accommodationHotelName: text("accommodation_hotel_name"), // For special deals or when providing for all
+  accommodationHotelAddress: text("accommodation_hotel_address"),
+  accommodationHotelPhone: text("accommodation_hotel_phone"),
+  accommodationHotelWebsite: text("accommodation_hotel_website"),
+  accommodationSpecialRates: text("accommodation_special_rates"), // Rate codes or discount information
+  
+  // Transport Settings
+  transportMode: text("transport_mode").default("none"), // 'all', 'none', 'selected', 'special_deal'
+  transportSpecialDeals: text("transport_special_deals"), // Details for special transport arrangements
+  transportInstructions: text("transport_instructions"), // Instructions for arranging transport
+  transportProviderName: text("transport_provider_name"), // For special deals
+  transportProviderContact: text("transport_provider_contact"),
+  transportProviderWebsite: text("transport_provider_website"),
+  
+  // Flight Settings
+  flightMode: text("flight_mode").default("none"), // 'all', 'none', 'selected', 'special_deal'
+  flightSpecialDeals: text("flight_special_deals"), // Details for special airline deals
+  flightInstructions: text("flight_instructions"), // Instructions for booking flights
+  recommendedAirlines: text("recommended_airlines"),
+  airlineDiscountCodes: text("airline_discount_codes"),
+  
+  // Supporting old fields for backward compatibility
   offerTravelAssistance: boolean("offer_travel_assistance").default(false),
   transportationProvided: boolean("transportation_provided").default(false),
   defaultArrivalLocation: text("default_arrival_location"),
   defaultDepartureLocation: text("default_departure_location"),
-  recommendedAirlines: text("recommended_airlines"),
   defaultHotelName: text("default_hotel_name"),
   defaultHotelAddress: text("default_hotel_address"),
   defaultHotelPhone: text("default_hotel_phone"),
