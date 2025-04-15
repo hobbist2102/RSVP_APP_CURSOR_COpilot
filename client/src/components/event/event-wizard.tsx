@@ -390,10 +390,10 @@ export default function EventWizard({
     defaultValues: getStepData(currentStep) || {},
   });
   
-  // Update wizardData when existingEvent changes
+  // Initialize form with either existing event data or default values
   useEffect(() => {
     if (existingEvent) {
-      setWizardData({
+      const updatedWizardData = {
         basicInfo: {
           title: existingEvent.title,
           coupleNames: existingEvent.coupleNames,
@@ -451,21 +451,53 @@ export default function EventWizard({
           enableWhatsapp: !!existingEvent.whatsappBusinessNumber,
           whatsappBusinessNumber: existingEvent.whatsappBusinessNumber,
         },
-      });
+      };
+      
+      setWizardData(updatedWizardData);
       console.log("Updated wizard data with existing event:", existingEvent);
+      
+      // Immediately reset the form with the current step data from the updated wizard data
+      const stepKey = steps[currentStep].title.toLowerCase().replace(/[&\\s]+/g, '');
+      let currentStepData;
+      
+      switch(stepKey) {
+        case 'basiceventdetails':
+          currentStepData = updatedWizardData.basicInfo;
+          break;
+        case 'eventstructure':
+          currentStepData = updatedWizardData.eventStructure;
+          break;
+        case 'guestmanagement':
+          currentStepData = updatedWizardData.guestManagement;
+          break;
+        case 'travel&accommodation':
+          currentStepData = updatedWizardData.travelAccommodation;
+          break;
+        case 'communicationsettings':
+          currentStepData = updatedWizardData.communication;
+          break;
+        default:
+          currentStepData = {};
+      }
+      
+      if (currentStepData && Object.keys(currentStepData).length > 0) {
+        form.reset(currentStepData);
+        console.log(`Initialized form for step ${currentStep} with values:`, currentStepData);
+      }
     }
-  }, [existingEvent]);
+  }, [existingEvent, currentStep, form, steps]);
   
-  // When the component mounts, when step changes, or after wizardData is updated
-  // we need to reset the form with the current values
+  // When step changes after the initial load, reset the form with the current values
   useEffect(() => {
-    const currentValues = getStepData(currentStep);
-    if (currentValues) {
-      // Reset form with values from current step
-      form.reset(currentValues);
-      console.log(`Resetting form for step ${currentStep} with values:`, currentValues);
+    // Skip the initial load since that's handled by the effect above
+    if (!existingEvent) {
+      const currentValues = getStepData(currentStep);
+      if (currentValues && Object.keys(currentValues).length > 0) {
+        form.reset(currentValues);
+        console.log(`Resetting form for step ${currentStep} after step change with values:`, currentValues);
+      }
     }
-  }, [currentStep, wizardData, form]);
+  }, [currentStep, wizardData, form, existingEvent]);
   
   // Helper function to get data for the current step
   function getStepData(stepIndex: number): BasicInfoData | EventStructureData | GuestManagementData | TravelAccommodationData | CommunicationData | Record<string, never> {
