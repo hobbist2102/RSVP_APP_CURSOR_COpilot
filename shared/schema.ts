@@ -31,6 +31,10 @@ export const weddingEvents = pgTable("wedding_events", {
   location: text("location").notNull(),
   description: text("description"),
   rsvpDeadline: date("rsvp_deadline"),    // Deadline for RSVP submissions
+  // RSVP Settings
+  allowPlusOnes: boolean("allow_plus_ones").default(true),
+  allowChildrenDetails: boolean("allow_children_details").default(true),
+  customRsvpUrl: text("custom_rsvp_url"),
   // Email Configuration
   emailProvider: text("email_provider").default("resend"), // 'resend', 'sendgrid', etc.
   emailApiKey: text("email_api_key"),                      // API key for the email provider
@@ -67,6 +71,18 @@ export const weddingEvents = pgTable("wedding_events", {
   outlookTokenExpiry: timestamp("outlook_token_expiry"),
   // SendGrid settings
   sendGridApiKey: text("sendgrid_api_key"),
+  // Travel & Accommodation Settings
+  offerTravelAssistance: boolean("offer_travel_assistance").default(false),
+  transportationProvided: boolean("transportation_provided").default(false),
+  defaultArrivalLocation: text("default_arrival_location"),
+  defaultDepartureLocation: text("default_departure_location"),
+  recommendedAirlines: text("recommended_airlines"),
+  defaultHotelName: text("default_hotel_name"),
+  defaultHotelAddress: text("default_hotel_address"),
+  defaultHotelPhone: text("default_hotel_phone"),
+  defaultHotelWebsite: text("default_hotel_website"),
+  specialHotelRates: text("special_hotel_rates"),
+  bookingInstructions: text("booking_instructions"),
   // General metadata
   createdBy: integer("created_by").notNull(),
 });
