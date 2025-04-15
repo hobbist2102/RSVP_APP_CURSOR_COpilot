@@ -10,7 +10,8 @@ import {
   Utensils,
   FileSpreadsheet,
   Settings,
-  LogOut
+  LogOut,
+  Cog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -68,6 +69,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Settings",
       icon: <Settings className="mr-3 h-5 w-5" />,
       path: "/settings"
+    },
+    {
+      name: "Event Settings",
+      icon: <Cog className="mr-3 h-5 w-5" />,
+      path: "/event-settings"
     }
   ];
 
