@@ -11,7 +11,8 @@ import {
   FileSpreadsheet,
   Settings,
   LogOut,
-  Cog
+  Cog,
+  Hotel
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -54,6 +55,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Accommodations",
       icon: <Bed className="mr-3 h-5 w-5" />,
       path: "/accommodations"
+    },
+    {
+      name: "Hotels",
+      icon: <Hotel className="mr-3 h-5 w-5" />,
+      path: "/hotels"
     },
     {
       name: "Meal Planning",
