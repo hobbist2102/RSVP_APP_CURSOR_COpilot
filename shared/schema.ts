@@ -64,6 +64,9 @@ export const weddingEvents = pgTable("wedding_events", {
   // Gmail Direct SMTP settings (alternative to OAuth)
   useGmailDirectSMTP: boolean("use_gmail_direct_smtp").default(false),
   gmailPassword: text("gmail_password"),
+  gmailSmtpHost: text("gmail_smtp_host").default("smtp.gmail.com"),
+  gmailSmtpPort: integer("gmail_smtp_port").default(587),
+  gmailSmtpSecure: boolean("gmail_smtp_secure").default(false),
   // Outlook settings
   outlookClientId: text("outlook_client_id"),
   outlookClientSecret: text("outlook_client_secret"),

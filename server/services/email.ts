@@ -65,13 +65,19 @@ export class EmailService {
           if (this.event.useGmailDirectSMTP && this.event.gmailPassword) {
             // Use direct SMTP with password (less secure, but more reliable in some cases)
             transport = {
-              service: 'gmail',
+              host: this.event.gmailSmtpHost || 'smtp.gmail.com', // Default Gmail SMTP server
+              port: this.event.gmailSmtpPort || 587, // Default Gmail SMTP port
+              secure: this.event.gmailSmtpSecure !== undefined ? this.event.gmailSmtpSecure : false, // Default to false which enables STARTTLS
               auth: {
-                user: userEmail,
+                user: this.event.gmailAccount || userEmail, // Use configured account or extract from from email
                 pass: this.event.gmailPassword
+              },
+              tls: {
+                // Do not fail on invalid certs
+                rejectUnauthorized: false
               }
             };
-            console.log(`Using direct SMTP access for Gmail (less secure but more reliable)`);
+            console.log(`Using direct SMTP access for Gmail: ${transport.host}:${transport.port} (secure: ${transport.secure})`);
           } else {
             // Use OAuth2 (more secure but requires proper OAuth setup)
             const clientId = this.event.gmailClientId || process.env.GMAIL_CLIENT_ID;
@@ -166,9 +172,16 @@ export class EmailService {
       
       // For Gmail, we need to check if either direct SMTP or OAuth is properly configured
       if (this.event.useGmailDirectSMTP) {
-        // Direct SMTP requires a password
+        // Direct SMTP requires a password and gmailAccount (email address)
         if (!this.event.gmailPassword) {
           console.warn('Gmail direct SMTP is enabled but no password is configured');
+          return false;
+        }
+        
+        // Extract the email address from the defaultFromEmail if no gmailAccount is configured
+        const userEmail = this.event.gmailAccount || this.extractEmailAddress(this.defaultFromEmail);
+        if (!userEmail) {
+          console.warn('Gmail direct SMTP is enabled but no account email is configured');
           return false;
         }
       } else {
@@ -183,7 +196,13 @@ export class EmailService {
         }
       }
       
-      return !!this.nodemailerTransport;
+      // Check if transport is initialized
+      if (!this.nodemailerTransport) {
+        console.warn('Gmail transport is not initialized');
+        return false;
+      }
+      
+      return true;
     }
     else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
       // Check similar configuration requirements for Outlook
@@ -202,11 +221,122 @@ export class EmailService {
         return false;
       }
       
-      return !!this.nodemailerTransport;
+      // Check if transport is initialized
+      if (!this.nodemailerTransport) {
+        console.warn('Outlook transport is not initialized');
+        return false;
+      }
+      
+      return true;
     }
     
     console.warn(`Unknown email provider: ${this.provider} for event ${this.eventId}`);
     return false;
+  }
+  
+  /**
+   * Helper method to extract email address from a formatted email string
+   * @param formattedEmail Email in the format "Name <email@example.com>" or just "email@example.com"
+   * @returns Extracted email address or original string if no email format is detected
+   */
+  private extractEmailAddress(formattedEmail: string): string {
+    if (!formattedEmail) return '';
+    
+    // Check if the email is in the format "Name <email@example.com>"
+    if (formattedEmail.includes('<') && formattedEmail.includes('>')) {
+      const match = formattedEmail.match(/<([^>]+)>/);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    // Simple validation to check if it looks like an email address
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(formattedEmail)) {
+      return formattedEmail;
+    }
+    
+    console.warn(`Could not extract valid email address from: ${formattedEmail}`);
+    return '';
+  }
+  
+  /**
+   * Test the email configuration by verifying connection
+   * @returns Promise resolving to an object containing success status and message
+   */
+  public async testConnection(): Promise<{ success: boolean, message: string }> {
+    try {
+      if (!this.isConfigured()) {
+        return { 
+          success: false, 
+          message: `Email service (${this.provider}) is not properly configured` 
+        };
+      }
+      
+      if (this.provider === EmailService.PROVIDER_GMAIL || this.provider === EmailService.PROVIDER_OUTLOOK) {
+        if (!this.nodemailerTransport) {
+          return { 
+            success: false, 
+            message: `${this.provider} transport is not initialized` 
+          };
+        }
+        
+        // Test connection using nodemailer's verify method
+        await this.nodemailerTransport.verify();
+        return { 
+          success: true, 
+          message: `${this.provider} connection verified successfully` 
+        };
+      }
+      else if (this.provider === EmailService.PROVIDER_RESEND) {
+        if (!this.resendClient) {
+          return { 
+            success: false, 
+            message: 'Resend client is not initialized' 
+          };
+        }
+        
+        // For Resend, we'll do a simple API check (domain list)
+        const domains = await this.resendClient.domains.list();
+        return { 
+          success: true, 
+          message: 'Resend API connection verified successfully'
+        };
+      }
+      else if (this.provider === EmailService.PROVIDER_SENDGRID) {
+        if (!this.sendGridClient) {
+          return { 
+            success: false, 
+            message: 'SendGrid client is not initialized' 
+          };
+        }
+        
+        // For SendGrid, we can't easily test without sending an email
+        // So we'll just consider it valid if the API key format looks correct
+        const apiKey = this.apiKey || '';
+        if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
+          return { 
+            success: false, 
+            message: 'SendGrid API key appears to be invalid'
+          };
+        }
+        
+        return { 
+          success: true, 
+          message: 'SendGrid configuration appears valid'
+        };
+      }
+      
+      return { 
+        success: false, 
+        message: `Unknown provider: ${this.provider}` 
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Connection test failed: ${error.message}`
+      };
+    }
   }
 
   /**
