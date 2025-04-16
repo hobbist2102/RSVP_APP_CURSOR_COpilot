@@ -479,32 +479,66 @@ router.patch("/:eventId/rsvp", isAuthenticated, isAdmin, async (req: Request, re
  */
 router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
+    // Validate event ID
     const eventId = parseInt(req.params.eventId);
     if (isNaN(eventId)) {
-      return res.status(400).json({ success: false, message: "Invalid event ID" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid event ID" 
+      });
     }
 
+    // Fetch event from database
     const event = await storage.getEvent(eventId);
     if (!event) {
-      return res.status(404).json({ success: false, message: "Event not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "Event not found" 
+      });
     }
 
-    // Create email service from event
-    const emailService = EmailService.fromEvent(event);
+    console.log(`Testing email connection for event ${eventId} with provider ${event.emailProvider || 'unknown'}`);
 
-    // Test the connection
-    const result = await emailService.testConnection();
-
-    res.json({
-      success: result.success,
-      message: result.message,
-      provider: event.emailProvider || 'unknown'
-    });
+    try {
+      // Create email service from event
+      const emailService = EmailService.fromEvent(event);
+      
+      // Test the connection with timeout
+      const testPromise = emailService.testConnection();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Test connection timeout after 15 seconds')), 15000);
+      });
+      
+      // Use Promise.race to implement timeout
+      const result = await Promise.race([testPromise, timeoutPromise]) as { success: boolean, message: string };
+      
+      console.log(`Email connection test result for event ${eventId}:`, result);
+      
+      return res.json({
+        success: result.success,
+        message: result.message,
+        provider: event.emailProvider || 'unknown'
+      });
+    } catch (testError) {
+      console.error(`Email test connection error for event ${eventId}:`, testError);
+      
+      // Return a friendly error message based on the specific error
+      const errorMessage = testError instanceof Error ? testError.message : String(testError);
+      
+      return res.status(400).json({
+        success: false,
+        message: "Failed to test email connection",
+        error: errorMessage,
+        provider: event.emailProvider || 'unknown'
+      });
+    }
   } catch (error) {
-    console.error("Failed to test email connection:", error);
-    res.status(500).json({ 
+    // This catches unexpected errors in the route handler itself
+    console.error("Unexpected error in test email connection endpoint:", error);
+    
+    return res.status(500).json({ 
       success: false,
-      message: "An error occurred while testing email connection", 
+      message: "An unexpected error occurred while testing email connection", 
       error: error instanceof Error ? error.message : String(error)
     });
   }

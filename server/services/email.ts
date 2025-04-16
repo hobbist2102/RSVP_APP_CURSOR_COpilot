@@ -274,6 +274,7 @@ export class EmailService {
       }
       
       if (this.provider === EmailService.PROVIDER_GMAIL || this.provider === EmailService.PROVIDER_OUTLOOK) {
+        // First check if we have the transport
         if (!this.nodemailerTransport) {
           return { 
             success: false, 
@@ -281,12 +282,26 @@ export class EmailService {
           };
         }
         
-        // Test connection using nodemailer's verify method
-        await this.nodemailerTransport.verify();
-        return { 
-          success: true, 
-          message: `${this.provider} connection verified successfully` 
-        };
+        try {
+          // Test connection using nodemailer's verify method with a timeout
+          const verifyPromise = this.nodemailerTransport.verify();
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000);
+          });
+          
+          await Promise.race([verifyPromise, timeoutPromise]);
+          
+          return { 
+            success: true, 
+            message: `${this.provider} connection verified successfully` 
+          };
+        } catch (err: any) {
+          console.error(`Nodemailer verification error:`, err);
+          return {
+            success: false,
+            message: `Connection test failed: ${err.message}`
+          };
+        }
       }
       else if (this.provider === EmailService.PROVIDER_RESEND) {
         if (!this.resendClient) {
@@ -296,12 +311,20 @@ export class EmailService {
           };
         }
         
-        // For Resend, we'll do a simple API check (domain list)
-        const domains = await this.resendClient.domains.list();
-        return { 
-          success: true, 
-          message: 'Resend API connection verified successfully'
-        };
+        try {
+          // For Resend, we'll do a simple API check (domain list)
+          const domains = await this.resendClient.domains.list();
+          return { 
+            success: true, 
+            message: 'Resend API connection verified successfully'
+          };
+        } catch (err: any) {
+          console.error(`Resend verification error:`, err);
+          return {
+            success: false,
+            message: `Resend API test failed: ${err.message}`
+          };
+        }
       }
       else if (this.provider === EmailService.PROVIDER_SENDGRID) {
         if (!this.sendGridClient) {
@@ -321,10 +344,35 @@ export class EmailService {
           };
         }
         
-        return { 
-          success: true, 
-          message: 'SendGrid configuration appears valid'
-        };
+        try {
+          // Make a basic API call to check if the API key works
+          // We'll use the most lightweight API endpoint available
+          const response = await fetch('https://api.sendgrid.com/v3/user/credits', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            return { 
+              success: true, 
+              message: 'SendGrid API connection verified successfully'
+            };
+          } else {
+            return {
+              success: false,
+              message: `SendGrid API test failed with status ${response.status}: ${response.statusText}`
+            };
+          }
+        } catch (err: any) {
+          console.error(`SendGrid verification error:`, err);
+          return {
+            success: false,
+            message: `SendGrid API test failed: ${err.message}`
+          };
+        }
       }
       
       return { 
@@ -332,9 +380,10 @@ export class EmailService {
         message: `Unknown provider: ${this.provider}` 
       };
     } catch (error: any) {
+      console.error(`Email test connection unexpected error:`, error);
       return {
         success: false,
-        message: `Connection test failed: ${error.message}`
+        message: `Connection test failed: ${error.message || 'Unknown error'}`
       };
     }
   }
