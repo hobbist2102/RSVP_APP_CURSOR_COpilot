@@ -25,6 +25,12 @@ const oauthConfigSchema = z.object({
   gmailClientSecret: z.string().optional(), 
   gmailRedirectUri: z.string().optional(),
   useGmail: z.boolean().optional(),
+  useGmailDirectSMTP: z.boolean().optional(),
+  gmailPassword: z.string().optional(),
+  gmailAccount: z.string().optional(),
+  gmailSmtpHost: z.string().optional(),
+  gmailSmtpPort: z.number().optional(),
+  gmailSmtpSecure: z.boolean().optional(),
   
   // Outlook settings
   outlookClientId: z.string().optional(),
@@ -461,6 +467,44 @@ router.patch("/:eventId/rsvp", isAuthenticated, isAdmin, async (req: Request, re
     res.status(500).json({ 
       success: false,
       message: "An error occurred while updating RSVP settings", 
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/**
+ * Test Email Connection
+ * Validates the email configuration by making a test connection (no email is sent)
+ */
+router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ success: false, message: "Invalid event ID" });
+    }
+
+    const event = await storage.getEvent(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    // Create email service from event
+    const { EmailService } = require('../services/email');
+    const emailService = EmailService.fromEvent(event);
+
+    // Test the connection
+    const result = await emailService.testConnection();
+
+    res.json({
+      success: result.success,
+      message: result.message,
+      provider: event.emailProvider || 'unknown'
+    });
+  } catch (error) {
+    console.error("Failed to test email connection:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "An error occurred while testing email connection", 
       error: error instanceof Error ? error.message : String(error)
     });
   }

@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
+import { AlertCircle, CheckCircle2, Mail, HelpCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface OAuthCredentials {
@@ -27,9 +27,13 @@ interface OAuthCredentials {
   gmailClientId?: string;
   gmailClientSecret?: string;
   gmailRedirectUri?: string;
+  gmailAccount?: string;
   // Gmail Direct SMTP (alternative to OAuth)
   useGmailDirectSMTP?: boolean;
   gmailPassword?: string;
+  gmailSmtpHost?: string;
+  gmailSmtpPort?: number;
+  gmailSmtpSecure?: boolean;
   // Outlook
   outlookClientId?: string;
   outlookClientSecret?: string;
@@ -64,10 +68,14 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     gmailClientId: settings?.gmailClientId || "",
     gmailClientSecret: settings?.gmailClientSecret || "",
     gmailRedirectUri: settings?.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI,
+    gmailAccount: settings?.gmailAccount || "",
     
     // Direct SMTP configuration for Gmail
     useGmailDirectSMTP: settings?.useGmailDirectSMTP || false,
     gmailPassword: settings?.gmailPassword || "",
+    gmailSmtpHost: settings?.gmailSmtpHost || "smtp.gmail.com",
+    gmailSmtpPort: settings?.gmailSmtpPort || 587,
+    gmailSmtpSecure: settings?.gmailSmtpSecure || false,
 
     outlookClientId: settings?.outlookClientId || "",
     outlookClientSecret: settings?.outlookClientSecret || "",
@@ -538,6 +546,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                         </Alert>
                         
                         <div className="space-y-2">
+                          <Label htmlFor="gmailAccount">
+                            Gmail Account (Email Address)
+                          </Label>
+                          <Input
+                            id="gmailAccount"
+                            name="gmailAccount"
+                            value={credentials.gmailAccount}
+                            onChange={handleInputChange}
+                            placeholder="your.email@gmail.com"
+                            type="email"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
                           <Label htmlFor="gmailPassword">
                             Gmail Password or App Password
                           </Label>
@@ -551,6 +573,56 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                           />
                           <p className="text-sm text-muted-foreground">
                             For better security, we recommend using an app-specific password generated in your Google Account.
+                          </p>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium mb-2">Advanced SMTP Settings (Optional)</h4>
+                          <p className="text-xs text-muted-foreground mb-4">
+                            These settings are pre-configured for Gmail. Only change them if you know what you're doing.
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="gmailSmtpHost">SMTP Server Host</Label>
+                              <Input
+                                id="gmailSmtpHost"
+                                name="gmailSmtpHost"
+                                value={credentials.gmailSmtpHost || "smtp.gmail.com"}
+                                onChange={handleInputChange}
+                                placeholder="smtp.gmail.com"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="gmailSmtpPort">SMTP Server Port</Label>
+                              <Input
+                                id="gmailSmtpPort"
+                                name="gmailSmtpPort"
+                                value={credentials.gmailSmtpPort || 587}
+                                onChange={handleInputChange}
+                                type="number"
+                                placeholder="587"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 flex items-center space-x-2">
+                            <Switch
+                              id="gmailSmtpSecure"
+                              name="gmailSmtpSecure"
+                              checked={credentials.gmailSmtpSecure || false}
+                              onCheckedChange={(checked) =>
+                                setCredentials((prev) => ({ ...prev, gmailSmtpSecure: checked }))
+                              }
+                            />
+                            <Label htmlFor="gmailSmtpSecure">Use SSL/TLS (Port 465)</Label>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help ml-1" 
+                              title="Enable for SSL (port 465), disable for STARTTLS (port 587)" />
+                          </div>
+                          
+                          <p className="text-xs text-muted-foreground mt-2">
+                            If you enable SSL/TLS, change the port to 465. For STARTTLS, use port 587 (recommended).
                           </p>
                         </div>
                       </div>
