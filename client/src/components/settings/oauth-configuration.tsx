@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { AlertCircle, CheckCircle2, Mail, HelpCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Mail, HelpCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface OAuthCredentials {
@@ -95,6 +95,18 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     gmail: false,
     outlook: false
   });
+  
+  const [isTesting, setIsTesting] = useState({
+    gmail: false,
+    outlook: false,
+    sendgrid: false
+  });
+  
+  const [testResult, setTestResult] = useState<{
+    success?: boolean;
+    message?: string;
+    provider?: string;
+  }>({});
 
   // Mutation to update the OAuth credentials
   const updateCredentialsMutation = useMutation({
@@ -254,6 +266,74 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     }
   };
 
+
+  // Handler for testing email connection
+  const handleTestConnection = async (provider: 'gmail' | 'outlook' | 'sendgrid') => {
+    if (!eventId) {
+      toast({
+        title: "Error",
+        description: "Event ID is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Clear previous test results
+      setTestResult({});
+      setIsTesting(prev => ({ ...prev, [provider]: true }));
+
+      // Make request to test connection
+      const response = await fetch(`/api/event-settings/${eventId}/test-email-connection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ provider })
+      });
+      
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to test ${provider} connection`);
+      }
+
+      setTestResult({
+        success: result.success,
+        message: result.message,
+        provider: result.provider || provider
+      });
+
+      // Show toast notification
+      if (result.success) {
+        toast({
+          title: "Connection Successful",
+          description: result.message || `Successfully connected to ${provider}`,
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: result.message || `Failed to connect to ${provider}`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error(`${provider} connection test error:`, error);
+      setTestResult({
+        success: false,
+        message: error instanceof Error ? error.message : `Failed to test ${provider} connection`,
+        provider
+      });
+      
+      toast({
+        title: "Connection Test Failed",
+        description: error instanceof Error ? error.message : `An error occurred testing the ${provider} connection`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsTesting(prev => ({ ...prev, [provider]: false }));
+    }
+  };
 
   // Helper to check if credentials are filled for a service
   const hasCredentials = (service: "gmail" | "outlook") => {
@@ -617,8 +697,10 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                               }
                             />
                             <Label htmlFor="gmailSmtpSecure">Use SSL/TLS (Port 465)</Label>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help ml-1" 
-                              title="Enable for SSL (port 465), disable for STARTTLS (port 587)" />
+                            <span className="inline-block relative">
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help ml-1" />
+                              <span className="sr-only">Enable for SSL (port 465), disable for STARTTLS (port 587)</span>
+                            </span>
                           </div>
                           
                           <p className="text-xs text-muted-foreground mt-2">
@@ -629,6 +711,37 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     )}
                   </div>
 
+                  {/* Test Connection Button */}
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      onClick={() => handleTestConnection('gmail')}
+                      disabled={isTesting.gmail || !credentials.useGmail || updateCredentialsMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isTesting.gmail ? (
+                        <>
+                          <span className="mr-2">Testing Connection...</span>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        "Test Gmail Connection"
+                      )}
+                    </Button>
+                    
+                    {testResult.provider === 'gmail' && (
+                      <Alert className="mt-2" variant={testResult.success ? "default" : "destructive"}>
+                        {testResult.success ? 
+                          <CheckCircle2 className="h-4 w-4" /> : 
+                          <AlertCircle className="h-4 w-4" />
+                        }
+                        <AlertTitle>{testResult.success ? "Connection Successful" : "Connection Failed"}</AlertTitle>
+                        <AlertDescription>{testResult.message}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                  
                   {renderConnectedAccount("gmail")}
 
                   {getValidationErrors("gmail").length > 0 && (
@@ -728,6 +841,37 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     </p>
                   </div>
 
+                  {/* Test Connection Button for Outlook */}
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      onClick={() => handleTestConnection('outlook')}
+                      disabled={isTesting.outlook || !credentials.useOutlook || updateCredentialsMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isTesting.outlook ? (
+                        <>
+                          <span className="mr-2">Testing Connection...</span>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        "Test Outlook Connection"
+                      )}
+                    </Button>
+                    
+                    {testResult.provider === 'outlook' && (
+                      <Alert className="mt-2" variant={testResult.success ? "default" : "destructive"}>
+                        {testResult.success ? 
+                          <CheckCircle2 className="h-4 w-4" /> : 
+                          <AlertCircle className="h-4 w-4" />
+                        }
+                        <AlertTitle>{testResult.success ? "Connection Successful" : "Connection Failed"}</AlertTitle>
+                        <AlertDescription>{testResult.message}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                  
                   {renderConnectedAccount("outlook")}
 
                   {getValidationErrors("outlook").length > 0 && (
@@ -781,6 +925,37 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       SendGrid API Key is required when SendGrid is enabled
                     </div>
                   )}
+                  
+                  {/* Test Connection Button for SendGrid */}
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      onClick={() => handleTestConnection('sendgrid')}
+                      disabled={isTesting.sendgrid || !credentials.useSendGrid || !credentials.sendGridApiKey || updateCredentialsMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isTesting.sendgrid ? (
+                        <>
+                          <span className="mr-2">Testing Connection...</span>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        "Test SendGrid Connection"
+                      )}
+                    </Button>
+                    
+                    {testResult.provider === 'sendgrid' && (
+                      <Alert className="mt-2" variant={testResult.success ? "default" : "destructive"}>
+                        {testResult.success ? 
+                          <CheckCircle2 className="h-4 w-4" /> : 
+                          <AlertCircle className="h-4 w-4" />
+                        }
+                        <AlertTitle>{testResult.success ? "Connection Successful" : "Connection Failed"}</AlertTitle>
+                        <AlertDescription>{testResult.message}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
                 </div>
               )}
             </TabsContent>
