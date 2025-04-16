@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
+import { EmailService } from "../services/email";
 
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
@@ -489,7 +490,6 @@ router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (
     }
 
     // Create email service from event
-    const { EmailService } = require('../services/email');
     const emailService = EmailService.fromEvent(event);
 
     // Test the connection
