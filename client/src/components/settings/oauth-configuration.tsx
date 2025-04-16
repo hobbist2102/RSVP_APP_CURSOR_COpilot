@@ -314,13 +314,43 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
     if (!account) return null;
 
+    // Check for valid connection for Gmail using direct SMTP
+    let isConnectionActive = true;
+    if (provider === "gmail" && settings?.useGmailDirectSMTP) {
+      // For direct SMTP, check if password exists
+      isConnectionActive = !!settings?.gmailPassword;
+    } else if (provider === "gmail") {
+      // For OAuth, check if we have the necessary tokens
+      isConnectionActive = !!settings?.gmailRefreshToken && 
+        (!!settings?.gmailAccessToken || !!process.env.GMAIL_ACCESS_TOKEN);
+    } else if (provider === "outlook") {
+      // For Outlook, check if we have the necessary tokens
+      isConnectionActive = !!settings?.outlookRefreshToken && 
+        (!!settings?.outlookAccessToken || !!process.env.OUTLOOK_ACCESS_TOKEN);
+    }
+
+    const statusVariant = isConnectionActive ? "default" : "destructive";
+    const statusTitle = isConnectionActive ? "Connected Account" : "Connection Issue";
+    const statusIcon = isConnectionActive ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />;
+
     return (
-      <Alert className="mt-4">
-        <CheckCircle2 className="h-4 w-4" />
-        <AlertTitle>Connected Account</AlertTitle>
+      <Alert className="mt-4" variant={statusVariant}>
+        {statusIcon}
+        <AlertTitle>{statusTitle}</AlertTitle>
         <AlertDescription>
-          {provider.charAt(0).toUpperCase() + provider.slice(1)} is connected using{" "}
+          {provider.charAt(0).toUpperCase() + provider.slice(1)} {isConnectionActive ? "is connected" : "account exists but may have connection issues"} using{" "}
           <strong>{account}</strong>
+          {!isConnectionActive && provider === "gmail" && settings?.useGmailDirectSMTP && (
+            <div className="mt-2 text-xs">
+              Please check that your Gmail password is correct and that "Less secure app access" is enabled 
+              or an app-specific password is being used.
+            </div>
+          )}
+          {!isConnectionActive && !settings?.useGmailDirectSMTP && (
+            <div className="mt-2 text-xs">
+              The OAuth token may have expired. Try clicking the "Configure {provider === "gmail" ? "Gmail" : "Outlook"} OAuth" button again.
+            </div>
+          )}
         </AlertDescription>
       </Alert>
     );
