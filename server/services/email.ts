@@ -45,7 +45,7 @@ export class EmailService {
         this.sendGridClient.setApiKey(this.apiKey);
         console.log(`Initialized SendGrid client for event ${eventId}`);
       }
-      else if (this.provider === EmailService.PROVIDER_GMAIL && this.apiKey) {
+      else if (this.provider === EmailService.PROVIDER_GMAIL) {
         try {
           // Use the stored event data for OAuth2 configuration
           if (!this.event) {
@@ -62,7 +62,7 @@ export class EmailService {
           let transport: any;
           
           // Check if we should use OAuth2 or direct SMTP
-          if (this.event.useGmailDirectSMTP && this.event.gmailPassword) {
+          if (this.event.useGmailDirectSMTP) {
             // Use direct SMTP with password (less secure, but more reliable in some cases)
             transport = {
               host: this.event.gmailSmtpHost || 'smtp.gmail.com', // Default Gmail SMTP server
@@ -77,7 +77,15 @@ export class EmailService {
                 rejectUnauthorized: false
               }
             };
-            console.log(`Using direct SMTP access for Gmail: ${transport.host}:${transport.port} (secure: ${transport.secure})`);
+            console.log(`Using direct SMTP access for Gmail: ${transport.host}:${transport.port} (secure: ${transport.secure}) with account ${transport.auth.user}`);
+            
+            // Extra debugging for SMTP configuration
+            if (!transport.auth.user) {
+              console.warn("Missing Gmail account email for SMTP configuration");
+            }
+            if (!transport.auth.pass) {
+              console.warn("Missing Gmail password for SMTP configuration");
+            }
           } else {
             // Use OAuth2 (more secure but requires proper OAuth setup)
             const clientId = this.event.gmailClientId || process.env.GMAIL_CLIENT_ID;
