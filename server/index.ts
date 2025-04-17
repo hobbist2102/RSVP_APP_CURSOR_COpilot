@@ -1,10 +1,20 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Handle direct RSVP routes by serving the index.html
+// This needs to come before any other middleware
+app.get('/guest-rsvp/:token', (req, res, next) => {
+  log(`Direct access to RSVP with token: ${req.params.token}`);
+  // Just pass to the next middleware which will eventually go to the vite handler
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

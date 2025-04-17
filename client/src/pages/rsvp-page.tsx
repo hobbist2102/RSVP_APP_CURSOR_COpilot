@@ -29,13 +29,30 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
   const pathNameParts = window.location.pathname.split('/');
   const pathToken = pathNameParts.length > 2 ? pathNameParts[pathNameParts.length - 1] : '';
   
+  // Check for token that may have been extracted by our script in index.html for direct navigation
+  const windowToken = (window as any).rsvpToken;
+  
   // Get token from any available source
-  const token = params?.token || (routeParams?.token) || pathToken || queryToken || '';
+  const token = params?.token || 
+               (routeParams?.token) || 
+               pathToken || 
+               windowToken || 
+               queryToken || 
+               '';
+  
+  // Clear the window token after we've used it to avoid reusing it incorrectly
+  if ((window as any).rsvpToken) {
+    console.log("Using window token from direct navigation:", (window as any).rsvpToken);
+    setTimeout(() => {
+      (window as any).rsvpToken = undefined;
+    }, 1000);
+  }
   
   console.log("RSVP Page - Token sources:", { 
     paramsToken: params?.token,  
     routeParamsToken: routeParams?.token, 
     pathToken,
+    windowToken,
     queryToken,
     pathName: window.location.pathname,
     finalToken: token
