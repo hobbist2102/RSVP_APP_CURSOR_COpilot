@@ -31,7 +31,7 @@ const DEFAULT_OUTLOOK_REDIRECT_URI = `${REPLIT_URL}/api/oauth/outlook/callback`;
 
 // OAuth scopes
 const GMAIL_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.send", 
+  "https://mail.google.com/",  // Full access scope required for XOAUTH2 with Nodemailer
   "https://www.googleapis.com/auth/userinfo.email"
 ];
 
