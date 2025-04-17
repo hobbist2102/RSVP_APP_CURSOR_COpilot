@@ -3,54 +3,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
+import { rsvpLinkHandler } from "./middleware";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Handle direct RSVP routes by reading and serving the index.html
-// This is a crucial fix to ensure direct access to RSVP links works correctly
-app.get('/guest-rsvp/:token', (req, res, next) => {
-  log(`Direct access to RSVP with token: ${req.params.token}`);
-  
-  // In development, let Vite handle it
-  if (app.get("env") === "development") {
-    return next();
-  }
-  
-  // In production, serve the index.html directly
-  try {
-    const indexPath = path.join(process.cwd(), 'dist/public/index.html');
-    if (fs.existsSync(indexPath)) {
-      log(`Serving index.html for RSVP token: ${req.params.token}`);
-      const content = fs.readFileSync(indexPath, 'utf8');
-      
-      // Inject the token into the HTML for client-side use
-      const injectedScript = `
-        <script>
-          window.rsvpToken = "${req.params.token}";
-          console.log("Injected RSVP token from server:", "${req.params.token}");
-        </script>
-      `;
-      
-      // Insert the script right after the opening head tag
-      const modifiedContent = content.replace(/<head>/, '<head>' + injectedScript);
-      res.set('Content-Type', 'text/html');
-      return res.send(modifiedContent);
-    }
-  } catch (error) {
-    console.error('Error serving RSVP page:', error);
-  }
-  
-  next();
-});
-
-// Also handle the base RSVP route
-app.get('/guest-rsvp', (req, res, next) => {
-  log('Direct access to base RSVP route');
-  // Just pass to the next middleware which will eventually go to the vite handler
-  next();
-});
+// Apply the RSVP link handler middleware early in the pipeline
+// This is essential for handling direct navigation to RSVP links
+app.use(rsvpLinkHandler);
 
 app.use((req, res, next) => {
   const start = Date.now();

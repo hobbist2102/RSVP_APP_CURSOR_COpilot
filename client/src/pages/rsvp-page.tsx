@@ -9,6 +9,7 @@ import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { extractRsvpToken } from "@/lib/rsvp-token-handler";
 
 enum RSVPStage {
   LOADING = "loading",
@@ -19,43 +20,20 @@ enum RSVPStage {
 }
 
 export default function RsvpPage({ params }: { params?: { token?: string } }) {
-  // Extract token from various possible sources for maximum compatibility
-  const queryParams = new URLSearchParams(window.location.search);
-  const queryToken = queryParams.get('token');
-  
   const [matched, routeParams] = useRoute<{token: string}>("/guest-rsvp/:token");
   
-  // Extract token from URL path if it's directly in the path
-  const pathNameParts = window.location.pathname.split('/');
-  const pathToken = pathNameParts.length > 2 ? pathNameParts[pathNameParts.length - 1] : '';
+  // This gets the token from all possible sources (URL parameter, path, window object, etc.)
+  // in a reliable, consistent way that handles all the edge cases
+  const extractedToken = extractRsvpToken();
   
-  // Check for token that may have been extracted by our script in index.html for direct navigation
-  const windowToken = (window as any).rsvpToken;
+  // Get token with fallbacks for maximum compatibility
+  const token = params?.token || routeParams?.token || extractedToken || '';
   
-  // Get token from any available source
-  const token = params?.token || 
-               (routeParams?.token) || 
-               pathToken || 
-               windowToken || 
-               queryToken || 
-               '';
-  
-  // Clear the window token after we've used it to avoid reusing it incorrectly
-  if ((window as any).rsvpToken) {
-    console.log("Using window token from direct navigation:", (window as any).rsvpToken);
-    setTimeout(() => {
-      (window as any).rsvpToken = undefined;
-    }, 1000);
-  }
-  
-  console.log("RSVP Page - Token sources:", { 
+  console.log("RSVP Page - Using token:", token, "- Extracted from:", { 
     paramsToken: params?.token,  
     routeParamsToken: routeParams?.token, 
-    pathToken,
-    windowToken,
-    queryToken,
-    pathName: window.location.pathname,
-    finalToken: token
+    extractedToken,
+    path: window.location.pathname
   });
   
   const [, setLocation] = useLocation();
