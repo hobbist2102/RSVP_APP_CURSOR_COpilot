@@ -86,7 +86,8 @@ export class RSVPService {
    */
   static generateRSVPLink(baseUrl: string, guest: Guest, event: WeddingEvent): string {
     const token = this.generateToken(guest.id, event.id);
-    return `${baseUrl}/guest-rsvp?token=${token}`;
+    // Use path parameter format instead of query parameter for better compatibility
+    return `${baseUrl}/guest-rsvp/${token}`;
   }
   
   /**
