@@ -49,6 +49,16 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Import and register the fallback route handlers
+  // This needs to be done after API routes but before error handler
+  try {
+    const { registerFallbackRoutes } = await import('./fallback');
+    registerFallbackRoutes(app);
+    log('Registered fallback route handlers for client-side routing');
+  } catch (error) {
+    console.error('Failed to register fallback routes:', error);
+  }
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
