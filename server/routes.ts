@@ -2235,5 +2235,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Event Settings routes
   app.use('/api/event-settings', eventSettingsRoutes);
   
+  // Add a test email endpoint for debugging
+  app.post('/api/test-email', async (req: Request, res: Response) => {
+    try {
+      const { eventId, email } = req.body;
+      
+      if (!eventId || !email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Both eventId and email are required'
+        });
+      }
+      
+      console.log(`[TEST EMAIL] Attempting to send test email to ${email} from event ${eventId}`);
+      
+      // Get the event data
+      const event = await storage.getEvent(parseInt(eventId));
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          message: 'Event not found'
+        });
+      }
+      
+      // Import EmailService
+      const { EmailService } = await import('./services/email');
+      
+      // Create an email service for this event
+      console.log(`[TEST EMAIL] Creating email service for event ${eventId}`);
+      const emailService = EmailService.fromEvent(event);
+      
+      // Check if the email service is configured
+      if (!emailService.isConfigured()) {
+        console.log(`[TEST EMAIL] Email service not configured for event ${eventId}`);
+        return res.status(400).json({
+          success: false,
+          message: 'Email service not properly configured for this event'
+        });
+      }
+      
+      // Send a test email
+      console.log(`[TEST EMAIL] Sending test email to ${email}`);
+      const result = await emailService.sendEmail({
+        to: email,
+        subject: `Test Email from ${event.title}`,
+        html: `
+          <h1>Test Email from Wedding RSVP System</h1>
+          <p>This is a test email from the Wedding RSVP system for ${event.title}.</p>
+          <p>If you're seeing this, email sending is working correctly!</p>
+          <p>Email Provider: ${event.emailProvider || 'Default'}</p>
+          <p>Email Configuration: ${event.useGmailDirectSMTP ? 'Direct SMTP' : 'OAuth'}</p>
+          <p>Time: ${new Date().toISOString()}</p>
+        `,
+        text: `Test Email from Wedding RSVP System\n\nThis is a test email from the Wedding RSVP system for ${event.title}.\n\nIf you're seeing this, email sending is working correctly!\n\nEmail Provider: ${event.emailProvider || 'Default'}\nEmail Configuration: ${event.useGmailDirectSMTP ? 'Direct SMTP' : 'OAuth'}\nTime: ${new Date().toISOString()}`
+      });
+      
+      console.log(`[TEST EMAIL] Result:`, result);
+      
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send test email',
+          error: result.error
+        });
+      }
+      
+      return res.json({
+        success: true,
+        message: `Test email sent successfully to ${email}`
+      });
+    } catch (error) {
+      console.error('[TEST EMAIL] Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while sending test email',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   return httpServer;
 }
