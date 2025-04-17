@@ -26,6 +26,13 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
   // Get token from path param first, then fallback to query param for backward compatibility
   const token = params?.token || routeParams?.token || queryParams.token;
   
+  console.log("RSVP Page - Token sources:", { 
+    paramsToken: params?.token,  
+    routeParamsToken: routeParams?.token, 
+    queryParamsToken: queryParams.token,
+    finalToken: token
+  });
+  
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [stage, setStage] = useState<RSVPStage>(RSVPStage.LOADING);
