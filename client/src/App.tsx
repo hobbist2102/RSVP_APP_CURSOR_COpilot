@@ -23,8 +23,11 @@ function App() {
     <AuthProvider>
       <Switch>
         <Route path="/auth" component={AuthPage} />
-        {/* RSVP routes - we need both of these formats to handle all cases */}
+        {/* RSVP routes - handle all possible formats */}
         <Route path="/guest-rsvp/:token" component={RsvpPage} />
+        <Route path="/guest-rsvp/guest-rsvp/:token">
+          {(params) => <RsvpPage params={params} />}
+        </Route>
         <Route path="/guest-rsvp">
           {() => <RsvpPage />}
         </Route>
