@@ -16,9 +16,15 @@ export function extractRsvpToken(): string | null {
   }
   
   // Extract from URL path
-  const pathParts = window.location.pathname.split('/');
-  if (pathParts.length > 2 && pathParts[1] === 'guest-rsvp') {
-    const token = pathParts[2];
+  const pathMatch = window.location.pathname.match(/\/guest-rsvp\/(.+)/);
+  if (pathMatch && pathMatch[1]) {
+    // Handle case where path might be /guest-rsvp/guest-rsvp/TOKEN
+    let token = pathMatch[1];
+    if (token.startsWith('guest-rsvp/')) {
+      token = token.replace('guest-rsvp/', '');
+      console.log('Corrected duplicated path segment in token path');
+    }
+    
     // Ensure the token isn't empty
     if (token && token.length > 0) {
       console.log('Extracted RSVP token from URL path:', token);

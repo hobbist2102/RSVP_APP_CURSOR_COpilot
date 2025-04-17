@@ -23,13 +23,9 @@ function App() {
     <AuthProvider>
       <Switch>
         <Route path="/auth" component={AuthPage} />
-        {/* RSVP routes - handle all possible formats */}
-        <Route path="/guest-rsvp/:token" component={RsvpPage} />
-        <Route path="/guest-rsvp/guest-rsvp/:token">
-          {(params) => <RsvpPage params={params} />}
-        </Route>
-        <Route path="/guest-rsvp">
-          {() => <RsvpPage />}
+        {/* RSVP routes - capture all possible formats */}
+        <Route path="/guest-rsvp/:rest*">
+          {(params) => <RsvpPage />}
         </Route>
         <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
         <Route path="/">
