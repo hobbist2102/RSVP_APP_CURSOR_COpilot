@@ -52,6 +52,16 @@ import eventSettingsRoutes from "./routes/event-settings";
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Special handling for client-side routes that should be handled by React router
+  app.get('/guest-rsvp/:token', (req, res, next) => {
+    console.log(`Received RSVP request with token: ${req.params.token}`);
+    next(); // Pass through to client-side router
+  });
+  
+  app.get('/guest-rsvp', (req, res, next) => {
+    console.log(`Received RSVP request with query token: ${req.query.token || 'none'}`);
+    next(); // Pass through to client-side router
+  });
   const httpServer = createServer(app);
   
   // Session setup

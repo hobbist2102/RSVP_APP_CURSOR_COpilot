@@ -19,17 +19,25 @@ enum RSVPStage {
 }
 
 export default function RsvpPage({ params }: { params?: { token?: string } }) {
-  // Extract token from either path parameter or query parameter for backward compatibility
-  const queryParams = useQueryParams();
-  const [matched, routeParams] = useRoute("/guest-rsvp/:token");
+  // Extract token from various possible sources for maximum compatibility
+  const queryParams = new URLSearchParams(window.location.search);
+  const queryToken = queryParams.get('token');
   
-  // Get token from path param first, then fallback to query param for backward compatibility
-  const token = params?.token || routeParams?.token || queryParams.token;
+  const [matched, routeParams] = useRoute<{token: string}>("/guest-rsvp/:token");
+  
+  // Extract token from URL path if it's directly in the path
+  const pathNameParts = window.location.pathname.split('/');
+  const pathToken = pathNameParts.length > 2 ? pathNameParts[pathNameParts.length - 1] : '';
+  
+  // Get token from any available source
+  const token = params?.token || (routeParams?.token) || pathToken || queryToken || '';
   
   console.log("RSVP Page - Token sources:", { 
     paramsToken: params?.token,  
     routeParamsToken: routeParams?.token, 
-    queryParamsToken: queryParams.token,
+    pathToken,
+    queryToken,
+    pathName: window.location.pathname,
     finalToken: token
   });
   
