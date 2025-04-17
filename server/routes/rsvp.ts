@@ -795,6 +795,7 @@ export function registerRSVPRoutes(
   
   // Admin-only endpoints for generating and sending RSVP links
   app.post('/api/admin/rsvp/generate-links', isAuthenticated, async (req: Request, res: Response) => {
+    console.log('Admin RSVP link generation request received:', req.body);
     try {
       const { eventId, baseUrl } = req.body;
       

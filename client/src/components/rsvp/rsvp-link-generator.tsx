@@ -45,7 +45,9 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
   const eventId = currentEventId;
 
   const [selectedGuests, setSelectedGuests] = useState<number[]>([]);
-  const [baseUrl, setBaseUrl] = useState(window.location.origin + "/guest-rsvp");
+  // Important: The base URL should be the domain only, without the /guest-rsvp path
+  // This is because the backend will append /guest-rsvp/ to this when generating the links
+  const [baseUrl, setBaseUrl] = useState(window.location.origin);
   const [selectedChannel, setSelectedChannel] = useState<string>("email");
   const [isGenerating, setIsGenerating] = useState(false);
   const [guestLinks, setGuestLinks] = useState<any[]>([]);

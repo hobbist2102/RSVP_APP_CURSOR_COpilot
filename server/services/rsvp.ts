@@ -86,8 +86,10 @@ export class RSVPService {
    */
   static generateRSVPLink(baseUrl: string, guest: Guest, event: WeddingEvent): string {
     const token = this.generateToken(guest.id, event.id);
+    // Ensure the baseUrl doesn't already contain a trailing slash
+    const formattedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     // Use path parameter format instead of query parameter for better compatibility
-    return `${baseUrl}/guest-rsvp/${token}`;
+    return `${formattedBaseUrl}/guest-rsvp/${token}`;
   }
   
   /**
