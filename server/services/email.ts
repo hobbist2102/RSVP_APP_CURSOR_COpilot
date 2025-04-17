@@ -96,18 +96,38 @@ export class EmailService {
               throw new Error("Gmail OAuth credentials not properly configured");
             }
             
+            // Enhanced OAuth2 implementation based on Nodemailer best practices
+            // Creates a proper OAuth2 implementation that can refresh tokens automatically
+            const oauth2Client = {
+              user: userEmail,
+              clientId: clientId,
+              clientSecret: clientSecret,
+              refreshToken: this.event.gmailRefreshToken,
+              // If we have an access token and expires timestamp, use them
+              accessToken: this.apiKey || this.event.gmailAccessToken,
+              expires: this.event.gmailTokenExpiry 
+                ? new Date(this.event.gmailTokenExpiry).getTime() 
+                : undefined
+            };
+            
+            console.log(`Using OAuth2 authentication for Gmail with account ${userEmail}`);
+            
             transport = {
               service: 'gmail',
               auth: {
                 type: 'OAuth2',
-                user: userEmail,
-                clientId: clientId,
-                clientSecret: clientSecret,
-                refreshToken: this.event.gmailRefreshToken,
-                accessToken: this.apiKey
-              }
+                ...oauth2Client
+              },
+              debug: true // Enable debug output for troubleshooting
             };
-            console.log(`Using OAuth2 authentication for Gmail`);
+            
+            // Extra debugging for OAuth2 configuration
+            if (!oauth2Client.user) {
+              console.warn("Missing Gmail account email for OAuth2 configuration");
+            }
+            if (!oauth2Client.refreshToken) {
+              console.warn("Missing Gmail refresh token for OAuth2 configuration");
+            }
           }
           
           this.nodemailerTransport = nodemailer.createTransport(transport as any);
