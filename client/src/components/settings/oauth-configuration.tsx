@@ -58,8 +58,12 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  // Define Replit domain for redirects
-  const REPLIT_DOMAIN = "https://f6f88cec-f189-42d1-9bbe-d818fd70b49c-00-4k1motpw4fis.worf.replit.dev";
+  // Get the current domain dynamically for OAuth redirects
+  const getCurrentDomain = () => {
+    return window.location.origin;
+  };
+  
+  const REPLIT_DOMAIN = getCurrentDomain();
   const DEFAULT_GMAIL_REDIRECT_URI = `${REPLIT_DOMAIN}/api/oauth/gmail/callback`;
   const DEFAULT_OUTLOOK_REDIRECT_URI = `${REPLIT_DOMAIN}/api/oauth/outlook/callback`;
   
@@ -226,15 +230,32 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       return;
     }
 
+    // Ensure the credentials are saved first before initiating OAuth
+    if (!hasCredentials(provider)) {
+      toast({
+        title: `Missing ${provider === 'gmail' ? 'Gmail' : 'Outlook'} Credentials`,
+        description: `Please enter your Client ID and Client Secret for ${provider === 'gmail' ? 'Gmail' : 'Outlook'} and save your changes before configuring OAuth.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsConfiguring(prev => ({ ...prev, [provider]: true }));
+
+      // Save current credentials to ensure we're using the latest values
+      await updateCredentialsMutation.mutateAsync(credentials);
 
       // Get the authorization URL
       const response = await fetch(`/api/oauth/${provider}/authorize?eventId=${eventId}`);
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || `Failed to initiate ${provider} authorization`);
+        if (data.code === "MISSING_CLIENT_ID") {
+          throw new Error(`Missing ${provider} credentials. Please save your Client ID and Client Secret first.`);
+        } else {
+          throw new Error(data.message || `Failed to initiate ${provider} authorization`);
+        }
       }
 
       // Open the authorization URL in a popup
@@ -244,6 +265,10 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
         'width=600,height=700'
       );
 
+      if (!authWindow) {
+        throw new Error(`Popup blocked! Please allow popups for this site to configure ${provider}.`);
+      }
+
       // Poll for completion
       const checkInterval = setInterval(() => {
         if (authWindow?.closed) {
@@ -252,6 +277,11 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
           // Refresh settings to show the updated state
           queryClient.invalidateQueries({ queryKey: [`/api/event-settings/${eventId}/settings`] });
+          
+          // Verify if the connection was successful after a short delay
+          setTimeout(() => {
+            handleTestConnection(provider);
+          }, 1500);
         }
       }, 1000);
 
@@ -278,10 +308,34 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       return;
     }
 
+    // Check if provider is enabled
+    if ((provider === 'gmail' && !credentials.useGmail) ||
+        (provider === 'outlook' && !credentials.useOutlook) ||
+        (provider === 'sendgrid' && !credentials.useSendGrid)) {
+      toast({
+        title: `${provider === 'gmail' ? 'Gmail' : provider === 'outlook' ? 'Outlook' : 'SendGrid'} Not Enabled`,
+        description: `Please enable ${provider} in the settings before testing the connection.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // Clear previous test results
       setTestResult({});
       setIsTesting(prev => ({ ...prev, [provider]: true }));
+
+      // For OAuth providers, check if we have credentials
+      if (provider === 'gmail' || provider === 'outlook') {
+        if (!hasCredentials(provider)) {
+          throw new Error(`Missing ${provider} credentials. Please enter your Client ID and Client Secret first.`);
+        }
+      }
+
+      // For SendGrid, check if we have API key
+      if (provider === 'sendgrid' && !credentials.sendGridApiKey) {
+        throw new Error('SendGrid API Key is required for testing.');
+      }
 
       // Make request to test connection
       const response = await fetch(`/api/event-settings/${eventId}/test-email-connection`, {
@@ -311,9 +365,21 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
           description: result.message || `Successfully connected to ${provider}`,
         });
       } else {
+        // Provide more helpful error messages based on common issues
+        let errorMessage = result.message || `Failed to connect to ${provider}`;
+        let troubleshootingTip = '';
+        
+        if (provider === 'gmail' && errorMessage.includes('Invalid Credentials')) {
+          troubleshootingTip = 'Try reconfiguring the OAuth connection by clicking "Configure Gmail OAuth" again.';
+        } else if (provider === 'outlook' && errorMessage.includes('token')) {
+          troubleshootingTip = 'The OAuth token may have expired. Try clicking "Configure Outlook OAuth" again.';
+        } else if (provider === 'gmail' && credentials.useGmailDirectSMTP && errorMessage.includes('Authentication')) {
+          troubleshootingTip = 'For Gmail SMTP, make sure you have enabled "Less secure app access" or are using an app password.';
+        }
+        
         toast({
           title: "Connection Failed",
-          description: result.message || `Failed to connect to ${provider}`,
+          description: errorMessage + (troubleshootingTip ? `\n\nTroubleshooting tip: ${troubleshootingTip}` : ''),
           variant: "destructive"
         });
       }
