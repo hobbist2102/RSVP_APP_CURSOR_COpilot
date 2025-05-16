@@ -63,30 +63,23 @@ function updateUserSession(
 
 async function upsertUser(claims: any) {
   try {
-    // Handle potentially null profile image URL and other fields
-    const profileImageUrl = claims["profile_image_url"] || null;
-    const email = claims["email"] || null;
-    const firstName = claims["first_name"] || null;
-    const lastName = claims["last_name"] || null;
-    
-    // Use the users table from the schema, not replit_users
+    // Insert into the replit_users table instead
     const result = await db.execute(sql`
-      INSERT INTO users 
+      INSERT INTO replit_users 
         (id, email, first_name, last_name, profile_image_url, role)
       VALUES 
-        (${claims["sub"]}, ${email}, ${firstName}, ${lastName}, ${profileImageUrl}, 'staff')
+        (${claims["sub"]}, ${claims["email"]}, ${claims["first_name"]}, ${claims["last_name"]}, ${claims["profile_image_url"]}, 'staff')
       ON CONFLICT (id) DO UPDATE SET
-        email = ${email},
-        first_name = ${firstName},
-        last_name = ${lastName},
-        profile_image_url = ${profileImageUrl},
+        email = ${claims["email"]},
+        first_name = ${claims["first_name"]},
+        last_name = ${claims["last_name"]},
+        profile_image_url = ${claims["profile_image_url"]},
         updated_at = CURRENT_TIMESTAMP
       RETURNING *
     `);
     
-    // Handle the result based on Drizzle's return format
-    if (result && Array.isArray(result) && result.length > 0) {
-      return result[0];
+    if (result && result.rows && result.rows.length > 0) {
+      return result.rows[0];
     }
     
     throw new Error("Failed to upsert user");
@@ -108,33 +101,15 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    try {
-      // Create a user object for session
-      const user: any = {};
-      updateUserSession(user, tokens);
-      
-      // Get claims from token
-      const claims = tokens.claims();
-      
-      // Save user to database
-      const dbUser = await upsertUser(claims);
-      
-      // Add important properties from database user to session user
-      Object.assign(user, { 
-        role: dbUser.role, 
-        id: dbUser.id,
-        email: dbUser.email,
-        firstName: dbUser.first_name || dbUser.firstName,
-        lastName: dbUser.last_name || dbUser.lastName,
-        profileImageUrl: dbUser.profile_image_url || dbUser.profileImageUrl
-      });
-      
-      // Complete authentication
-      verified(null, user);
-    } catch (error) {
-      console.error("Auth verification error:", error);
-      verified(error as Error);
-    }
+    const user = {};
+    updateUserSession(user, tokens);
+    const dbUser = await upsertUser(tokens.claims());
+    Object.assign(user, { 
+      role: dbUser.role, 
+      id: dbUser.id,
+      email: dbUser.email
+    });
+    verified(null, user);
   };
 
   for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {

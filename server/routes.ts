@@ -8,8 +8,6 @@ import { format } from "date-fns";
 import './types';
 // Import Replit Auth
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-// Import Local Auth for username/password authentication
-import { setupLocalAuth, isLocalAuthenticated, isLocalAdmin } from "./local-auth";
 import { 
   insertUserSchema, 
   insertGuestSchema, 
