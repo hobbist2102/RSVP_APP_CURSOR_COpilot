@@ -40,6 +40,7 @@ import {
   guestCeremonies, type GuestCeremony, type InsertGuestCeremony,
   travelInfo, type TravelInfo, type InsertTravelInfo,
   hotels, type Hotel, type InsertHotel,
+  globalRoomTypes, type InsertGlobalRoomType,
   accommodations, type Accommodation, type InsertAccommodation,
   roomAllocations, type RoomAllocation, type InsertRoomAllocation,
   mealOptions, type MealOption, type InsertMealOption,
@@ -99,9 +100,18 @@ export interface IStorage {
   createTravelInfo(travelInfo: InsertTravelInfo): Promise<TravelInfo>;
   updateTravelInfo(id: number, travelInfo: Partial<InsertTravelInfo>): Promise<TravelInfo | undefined>;
   
+  // Global Room Type operations
+  getGlobalRoomType(id: number): Promise<GlobalRoomType | undefined>;
+  getGlobalRoomTypesByHotelName(hotelName: string): Promise<GlobalRoomType[]>;
+  getAllGlobalRoomTypes(): Promise<GlobalRoomType[]>;
+  createGlobalRoomType(roomType: InsertGlobalRoomType): Promise<GlobalRoomType>;
+  updateGlobalRoomType(id: number, roomType: Partial<InsertGlobalRoomType>): Promise<GlobalRoomType | undefined>;
+  deleteGlobalRoomType(id: number): Promise<boolean>;
+  
   // Accommodation operations
   getAccommodation(id: number): Promise<Accommodation | undefined>;
   getAccommodationsByEvent(eventId: number): Promise<Accommodation[]>;
+  getAccommodationsByHotel(hotelId: number): Promise<Accommodation[]>;
   createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation>;
   updateAccommodation(id: number, accommodation: Partial<InsertAccommodation>): Promise<Accommodation | undefined>;
   deleteAccommodation(id: number): Promise<boolean>;
@@ -109,6 +119,7 @@ export interface IStorage {
   // Hotel operations
   getHotel(id: number): Promise<Hotel | undefined>;
   getHotelsByEvent(eventId: number): Promise<Hotel[]>;
+  getHotelByName(name: string): Promise<Hotel | undefined>;
   createHotel(hotel: InsertHotel): Promise<Hotel>;
   updateHotel(id: number, hotel: Partial<InsertHotel>): Promise<Hotel | undefined>;
   deleteHotel(id: number): Promise<boolean>;

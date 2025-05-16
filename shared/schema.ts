@@ -247,11 +247,28 @@ export const insertHotelSchema = createInsertSchema(hotels).omit({
   createdAt: true,
 });
 
-// Accommodations (room types within hotels)
+// Global Room Types (shared across all events)
+export const globalRoomTypes = pgTable("global_room_types", {
+  id: serial("id").primaryKey(),
+  hotelName: text("hotel_name").notNull(), // The hotel name this room type belongs to
+  name: text("name").notNull(), // Name of the room type (e.g., "Deluxe Room")
+  category: text("category").notNull(), // Standard, Deluxe, Suite, etc.
+  capacity: integer("capacity").notNull(), // Number of people the room can accommodate
+  specialFeatures: text("special_features"), // Special features of this room type
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGlobalRoomTypeSchema = createInsertSchema(globalRoomTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Accommodations (room types for specific events)
 export const accommodations = pgTable("accommodations", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull(),
   hotelId: integer("hotel_id").references(() => hotels.id), // Link to hotel
+  globalRoomTypeId: integer("global_room_type_id").references(() => globalRoomTypes.id), // Link to global room type
   name: text("name").notNull(),
   roomType: text("room_type").notNull(),
   capacity: integer("capacity").notNull(),
@@ -259,6 +276,7 @@ export const accommodations = pgTable("accommodations", {
   allocatedRooms: integer("allocated_rooms").default(0),
   pricePerNight: text("price_per_night"),
   specialFeatures: text("special_features"),
+  showPricing: boolean("show_pricing").default(false), // Only show pricing for special deals
 });
 
 export const insertAccommodationSchema = createInsertSchema(accommodations).omit({
@@ -549,6 +567,9 @@ export type InsertHotel = z.infer<typeof insertHotelSchema>;
 
 export type Accommodation = typeof accommodations.$inferSelect;
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
+
+export type GlobalRoomType = typeof globalRoomTypes.$inferSelect;
+export type InsertGlobalRoomType = z.infer<typeof insertGlobalRoomTypeSchema>;
 
 export type RoomAllocation = typeof roomAllocations.$inferSelect;
 export type InsertRoomAllocation = z.infer<typeof insertRoomAllocationSchema>;
