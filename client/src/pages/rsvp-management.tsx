@@ -526,49 +526,7 @@ export default function RsvpManagement() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>RSVP Completion Status</CardTitle>
-                <CardDescription>
-                  Track which guests have completed each stage of the RSVP process
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>RSVP Status</TableHead>
-                        <TableHead>Responded On</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Array.isArray(guests) && guests.map(guest => (
-                        <TableRow key={guest.id}>
-                          <TableCell>
-                            {guest.firstName} {guest.lastName}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col text-xs">
-                              {guest.email && <span>{guest.email}</span>}
-                              {guest.phone && <span>{guest.phone}</span>}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <RsvpStatusDisplay guest={guest} />
-                          </TableCell>
-                          <TableCell>
-                            {guest.rsvpStatus !== "pending" ? formatDate(guest.updatedAt) : "Not yet responded"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+            {/* RSVP Completion Status section moved to Reports page */}
           </div>
         </TabsContent>
       </Tabs>
