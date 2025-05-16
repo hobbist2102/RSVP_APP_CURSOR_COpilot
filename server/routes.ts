@@ -72,12 +72,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes for Replit Auth
   app.get('/api/auth/user', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any).claims.sub;
+      // Get the user ID from Replit Auth claims
+      const userId = (req.user as any).claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: 'User ID not found in auth claims' });
+      }
+      
+      // Fetch the user from the database
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User not found in database' });
       }
-      res.json(user);
+      
+      // Return formatted user object
+      const formattedUser = {
+        id: user.id,
+        email: user.email,
+        name: user.first_name && user.last_name 
+          ? `${user.first_name} ${user.last_name}` 
+          : user.email || 'User',
+        firstName: user.first_name,
+        lastName: user.last_name,
+        profileImageUrl: user.profile_image_url,
+        role: user.role || 'staff'
+      };
+      
+      res.json(formattedUser);
     } catch (error) {
       console.error('Error fetching user:', error);
       res.status(500).json({ message: 'Failed to fetch user information' });

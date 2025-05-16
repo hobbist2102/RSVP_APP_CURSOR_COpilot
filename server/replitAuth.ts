@@ -7,7 +7,8 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
-import { users, sessions } from "@shared/schema";
+import { sessions } from "@shared/schema";
+import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 
 if (!process.env.REPLIT_DOMAINS) {
@@ -61,29 +62,31 @@ function updateUserSession(
 }
 
 async function upsertUser(claims: any) {
-  const [user] = await db
-    .insert(users)
-    .values({
-      id: claims["sub"],
-      email: claims["email"],
-      firstName: claims["first_name"],
-      lastName: claims["last_name"],
-      profileImageUrl: claims["profile_image_url"],
-      role: "staff", // Default role
-    })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: {
-        email: claims["email"],
-        firstName: claims["first_name"],
-        lastName: claims["last_name"],
-        profileImageUrl: claims["profile_image_url"],
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-  
-  return user;
+  try {
+    // Insert into the replit_users table instead
+    const result = await db.execute(sql`
+      INSERT INTO replit_users 
+        (id, email, first_name, last_name, profile_image_url, role)
+      VALUES 
+        (${claims["sub"]}, ${claims["email"]}, ${claims["first_name"]}, ${claims["last_name"]}, ${claims["profile_image_url"]}, 'staff')
+      ON CONFLICT (id) DO UPDATE SET
+        email = ${claims["email"]},
+        first_name = ${claims["first_name"]},
+        last_name = ${claims["last_name"]},
+        profile_image_url = ${claims["profile_image_url"]},
+        updated_at = CURRENT_TIMESTAMP
+      RETURNING *
+    `);
+    
+    if (result && result.rows && result.rows.length > 0) {
+      return result.rows[0];
+    }
+    
+    throw new Error("Failed to upsert user");
+  } catch (error) {
+    console.error("Error upserting user:", error);
+    throw error;
+  }
 }
 
 export async function setupAuth(app: Express) {

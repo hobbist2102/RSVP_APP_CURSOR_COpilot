@@ -51,13 +51,13 @@ import {
   rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUser(id: string): Promise<any | undefined>;
+  getUserByEmail(email: string): Promise<any | undefined>;
+  upsertUser(user: any): Promise<any>;
   
   // Event operations
   getEvent(id: number): Promise<WeddingEvent | undefined>;
@@ -1481,30 +1481,65 @@ export class MemStorage implements IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result[0];
+  async getUser(id: string): Promise<any | undefined> {
+    try {
+      const result = await db.execute(sql`
+        SELECT * FROM replit_users WHERE id = ${id}
+      `);
+      
+      if (result.rows && result.rows.length > 0) {
+        return result.rows[0];
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error getting user by ID:", error);
+      return undefined;
+    }
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<any | undefined> {
     if (!email) return undefined;
-    const result = await db.select().from(users).where(eq(users.email, email));
-    return result[0];
+    
+    try {
+      const result = await db.execute(sql`
+        SELECT * FROM replit_users WHERE email = ${email}
+      `);
+      
+      if (result.rows && result.rows.length > 0) {
+        return result.rows[0];
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error getting user by email:", error);
+      return undefined;
+    }
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+  async upsertUser(userData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        INSERT INTO replit_users 
+          (id, email, first_name, last_name, profile_image_url, role)
+        VALUES 
+          (${userData.id}, ${userData.email}, ${userData.firstName}, ${userData.lastName}, ${userData.profileImageUrl}, ${userData.role || 'staff'})
+        ON CONFLICT (id) DO UPDATE SET
+          email = ${userData.email},
+          first_name = ${userData.firstName},
+          last_name = ${userData.lastName},
+          profile_image_url = ${userData.profileImageUrl},
+          role = ${userData.role || 'staff'},
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `);
+      
+      if (result.rows && result.rows.length > 0) {
+        return result.rows[0];
+      }
+      throw new Error("Failed to upsert user");
+    } catch (error) {
+      console.error("Error upserting user:", error);
+      throw error;
+    }
   }
 
   // Event operations
