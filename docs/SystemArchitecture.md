@@ -105,6 +105,32 @@ This document outlines the system architecture of the Wedding RSVP application, 
    - Export functionality
    - Analytics dashboard
 
+### Frontend Shared Utilities
+
+1. **API Utilities** (`client/src/lib/api-utils.ts`)
+   - Centralized HTTP request handling
+   - Type-safe API response processing
+   - Standardized error handling
+   - Resource operation abstractions (CRUD)
+
+2. **Date Utilities** (`client/src/lib/date-utils.ts`)
+   - Standardized date formatting for display
+   - Date input formatting
+   - Relative time calculations
+   - Date-based styling helpers
+
+3. **UI Components** (`client/src/components/ui/*`)
+   - DataTable with pagination, search, and sorting
+   - Form components with validation
+   - Modal dialogs and notifications
+   - Dashboard layout components
+
+4. **Validation Schemas** (`shared/validation-schemas.ts`)
+   - Centralized form validation rules
+   - Shared between frontend and backend
+   - Type definitions for entities
+   - Input sanitization rules
+
 ### Backend Services
 
 1. **Authentication Service**
