@@ -61,20 +61,18 @@ export default function AuthPage() {
             <p className="font-playfair text-neutral text-xl">Wedding Management Suite</p>
           </div>
           
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+          <div className="flex flex-col items-center justify-center space-y-6">
+            <p className="text-center text-gray-600">
+              Sign in to manage your wedding events, track RSVPs, and more!
+            </p>
             
-            <TabsContent value="login">
-              <LoginForm />
-            </TabsContent>
-            
-            <TabsContent value="register">
-              <RegisterForm />
-            </TabsContent>
-          </Tabs>
+            <a 
+              href="/api/login" 
+              className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Sign in with Replit
+            </a>
+          </div>
         </div>
       </div>
     </div>
