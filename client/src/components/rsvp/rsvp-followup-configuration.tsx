@@ -787,29 +787,59 @@ export default function RsvpFollowupConfiguration() {
                 />
               </div>
 
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    const value = templateForm.watch("emailTemplate");
-                    if (value) {
-                      handlePreviewTemplate(value);
-                    } else {
-                      toast({
-                        title: "No template to preview",
-                        description: "Please enter an email template first.",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                >
-                  Preview
-                </Button>
+              <DialogFooter className="flex flex-col sm:flex-row sm:justify-between w-full gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      const emailTemplate = templateForm.watch("emailTemplate");
+                      const emailSubject = templateForm.watch("emailSubject");
+                      const templateType = templateForm.watch("type");
+                      
+                      if (emailTemplate) {
+                        handlePreviewTemplate(emailTemplate, emailSubject, templateType, "email");
+                      } else {
+                        toast({
+                          title: "No template to preview",
+                          description: "Please enter an email template first.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    className="gap-2 w-full sm:w-auto"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Preview Email
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800"
+                    onClick={() => {
+                      const whatsappTemplate = templateForm.watch("whatsappTemplate") || templateForm.watch("emailTemplate");
+                      const templateType = templateForm.watch("type");
+                      
+                      if (whatsappTemplate) {
+                        handlePreviewTemplate(whatsappTemplate, null, templateType, "whatsapp");
+                      } else {
+                        toast({
+                          title: "No template to preview",
+                          description: "Please enter a template first.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Preview WhatsApp
+                  </Button>
+                </div>
+                
                 <Button 
                   type="submit" 
                   disabled={isSavingTemplate}
-                  className="gold-gradient"
                 >
                   {isSavingTemplate ? "Saving..." : "Save Template"}
                 </Button>
