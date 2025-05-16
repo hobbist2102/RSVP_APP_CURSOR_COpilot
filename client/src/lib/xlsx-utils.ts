@@ -5,18 +5,33 @@ import * as XLSX from "xlsx";
  * @param accommodations List of accommodations with guest assignments
  * @returns Formatted data for Excel export
  */
-export function formatHotelAssignmentsForExport(hotelData: any[]) {
-  return hotelData.map(assignment => ({
-    'Guest Name': `${assignment.guest.firstName} ${assignment.guest.lastName}`,
-    'Email': assignment.guest.email || '',
-    'RSVP Status': assignment.guest.rsvpStatus || 'Pending',
-    'Hotel': assignment.hotel.name,
-    'Room Type': assignment.accommodation.name,
-    'Room Features': assignment.accommodation.specialFeatures || '',
-    'Check-in Date': assignment.checkInDate || '',
-    'Check-out Date': assignment.checkOutDate || '',
-    'Special Requests': assignment.specialRequests || ''
-  }));
+export async function formatHotelAssignmentsForExport(eventId: number) {
+  try {
+    // Fetch hotel assignments data
+    const response = await fetch(`/api/events/${eventId}/hotel-assignments`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hotel assignments');
+    }
+    const data = await response.json();
+    
+    // Ensure data is an array
+    const assignments = Array.isArray(data) ? data : [];
+    
+    return assignments.map(assignment => ({
+      'Guest Name': `${assignment.guest?.firstName || ''} ${assignment.guest?.lastName || ''}`,
+      'Email': assignment.guest?.email || '',
+      'RSVP Status': assignment.guest?.rsvpStatus || 'Pending',
+      'Hotel': assignment.hotel?.name || '',
+      'Room Type': assignment.accommodation?.name || '',
+      'Room Features': assignment.accommodation?.specialFeatures || '',
+      'Check-in Date': assignment.checkInDate || '',
+      'Check-out Date': assignment.checkOutDate || '',
+      'Special Requests': assignment.specialRequests || ''
+    }));
+  } catch (error) {
+    console.error('Error formatting hotel data:', error);
+    throw error;
+  }
 }
 
 /**
