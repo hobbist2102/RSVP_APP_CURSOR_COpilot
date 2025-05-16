@@ -110,18 +110,20 @@ const TemplatePreview: React.FC<{
   template: string;
   subject?: string;
   templateType?: string;
-}> = ({ template, subject, templateType }) => {
+  event?: any;
+}> = ({ template, subject, templateType, event }) => {
   // Define sample guest data based on template type
   const guestName = "John Smith";
   const firstName = "John";
   const lastName = "Smith";
-  const coupleNames = "Sarah & Michael";
-  const eventName = "Sarah & Michael's Wedding";
+  // Use actual event data when available, fallback to example for preview
+  const coupleNames = event?.coupleNames || "The Couple";
+  const eventName = event?.title ? `${event.title}` : "Wedding Celebration";
   const rsvpStatus = templateType?.includes("confirm") ? "confirmed" : 
                      templateType?.includes("decline") ? "declined" : 
                      templateType?.includes("maybe") ? "maybe" : "pending";
-  const rsvpLink = "https://wedding-app.com/rsvp?token=abc123";
-  const rsvpDeadline = "August 15, 2025";
+  const rsvpLink = `${window.location.origin}/guest-rsvp/example-token`;
+  const rsvpDeadline = event?.rsvpDeadline || "2 weeks before the event";
 
   // Apply template variables
   const personalizedTemplate = template
@@ -156,7 +158,7 @@ const TemplatePreview: React.FC<{
                 </div>
                 <div>
                   <div className="font-semibold">{coupleNames}</div>
-                  <div className="text-xs text-muted-foreground">{coupleNames.toLowerCase().replace(' ', '')}@gmail.com</div>
+                  <div className="text-xs text-muted-foreground">{coupleNames.toLowerCase().replace(/\s+/g, '')}@example.com</div>
                 </div>
               </div>
               <div className="text-xs text-muted-foreground">
