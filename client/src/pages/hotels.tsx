@@ -211,6 +211,23 @@ const HotelsPage: React.FC = () => {
     }
   }, [selectedHotel, accommodationForm]);
   
+  // Fetch global room types for the selected hotel
+  const {
+    data: hotelGlobalRoomTypes = [],
+    isLoading: hotelGlobalRoomTypesLoading
+  } = useQuery({
+    queryKey: ['hotelGlobalRoomTypes', selectedHotel?.name],
+    queryFn: async () => {
+      if (!selectedHotel) return [];
+      const response = await fetch(`/api/global-room-types/by-hotel/${encodeURIComponent(selectedHotel.name)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch global room types for hotel');
+      }
+      return response.json();
+    },
+    enabled: !!selectedHotel
+  });
+  
 
   
   // Fetch accommodations for selected hotel
