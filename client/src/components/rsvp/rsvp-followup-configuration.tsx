@@ -106,21 +106,76 @@ const templateTypes = [
 ];
 
 // Component for seeing a template preview with personalized variables
-const TemplatePreview: React.FC<{ template: string }> = ({ template }) => {
-  const personalizedTemplate = template
-    .replace(/{{guest_name}}/g, "John Smith")
-    .replace(/{{first_name}}/g, "John")
-    .replace(/{{last_name}}/g, "Smith")
-    .replace(/{{couple_names}}/g, "Sarah & Michael")
-    .replace(/{{event_name}}/g, "Sarah & Michael's Wedding")
-    .replace(/{{rsvp_status}}/g, "confirmed")
-    .replace(/{{rsvp_link}}/g, "https://wedding-app.com/rsvp?token=abc123")
-    .replace(/{{rsvp_deadline}}/g, "August 15, 2025");
+const TemplatePreview: React.FC<{ 
+  template: string;
+  subject?: string;
+  templateType?: string;
+}> = ({ template, subject, templateType }) => {
+  // Define sample guest data based on template type
+  const guestName = "John Smith";
+  const firstName = "John";
+  const lastName = "Smith";
+  const coupleNames = "Sarah & Michael";
+  const eventName = "Sarah & Michael's Wedding";
+  const rsvpStatus = templateType?.includes("confirm") ? "confirmed" : 
+                     templateType?.includes("decline") ? "declined" : 
+                     templateType?.includes("maybe") ? "maybe" : "pending";
+  const rsvpLink = "https://wedding-app.com/rsvp?token=abc123";
+  const rsvpDeadline = "August 15, 2025";
 
+  // Apply template variables
+  const personalizedTemplate = template
+    .replace(/{{guest_name}}/g, guestName)
+    .replace(/{{first_name}}/g, firstName)
+    .replace(/{{last_name}}/g, lastName)
+    .replace(/{{couple_names}}/g, coupleNames)
+    .replace(/{{event_name}}/g, eventName)
+    .replace(/{{rsvp_status}}/g, rsvpStatus)
+    .replace(/{{rsvp_link}}/g, rsvpLink)
+    .replace(/{{rsvp_deadline}}/g, rsvpDeadline);
+    
+  // Also personalize the subject if provided
+  const personalizedSubject = subject ? subject
+    .replace(/{{guest_name}}/g, guestName)
+    .replace(/{{first_name}}/g, firstName)
+    .replace(/{{last_name}}/g, lastName)
+    .replace(/{{couple_names}}/g, coupleNames)
+    .replace(/{{event_name}}/g, eventName)
+    .replace(/{{rsvp_status}}/g, rsvpStatus) : null;
+
+  // Create a more realistic email preview
   return (
-    <div className="p-4 border rounded-md bg-white">
-      <div className="font-medium text-sm mb-2">Preview:</div>
-      <div className="whitespace-pre-wrap text-sm">{personalizedTemplate}</div>
+    <div className="border rounded-md bg-gray-50 overflow-hidden">
+      <div className="bg-white p-4 border-b">
+        {personalizedSubject ? (
+          <>
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+                  {coupleNames.split('')[0]}
+                </div>
+                <div>
+                  <div className="font-semibold">{coupleNames}</div>
+                  <div className="text-xs text-muted-foreground">{coupleNames.toLowerCase().replace(' ', '')}@gmail.com</div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              </div>
+            </div>
+            <div className="font-medium text-base mb-1">{personalizedSubject}</div>
+            <div className="text-xs text-muted-foreground mb-2">To: {guestName} &lt;{firstName.toLowerCase()}.{lastName.toLowerCase()}@example.com&gt;</div>
+          </>
+        ) : (
+          <div className="font-medium text-sm mb-1">Message Preview:</div>
+        )}
+      </div>
+      <div className="p-4 whitespace-pre-wrap text-sm bg-white mx-4 my-3 rounded border">
+        {personalizedTemplate}
+      </div>
+      <div className="bg-gray-100 p-3 text-xs text-center text-muted-foreground border-t">
+        This is a preview of how the message will appear to your guests
+      </div>
     </div>
   );
 };
