@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileDown, Building, Hotel, BedDouble, Users } from "lucide-react";
+import { FileDown, Building, Hotel, BedDouble, Users, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomAllocationList } from "@/components/room/room-allocation-list";
 import { AutoAssignmentDashboard } from "@/components/room/auto-assignment-dashboard";
+import { AccommodationReports } from "@/components/room/accommodation-reports";
 import { exportToExcel, formatHotelAssignmentsForExport } from "@/lib/xlsx-utils";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { ApiEndpoints } from "@/lib/api-utils";
@@ -59,10 +60,10 @@ export default function Accommodations() {
     isLoading: isHotelsLoading,
     error: hotelsError
   } = useQuery({
-    queryKey: [ApiEndpoints.HOTELS_BY_EVENT, eventId],
+    queryKey: [`${ApiEndpoints.HOTELS.BY_EVENT}/${eventId}`],
     queryFn: async () => {
       if (!eventId) return [];
-      const response = await fetch(`${ApiEndpoints.HOTELS_BY_EVENT}/${eventId}`);
+      const response = await fetch(`${ApiEndpoints.HOTELS.BY_EVENT}/${eventId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch hotels");
       }
@@ -77,10 +78,10 @@ export default function Accommodations() {
     isLoading: isAccommodationsLoading,
     error: accommodationsError
   } = useQuery({
-    queryKey: [ApiEndpoints.ACCOMMODATIONS_BY_EVENT, eventId],
+    queryKey: [`${ApiEndpoints.EVENTS.BASE}/${eventId}/accommodations`],
     queryFn: async () => {
       if (!eventId) return [];
-      const response = await fetch(`${ApiEndpoints.ACCOMMODATIONS_BY_EVENT}/${eventId}`);
+      const response = await fetch(`${ApiEndpoints.EVENTS.BASE}/${eventId}/accommodations`);
       if (!response.ok) {
         throw new Error("Failed to fetch accommodations");
       }
@@ -93,7 +94,7 @@ export default function Accommodations() {
   const handleExportAssignments = async () => {
     try {
       // Fetch room allocations for this event
-      const response = await fetch(`/api/events/${eventId}/room-allocations`);
+      const response = await fetch(ApiEndpoints.ROOM_ALLOCATIONS.BY_EVENT(eventId));
       if (!response.ok) {
         throw new Error("Failed to fetch room allocations");
       }
@@ -195,6 +196,10 @@ export default function Accommodations() {
               <Users className="mr-2 h-4 w-4" />
               Auto Assignments
             </TabsTrigger>
+            <TabsTrigger value="reports">
+              <BarChart className="mr-2 h-4 w-4" />
+              Reports
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="room-allocations" className="space-y-4">
@@ -214,6 +219,10 @@ export default function Accommodations() {
           
           <TabsContent value="auto-assignments">
             <AutoAssignmentDashboard eventId={eventId || 0} />
+          </TabsContent>
+          
+          <TabsContent value="reports">
+            <AccommodationReports eventId={eventId || 0} />
           </TabsContent>
         </Tabs>
       )}

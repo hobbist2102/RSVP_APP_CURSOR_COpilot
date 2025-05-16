@@ -432,6 +432,19 @@ export const ApiEndpoints = {
   HOTELS: {
     BASE: "/api/hotels",
     DETAILS: (id: number | string) => `/api/hotels/${id}`,
+    BY_EVENT: "/api/hotels/by-event",
+  },
+  ACCOMMODATIONS: {
+    BASE: "/api/accommodations",
+    DETAILS: (id: number | string) => `/api/accommodations/${id}`,
+    BY_EVENT: "/api/events",
+    BY_HOTEL: (id: number | string) => `/api/hotels/${id}/accommodations`,
+  },
+  ROOM_ALLOCATIONS: {
+    BASE: "/api/room-allocations",
+    BY_EVENT: (id: number | string) => `/api/events/${id}/room-allocations`,
+    BY_GUEST: (id: number | string) => `/api/guests/${id}/room-allocations`,
+    BY_ACCOMMODATION: (id: number | string) => `/api/accommodations/${id}/allocations`,
   },
   COMMUNICATIONS: {
     TEST_EMAIL: "/api/test-email",
