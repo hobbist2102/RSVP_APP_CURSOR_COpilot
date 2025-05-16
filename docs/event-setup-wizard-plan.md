@@ -5,12 +5,11 @@
 The Wedding RSVP system currently has these setup areas spread across different pages:
 
 1. **Event Settings** - Basic event information, dates, couple details
-2. **Hotels** - Hotel properties and management
-3. **Accommodations** - Room inventory and allocation
-4. **Transport Groups** - Vehicle types and transportation arrangements
-5. **RSVP Configuration** - RSVP form settings and deadline management
-6. **Email Templates** - Communication templates and design
-7. **Email Configuration** - SMTP/OAuth settings for email delivery
+2. **Hotels & Accommodations** - Hotel properties and room inventory management
+3. **Transport Groups** - Vehicle types and transportation arrangements
+4. **RSVP Configuration** - RSVP form settings and deadline management
+5. **Email Templates** - Communication templates and design
+6. **Email Configuration** - SMTP/OAuth settings for email delivery
 
 ## Centralized Wizard Concept
 
@@ -44,35 +43,30 @@ The proposed Event Setup Wizard will unify these areas into a guided, step-by-st
 - Question customization
 - Travel information requirements
 
-### 4. Hotel Management
+### 4. Hotels & Accommodation
 - Create hotel properties
-- Hotel contact information
-- Hotel amenities
-- Booking information
-- Hotel images
-
-### 5. Accommodation Inventory
-- Define room types (connected to hotels)
+- Room types and inventory per hotel
 - Room capacities and bed configurations
-- Room pricing (if applicable)
-- Special features
-- Room images
+- Pricing (if applicable)
+- Amenities and special features
+- Hotel/room images
+- Contact information
 
-### 6. Transportation Options
+### 5. Transportation Options
 - Define vehicle types
 - Vehicle capacities
 - Driver information requirements
 - Transport provider contacts
 - Special accommodation options
 
-### 7. Email & Communication Setup
+### 6. Email & Communication Setup
 - Select/customize email templates
 - Define sender information
 - Configure email providers (Gmail/Outlook/SMTP)
 - OAuth authorization
 - Test email delivery
 
-### 8. Design & Styling
+### 7. Design & Styling
 - Color schemes
 - Typography
 - Banner images
