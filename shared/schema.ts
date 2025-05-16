@@ -268,10 +268,11 @@ export const accommodations = pgTable("accommodations", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull(),
   hotelId: integer("hotel_id").references(() => hotels.id), // Link to hotel
-  globalRoomTypeId: integer("global_room_type_id").references(() => globalRoomTypes.id), // Link to global room type
   name: text("name").notNull(),
   roomType: text("room_type").notNull(),
-  capacity: integer("capacity").notNull(),
+  bedType: text("bed_type"), // New field: king, queen, twin, etc.
+  maxOccupancy: integer("max_occupancy").notNull(), // New field replacing capacity
+  capacity: integer("capacity"), // Kept for backward compatibility
   totalRooms: integer("total_rooms").notNull(),
   allocatedRooms: integer("allocated_rooms").default(0),
   pricePerNight: text("price_per_night"),
