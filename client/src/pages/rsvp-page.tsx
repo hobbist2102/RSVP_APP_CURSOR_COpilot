@@ -72,31 +72,9 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
     verifyToken();
   }, [token, toast]);
   
-  // Handle successful submission of Stage 1
-  const handleStage1Success = (data: any) => {
+  // Handle successful submission from TwoStageRsvpForm
+  const handleRsvpSuccess = (data: any) => {
     setStageData(data);
-    
-    if (data.requiresStage2) {
-      setStage(RSVPStage.STAGE2);
-    } else {
-      setStage(RSVPStage.SUCCESS);
-    }
-  };
-  
-  // Handle proceeding to Stage 2
-  const handleProceedToStage2 = (data: any) => {
-    setStageData(data);
-    setStage(RSVPStage.STAGE2);
-  };
-  
-  // Handle going back to Stage 1
-  const handleBackToStage1 = () => {
-    setStage(RSVPStage.STAGE1);
-  };
-  
-  // Handle successful submission of Stage 2
-  const handleStage2Success = (data: any) => {
-    setStageData({ ...stageData, ...data });
     setStage(RSVPStage.SUCCESS);
   };
   
@@ -142,6 +120,12 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
   }
   
   if (stage === RSVPStage.SUCCESS) {
+    // Determine if the guest is attending based on the RSVP status
+    // Check both possible data structures based on the form submission flow
+    const isAttending = 
+      (stageData?.guest?.rsvpStatus === "confirmed") || 
+      (stageData?.rsvpStatus === "confirmed");
+    
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-lg">
@@ -160,27 +144,119 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="mx-auto text-primary mb-4"
+                className="mx-auto text-green-500 mb-4"
               >
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
               <h3 className="text-xl font-medium mb-2">
-                {stageData?.guest?.rsvpStatus === "confirmed" 
+                {isAttending 
                   ? "We're looking forward to celebrating with you!" 
                   : "Thank you for letting us know you can't make it."}
               </h3>
               <p className="text-muted-foreground">
-                {stageData?.guest?.rsvpStatus === "confirmed"
+                {isAttending
                   ? "Your RSVP has been confirmed. We're excited to see you at our wedding!"
                   : "We appreciate you taking the time to respond. You'll be missed!"}
               </p>
             </div>
-            <Button onClick={handleReturnHome}>Return to Home</Button>
+            
+            {/* Show RSVP details if attending */}
+            {isAttending && stageData && (
+              <div className="mb-8 text-left border-t pt-6">
+                <h4 className="font-medium mb-4">Your RSVP Details:</h4>
+                <dl className="space-y-3">
+                  {/* Name information */}
+                  <div className="grid grid-cols-3">
+                    <dt className="font-medium text-muted-foreground">Name:</dt>
+                    <dd className="col-span-2">
+                      {stageData.guest?.firstName || stageData.firstName} {stageData.guest?.lastName || stageData.lastName}
+                    </dd>
+                  </div>
+                  
+                  {/* Plus One */}
+                  {(stageData.guest?.plusOneName || stageData.plusOneName) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Plus One:</dt>
+                      <dd className="col-span-2">{stageData.guest?.plusOneName || stageData.plusOneName}</dd>
+                    </div>
+                  )}
+                  
+                  {/* Children information */}
+                  {(stageData.guest?.numberOfChildren > 0 || stageData.numberOfChildren > 0) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Children:</dt>
+                      <dd className="col-span-2">
+                        {stageData.guest?.numberOfChildren || stageData.numberOfChildren} {(stageData.guest?.numberOfChildren || stageData.numberOfChildren) === 1 ? 'child' : 'children'}
+                        {(stageData.guest?.childrenNames || stageData.childrenNames) && ` (${stageData.guest?.childrenNames || stageData.childrenNames})`}
+                      </dd>
+                    </div>
+                  )}
+                  
+                  {/* Dietary Restrictions */}
+                  {(stageData.guest?.dietaryRestrictions || stageData.dietaryRestrictions) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Dietary Needs:</dt>
+                      <dd className="col-span-2">{stageData.guest?.dietaryRestrictions || stageData.dietaryRestrictions}</dd>
+                    </div>
+                  )}
+                  
+                  {/* Accommodation */}
+                  {(stageData.guest?.needsAccommodation || stageData.needsAccommodation) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Accommodation:</dt>
+                      <dd className="col-span-2">
+                        {getAccommodationText(stageData.guest?.accommodationPreference || stageData.accommodationPreference)}
+                      </dd>
+                    </div>
+                  )}
+                  
+                  {/* Transportation */}
+                  {(stageData.guest?.needsTransportation || stageData.needsTransportation) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Transportation:</dt>
+                      <dd className="col-span-2">
+                        {getTransportationText(stageData.guest?.transportationPreference || stageData.transportationPreference)}
+                      </dd>
+                    </div>
+                  )}
+                  
+                  {/* Travel Details */}
+                  {(stageData.guest?.travelMode || stageData.travelMode) && (
+                    <div className="grid grid-cols-3">
+                      <dt className="font-medium text-muted-foreground">Travel Mode:</dt>
+                      <dd className="col-span-2 capitalize">{stageData.guest?.travelMode || stageData.travelMode}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
+            
+            <Button onClick={handleReturnHome} className="gold-gradient text-white">Return to Home</Button>
           </CardContent>
         </Card>
       </div>
     );
+  }
+  
+  // Helper function to get human-readable accommodation text
+  function getAccommodationText(preference: string): string {
+    switch(preference) {
+      case 'provided': return 'Will use provided accommodation';
+      case 'self_managed': return 'Self-arranging accommodation';
+      case 'special_arrangement': return 'Special arrangement requested';
+      default: return 'Accommodation needed';
+    }
+  }
+  
+  // Helper function to get human-readable transportation text
+  function getTransportationText(preference: string): string {
+    switch(preference) {
+      case 'provided': return 'Will use provided transportation';
+      case 'self_managed': return 'Self-arranging transportation';
+      case 'special_arrangement': return 'Special arrangement requested';
+      default: return 'Transportation needed';
+    }
   }
   
   return (
@@ -208,7 +284,7 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
             eventId={tokenData.event.id}
             ceremonies={tokenData.ceremonies}
             mealOptions={tokenData.ceremonies.flatMap((c: any) => c.mealOptions || [])}
-            onSuccess={handleStage2Success}
+            onSuccess={handleRsvpSuccess}
           />
         </div>
       )}
