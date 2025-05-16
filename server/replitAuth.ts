@@ -78,45 +78,68 @@ async function upsertUser(claims: any) {
       has_profile_image: !!claims["profile_image_url"]
     }));
     
+    // Execute a direct SQL query to check if the users table exists and create it if needed
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(255) PRIMARY KEY NOT NULL,
+        email VARCHAR(255) UNIQUE,
+        first_name VARCHAR(255),
+        last_name VARCHAR(255),
+        profile_image_url VARCHAR(255),
+        role TEXT NOT NULL DEFAULT 'staff',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
     // Get user data from the database if it exists
     let existingUser = null;
     try {
-      const [foundUser] = await db.select().from(users).where(eq(users.id, claims["sub"] || ""));
-      existingUser = foundUser;
+      // Use raw SQL to avoid column name mismatches
+      const result = await db.execute(sql`
+        SELECT * FROM users WHERE id = ${claims["sub"] || ""}
+      `);
+      
+      if (result && result.length > 0) {
+        existingUser = result[0];
+      }
     } catch (error) {
       console.log("Error checking for existing user:", error);
     }
     
     if (existingUser) {
-      // Update existing user
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          email: claims["email"] || null,
-          firstName: claims["first_name"] || null,
-          lastName: claims["last_name"] || null,
-          profileImageUrl: claims["profile_image_url"] || null,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, claims["sub"] || ""))
-        .returning();
+      // Update existing user with raw SQL
+      const result = await db.execute(sql`
+        UPDATE users
+        SET 
+          email = ${claims["email"] || null},
+          first_name = ${claims["first_name"] || null},
+          last_name = ${claims["last_name"] || null},
+          profile_image_url = ${claims["profile_image_url"] || null},
+          updated_at = NOW()
+        WHERE id = ${claims["sub"] || ""}
+        RETURNING *
+      `);
       
+      const updatedUser = result && result.length > 0 ? result[0] : null;
       console.log("Updated existing user:", updatedUser?.id);
       return updatedUser;
     } else {
-      // Create new user
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          id: claims["sub"] || "",
-          email: claims["email"] || null,
-          firstName: claims["first_name"] || null,
-          lastName: claims["last_name"] || null,
-          profileImageUrl: claims["profile_image_url"] || null,
-          role: "staff"
-        })
-        .returning();
+      // Create new user with raw SQL
+      const result = await db.execute(sql`
+        INSERT INTO users (id, email, first_name, last_name, profile_image_url, role)
+        VALUES (
+          ${claims["sub"] || ""},
+          ${claims["email"] || null},
+          ${claims["first_name"] || null},
+          ${claims["last_name"] || null},
+          ${claims["profile_image_url"] || null},
+          'staff'
+        )
+        RETURNING *
+      `);
       
+      const newUser = result && result.length > 0 ? result[0] : null;
       console.log("Created new user:", newUser?.id);
       return newUser;
     }
@@ -172,6 +195,10 @@ export async function setupAuth(app: Express) {
     if (req.query.returnTo) {
       req.session.returnTo = req.query.returnTo as string;
     }
+    
+    // Temporary debug info
+    console.log("Available strategies:", Object.keys(passport._strategies));
+    console.log("Using strategy:", `replitauth:${req.hostname}`);
     
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
