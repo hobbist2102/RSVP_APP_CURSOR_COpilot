@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { get, post, put, del } from "@/lib/api-utils"; // Using the consolidated API utilities
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useToast } from "@/hooks/use-toast";
 
@@ -273,7 +274,7 @@ export default function RsvpFollowupConfiguration() {
     enabled: !!currentEventId,
   });
 
-  // Mutation for creating/updating a template
+  // Mutation for creating/updating a template using consolidated API utilities
   const {
     mutate: saveTemplate,
     isPending: isSavingTemplate,
@@ -283,13 +284,18 @@ export default function RsvpFollowupConfiguration() {
         ? `/api/events/${currentEventId}/rsvp-followup-templates/${selectedTemplate.id}` 
         : `/api/events/${currentEventId}/rsvp-followup-templates`;
       
-      const method = selectedTemplate ? "PUT" : "POST";
-      const response = await apiRequest(method, url, {
-        ...data,
-        eventId: currentEventId,
-      });
-      
-      return await response.json();
+      // Use consolidated API utilities with proper method selection
+      if (selectedTemplate) {
+        return await put(url, {
+          ...data,
+          eventId: currentEventId,
+        });
+      } else {
+        return await post(url, {
+          ...data,
+          eventId: currentEventId,
+        });
+      }
     },
     onSuccess: () => {
       toast({
@@ -316,14 +322,13 @@ export default function RsvpFollowupConfiguration() {
     },
   });
 
-  // Mutation for saving communication settings
+  // Mutation for saving communication settings using consolidated API utilities
   const {
     mutate: saveCommunicationSettings,
     isPending: isSavingSettings,
   } = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/events/${currentEventId}/communication-settings`, data);
-      return await response.json();
+      return await put(`/api/events/${currentEventId}/communication-settings`, data);
     },
     onSuccess: () => {
       toast({
@@ -343,17 +348,13 @@ export default function RsvpFollowupConfiguration() {
     },
   });
 
-  // Mutation for deleting a template
+  // Mutation for deleting a template using consolidated API utilities
   const {
     mutate: deleteTemplate,
     isPending: isDeletingTemplate,
   } = useMutation({
     mutationFn: async (templateId: number) => {
-      const response = await apiRequest(
-        "DELETE",
-        `/api/events/${currentEventId}/rsvp-followup-templates/${templateId}`
-      );
-      return await response.json();
+      return await del(`/api/events/${currentEventId}/rsvp-followup-templates/${templateId}`);
     },
     onSuccess: () => {
       toast({
