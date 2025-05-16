@@ -2251,6 +2251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register RSVP Follow-up routes
   app.use('/api', isAuthenticated, rsvpFollowupRoutes);
   
+  // Register Transport routes
+  app.use('/api', isAuthenticated, transportRoutes);
+  
   // Register OAuth routes
   app.use('/api/oauth', oauthRoutes);
   

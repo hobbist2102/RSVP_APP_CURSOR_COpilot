@@ -1,7 +1,7 @@
 /**
  * Transport Group Management API Routes
  */
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import * as transportService from '../services/transport-service';
 import { z } from 'zod';
@@ -192,4 +192,5 @@ router.get('/events/:eventId/check-transport-updates', async (req, res) => {
   }
 });
 
+// Export router
 export default router;
