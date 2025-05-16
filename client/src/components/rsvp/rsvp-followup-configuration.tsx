@@ -898,6 +898,7 @@ export default function RsvpFollowupConfiguration() {
                   template={previewTemplate} 
                   subject={previewSubject}
                   templateType={selectedTemplateType}
+                  event={currentEvent}
                 />
               ) : (
                 // WhatsApp preview
