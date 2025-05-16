@@ -7,7 +7,9 @@ import {
   accommodations, 
   insertAccommodationSchema,
   globalRoomTypes,
-  insertGlobalRoomTypeSchema
+  insertGlobalRoomTypeSchema,
+  roomAllocations,
+  guests
 } from '../../shared/schema';
 import { z } from 'zod';
 import { storage } from '../storage';
@@ -361,6 +363,87 @@ export function registerHotelRoutes(
       console.error('Error creating global room type:', error);
       return res.status(500).json({ 
         message: 'Failed to create global room type',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Fetch all hotel assignments for an event (for Excel export)
+  app.get('/api/events/:eventId/hotel-assignments', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+
+      // Get all hotels for the event
+      const eventHotels = await storage.getHotelsByEvent(eventId);
+      
+      if (!eventHotels.length) {
+        return res.json([]);
+      }
+
+      const hotelIds = eventHotels.map(hotel => hotel.id);
+      
+      // Get all accommodations for these hotels
+      let allAccommodations: any[] = [];
+      for (const hotelId of hotelIds) {
+        const accommodationsForHotel = await storage.getAccommodationsByHotel(hotelId);
+        allAccommodations = [...allAccommodations, ...accommodationsForHotel];
+      }
+      
+      if (!allAccommodations.length) {
+        return res.json([]);
+      }
+
+      // Get all room allocations for these accommodations
+      let allAllocations: any[] = [];
+      for (const accommodation of allAccommodations) {
+        const allocationsForAccommodation = await storage.getRoomAllocationsByAccommodation(accommodation.id);
+        
+        // Enrich allocations with accommodation and hotel data
+        const enrichedAllocations = allocationsForAccommodation.map(allocation => {
+          const hotel = eventHotels.find(h => h.id === accommodation.hotelId);
+          return {
+            ...allocation,
+            accommodation,
+            hotel
+          };
+        });
+        
+        allAllocations = [...allAllocations, ...enrichedAllocations];
+      }
+      
+      // If no allocations, return empty array
+      if (!allAllocations.length) {
+        return res.json([]);
+      }
+      
+      // Get all guest data for these allocations
+      const guestIds = allAllocations.map(allocation => allocation.guestId);
+      const uniqueGuestIds = [...new Set(guestIds)];
+      
+      let allGuests: Record<number, any> = {};
+      for (const guestId of uniqueGuestIds) {
+        const guest = await storage.getGuest(guestId);
+        if (guest) {
+          allGuests[guestId] = guest;
+        }
+      }
+      
+      // Build the final assignments array with all related data
+      const assignments = allAllocations.map(allocation => {
+        return {
+          ...allocation,
+          guest: allGuests[allocation.guestId] || null
+        };
+      });
+      
+      return res.json(assignments);
+    } catch (error) {
+      console.error(`Error fetching hotel assignments for event ${req.params.eventId}:`, error);
+      return res.status(500).json({
+        message: 'Failed to fetch hotel assignments',
         details: error instanceof Error ? error.message : String(error)
       });
     }
