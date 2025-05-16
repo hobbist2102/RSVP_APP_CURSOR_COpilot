@@ -164,6 +164,7 @@ export interface IStorage {
   
   // RSVP Follow-up Log operations
   getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
+  getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]>;
   createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
 }
 
@@ -1469,6 +1470,21 @@ export class MemStorage implements IStorage {
       log => log.guestId === guestId
     );
   }
+  
+  async getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]> {
+    // Get all guests for this event
+    const guests = await this.getGuestsByEvent(eventId);
+    const guestIds = guests.map(guest => guest.id);
+    
+    if (guestIds.length === 0) {
+      return [];
+    }
+    
+    // Get logs for all these guests
+    return Array.from(this.rsvpFollowupLogsMap.values()).filter(
+      log => guestIds.includes(log.guestId)
+    );
+  }
 
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
     const id = this.rsvpFollowupLogIdCounter++;
@@ -2245,6 +2261,29 @@ export class DatabaseStorage implements IStorage {
   // RSVP Follow-up Log operations
   async getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]> {
     return db.select().from(rsvpFollowupLogs).where(eq(rsvpFollowupLogs.guestId, guestId));
+  }
+  
+  async getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]> {
+    try {
+      // Get all guests for this event
+      const guests = await this.getGuestsByEvent(eventId);
+      const guestIds = guests.map(guest => guest.id);
+      
+      if (guestIds.length === 0) {
+        return [];
+      }
+      
+      // Get logs for all these guests
+      const result = await db
+        .select()
+        .from(rsvpFollowupLogs)
+        .where(inArray(rsvpFollowupLogs.guestId, guestIds));
+      
+      return result;
+    } catch (error) {
+      console.error(`Error fetching RSVP follow-up logs for event ${eventId}:`, error);
+      return [];
+    }
   }
 
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
