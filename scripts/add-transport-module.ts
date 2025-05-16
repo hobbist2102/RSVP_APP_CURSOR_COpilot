@@ -15,7 +15,7 @@ async function addTransportTables() {
       WHERE table_name = 'transport_groups'
     `);
     
-    if (checkTransportGroupsTable.rows.length === 0) {
+    if (checkTransportGroupsTable.length === 0) {
       console.log("Creating transport_groups table...");
       await db.execute(sql`
         CREATE TABLE transport_groups (
@@ -54,7 +54,7 @@ async function addTransportTables() {
       WHERE table_name = 'transport_allocations'
     `);
     
-    if (checkTransportAllocationsTable.rows.length === 0) {
+    if (checkTransportAllocationsTable.length === 0) {
       console.log("Creating transport_allocations table...");
       await db.execute(sql`
         CREATE TABLE transport_allocations (

@@ -2341,6 +2341,153 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(hotels).where(eq(hotels.id, id)).returning();
     return result.length > 0;
   }
+
+  // Transport Group methods
+  async getTransportGroup(id: number): Promise<TransportGroup | undefined> {
+    try {
+      const result = await db.select().from(transportGroups).where(eq(transportGroups.id, id));
+      return result[0];
+    } catch (error) {
+      console.error(`Error fetching transport group with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getTransportGroupsByEvent(eventId: number): Promise<TransportGroup[]> {
+    try {
+      const result = await db.select().from(transportGroups).where(eq(transportGroups.eventId, eventId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching transport groups for event ${eventId}:`, error);
+      return [];
+    }
+  }
+  
+  async createTransportGroup(group: InsertTransportGroup): Promise<TransportGroup> {
+    try {
+      const result = await db.insert(transportGroups).values(group).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating transport group:", error);
+      throw error;
+    }
+  }
+  
+  async updateTransportGroup(id: number, group: Partial<InsertTransportGroup>): Promise<TransportGroup | undefined> {
+    try {
+      const result = await db
+        .update(transportGroups)
+        .set({ ...group, updatedAt: new Date() })
+        .where(eq(transportGroups.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error(`Error updating transport group with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteTransportGroup(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(transportGroups).where(eq(transportGroups.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting transport group with ID ${id}:`, error);
+      return false;
+    }
+  }
+  
+  // Transport Allocation methods
+  async getTransportAllocation(id: number): Promise<TransportAllocation | undefined> {
+    try {
+      const result = await db.select().from(transportAllocations).where(eq(transportAllocations.id, id));
+      return result[0];
+    } catch (error) {
+      console.error(`Error fetching transport allocation with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getTransportAllocationsByGroup(groupId: number): Promise<TransportAllocation[]> {
+    try {
+      const result = await db
+        .select()
+        .from(transportAllocations)
+        .where(eq(transportAllocations.transportGroupId, groupId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching transport allocations for group ${groupId}:`, error);
+      return [];
+    }
+  }
+  
+  async getTransportAllocationsByGuest(guestId: number): Promise<TransportAllocation[]> {
+    try {
+      const result = await db
+        .select()
+        .from(transportAllocations)
+        .where(eq(transportAllocations.guestId, guestId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching transport allocations for guest ${guestId}:`, error);
+      return [];
+    }
+  }
+  
+  async createTransportAllocation(allocation: InsertTransportAllocation): Promise<TransportAllocation> {
+    try {
+      const result = await db.insert(transportAllocations).values(allocation).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating transport allocation:", error);
+      throw error;
+    }
+  }
+  
+  async updateTransportAllocation(id: number, allocation: Partial<InsertTransportAllocation>): Promise<TransportAllocation | undefined> {
+    try {
+      const result = await db
+        .update(transportAllocations)
+        .set({ ...allocation, updatedAt: new Date() })
+        .where(eq(transportAllocations.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error(`Error updating transport allocation with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteTransportAllocation(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(transportAllocations).where(eq(transportAllocations.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting transport allocation with ID ${id}:`, error);
+      return false;
+    }
+  }
+  
+  // Helper methods for transport module
+  async getConfirmedGuestsByEvent(eventId: number): Promise<Guest[]> {
+    try {
+      const result = await db
+        .select()
+        .from(guests)
+        .where(and(
+          eq(guests.eventId, eventId),
+          eq(guests.rsvpStatus, 'confirmed')
+        ));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching confirmed guests for event ${eventId}:`, error);
+      return [];
+    }
+  }
+  
+  async getTravelInfoByGuestId(guestId: number): Promise<TravelInfo | undefined> {
+    return this.getTravelInfoByGuest(guestId);
+  }
 }
 
 // Use DatabaseStorage for PostgreSQL database

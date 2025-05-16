@@ -177,14 +177,15 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
     // Create transport groups
     const transportGroups: TransportGroup[] = [];
     
-    for (const [index, group] of finalGroups.entries()) {
+    // Use forEach instead of entries() to avoid type issues
+    finalGroups.forEach((group, index) => {
       if (group.length === 0) continue;
       
       // Use first guest's travel info as reference
       const refTravelInfo = group[0].travelInfo;
       
       // Determine vehicle type and capacity based on group size
-      const groupSize = group.reduce((total, { guest }) => {
+      const groupSize = group.reduce((total: number, { guest }) => {
         // Count guest
         let count = 1;
         // Count plus one if applicable
@@ -223,7 +224,7 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
       }
       
       // Generate time slot
-      const arrivalTimes = group.map(g => g.travelInfo.arrivalTime || '');
+      const arrivalTimes = group.map((g: GuestWithTravelInfo) => g.travelInfo.arrivalTime || '');
       const timeSlots = generateTimeSlots(arrivalTimes);
       const pickupTimeSlot = timeSlots[0] || '12:00-14:00'; // Default if parsing fails
       
@@ -268,7 +269,7 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
       }
       
       transportGroups.push(transportGroup);
-    }
+    });
     
     return transportGroups;
   } catch (error) {
