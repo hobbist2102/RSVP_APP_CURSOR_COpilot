@@ -612,6 +612,32 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   {/* Only show OAuth fields if Direct SMTP is NOT enabled */}
                   {!credentials.useGmailDirectSMTP && (
                     <>
+                      <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Gmail OAuth Setup Guide</AlertTitle>
+                        <AlertDescription className="mt-2">
+                          <ol className="list-decimal ml-4 space-y-1 text-sm">
+                            <li>Go to the <a href="https://console.cloud.google.com/" target="_blank" className="text-primary underline">Google Cloud Console</a></li>
+                            <li>Create a new project (or select an existing one)</li>
+                            <li>Navigate to "APIs & Services" → "OAuth consent screen"
+                              <ul className="list-disc ml-5 mt-1">
+                                <li>Select "External" user type</li>
+                                <li>Fill in required app details (name, email, etc.)</li>
+                                <li>Add scope: <code className="px-1 py-0.5 bg-blue-100 rounded text-xs">https://mail.google.com/</code></li>
+                                <li>Add your email as a test user</li>
+                              </ul>
+                            </li>
+                            <li>Navigate to "APIs & Services" → "Credentials"
+                              <ul className="list-disc ml-5 mt-1">
+                                <li>Click "Create Credentials" → "OAuth client ID"</li>
+                                <li>Select "Web application" as application type</li>
+                                <li>Copy the Redirect URI from below and add it to "Authorized redirect URIs"</li>
+                                <li>Copy the created Client ID and Client Secret below</li>
+                              </ul>
+                            </li>
+                          </ol>
+                        </AlertDescription>
+                      </Alert>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-1">
@@ -774,9 +800,17 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                         </div>
                         
                         <div className="pt-4 border-t border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Advanced SMTP Settings (Optional)</h4>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="text-sm font-medium">Advanced SMTP Settings (Optional)</h4>
+                            <div className="relative group">
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                              <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg left-0 top-5">
+                                These settings are automatically configured for Gmail SMTP. Only modify if you're using a custom SMTP setup or encountering connection issues.
+                              </div>
+                            </div>
+                          </div>
                           <p className="text-xs text-muted-foreground mb-4">
-                            These settings are pre-configured for Gmail. Only change them if you know what you're doing.
+                            Default Gmail SMTP settings are already configured. Only change these if you're experiencing connection problems.
                           </p>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -903,12 +937,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="outlookClientId">
-                        Client ID
-                        {getValidationErrors("outlook").includes("Client ID is required") && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </Label>
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="outlookClientId">
+                          Client ID
+                          {getValidationErrors("outlook").includes("Client ID is required") && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                        </Label>
+                        <div className="relative ml-1 group">
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                            Client ID from your Microsoft Azure Portal. Required for OAuth authentication.
+                          </div>
+                        </div>
+                      </div>
                       <Input
                         id="outlookClientId"
                         name="outlookClientId"
@@ -920,12 +962,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="outlookClientSecret">
-                        Client Secret
-                        {getValidationErrors("outlook").includes("Client Secret is required") && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </Label>
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="outlookClientSecret">
+                          Client Secret
+                          {getValidationErrors("outlook").includes("Client Secret is required") && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                        </Label>
+                        <div className="relative ml-1 group">
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                            Client Secret from your Microsoft Azure Portal. Keep this value confidential.
+                          </div>
+                        </div>
+                      </div>
                       <Input
                         id="outlookClientSecret"
                         name="outlookClientSecret"
@@ -939,23 +989,51 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="outlookRedirectUri">
-                      Redirect URI (Required)
-                      {getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                    </Label>
-                    <Input
-                      id="outlookRedirectUri"
-                      name="outlookRedirectUri"
-                      value={credentials.outlookRedirectUri}
-                      onChange={handleInputChange}
-                      placeholder={DEFAULT_OUTLOOK_REDIRECT_URI}
-                      className={getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
-                    />
-                    <p className="text-sm text-text-muted">
-                      Copy and paste exactly this URL to your Microsoft Azure Portal Redirect URIs: <strong>{DEFAULT_OUTLOOK_REDIRECT_URI}</strong>
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="outlookRedirectUri">
+                        Redirect URI
+                        {getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <div className="relative ml-1 group">
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                          This exact URL must be added to your Microsoft Azure Portal "Redirect URIs" section.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="outlookRedirectUri"
+                        name="outlookRedirectUri"
+                        value={credentials.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI}
+                        onChange={handleInputChange}
+                        placeholder={DEFAULT_OUTLOOK_REDIRECT_URI}
+                        className={getValidationErrors("outlook").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
+                        readOnly
+                      />
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => {
+                          navigator.clipboard.writeText(credentials.outlookRedirectUri || DEFAULT_OUTLOOK_REDIRECT_URI);
+                          toast({
+                            title: "Copied!",
+                            description: "Redirect URI copied to clipboard",
+                          });
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                      </Button>
+                    </div>
+                    <Alert className="mt-2 py-2 bg-amber-50 text-amber-800 border-amber-200">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Copy this exact URL to your Microsoft Azure Portal under "Authentication" → "Platform configurations" → "Web" → "Redirect URIs"
+                      </AlertDescription>
+                    </Alert>
                   </div>
 
                   {/* Test Connection Button for Outlook */}
