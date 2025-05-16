@@ -281,7 +281,7 @@ export function registerHotelRoutes(
             hotelName: hotel.name,
             name: accommodationData.name,
             category: accommodationData.roomType,
-            capacity: accommodationData.capacity,
+            capacity: accommodationData.maxOccupancy, // Using maxOccupancy instead of capacity
             specialFeatures: accommodationData.specialFeatures
           };
           

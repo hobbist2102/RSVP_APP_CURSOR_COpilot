@@ -699,7 +699,8 @@ const HotelsPage: React.FC = () => {
                                       hotelId: acc.hotelId,
                                       name: acc.name,
                                       roomType: acc.roomType,
-                                      capacity: acc.capacity,
+                                      bedType: acc.bedType || "",
+                                      maxOccupancy: acc.maxOccupancy,
                                       totalRooms: acc.totalRooms,
                                       pricePerNight: acc.pricePerNight || "",
                                       specialFeatures: acc.specialFeatures || "",
@@ -809,7 +810,7 @@ const HotelsPage: React.FC = () => {
                             // Fill the form with global room type 
                             accommodationForm.setValue("name", roomType.name);
                             accommodationForm.setValue("roomType", roomType.category);
-                            accommodationForm.setValue("capacity", roomType.capacity);
+                            accommodationForm.setValue("maxOccupancy", roomType.capacity);
                             accommodationForm.setValue("specialFeatures", roomType.specialFeatures || "");
                             accommodationForm.setValue("globalRoomTypeId", roomType.id);
 
@@ -1178,7 +1179,8 @@ const HotelsPage: React.FC = () => {
               hotelId: selectedHotel?.id || 0,
               name: "",
               roomType: "",
-              capacity: 1,
+              bedType: "",
+              maxOccupancy: 1,
               totalRooms: 1,
               pricePerNight: "",
               specialFeatures: "",
