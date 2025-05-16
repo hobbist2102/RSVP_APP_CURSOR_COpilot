@@ -520,24 +520,62 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       </CardHeader>
 
       <CardContent>
-        <Alert className="mb-6">
-          <Mail className="h-4 w-4 mr-2" />
-          <AlertTitle>Important OAuth Setup Instructions</AlertTitle>
-          <AlertDescription>
-            <ol className="list-decimal ml-5 space-y-2 mt-2">
-              <li><strong>First:</strong> Create OAuth credentials in <a href="https://console.cloud.google.com/" target="_blank" className="text-primary underline">Google Cloud Console</a> or <a href="https://portal.azure.com/" target="_blank" className="text-primary underline">Microsoft Azure Portal</a></li>
-              <li><strong>Second:</strong> Enter your OAuth credentials for your chosen provider (Gmail or Outlook)</li>
-              <li><strong>Third:</strong> Click the <strong>"Save Configuration"</strong> button at the bottom of this form</li>
-              <li><strong>Finally:</strong> Click the <strong>"Configure OAuth"</strong> button to connect your account</li>
-            </ol>
-            <div className="mt-3 bg-muted p-3 rounded-md">
-              <p className="text-sm font-medium">Required OAuth Scopes:</p>
-              <p className="text-xs mt-1"><strong>Gmail:</strong> https://mail.google.com/ (full access scope needed for sending emails)</p>
-              <p className="text-xs mt-1"><strong>Outlook:</strong> https://graph.microsoft.com/mail.send, offline_access</p>
-              <p className="text-xs mt-2"><strong>Redirect URI:</strong> {REPLIT_DOMAIN}/api/oauth/{credentials.useGmail ? 'gmail' : 'outlook'}/callback</p>
-            </div>
-          </AlertDescription>
-        </Alert>
+        <div className="mb-6 space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <Mail className="h-4 w-4 mr-2 text-blue-600" />
+            <AlertTitle className="text-blue-800">Email Configuration Overview</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              <p className="mt-1">Configure your email provider to send invitations, RSVP confirmations, and other communications to guests.</p>
+              <p className="mt-2 font-medium">You have three options:</p>
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-blue-100 p-1.5 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 5v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/><path d="M12 11h4"/><path d="M12 7h4"/><path d="M8 15h8"/><path d="M8 19h8"/><circle cx="8" cy="9" r="2"/></svg>
+                    </div>
+                    <h3 className="font-medium text-sm">Gmail OAuth</h3>
+                  </div>
+                  <p className="text-xs">Connect using your Google account with OAuth for secure access.</p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-blue-100 p-1.5 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="m22 5-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 5"/></svg>
+                    </div>
+                    <h3 className="font-medium text-sm">Direct SMTP</h3>
+                  </div>
+                  <p className="text-xs">Use Gmail with app password for simpler setup (2FA required).</p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-blue-100 p-1.5 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22V12c0-5.5 4.5-10 10-10s10 4.5 10 10v1.2"/><path d="M4 12c0-3.3 2.7-6 6-6"/><path d="M14 12V7h1.5c1.93 0 3.5 1.57 3.5 3.5S17.43 14 15.5 14H14v-2"/></svg>
+                    </div>
+                    <h3 className="font-medium text-sm">SendGrid</h3>
+                  </div>
+                  <p className="text-xs">Use SendGrid's API for high-volume, reliable email delivery.</p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="mb-6">
+            <HelpCircle className="h-4 w-4 mr-2" />
+            <AlertTitle>Setup Instructions</AlertTitle>
+            <AlertDescription>
+              <ol className="list-decimal ml-5 space-y-2 mt-2">
+                <li><strong>First:</strong> Select your preferred email provider below</li>
+                <li><strong>Second:</strong> Enter the required credentials for your chosen provider</li>
+                <li><strong>Third:</strong> Save your configuration and authorize the connection</li>
+                <li><strong>Finally:</strong> Test your connection to ensure emails can be sent</li>
+              </ol>
+              <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm font-medium text-amber-800">Configuration is specific to this event</p>
+                <p className="text-xs mt-1 text-amber-700">Email settings are stored separately for each wedding event, allowing different credentials per project.</p>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 mb-6">
@@ -1216,7 +1254,63 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6">
+          {/* General Email Settings (applies to all providers) */}
+          <div className="mt-8 border-t pt-6">
+            <h3 className="text-lg font-semibold mb-4">General Email Settings</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              These settings apply regardless of which email provider you use (Gmail, Outlook, or SendGrid).
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="emailFrom">From Email Address</Label>
+                  <div className="relative ml-1 group">
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                      The email address that will appear in the "From" field of sent emails. This should be a verified sender address.
+                    </div>
+                  </div>
+                </div>
+                <Input
+                  id="emailFrom"
+                  name="emailFrom"
+                  value={credentials.emailFrom}
+                  onChange={handleInputChange}
+                  placeholder="weddings@yourdomain.com"
+                  type="email"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {credentials.useGmail && "When using Gmail, this should match your Gmail account or a verified alias."}
+                  {credentials.useOutlook && "When using Outlook, this should match your Outlook account or a verified sender."}
+                  {credentials.useSendGrid && "When using SendGrid, this should be a verified sender identity."}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="emailReplyTo">Reply-To Email Address</Label>
+                  <div className="relative ml-1 group">
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                      When recipients reply to your emails, their responses will go to this address.
+                    </div>
+                  </div>
+                </div>
+                <Input
+                  id="emailReplyTo"
+                  name="emailReplyTo"
+                  value={credentials.emailReplyTo}
+                  onChange={handleInputChange}
+                  placeholder="replies@yourdomain.com"
+                  type="email"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This can be different from your "From" address and doesn't need to be verified by your email provider.
+                </p>
+              </div>
+            </div>
+          
             <Button
               type="submit"
               disabled={updateCredentialsMutation.isPending}
