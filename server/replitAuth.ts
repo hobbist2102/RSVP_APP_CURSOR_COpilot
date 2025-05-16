@@ -21,8 +21,10 @@ if (!process.env.SESSION_SECRET) {
 
 const getOidcConfig = memoize(
   async () => {
+    console.log("Using REPL_ID:", process.env.REPL_ID);
+    console.log("Getting OIDC config from:", "https://replit.com/oidc");
     return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+      new URL("https://replit.com/oidc"),
       process.env.REPL_ID!
     );
   },
@@ -130,6 +132,13 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    console.log("Login request received, hostname:", req.hostname);
+    
+    // Save the return URL so we can redirect back after authentication
+    if (req.query.returnTo) {
+      req.session.returnTo = req.query.returnTo as string;
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -137,6 +146,8 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
+    console.log("Callback received from Replit Auth, hostname:", req.hostname);
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
