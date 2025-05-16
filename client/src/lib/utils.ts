@@ -71,11 +71,117 @@ export function capitalizeFirstLetter(string: string): string {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// RSVP Status Utilities - Consolidated Functions
+
+/**
+ * Calculate the overall RSVP response rate (percentage of guests who have responded)
+ */
 export function calculateRsvpProgress(confirmed: number, declined: number, pending: number): number {
   const total = confirmed + declined + pending;
   if (total === 0) return 0;
   
   return Math.round(((confirmed + declined) / total) * 100);
+}
+
+/**
+ * Calculate Stage 1 progress (basic RSVP response)
+ * @param guest Guest object with RSVP status
+ * @returns Percentage of Stage 1 completion (0-100)
+ */
+export function calculateStage1Progress(guest: any): number {
+  if (!guest) return 0;
+  if (guest.rsvpStatus === "pending") return 0;
+  return 100; // Confirmed or declined means stage 1 is complete
+}
+
+/**
+ * Calculate Stage 2 progress (travel and accommodation details)
+ * @param guest Guest object with travel/accommodation details
+ * @returns Percentage of Stage 2 completion (0-100)
+ */
+export function calculateStage2Progress(guest: any): number {
+  if (!guest) return 0;
+  if (guest.rsvpStatus !== "confirmed") return 0;
+  if (guest.isLocalGuest) return 100; // Local guests don't need to complete stage 2
+  
+  // Calculate based on completion of travel/accommodation details
+  let fieldsCompleted = 0;
+  let totalFields = 0;
+  
+  // Check accommodation details
+  if (guest.needsAccommodation !== undefined) {
+    fieldsCompleted += 1;
+    if (guest.needsAccommodation && guest.accommodationPreference) {
+      fieldsCompleted += 1;
+    }
+  }
+  totalFields += 2;
+  
+  // Check transportation details
+  if (guest.needsTransportation !== undefined) {
+    fieldsCompleted += 1;
+    if (guest.needsTransportation && guest.transportationPreference) {
+      fieldsCompleted += 1;
+    }
+  }
+  totalFields += 2;
+  
+  // Travel dates
+  if (guest.arrivalDate) fieldsCompleted += 1;
+  if (guest.departureDate) fieldsCompleted += 1;
+  totalFields += 2;
+  
+  // Calculate percentage
+  return Math.round((fieldsCompleted / totalFields) * 100);
+}
+
+/**
+ * Calculate overall RSVP completion percentage for a guest
+ * @param guest Guest object with RSVP data
+ * @returns Overall completion percentage (0-100)
+ */
+export function calculateOverallRsvpProgress(guest: any): number {
+  const stage1 = calculateStage1Progress(guest);
+  const stage2 = calculateStage2Progress(guest);
+  return Math.round((stage1 + stage2) / 2);
+}
+
+/**
+ * Get color class based on progress percentage
+ * @param progress Progress percentage (0-100)
+ * @returns Tailwind CSS class for coloring
+ */
+export function getProgressColor(progress: number): string {
+  if (progress === 0) return "bg-gray-200";
+  if (progress < 50) return "bg-amber-500";
+  if (progress < 100) return "bg-blue-500";
+  return "bg-green-500";
+}
+
+/**
+ * Get the display status label for a guest's RSVP
+ * @param guest Guest object with RSVP status
+ * @returns String representation of status
+ */
+export function getRsvpStatusLabel(guest: any): string {
+  if (!guest) return "Unknown";
+  
+  if (guest.rsvpStatus === "pending") {
+    return "Not Responded";
+  } else if (guest.rsvpStatus === "declined") {
+    return "Declined";
+  } else if (guest.rsvpStatus === "confirmed") {
+    const stage2Progress = calculateStage2Progress(guest);
+    if (stage2Progress === 100) {
+      return "Fully Confirmed";
+    } else if (stage2Progress > 0) {
+      return "Partially Complete";
+    } else {
+      return "Basic Confirmation";
+    }
+  }
+  
+  return "Unknown";
 }
 
 export function getDaysDifference(date: Date | string | null | undefined): number {
