@@ -7,7 +7,7 @@ import RsvpFollowupConfiguration from "@/components/rsvp/rsvp-followup-configura
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
+import DataTable from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { formatDateForDisplay } from "@/lib/date-utils";
 import { 

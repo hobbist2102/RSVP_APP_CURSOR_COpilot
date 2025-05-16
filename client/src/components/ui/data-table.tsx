@@ -54,7 +54,7 @@ function getAccessorValue<T>(row: T, accessor: ((row: T) => React.ReactNode) | k
   return row[accessor as keyof T];
 }
 
-function DataTableComponent<T>({
+export const DataTable = <T,>({
   data,
   columns,
   onRowClick,
@@ -64,7 +64,7 @@ function DataTableComponent<T>({
   searchable = false,
   searchPlaceholder = "Search...",
   className
-}: DataTableProps<T>) {
+}: DataTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [searchQuery, setSearchQuery] = useState("");
@@ -309,3 +309,8 @@ function DataTableComponent<T>({
     </div>
   );
 }
+
+// This allows both import styles:
+// import { DataTable } from '...'
+// import DataTable from '...'
+export default DataTable;
