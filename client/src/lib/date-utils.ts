@@ -128,3 +128,15 @@ export function getDateUrgencyClass(
   if (daysRemaining <= 30) return 'text-warning';        // Soon (< 1 month)
   return 'text-primary';                                // Plenty of time
 }
+
+/**
+ * Formats a date and time for displaying in the UI
+ * @param date - Date object, ISO string, or timestamp
+ * @param use24Hour - Whether to use 24 hour format for time
+ */
+export function formatDateTimeForDisplay(
+  date: Date | string | number | null | undefined,
+  use24Hour: boolean = false
+): string {
+  return formatDateForDisplay(date, true, use24Hour);
+}

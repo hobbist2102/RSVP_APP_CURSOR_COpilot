@@ -7,8 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import { 
-  formatDate, 
   calculateStage1Progress, 
   calculateStage2Progress,
   calculateOverallRsvpProgress,
@@ -53,7 +53,7 @@ export default function RsvpStatusDisplay({ guest, showDetails = true }: RsvpSta
           {getStatusBadge()}
           {guest.rsvpDate && (
             <span className="text-xs text-muted-foreground">
-              {formatDate(guest.rsvpDate)}
+              {formatDateForDisplay(guest.rsvpDate)}
             </span>
           )}
         </div>
