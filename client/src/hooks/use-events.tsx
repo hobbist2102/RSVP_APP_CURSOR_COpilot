@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { post, put, del } from "@/lib/api-utils"; // Using the consolidated API utilities
 import { useToast } from "@/hooks/use-toast";
 import { InsertWeddingEvent } from "@shared/schema";
 
@@ -20,11 +20,11 @@ export function useEvents() {
     enabled: !!currentEventId,
   });
 
-  // Create event mutation
+  // Create event mutation using consolidated API utilities
   const createEventMutation = useMutation({
     mutationFn: async (eventData: InsertWeddingEvent) => {
-      const response = await apiRequest("POST", "/api/events", eventData);
-      return await response.json();
+      const response = await post("/api/events", eventData);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
@@ -43,11 +43,11 @@ export function useEvents() {
     },
   });
 
-  // Update event mutation
+  // Update event mutation using consolidated API utilities
   const updateEventMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<InsertWeddingEvent> }) => {
-      const response = await apiRequest("PUT", `/api/events/${id}`, data);
-      return await response.json();
+      const response = await put(`/api/events/${id}`, data);
+      return response.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
@@ -75,11 +75,11 @@ export function useEvents() {
     });
   };
   
-  // Delete event mutation
+  // Delete event mutation using consolidated API utilities
   const deleteEventMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/events/${id}`, {});
-      return await response.json();
+      const response = await del(`/api/events/${id}`);
+      return response.data;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });

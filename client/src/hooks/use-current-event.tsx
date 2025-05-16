@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils"; // Using the consolidated API utilities
 
 export interface CurrentEvent {
   id: number;
@@ -54,15 +55,15 @@ export function useCurrentEvent() {
   // Get the currently selected event ID
   const currentEventId = currentEvent?.id;
   
-  // Mutation to set the current event on the server
+  // Mutation to set the current event on the server using consolidated API utilities
   const setCurrentEventMutation = useMutation({
     mutationFn: async (eventId: number) => {
-      const response = await apiRequest("POST", "/api/current-event", { eventId });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to set current event' }));
-        throw new Error(errorData.message || 'Failed to set current event');
+      try {
+        const response = await post("/api/current-event", { eventId });
+        return response.data;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to set current event');
       }
-      return await response.json();
     }
   });
   
