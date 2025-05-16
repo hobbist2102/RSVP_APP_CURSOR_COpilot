@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Steps, Step } from "@/components/ui/steps";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, ArrowRight, Save, CheckCircle2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-// Step components
+// Import wizard step components
 import BasicInfoStep from "@/components/wizard/basic-info-step";
 import VenuesStep from "@/components/wizard/venues-step";
 import RsvpConfigStep from "@/components/wizard/rsvp-config-step";
@@ -19,224 +20,271 @@ import HotelsStep from "@/components/wizard/hotels-step";
 import TransportStep from "@/components/wizard/transport-step";
 import CommunicationStep from "@/components/wizard/communication-step";
 import DesignStep from "@/components/wizard/design-step";
-import AIAssistantStep from "@/components/wizard/ai-assistant-step";
+import AiAssistantStep from "@/components/wizard/ai-assistant-step";
+
+// Define the steps for the wizard
+const STEPS = [
+  {
+    id: "basic-info",
+    title: "Basic Info",
+    description: "Set up your event details"
+  },
+  {
+    id: "venues",
+    title: "Venues & Ceremonies",
+    description: "Add your ceremony locations"
+  },
+  {
+    id: "rsvp-config",
+    title: "RSVP Configuration",
+    description: "Set up your RSVP form"
+  },
+  {
+    id: "hotels",
+    title: "Hotels & Accommodation",
+    description: "Set up guest accommodation"
+  },
+  {
+    id: "transport",
+    title: "Transportation",
+    description: "Manage guest transportation"
+  },
+  {
+    id: "communication",
+    title: "Communication",
+    description: "Set up email and WhatsApp"
+  },
+  {
+    id: "design",
+    title: "Design & Styling",
+    description: "Customize colors and appearance"
+  },
+  {
+    id: "ai-assistant",
+    title: "AI Assistant",
+    description: "Configure AI chatbot"
+  }
+];
 
 export default function EventSetupWizard() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [savedStep, setSavedStep] = useState(0);
-  const [_, navigate] = useNavigate();
   const { eventId } = useParams();
-  const { currentEvent, isLoading: isLoadingEvent } = useCurrentEvent();
+  const [_, setLocation] = useLocation();
+  const { currentEvent } = useCurrentEvent();
   const { toast } = useToast();
+  const [activeStep, setActiveStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Record<string, any>>({});
 
-  // Fetch wizard progress data from API
-  const { 
-    data: wizardData, 
-    isLoading: isLoadingWizard,
-    error: wizardError,
-    refetch: refetchWizardData
-  } = useQuery({
-    queryKey: [`/api/events/${eventId}/setup-progress`],
-    enabled: !!eventId,
+  // Fetch wizard progress data for this event
+  const { data: wizardProgress, isLoading: isLoadingProgress } = useQuery({
+    queryKey: [`/api/wizard/events/${eventId}/setup-progress`],
+    queryFn: getProgressFn,
+    enabled: !!eventId
   });
 
-  // Save wizard progress
-  const saveProgressMutation = useMutation({
-    mutationFn: async (progressData: any) => {
-      const res = await apiRequest("POST", `/api/events/${eventId}/setup-progress`, progressData);
-      return await res.json();
-    },
-    onSuccess: () => {
-      setSavedStep(currentStep);
-      toast({
-        title: "Progress saved",
-        description: "Your setup progress has been saved.",
-        variant: "default",
-      });
-      refetchWizardData();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to save progress",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Complete current step
-  const completeStepMutation = useMutation({
-    mutationFn: async (stepData: any) => {
-      const res = await apiRequest("POST", `/api/events/${eventId}/complete-step`, {
-        step: steps[currentStep].id,
-        data: stepData
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Step completed",
-        description: `${steps[currentStep].title} step has been completed.`,
-        variant: "default",
-      });
-      refetchWizardData();
-      // Move to next step if not the last one
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
+  function getProgressFn(): Promise<any> {
+    return fetch(`/api/wizard/events/${eventId}/setup-progress`).then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch setup progress');
       }
+      return res.json();
+    });
+  }
+
+  // Mutation to update a step's completion status
+  const completeStepMutation = useMutation({
+    mutationFn: async ({ stepId, data }: { stepId: string; data: any }) => {
+      const response = await apiRequest("POST", `/api/wizard/events/${eventId}/complete-step`, {
+        stepId,
+        data
+      });
+      return response.json();
     },
-    onError: (error: Error) => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/wizard/events/${eventId}/setup-progress`] });
+    },
+    onError: (error) => {
       toast({
-        title: "Failed to complete step",
-        description: error.message,
-        variant: "destructive",
+        title: "Error saving progress",
+        description: error instanceof Error ? error.message : "Failed to save progress",
+        variant: "destructive"
       });
     }
   });
 
-  // Steps configuration
-  const steps = [
-    { 
-      id: "basic_info", 
-      title: "Basic Information", 
-      description: "Event details, couple information and dates",
-      component: BasicInfoStep,
-      completed: wizardData?.basicInfoComplete || false
-    },
-    { 
-      id: "venues", 
-      title: "Venues & Ceremonies", 
-      description: "Add venues and ceremony details", 
-      component: VenuesStep,
-      completed: wizardData?.venuesComplete || false
-    },
-    { 
-      id: "rsvp", 
-      title: "RSVP Configuration", 
-      description: "Customize RSVP form and options", 
-      component: RsvpConfigStep,
-      completed: wizardData?.rsvpComplete || false
-    },
-    { 
-      id: "accommodation", 
-      title: "Hotels & Accommodation", 
-      description: "Set up hotel properties and room inventory", 
-      component: HotelsStep,
-      completed: wizardData?.accommodationComplete || false
-    },
-    { 
-      id: "transport", 
-      title: "Transportation", 
-      description: "Configure transport options and vehicles", 
-      component: TransportStep,
-      completed: wizardData?.transportComplete || false
-    },
-    { 
-      id: "communication", 
-      title: "Communication", 
-      description: "Set up email and WhatsApp messaging", 
-      component: CommunicationStep,
-      completed: wizardData?.communicationComplete || false
-    },
-    { 
-      id: "ai_assistant", 
-      title: "AI Assistant", 
-      description: "Configure AI chatbot for guest interactions", 
-      component: AIAssistantStep,
-      completed: wizardData?.aiAssistantComplete || false
-    },
-    { 
-      id: "styling", 
-      title: "Design & Styling", 
-      description: "Customize appearance and branding", 
-      component: DesignStep,
-      completed: wizardData?.stylingComplete || false
+  // Sync local state with server data when loaded
+  useEffect(() => {
+    if (wizardProgress?.completedSteps) {
+      setCompletedSteps(wizardProgress.completedSteps);
+      
+      // If there are completed steps, start at the first incomplete step
+      if (Object.keys(wizardProgress.completedSteps).length > 0) {
+        for (let i = 0; i < STEPS.length; i++) {
+          if (!wizardProgress.completedSteps[STEPS[i].id]) {
+            setActiveStep(i);
+            break;
+          }
+        }
+      }
     }
-  ];
+  }, [wizardProgress]);
 
-  // Handle next step
-  const handleNextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  // Handle previous step
-  const handlePrevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // Save current progress
-  const handleSaveProgress = () => {
-    saveProgressMutation.mutate({
-      currentStep: steps[currentStep].id
+  // Handle step completion
+  const handleCompleteStep = (stepId: string, data: any) => {
+    completeStepMutation.mutate({ 
+      stepId, 
+      data 
+    }, {
+      onSuccess: () => {
+        setCompletedSteps(prev => ({
+          ...prev,
+          [stepId]: data
+        }));
+        
+        // Move to the next step if not on the last step
+        if (activeStep < STEPS.length - 1) {
+          setActiveStep(activeStep + 1);
+        }
+        
+        toast({
+          title: "Progress saved",
+          description: `${STEPS[activeStep].title} step completed successfully.`,
+        });
+      }
     });
   };
 
-  // Complete current step
-  const handleCompleteStep = (data: any) => {
-    completeStepMutation.mutate(data);
-  };
-
-  // Skip current step
-  const handleSkipStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      toast({
-        title: "Step skipped",
-        description: `You can come back to ${steps[currentStep].title} later.`,
-        variant: "default",
-      });
+  // Navigate to next or previous step
+  const goToNextStep = () => {
+    if (activeStep < STEPS.length - 1) {
+      setActiveStep(activeStep + 1);
     }
   };
 
-  // Navigate to dashboard
-  const handleGoToDashboard = () => {
-    navigate("/dashboard");
+  const goToPreviousStep = () => {
+    if (activeStep > 0) {
+      setActiveStep(activeStep - 1);
+    }
   };
 
-  // Initialize current step from saved progress
-  useEffect(() => {
-    if (wizardData?.currentStep) {
-      const stepIndex = steps.findIndex(step => step.id === wizardData.currentStep);
-      if (stepIndex !== -1) {
-        setCurrentStep(stepIndex);
-        setSavedStep(stepIndex);
-      }
-    }
-  }, [wizardData]);
+  // Go to a specific step
+  const goToStep = (index: number) => {
+    setActiveStep(index);
+  };
 
-  // Handle loading state
-  if (isLoadingEvent || isLoadingWizard) {
+  // Loading state
+  if (isLoadingProgress) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">Loading event setup wizard...</p>
+          <p className="text-muted-foreground">Loading wizard progress...</p>
         </div>
       </DashboardLayout>
     );
   }
 
-  // Handle error state
-  if (wizardError) {
+  // Error handling for missing event
+  if (!currentEvent && !isLoadingProgress) {
     return (
       <DashboardLayout>
         <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error loading wizard</AlertTitle>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            There was an error loading the event setup wizard: {wizardError.toString()}
+            Event not found. Please select a valid event.
           </AlertDescription>
         </Alert>
-        <Button onClick={handleGoToDashboard}>Return to Dashboard</Button>
+        <div className="flex justify-center mt-6">
+          <Button onClick={() => setLocation("/events")}>
+            Go to Events
+          </Button>
+        </div>
       </DashboardLayout>
     );
   }
 
-  // Get current step component
-  const CurrentStepComponent = steps[currentStep].component;
+  // Render the current step
+  const renderCurrentStep = () => {
+    const currentStepId = STEPS[activeStep].id;
+    const isCompleted = !!completedSteps[currentStepId];
+    
+    switch (currentStepId) {
+      case "basic-info":
+        return (
+          <BasicInfoStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "venues":
+        return (
+          <VenuesStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "rsvp-config":
+        return (
+          <RsvpConfigStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "hotels":
+        return (
+          <HotelsStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "transport":
+        return (
+          <TransportStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "communication":
+        return (
+          <CommunicationStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "design":
+        return (
+          <DesignStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      case "ai-assistant":
+        return (
+          <AiAssistantStep 
+            eventId={eventId || ''} 
+            currentEvent={currentEvent}
+            onComplete={(data) => handleCompleteStep(currentStepId, data)}
+            isCompleted={isCompleted}
+          />
+        );
+      default:
+        return <div>Unknown step</div>;
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -247,81 +295,94 @@ export default function EventSetupWizard() {
         </p>
       </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Setup Progress</CardTitle>
-          <CardDescription>Complete all steps to fully configure your event</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Steps currentStep={currentStep} onStepClick={setCurrentStep}>
-            {steps.map((step, index) => (
-              <Step 
-                key={step.id} 
-                title={step.title} 
-                description={step.description}
-                isComplete={step.completed}
-                isCurrent={index === currentStep}
-              />
-            ))}
-          </Steps>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Side navigation */}
+        <div className="w-full md:w-1/4 mb-6 md:mb-0">
+          <Card>
+            <CardContent className="py-4">
+              <Steps 
+                orientation="vertical"
+                activeStep={activeStep} 
+                className="mt-4"
+              >
+                {STEPS.map((step, index) => (
+                  <Step 
+                    key={step.id}
+                    onClick={() => goToStep(index)}
+                    className="cursor-pointer"
+                    completed={!!completedSteps[step.id]}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{step.title}</span>
+                      <span className="text-xs text-muted-foreground">{step.description}</span>
+                    </div>
+                  </Step>
+                ))}
+              </Steps>
+            </CardContent>
+          </Card>
+          
+          {Object.keys(completedSteps).length > 0 && (
+            <div className="mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation(`/event-settings/${eventId}`)}
+                className="w-full"
+              >
+                Return to Event Settings
+              </Button>
+            </div>
+          )}
+        </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>{steps[currentStep].title}</CardTitle>
-          <CardDescription>{steps[currentStep].description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CurrentStepComponent 
-            eventId={eventId} 
-            currentEvent={currentEvent}
-            onComplete={handleCompleteStep}
-            isCompleted={steps[currentStep].completed}
-          />
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <div>
-            <Button 
-              variant="outline" 
-              onClick={handlePrevStep}
-              disabled={currentStep === 0}
-              className="mr-2"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleSkipStep}
-              disabled={currentStep === steps.length - 1 || steps[currentStep].completed}
-            >
-              Skip for Now
-            </Button>
-          </div>
-          <div>
-            <Button 
-              variant="outline" 
-              onClick={handleSaveProgress}
-              disabled={currentStep === savedStep && !saveProgressMutation.isPending}
-              className="mr-2"
-            >
-              <Save className="mr-2 h-4 w-4" /> 
-              {saveProgressMutation.isPending ? "Saving..." : "Save Progress"}
-            </Button>
-            <Button 
-              onClick={handleNextStep}
-              disabled={currentStep === steps.length - 1}
-            >
-              Next <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button variant="outline" onClick={handleGoToDashboard}>
-          Return to Dashboard
-        </Button>
+        {/* Main content */}
+        <div className="w-full md:w-3/4">
+          <Card>
+            <CardContent className="py-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold">{STEPS[activeStep].title}</h3>
+                <p className="text-sm text-muted-foreground">{STEPS[activeStep].description}</p>
+              </div>
+              
+              <div className="py-4">
+                {renderCurrentStep()}
+              </div>
+              
+              <div className="flex justify-between mt-6">
+                <Button
+                  variant="outline"
+                  onClick={goToPreviousStep}
+                  disabled={activeStep === 0}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex gap-2">
+                  {activeStep < STEPS.length - 1 ? (
+                    <Button
+                      onClick={goToNextStep}
+                      className="flex items-center gap-2"
+                    >
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setLocation(`/event-settings/${eventId}`)}
+                      className="flex items-center gap-2"
+                      variant="default"
+                    >
+                      Finish
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

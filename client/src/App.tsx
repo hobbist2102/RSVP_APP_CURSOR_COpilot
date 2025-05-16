@@ -17,6 +17,7 @@ import Settings from "@/pages/settings";
 import EventSettings from "@/pages/event-settings";
 import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
+import EventSetupWizard from "@/pages/event-setup-wizard";
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 
@@ -125,6 +126,13 @@ function App() {
           {() => (
             <PrivateRoute>
               <TransportPage />
+            </PrivateRoute>
+          )}
+        </Route>
+        <Route path="/event-setup-wizard/:eventId?">
+          {({ eventId }) => (
+            <PrivateRoute>
+              <EventSetupWizard />
             </PrivateRoute>
           )}
         </Route>

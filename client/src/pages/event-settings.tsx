@@ -14,8 +14,10 @@ import RsvpSettings from "@/components/settings/rsvp-settings";
 import TravelAccommodationSettings from "@/components/settings/travel-accommodation-settings";
 import { 
   Loader2,
-  AlertCircle 
+  AlertCircle,
+  Wand2
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function EventSettings() {
@@ -70,11 +72,20 @@ export default function EventSettings() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h2 className="text-3xl font-playfair font-bold text-neutral">Event Settings</h2>
-        <p className="text-sm text-gray-500">
-          Manage settings for {currentEvent?.title || "your event"}
-        </p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-playfair font-bold text-neutral">Event Settings</h2>
+          <p className="text-sm text-gray-500">
+            Manage settings for {currentEvent?.title || "your event"}
+          </p>
+        </div>
+        <Button 
+          onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+          className="flex items-center gap-2"
+        >
+          <Wand2 className="h-4 w-4" />
+          Setup Wizard
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
