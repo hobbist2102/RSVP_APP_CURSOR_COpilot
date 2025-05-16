@@ -372,11 +372,14 @@ Follow our wedding journey:
 async function createSystemTemplates(eventId: number) {
   try {
     // Check if templates already exist for this event
-    const existingTemplates = await db.select({ count: db.sql`count(*)` })
+    const result = await db
+      .select()
       .from(emailTemplates)
       .where(eq(emailTemplates.eventId, eventId));
     
-    if (existingTemplates[0].count > 0) {
+    const existingTemplatesCount = result.length;
+    
+    if (existingTemplatesCount > 0) {
       console.log(`Email templates already exist for event ${eventId}, skipping creation`);
       return;
     }

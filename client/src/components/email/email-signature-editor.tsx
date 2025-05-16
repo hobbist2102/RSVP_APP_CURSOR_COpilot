@@ -373,7 +373,7 @@ export default function EmailSignatureEditor({ eventId }: EmailSignatureEditorPr
                       />
                     </FormControl>
                     <FormDescription>
-                      Use variables like {{'{{'}}brideName{{'}}'}}, {{'{{'}}groomName{{'}}'}}, and social media placeholders.
+                      Use variables like {"{{"} brideName {"}}"}, {"{{"} groomName {"}}"}, and social media placeholders.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

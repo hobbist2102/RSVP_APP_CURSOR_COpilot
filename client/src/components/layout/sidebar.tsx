@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   Cog,
-  Hotel
+  Hotel,
+  Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -83,7 +84,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     },
     {
       name: "Email Templates",
-      icon: <Mail className="mr-3 h-5 w-5" />,
+      icon: <Settings className="mr-3 h-5 w-5" />,
       path: "/email-templates"
     }
   ];
