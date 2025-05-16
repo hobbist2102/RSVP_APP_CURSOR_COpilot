@@ -333,10 +333,23 @@ export function AutoAssignmentDashboard({ eventId }: AutoAssignmentDashboardProp
             </DialogHeader>
             
             <RoomAssignmentDialog
-              eventId={eventId}
-              guestId={selectedAssignment.guestId}
-              existingAllocationId={selectedAssignment.id}
-              onAssignmentComplete={() => {
+              open={true}
+              onOpenChange={() => {}}
+              accommodationId={selectedAssignment.accommodationId}
+              accommodationName={selectedAssignment.accommodation.name}
+              maxOccupancy={selectedAssignment.accommodation.maxOccupancy}
+              bedType={selectedAssignment.accommodation.bedType}
+              existingAllocation={{
+                guestId: selectedAssignment.guestId,
+                id: selectedAssignment.id,
+                checkInDate: selectedAssignment.checkInDate,
+                checkOutDate: selectedAssignment.checkOutDate,
+                specialRequests: selectedAssignment.specialRequests,
+                includesPlusOne: selectedAssignment.includesPlusOne,
+                includesChildren: selectedAssignment.includesChildren,
+                childrenCount: selectedAssignment.childrenCount
+              }}
+              onSuccess={() => {
                 setIsChangingRoom(false);
                 setSelectedAssignment(null);
                 queryClient.invalidateQueries({ queryKey: ["auto-assignments", eventId] });
