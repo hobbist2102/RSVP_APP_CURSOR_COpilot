@@ -180,23 +180,63 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
     } else if (guest.rsvpStatus === "declined") {
       return <Badge variant="destructive">Declined</Badge>;
     } else if (guest.rsvpStatus === "confirmed") {
-      // Check if they need to complete Stage 2
-      const needsStage2 = !guest.isLocalGuest && 
-                         (!guest.needsAccommodation === undefined ||
-                          !guest.needsTransportation === undefined);
-                           
-      if (needsStage2) {
+      // Calculate stage 2 completion percentage using the same logic as RsvpStatusDisplay
+      let stage2Progress = 0;
+      
+      if (guest.isLocalGuest) {
+        stage2Progress = 100; // Local guests don't need to complete stage 2
+      } else {
+        // Calculate based on completion of travel/accommodation details
+        let fieldsCompleted = 0;
+        let totalFields = 0;
+        
+        // Check accommodation details
+        if (guest.needsAccommodation !== undefined) {
+          fieldsCompleted += 1;
+          if (guest.needsAccommodation && guest.accommodationPreference) {
+            fieldsCompleted += 1;
+          }
+        }
+        totalFields += 2;
+        
+        // Check transportation details
+        if (guest.needsTransportation !== undefined) {
+          fieldsCompleted += 1;
+          if (guest.needsTransportation && guest.transportationPreference) {
+            fieldsCompleted += 1;
+          }
+        }
+        totalFields += 2;
+        
+        // Travel dates
+        if (guest.arrivalDate) fieldsCompleted += 1;
+        if (guest.departureDate) fieldsCompleted += 1;
+        totalFields += 2;
+        
+        // Calculate percentage
+        stage2Progress = Math.round((fieldsCompleted / totalFields) * 100);
+      }
+      
+      // Now use consistent logic for displaying badges
+      if (stage2Progress === 100) {
         return (
           <div className="flex flex-col gap-1">
             <Badge variant="default">Stage 1 Complete</Badge>
-            <Badge variant="outline">Stage 2 Pending</Badge>
+            <Badge variant="default" className="bg-green-500 text-white">Stage 2 Complete</Badge>
+          </div>
+        );
+      } else if (stage2Progress > 0) {
+        return (
+          <div className="flex flex-col gap-1">
+            <Badge variant="default">Stage 1 Complete</Badge>
+            <Badge variant="outline">Stage 2 ({stage2Progress}%)</Badge>
           </div>
         );
       } else {
         return (
           <div className="flex flex-col gap-1">
             <Badge variant="default">Stage 1 Complete</Badge>
-            <Badge variant="default" className="bg-green-500 text-white">Stage 2 Complete</Badge>
+            <Badge variant="outline">Stage 2 Pending</Badge>
           </div>
         );
       }
