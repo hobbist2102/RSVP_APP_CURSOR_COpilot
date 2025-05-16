@@ -2248,6 +2248,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Event Settings routes
   app.use('/api/event-settings', eventSettingsRoutes);
   
+  // Register Email Templates routes
+  app.use(emailTemplatesRoutes);
+  
   // Add a test email endpoint for debugging
   app.post('/api/test-email', async (req: Request, res: Response) => {
     try {
