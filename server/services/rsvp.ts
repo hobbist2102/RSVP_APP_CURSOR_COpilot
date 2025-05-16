@@ -20,6 +20,9 @@ import {
 // Import the RSVP follow-up service
 import { rsvpFollowupService } from './rsvp-followup';
 
+// Import the auto room assignment service
+import { AutoRoomAssignmentService } from './auto-room-assignment';
+
 export class RSVPService {
   private static readonly TOKEN_EXPIRY_DAYS = 90; // 90 days expiry for RSVP tokens
   private static readonly SECRET_KEY = process.env.RSVP_SECRET_KEY || 'wedding_rsvp_default_secret_key';
@@ -247,6 +250,34 @@ export class RSVPService {
             `\nAccommodation: ${response.accommodationPreference}` +
             (response.accommodationNotes ? `\nNotes: ${response.accommodationNotes}` : '')
         });
+        
+        // If guest selected "provided" accommodation, trigger auto room assignment
+        if (response.accommodationPreference === 'provided') {
+          try {
+            console.log(`Guest ${guest.id} selected provided accommodation - triggering auto room assignment`);
+            const roomAssignmentResult = await AutoRoomAssignmentService.processForGuest(guest.id, response.eventId);
+            
+            if (roomAssignmentResult.success) {
+              console.log(`Auto room assignment successful for guest ${guest.id}`);
+              // Add note about the auto-assignment
+              await storage.updateGuest(guest.id, {
+                notes: (guest.notes || '') + 
+                  `\nAuto room assignment: Room automatically assigned for review by planner.` +
+                  (roomAssignmentResult.earlyCheckIn ? ' Early check-in may be needed.' : '')
+              });
+            } else {
+              console.warn(`Auto room assignment failed for guest ${guest.id}: ${roomAssignmentResult.message}`);
+              // Update guest notes with the failure info so planner can follow up
+              await storage.updateGuest(guest.id, {
+                notes: (guest.notes || '') + 
+                  `\nAuto room assignment: Failed - ${roomAssignmentResult.message}. Manual assignment needed.`
+              });
+            }
+          } catch (assignmentError) {
+            console.error('Error in auto room assignment:', assignmentError);
+            // Continue with RSVP processing even if room assignment fails
+          }
+        }
       }
       
       // Process transportation needs
