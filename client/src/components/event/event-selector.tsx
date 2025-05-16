@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useCurrentEvent, type CurrentEvent } from "@/hooks/use-current-event";
 import { CalendarClock } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import { queryClient } from "@/lib/queryClient";
 
 export function EventSelector() {
@@ -166,7 +166,7 @@ export function EventSelector() {
               >
                 <div className="flex flex-col">
                   <span className="font-medium">{event.title}</span>
-                  <span className="text-xs text-gray-500">{formatDate(event.startDate)} - {formatDate(event.endDate)}</span>
+                  <span className="text-xs text-gray-500">{formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}</span>
                 </div>
               </SelectItem>
             ))}
