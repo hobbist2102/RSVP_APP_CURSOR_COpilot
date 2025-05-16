@@ -41,7 +41,8 @@ const getInitials = (name: string) => {
 interface RoomAllocationListProps {
   accommodationId: number;
   accommodationName: string;
-  capacity: number;
+  maxOccupancy: number;
+  bedType?: string;
   totalRooms: number;
   allocatedRooms: number;
   eventId: number;
@@ -50,7 +51,8 @@ interface RoomAllocationListProps {
 export function RoomAllocationList({
   accommodationId,
   accommodationName,
-  capacity,
+  maxOccupancy,
+  bedType,
   totalRooms,
   allocatedRooms,
   eventId,
@@ -221,10 +223,15 @@ export function RoomAllocationList({
                   <User className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Capacity</p>
+                  <p className="text-sm font-medium">Maximum Occupancy</p>
                   <p className="text-xl font-bold">
-                    {capacity * totalRooms}
+                    {maxOccupancy * totalRooms}
                   </p>
+                  {bedType && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {bedType.charAt(0).toUpperCase() + bedType.slice(1)} beds
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

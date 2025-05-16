@@ -770,7 +770,8 @@ const HotelsPage: React.FC = () => {
                         <RoomAllocationList
                           accommodationId={selectedAccommodation.id}
                           accommodationName={selectedAccommodation.name}
-                          capacity={selectedAccommodation.capacity}
+                          maxOccupancy={selectedAccommodation.maxOccupancy}
+                          bedType={selectedAccommodation.bedType}
                           totalRooms={selectedAccommodation.totalRooms}
                           allocatedRooms={selectedAccommodation.allocatedRooms || 0}
                           eventId={currentEvent?.id || 0}

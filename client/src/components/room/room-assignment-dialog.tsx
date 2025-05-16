@@ -80,6 +80,8 @@ interface RoomAssignmentDialogProps {
   onOpenChange: (open: boolean) => void;
   accommodationId: number | null;
   accommodationName: string;
+  maxOccupancy?: number;
+  bedType?: string;
   onSuccess?: () => void;
   existingAllocation?: any;
 }
@@ -89,6 +91,8 @@ export function RoomAssignmentDialog({
   onOpenChange,
   accommodationId,
   accommodationName,
+  maxOccupancy,
+  bedType,
   onSuccess,
   existingAllocation,
 }: RoomAssignmentDialogProps) {
@@ -254,8 +258,16 @@ export function RoomAssignmentDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <div className="text-sm font-medium">
-                Room Type: <span className="font-bold">{accommodationName}</span>
+              <div className="space-y-1">
+                <div className="text-sm font-medium">
+                  Room Type: <span className="font-bold">{accommodationName}</span>
+                </div>
+                {bedType && (
+                  <div className="text-xs text-muted-foreground">
+                    Bed Type: {bedType.charAt(0).toUpperCase() + bedType.slice(1)}
+                    {maxOccupancy && <> · Max Occupancy: {maxOccupancy} {maxOccupancy === 1 ? 'guest' : 'guests'}</>}
+                  </div>
+                )}
               </div>
 
               <FormField
