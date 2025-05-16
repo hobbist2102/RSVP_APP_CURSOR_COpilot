@@ -148,11 +148,6 @@ showConfirmation("Are you sure?", () => handleConfirm(), () => handleCancel());
    - `showSuccess/showError` for notifications
 4. **Add proper TypeScript types** for all function parameters and return values
 5. **Include JSDoc comments** for all utility functions to improve developer experience
-6. **Use reusable components** like DataTable instead of implementing custom tables
-7. **Implement a single source of truth** for business logic
-8. **Handle errors consistently** using the unified error handling in api-utils
-9. **Keep code DRY** (Don't Repeat Yourself) by refactoring duplicated functionality
-10. **Component cohesion** - Each component should have a single responsibility
 
 ## Components
 

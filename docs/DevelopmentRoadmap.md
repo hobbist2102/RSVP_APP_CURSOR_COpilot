@@ -101,11 +101,8 @@ This document outlines the development roadmap for the Wedding RSVP application,
 1. **Route organization**: Consolidate and organize route handlers by feature
 2. **Type safety**: Enhance TypeScript types across the application
 3. **Test coverage**: Implement unit and integration tests
-4. ✓ **Error handling**: Standardized error handling through consolidated API utilities
-5. ✓ **Code modularization**: Refactored components for better modularity:
-   - ✓ Consolidated date formatting utilities
-   - ✓ Reusable table components with DataTable
-   - ✓ Centralized API request handling
+4. **Error handling**: Standardize error handling and user feedback
+5. **Code modularization**: Refactor to more modular components and services
 6. **Performance optimization**: Address any slow data operations or UI rendering
 7. **Accessibility**: Ensure all components meet WCAG standards
 
