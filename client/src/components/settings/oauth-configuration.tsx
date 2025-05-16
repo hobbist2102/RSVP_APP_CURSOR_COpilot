@@ -521,13 +521,21 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
       <CardContent>
         <Alert className="mb-6">
+          <Mail className="h-4 w-4 mr-2" />
           <AlertTitle>Important OAuth Setup Instructions</AlertTitle>
           <AlertDescription>
-            <ol className="list-decimal ml-5 space-y-2">
-              <li><strong>First:</strong> Enter your OAuth credentials for either Gmail or Outlook</li>
-              <li><strong>Second:</strong> Click the <strong>"Save Configuration"</strong> button at the bottom of this card</li>
+            <ol className="list-decimal ml-5 space-y-2 mt-2">
+              <li><strong>First:</strong> Create OAuth credentials in <a href="https://console.cloud.google.com/" target="_blank" className="text-primary underline">Google Cloud Console</a> or <a href="https://portal.azure.com/" target="_blank" className="text-primary underline">Microsoft Azure Portal</a></li>
+              <li><strong>Second:</strong> Enter your OAuth credentials for your chosen provider (Gmail or Outlook)</li>
+              <li><strong>Third:</strong> Click the <strong>"Save Configuration"</strong> button at the bottom of this form</li>
               <li><strong>Finally:</strong> Click the <strong>"Configure OAuth"</strong> button to connect your account</li>
             </ol>
+            <div className="mt-3 bg-muted p-3 rounded-md">
+              <p className="text-sm font-medium">Required OAuth Scopes:</p>
+              <p className="text-xs mt-1"><strong>Gmail:</strong> https://mail.google.com/ (full access scope needed for sending emails)</p>
+              <p className="text-xs mt-1"><strong>Outlook:</strong> https://graph.microsoft.com/mail.send, offline_access</p>
+              <p className="text-xs mt-2"><strong>Redirect URI:</strong> {REPLIT_DOMAIN}/api/oauth/{credentials.useGmail ? 'gmail' : 'outlook'}/callback</p>
+            </div>
           </AlertDescription>
         </Alert>
 
@@ -606,12 +614,20 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="gmailClientId">
-                            Client ID
-                            {getValidationErrors("gmail").includes("Client ID is required") && (
-                              <span className="text-red-500 ml-1">*</span>
-                            )}
-                          </Label>
+                          <div className="flex items-center gap-1">
+                            <Label htmlFor="gmailClientId">
+                              Client ID
+                              {getValidationErrors("gmail").includes("Client ID is required") && (
+                                <span className="text-red-500 ml-1">*</span>
+                              )}
+                            </Label>
+                            <div className="relative ml-1 group">
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                              <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                                Client ID from your Google Cloud Console project. Required for OAuth authentication.
+                              </div>
+                            </div>
+                          </div>
                           <Input
                             id="gmailClientId"
                             name="gmailClientId"
@@ -642,23 +658,51 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="gmailRedirectUri">
-                          Redirect URI (Required)
-                          {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
-                            <span className="text-red-500 ml-1">*</span>
-                          )}
-                        </Label>
-                        <Input
-                          id="gmailRedirectUri"
-                          name="gmailRedirectUri"
-                          value={credentials.gmailRedirectUri}
-                          onChange={handleInputChange}
-                          placeholder={DEFAULT_GMAIL_REDIRECT_URI}
-                          className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
-                        />
-                        <p className="text-sm text-text-muted">
-                          Copy and paste exactly this URL to your Google Cloud Console Authorized Redirect URIs: <strong>{DEFAULT_GMAIL_REDIRECT_URI}</strong>
-                        </p>
+                        <div className="flex items-center gap-1">
+                          <Label htmlFor="gmailRedirectUri">
+                            Redirect URI
+                            {getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </Label>
+                          <div className="relative ml-1 group">
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                              This exact URL must be added to your Google Cloud Console Authorized Redirect URIs.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="relative">
+                          <Input
+                            id="gmailRedirectUri"
+                            name="gmailRedirectUri"
+                            value={credentials.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI}
+                            onChange={handleInputChange}
+                            placeholder={DEFAULT_GMAIL_REDIRECT_URI}
+                            className={getValidationErrors("gmail").includes("Redirect URI must be a valid URL with http:// or https:// protocol") ? "border-red-500" : ""}
+                            readOnly
+                          />
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            className="absolute right-0 top-0 h-full px-3"
+                            onClick={() => {
+                              navigator.clipboard.writeText(credentials.gmailRedirectUri || DEFAULT_GMAIL_REDIRECT_URI);
+                              toast({
+                                title: "Copied!",
+                                description: "Redirect URI copied to clipboard",
+                              });
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                          </Button>
+                        </div>
+                        <Alert className="mt-2 py-2 bg-amber-50 text-amber-800 border-amber-200">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            Copy this exact URL to your Google Cloud Console under "Authorized redirect URIs"
+                          </AlertDescription>
+                        </Alert>
                       </div>
                     </>
                   )}
@@ -679,15 +723,22 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     
                     {credentials.useGmailDirectSMTP && (
                       <div className="space-y-4">
-                        <Alert>
+                        <Alert className="bg-amber-50 text-amber-800 border-amber-200">
                           <AlertTitle className="flex items-center">
                             <AlertCircle className="h-4 w-4 mr-2" />
                             Direct SMTP Access
                           </AlertTitle>
                           <AlertDescription>
                             <p className="mb-2">This option lets you use your Gmail password directly for sending emails instead of OAuth.</p>
-                            <p className="mb-2"><strong>Important:</strong> For this to work, you must enable "Less secure app access" in your Google account settings or create an app password.</p>
-                            <p>This method is less secure but more reliable in certain environments.</p>
+                            <p className="mb-2"><strong>Important:</strong> For this to work, you need to use an app-specific password from your Google account.</p>
+                            <p className="mb-1">To create an app password:</p>
+                            <ol className="list-decimal ml-5 space-y-1 text-sm">
+                              <li>Go to your <a href="https://myaccount.google.com/security" target="_blank" className="text-primary underline">Google Account Security settings</a></li>
+                              <li>Enable 2-Step Verification if not already enabled</li>
+                              <li>Select "App passwords" under "Signing in to Google"</li>
+                              <li>Create a new app password for "Mail" and "Other (Custom name)"</li>
+                              <li>Enter the generated 16-character password below</li>
+                            </ol>
                           </AlertDescription>
                         </Alert>
                         
