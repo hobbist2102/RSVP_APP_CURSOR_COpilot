@@ -904,19 +904,19 @@ export default function RsvpFollowupConfiguration() {
                 // WhatsApp preview
                 <div className="bg-[#e5f7d3] p-5 rounded-lg border border-gray-200">
                   <div className="bg-white rounded-lg p-3 shadow-sm mb-2 max-w-[85%] ml-auto relative">
-                    <div className="text-sm font-medium text-gray-700 mb-1">Sarah & Michael</div>
+                    <div className="text-sm font-medium text-gray-700 mb-1">{currentEvent?.coupleNames || "The Couple"}</div>
                     <div className="whitespace-pre-wrap text-sm text-gray-800">
                       {previewTemplate
                         .replace(/{{guest_name}}/g, "John Smith")
                         .replace(/{{first_name}}/g, "John")
                         .replace(/{{last_name}}/g, "Smith")
-                        .replace(/{{couple_names}}/g, "Sarah & Michael")
-                        .replace(/{{event_name}}/g, "Sarah & Michael's Wedding")
+                        .replace(/{{couple_names}}/g, currentEvent?.coupleNames || "The Couple")
+                        .replace(/{{event_name}}/g, currentEvent?.title ? `${currentEvent.title}` : "Wedding Celebration")
                         .replace(/{{rsvp_status}}/g, selectedTemplateType?.includes("confirm") ? "confirmed" : 
                                  selectedTemplateType?.includes("decline") ? "declined" : 
                                  selectedTemplateType?.includes("maybe") ? "maybe" : "pending")
-                        .replace(/{{rsvp_link}}/g, "https://wedding-app.com/rsvp?token=abc123")
-                        .replace(/{{rsvp_deadline}}/g, "August 15, 2025")}
+                        .replace(/{{rsvp_link}}/g, `${window.location.origin}/guest-rsvp/example-token`)
+                        .replace(/{{rsvp_deadline}}/g, currentEvent?.rsvpDeadline || "2 weeks before the event")}
                     </div>
                     <div className="text-[10px] text-gray-500 text-right mt-1">
                       {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
