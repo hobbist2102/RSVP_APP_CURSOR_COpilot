@@ -65,17 +65,37 @@ await apiOperations.delete('/api/resources', id);
 
 ### Date Utilities (`client/src/lib/date-utils.ts`)
 
-Date utilities provide consistent date formatting throughout the application.
+Date utilities provide consistent date formatting throughout the application. All components should use these utilities instead of implementing custom date formatting.
 
 ```typescript
-// Format a date for display
+// Standard date formats
+const DATE_FORMATS = {
+  FULL_DATE: 'MMMM do, yyyy',           // December 25th, 2025
+  SHORT_DATE: 'MMM d, yyyy',            // Dec 25, 2025
+  DAY_MONTH: 'MMMM d',                  // December 25
+  YEAR_MONTH: 'MMMM yyyy',              // December 2025
+  WEEKDAY_DATE: 'EEEE, MMMM do, yyyy',  // Friday, December 25th, 2025
+  INPUT_DATE: 'yyyy-MM-dd',             // 2025-12-25 (HTML date input format)
+  TIME_12H: 'h:mm a',                   // 3:30 PM
+  TIME_24H: 'HH:mm',                    // 15:30
+  DATE_TIME_12H: 'MMM d, yyyy h:mm a',  // Dec 25, 2025 3:30 PM
+  DATE_TIME_24H: 'MMM d, yyyy HH:mm',   // Dec 25, 2025 15:30
+};
+
+// Format any date for display (preferred method)
 formatDateForDisplay('2025-06-15'); // "June 15th, 2025"
 
 // Format with time
 formatDateForDisplay('2025-06-15T15:30:00', true); // "June 15th, 2025 3:30 PM" 
 
+// Format specifically for date/time display
+formatDateTimeForDisplay('2025-06-15T15:30:00'); // "June 15th, 2025 3:30 PM"
+
 // Format for date input fields
 formatForDateInput('2025-06-15'); // "2025-06-15"
+
+// Low-level formatting with custom format string
+formatDate('2025-06-15', DATE_FORMATS.SHORT_DATE); // "Jun 15, 2025"
 
 // Get relative time
 getRelativeTimeFromNow('2025-06-15'); // "in 2 months"
@@ -143,6 +163,41 @@ A reusable table component with built-in pagination, sorting, and search functio
   searchable={true}
   searchPlaceholder="Search guests..."
   onRowClick={handleRowClick}
+  itemsPerPageOptions={[10, 25, 50]}
+  defaultItemsPerPage={10}
+/>
+```
+
+#### Column Definition
+
+```typescript
+const columns = [
+  {
+    header: "Name",
+    accessor: "name", // can be a string for direct property access
+  },
+  {
+    header: "Status",
+    accessor: (row) => row.status, // can be a function for computed values
+    cell: (row) => ( // optional custom cell renderer
+      <Badge className={getStatusColor(row.status)}>
+        {row.status.toUpperCase()}
+      </Badge>
+    ),
+  }
+]
+```
+
+### ActivityTable Component (`client/src/components/dashboard/activity-table.tsx`)
+
+A specialized table component that uses DataTable internally with specific formatting for RSVP activity.
+
+```typescript
+<ActivityTable
+  activities={recentActivities}
+  onViewGuest={handleViewGuest}
+  onEditGuest={handleEditGuest}
+  onFilterChange={handleFilterChange}
 />
 ```
 
@@ -150,7 +205,39 @@ A reusable table component with built-in pagination, sorting, and search functio
 
 When migrating existing code to use the consolidated utilities:
 
+### API Utilities Migration
+
 1. Replace direct `fetch` calls with `get`, `post`, `put`, `patch`, or `del` from `api-utils.ts`
-2. Replace date formatting with functions from `date-utils.ts`
-3. Replace validation logic with schemas from `validation-schemas.ts`
-4. Replace notification code with functions from `notification-utils.ts`
+   - Before: `fetch('/api/endpoint').then(res => res.json())`
+   - After: `get('/api/endpoint')`
+
+2. Use resource operations for standard CRUD operations
+   - Before: `fetch('/api/resources/' + id).then(res => res.json())`
+   - After: `apiOperations.fetchById('/api/resources', id)`
+
+### Date Formatting Migration
+
+1. Replace all custom date formatters with standardized functions
+   - Before: `new Date(date).toLocaleDateString()`
+   - After: `formatDateForDisplay(date)`
+
+2. Always use specialized functions for specific use cases
+   - For form inputs: `formatForDateInput(date)`
+   - For dates with times: `formatDateTimeForDisplay(date)`
+
+### Table Component Migration
+
+1. Replace custom table implementations with the DataTable component
+   - Identify all column specifications
+   - Convert to DataTable's column format with `header`, `accessor`, and optional `cell` properties
+   - Set up appropriate pagination, sorting, and filtering options
+
+2. For specialized tables, consider creating wrapper components like ActivityTable
+   - Implement filter and selection logic in the wrapper component
+   - Pass data through to DataTable for rendering
+
+### Validation Logic Migration
+
+1. Move schema definitions to central `validation-schemas.ts`
+2. Use the schemas with Zod resolvers in React Hook Form
+3. Share schemas between frontend and backend for consistent validation
