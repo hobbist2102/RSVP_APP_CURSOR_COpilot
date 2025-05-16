@@ -125,8 +125,26 @@ const TemplatePreview: React.FC<{
   const rsvpLink = `${window.location.origin}/guest-rsvp/example-token`;
   const rsvpDeadline = event?.rsvpDeadline || "2 weeks before the event";
 
-  // Apply template variables
-  const personalizedTemplate = template
+  // Apply template variables with support for fallback syntax
+  let personalizedTemplate = template;
+  
+  // Process variables with || fallback syntax first
+  personalizedTemplate = personalizedTemplate.replace(/{{(\w+)\s*\|\|\s*["']([^"']*)["']}}/g, (match, varName, fallback) => {
+    switch (varName) {
+      case 'first_name': return firstName;
+      case 'last_name': return lastName;
+      case 'guest_name': return guestName;
+      case 'couple_names': return coupleNames;
+      case 'event_name': return eventName;
+      case 'rsvp_status': return rsvpStatus;
+      case 'rsvp_link': return rsvpLink;
+      case 'rsvp_deadline': return rsvpDeadline;
+      default: return fallback;
+    }
+  });
+  
+  // Then process regular variables
+  personalizedTemplate = personalizedTemplate
     .replace(/{{guest_name}}/g, guestName)
     .replace(/{{first_name}}/g, firstName)
     .replace(/{{last_name}}/g, lastName)
@@ -136,14 +154,32 @@ const TemplatePreview: React.FC<{
     .replace(/{{rsvp_link}}/g, rsvpLink)
     .replace(/{{rsvp_deadline}}/g, rsvpDeadline);
     
-  // Also personalize the subject if provided
-  const personalizedSubject = subject ? subject
-    .replace(/{{guest_name}}/g, guestName)
-    .replace(/{{first_name}}/g, firstName)
-    .replace(/{{last_name}}/g, lastName)
-    .replace(/{{couple_names}}/g, coupleNames)
-    .replace(/{{event_name}}/g, eventName)
-    .replace(/{{rsvp_status}}/g, rsvpStatus) : null;
+  // Also personalize the subject if provided with support for fallback syntax
+  let personalizedSubject = subject;
+  
+  if (personalizedSubject) {
+    // Process variables with || fallback syntax first
+    personalizedSubject = personalizedSubject.replace(/{{(\w+)\s*\|\|\s*["']([^"']*)["']}}/g, (match, varName, fallback) => {
+      switch (varName) {
+        case 'first_name': return firstName;
+        case 'last_name': return lastName;
+        case 'guest_name': return guestName;
+        case 'couple_names': return coupleNames;
+        case 'event_name': return eventName;
+        case 'rsvp_status': return rsvpStatus;
+        default: return fallback;
+      }
+    });
+    
+    // Then process regular variables
+    personalizedSubject = personalizedSubject
+      .replace(/{{guest_name}}/g, guestName)
+      .replace(/{{first_name}}/g, firstName)
+      .replace(/{{last_name}}/g, lastName)
+      .replace(/{{couple_names}}/g, coupleNames)
+      .replace(/{{event_name}}/g, eventName)
+      .replace(/{{rsvp_status}}/g, rsvpStatus);
+  }
 
   // Create a more realistic email preview
   return (
