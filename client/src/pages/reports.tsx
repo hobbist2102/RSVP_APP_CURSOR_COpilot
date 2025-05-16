@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { BarChart3, Users, FileSpreadsheet, CalendarDays } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { formatDate } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import RsvpStatusDisplay from "@/components/rsvp/rsvp-status-display";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 
@@ -115,7 +115,7 @@ export default function Reports() {
                           <RsvpStatusDisplay guest={guest} />
                         </TableCell>
                         <TableCell>
-                          {guest.rsvpStatus !== "pending" ? formatDate(guest.updatedAt) : "Not yet responded"}
+                          {guest.rsvpStatus !== "pending" ? formatDateForDisplay(guest.updatedAt) : "Not yet responded"}
                         </TableCell>
                       </TableRow>
                     ))}

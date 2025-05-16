@@ -454,14 +454,14 @@ export default function GuestList() {
 
                 {row.arrivalDate && (
                   <div className="ml-4 mt-1 text-gray-500">
-                    Arrival: {formatDate(row.arrivalDate)}
+                    Arrival: {formatDateForDisplay(row.arrivalDate)}
                     {row.arrivalTime && ` at ${row.arrivalTime}`}
                   </div>
                 )}
 
                 {row.departureDate && (
                   <div className="ml-4 text-gray-500">
-                    Departure: {formatDate(row.departureDate)}
+                    Departure: {formatDateForDisplay(row.departureDate)}
                     {row.departureTime && ` at ${row.departureTime}`}
                   </div>
                 )}
