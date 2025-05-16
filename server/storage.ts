@@ -33,7 +33,7 @@ export interface EmailConfig {
 }
 
 import {
-  users, type User, type UpsertUser,
+  users, type User, type InsertUser,
   weddingEvents, type WeddingEvent, type InsertWeddingEvent,
   guests, type Guest, type InsertGuest,
   ceremonies, type Ceremony, type InsertCeremony,
@@ -51,13 +51,14 @@ import {
   rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray, sql } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
-  getUser(id: string): Promise<any | undefined>;
-  getUserByEmail(email: string): Promise<any | undefined>;
-  upsertUser(user: any): Promise<any>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   
   // Event operations
   getEvent(id: number): Promise<WeddingEvent | undefined>;
@@ -164,7 +165,6 @@ export interface IStorage {
   
   // RSVP Follow-up Log operations
   getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
-  getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]>;
   createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
 }
 
@@ -1470,21 +1470,6 @@ export class MemStorage implements IStorage {
       log => log.guestId === guestId
     );
   }
-  
-  async getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]> {
-    // Get all guests for this event
-    const guests = await this.getGuestsByEvent(eventId);
-    const guestIds = guests.map(guest => guest.id);
-    
-    if (guestIds.length === 0) {
-      return [];
-    }
-    
-    // Get logs for all these guests
-    return Array.from(this.rsvpFollowupLogsMap.values()).filter(
-      log => guestIds.includes(log.guestId)
-    );
-  }
 
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
     const id = this.rsvpFollowupLogIdCounter++;
@@ -1497,65 +1482,24 @@ export class MemStorage implements IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: string): Promise<any | undefined> {
-    try {
-      const result = await db.execute(sql`
-        SELECT * FROM replit_users WHERE id = ${id}
-      `);
-      
-      if (result.rows && result.rows.length > 0) {
-        return result.rows[0];
-      }
-      return undefined;
-    } catch (error) {
-      console.error("Error getting user by ID:", error);
-      return undefined;
-    }
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
-  async getUserByEmail(email: string): Promise<any | undefined> {
-    if (!email) return undefined;
-    
-    try {
-      const result = await db.execute(sql`
-        SELECT * FROM replit_users WHERE email = ${email}
-      `);
-      
-      if (result.rows && result.rows.length > 0) {
-        return result.rows[0];
-      }
-      return undefined;
-    } catch (error) {
-      console.error("Error getting user by email:", error);
-      return undefined;
-    }
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
   }
 
-  async upsertUser(userData: any): Promise<any> {
-    try {
-      const result = await db.execute(sql`
-        INSERT INTO replit_users 
-          (id, email, first_name, last_name, profile_image_url, role)
-        VALUES 
-          (${userData.id}, ${userData.email}, ${userData.firstName}, ${userData.lastName}, ${userData.profileImageUrl}, ${userData.role || 'staff'})
-        ON CONFLICT (id) DO UPDATE SET
-          email = ${userData.email},
-          first_name = ${userData.firstName},
-          last_name = ${userData.lastName},
-          profile_image_url = ${userData.profileImageUrl},
-          role = ${userData.role || 'staff'},
-          updated_at = CURRENT_TIMESTAMP
-        RETURNING *
-      `);
-      
-      if (result.rows && result.rows.length > 0) {
-        return result.rows[0];
-      }
-      throw new Error("Failed to upsert user");
-    } catch (error) {
-      console.error("Error upserting user:", error);
-      throw error;
-    }
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(user).returning();
+    return result[0];
   }
 
   // Event operations
@@ -2261,29 +2205,6 @@ export class DatabaseStorage implements IStorage {
   // RSVP Follow-up Log operations
   async getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]> {
     return db.select().from(rsvpFollowupLogs).where(eq(rsvpFollowupLogs.guestId, guestId));
-  }
-  
-  async getRsvpFollowupLogsByEvent(eventId: number): Promise<RsvpFollowupLog[]> {
-    try {
-      // Get all guests for this event
-      const guests = await this.getGuestsByEvent(eventId);
-      const guestIds = guests.map(guest => guest.id);
-      
-      if (guestIds.length === 0) {
-        return [];
-      }
-      
-      // Get logs for all these guests
-      const result = await db
-        .select()
-        .from(rsvpFollowupLogs)
-        .where(inArray(rsvpFollowupLogs.guestId, guestIds));
-      
-      return result;
-    } catch (error) {
-      console.error(`Error fetching RSVP follow-up logs for event ${eventId}:`, error);
-      return [];
-    }
   }
 
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
