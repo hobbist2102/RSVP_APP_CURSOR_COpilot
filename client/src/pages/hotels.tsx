@@ -845,17 +845,75 @@ const HotelsPage: React.FC = () => {
                             totalRooms: acc.totalRooms,
                             pricePerNight: acc.pricePerNight || "",
                             specialFeatures: acc.specialFeatures || "",
+                            globalRoomTypeId: acc.globalRoomTypeId,
+                            showPricing: !!acc.pricePerNight,
+                            createGlobalType: false
                           });
+                          setShowPricing(!!acc.pricePerNight);
                         }}
                       >
                         <div>
-                          <div className="font-medium">{acc.name}</div>
+                          <div className="font-medium">
+                            {acc.name}
+                            {acc.globalRoomTypeId && (
+                              <Badge variant="outline" className="ml-2">
+                                Global
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             {acc.roomType} · Capacity: {acc.capacity} · {acc.totalRooms} rooms
                           </div>
                         </div>
                         <Button variant="ghost" size="sm">
                           <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="mb-6" />
+                </>
+              )}
+              
+              {/* Display available global room types */}
+              {!selectedAccommodation && hotelGlobalRoomTypes.length > 0 && (
+                <>
+                  <h3 className="text-lg font-medium mb-3">
+                    Available Global Room Types
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      (room types that can be reused across events)
+                    </span>
+                  </h3>
+                  <div className="mb-6 space-y-2 max-h-[200px] overflow-y-auto">
+                    {hotelGlobalRoomTypes.map((roomType: GlobalRoomType) => (
+                      <div 
+                        key={roomType.id} 
+                        className="flex items-center justify-between p-3 border rounded-md hover:bg-muted cursor-pointer"
+                        onClick={() => {
+                          // Fill the form with global room type data
+                          accommodationForm.setValue("name", roomType.name);
+                          accommodationForm.setValue("roomType", roomType.category);
+                          accommodationForm.setValue("capacity", roomType.capacity);
+                          accommodationForm.setValue("specialFeatures", roomType.specialFeatures || "");
+                          accommodationForm.setValue("globalRoomTypeId", roomType.id);
+                          
+                          toast({
+                            title: "Global Room Type Selected",
+                            description: "Form populated with global room type data.",
+                          });
+                        }}
+                      >
+                        <div>
+                          <div className="font-medium flex items-center">
+                            {roomType.name}
+                            <Badge className="ml-2" variant="secondary">Shared</Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {roomType.category} · Capacity: {roomType.capacity}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
@@ -900,8 +958,8 @@ const HotelsPage: React.FC = () => {
                             <SelectItem value="Standard">Standard</SelectItem>
                             <SelectItem value="Deluxe">Deluxe</SelectItem>
                             <SelectItem value="Suite">Suite</SelectItem>
-                            <SelectItem value="Executive">Executive</SelectItem>
                             <SelectItem value="Family">Family</SelectItem>
+                            <SelectItem value="Executive">Executive</SelectItem>
                             <SelectItem value="Presidential">Presidential</SelectItem>
                           </SelectContent>
                         </Select>
