@@ -578,31 +578,6 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="emailFrom">From Email Address</Label>
-                <Input
-                  id="emailFrom"
-                  name="emailFrom"
-                  value={credentials.emailFrom}
-                  onChange={handleInputChange}
-                  placeholder="noreply@yourdomain.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="emailReplyTo">Reply-To Email Address</Label>
-                <Input
-                  id="emailReplyTo"
-                  name="emailReplyTo"
-                  value={credentials.emailReplyTo}
-                  onChange={handleInputChange}
-                  placeholder="contact@yourdomain.com"
-                />
-              </div>
-            </div>
-          </div>
 
           <Tabs defaultValue="gmail" className="mt-6">
             <TabsList className="grid w-full grid-cols-3">
