@@ -1,7 +1,7 @@
 # Wedding RSVP Application Development Roadmap
 
 ## Introduction
-This document outlines the development roadmap for the Wedding RSVP application, aligning with the user flows defined in the UserFlow.md document. It provides a structured approach to feature development, prioritization, and timeline planning.
+This document outlines the development roadmap for the Wedding RSVP application, aligning with the user flows defined in the UserFlow.md document and the detailed RSVP process described in RSVPProcessFlow.md. It provides a structured approach to feature development, prioritization, and timeline planning.
 
 ## Development Phases
 

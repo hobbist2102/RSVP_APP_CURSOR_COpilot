@@ -5,6 +5,7 @@
 2. [Current User Flows](#current-user-flows)
 3. [Ideal User Flows](#ideal-user-flows)
 4. [Forms Inventory](#forms-inventory)
+5. [Related Documentation](#related-documentation)
 
 ## User Types
 The application serves several distinct user types with different needs:
@@ -428,3 +429,28 @@ The application serves several distinct user types with different needs:
 - **Tooltips:**
   - Target Guests: "Select which guest segment should receive this message"
   - Schedule Send: "Plan your message for a future date and time"
+  
+## Related Documentation
+
+For more detailed information on specific aspects of the application:
+
+1. **RSVP Process Flow & Change Management** - [RSVPProcessFlow.md](RSVPProcessFlow.md)
+   - Detailed breakdown of each stage in the RSVP process
+   - Change management procedures for various scenarios
+   - Communication templates and process flow diagrams
+   - Emergency handling procedures
+
+2. **System Architecture** - [SystemArchitecture.md](SystemArchitecture.md)
+   - Technical architecture of the application
+   - Component relationships and data flow
+   - Integration specifications
+
+3. **Data Dictionary** - [DataDictionary.md](DataDictionary.md)
+   - Detailed definitions of all data entities and fields
+   - Data validation rules and relationships
+   - Enumeration values and constraints
+
+4. **Testing Strategy** - [TestingStrategy.md](TestingStrategy.md)
+   - Test cases for critical user flows
+   - Acceptance criteria for features
+   - Testing environments and procedures
