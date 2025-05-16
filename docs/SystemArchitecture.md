@@ -56,6 +56,32 @@ This document outlines the system architecture of the Wedding RSVP application, 
 
 ## Component Architecture
 
+### Core Utility Libraries
+
+1. **API Utilities** (`client/src/lib/api-utils.ts`)
+   - Standardized HTTP request methods
+   - Error handling
+   - Authentication handling
+   - Resource-based operations
+   
+2. **Date Utilities** (`client/src/lib/date-utils.ts`)
+   - Standardized date formatting
+   - Relative time calculations
+   - Date manipulation helpers
+   - Date input/output conversion
+
+3. **Validation Utilities** (`shared/validation-schemas.ts`)
+   - Centralized validation schemas
+   - Shared frontend/backend validation
+   - Form validation helpers
+   - Zod schema extensions
+
+4. **Notification Utilities** (`client/src/lib/notification-utils.ts`)
+   - Standardized toast notifications
+   - Error presentation
+   - Success confirmations
+   - Status updates
+
 ### Frontend Components
 
 1. **Authentication Module**
@@ -104,6 +130,12 @@ This document outlines the system architecture of the Wedding RSVP application, 
    - Report generation
    - Export functionality
    - Analytics dashboard
+
+9. **Utility Components**
+   - Consolidated DataTable component
+   - Standardized form inputs
+   - Error handling components
+   - Loading states and skeletons
 
 ### Backend Services
 

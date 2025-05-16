@@ -39,6 +39,9 @@ This document outlines the comprehensive testing strategy for the Wedding RSVP a
 3. Form validation logic
 4. Authentication services
 5. Email sending utilities
+6. Consolidated API utilities
+7. Date formatting utilities
+8. Notification utilities
 
 ### Integration Testing
 - **Scope**: Communication between components and services
