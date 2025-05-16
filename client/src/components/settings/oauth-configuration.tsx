@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { AlertCircle, CheckCircle2, Mail, HelpCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Mail, HelpCircle, Loader2, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface OAuthCredentials {
@@ -613,7 +613,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                   {!credentials.useGmailDirectSMTP && (
                     <>
                       <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-                        <Info className="h-4 w-4" />
+                        <HelpCircle className="h-4 w-4" />
                         <AlertTitle>Gmail OAuth Setup Guide</AlertTitle>
                         <AlertDescription className="mt-2">
                           <ol className="list-decimal ml-4 space-y-1 text-sm">
@@ -935,6 +935,37 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
 
               {credentials.useOutlook && (
                 <div className="space-y-4">
+                  <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+                    <HelpCircle className="h-4 w-4" />
+                    <AlertTitle>Microsoft Outlook OAuth Setup Guide</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      <ol className="list-decimal ml-4 space-y-1 text-sm">
+                        <li>Go to the <a href="https://portal.azure.com/" target="_blank" className="text-primary underline">Microsoft Azure Portal</a></li>
+                        <li>Navigate to "Azure Active Directory" → "App registrations" → "New registration"</li>
+                        <li>Register your application:
+                          <ul className="list-disc ml-5 mt-1">
+                            <li>Enter a name for your application</li>
+                            <li>Select "Accounts in any organizational directory and personal Microsoft accounts"</li>
+                            <li>Set the Redirect URI to "Web" and paste the URI from below</li>
+                          </ul>
+                        </li>
+                        <li>After registration, go to "API permissions":
+                          <ul className="list-disc ml-5 mt-1">
+                            <li>Click "Add a permission" → "Microsoft Graph" → "Delegated permissions"</li>
+                            <li>Add: <code className="px-1 py-0.5 bg-blue-100 rounded text-xs">Mail.Send</code>, <code className="px-1 py-0.5 bg-blue-100 rounded text-xs">offline_access</code></li>
+                            <li>Click "Grant admin consent" if you have admin privileges</li>
+                          </ul>
+                        </li>
+                        <li>Go to "Certificates & secrets":
+                          <ul className="list-disc ml-5 mt-1">
+                            <li>Click "New client secret", add a description and expiration</li>
+                            <li>Copy the generated value immediately (it's shown only once)</li>
+                          </ul>
+                        </li>
+                        <li>Copy the "Application (client) ID" from the Overview page and the secret value below</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1">
@@ -1095,25 +1126,54 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
               </div>
 
               {credentials.useSendGrid && (
-                <div className="space-y-2">
-                  <Label htmlFor="sendGridApiKey">
-                    API Key
-                    {credentials.useSendGrid && !credentials.sendGridApiKey && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
-                  </Label>
-                  <Input
-                    id="sendGridApiKey"
-                    name="sendGridApiKey"
-                    value={credentials.sendGridApiKey}
-                    onChange={handleInputChange}
-                    placeholder="Your SendGrid API Key"
-                    type="password"
-                    className={credentials.useSendGrid && !credentials.sendGridApiKey ? "border-red-500" : ""}
-                  />
-                  <p className="text-sm text-gray-500">
-                    Generate an API key with at least "Mail Send" permissions from your SendGrid account.
-                  </p>
+                <div className="space-y-4">
+                  <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+                    <HelpCircle className="h-4 w-4" />
+                    <AlertTitle>SendGrid Setup Guide</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      <ol className="list-decimal ml-4 space-y-1 text-sm">
+                        <li>Go to <a href="https://app.sendgrid.com/" target="_blank" className="text-primary underline">SendGrid Dashboard</a></li>
+                        <li>Create an account if you don't have one already</li>
+                        <li>Navigate to "Settings" → "API Keys" → "Create API Key"
+                          <ul className="list-disc ml-5 mt-1">
+                            <li>Name your API key (e.g., "Wedding RSVP App")</li>
+                            <li>Select "Restricted Access" and ensure at least "Mail Send" permission is enabled</li>
+                            <li>Click "Create & View"</li>
+                            <li>Copy the generated API key immediately (it's shown only once)</li>
+                          </ul>
+                        </li>
+                        <li>Configure domain authentication in "Settings" → "Sender Authentication" for improved deliverability</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="sendGridApiKey">
+                        API Key
+                        {credentials.useSendGrid && !credentials.sendGridApiKey && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </Label>
+                      <div className="relative ml-1 group">
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        <div className="hidden group-hover:block absolute z-50 w-64 p-2 text-xs bg-secondary text-secondary-foreground rounded shadow-lg -left-8 top-5">
+                          Your SendGrid API key provides secure access to the email delivery service. Keep this value confidential.
+                        </div>
+                      </div>
+                    </div>
+                    <Input
+                      id="sendGridApiKey"
+                      name="sendGridApiKey"
+                      value={credentials.sendGridApiKey}
+                      onChange={handleInputChange}
+                      placeholder="Your SendGrid API Key"
+                      type="password"
+                      className={credentials.useSendGrid && !credentials.sendGridApiKey ? "border-red-500" : ""}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Your API key should have at least "Mail Send" permissions. For better email delivery, verify your sending domain in SendGrid.
+                    </p>
+                  </div>
 
                   {credentials.useSendGrid && !credentials.sendGridApiKey && (
                     <div className="text-red-500 text-sm mt-2">
