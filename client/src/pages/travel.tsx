@@ -308,7 +308,7 @@ export default function Travel() {
           <div>
             {row.travel.arrivalDate ? (
               <div>
-                <div>{formatDate(row.travel.arrivalDate)}</div>
+                <div>{formatDateForDisplay(row.travel.arrivalDate)}</div>
                 <div className="text-sm text-gray-500">
                   {row.travel.arrivalTime || ""} {row.travel.arrivalLocation ? `- ${row.travel.arrivalLocation}` : ""}
                 </div>
@@ -332,7 +332,7 @@ export default function Travel() {
           <div>
             {row.travel.departureDate ? (
               <div>
-                <div>{formatDate(row.travel.departureDate)}</div>
+                <div>{formatDateForDisplay(row.travel.departureDate)}</div>
                 <div className="text-sm text-gray-500">
                   {row.travel.departureTime || ""} {row.travel.departureLocation ? `- ${row.travel.departureLocation}` : ""}
                 </div>
@@ -579,7 +579,7 @@ export default function Travel() {
                     <div key={date} className="space-y-4">
                       <div className="flex items-center">
                         <Calendar className="h-5 w-5 mr-2 text-primary" />
-                        <h3 className="text-lg font-medium">{formatDate(date)}</h3>
+                        <h3 className="text-lg font-medium">{formatDateForDisplay(date)}</h3>
                       </div>
                       
                       <div className="border rounded-md">
@@ -670,7 +670,7 @@ export default function Travel() {
                     <div key={date} className="space-y-4">
                       <div className="flex items-center">
                         <Calendar className="h-5 w-5 mr-2 text-primary" />
-                        <h3 className="text-lg font-medium">{formatDate(date)}</h3>
+                        <h3 className="text-lg font-medium">{formatDateForDisplay(date)}</h3>
                       </div>
                       
                       <div className="border rounded-md">

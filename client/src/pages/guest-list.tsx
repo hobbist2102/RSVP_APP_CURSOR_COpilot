@@ -17,7 +17,8 @@ import { exportToExcel, formatGuestsForExport } from "@/lib/xlsx-utils";
 import GuestForm from "@/components/ui/guest-form";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
 import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
-import { getRsvpStatusColor, getInitials, formatDate } from "@/lib/utils";
+import { getRsvpStatusColor, getInitials } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import { 
   Plus, 
   FileDown, 
