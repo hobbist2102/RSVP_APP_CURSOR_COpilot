@@ -34,68 +34,144 @@ interface RsvpFormProps {
   onSuccess?: (data: any) => void;
 }
 
-const formSchema = z.object({
+// Basic attendance form (Stage 1)
+const stage1Schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   rsvpStatus: z.enum(["confirmed", "declined"]),
   plusOneName: z.string().optional(),
+  message: z.string().optional(),
+  ceremonies: z.record(z.string(), z.boolean()).optional(),
+});
+
+// Detailed travel and accommodation form (Stage 2)
+const stage2Schema = z.object({
   numberOfChildren: z.preprocess(
     (val) => (val === "" ? 0 : Number(val)),
     z.number().min(0).max(10)
   ),
   childrenNames: z.string().optional(),
   dietaryRestrictions: z.string().optional(),
+  mealSelections: z.record(z.string(), z.string()).optional(),
+  
+  // Travel details
+  needsAccommodation: z.boolean().optional(),
+  accommodationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  accommodationNotes: z.string().optional(),
+  
+  // Transportation details
+  needsTransportation: z.boolean().optional(),
+  transportationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  transportationNotes: z.string().optional(),
+  
+  // Travel mode
+  travelMode: z.enum(['air', 'train', 'bus', 'car', 'other']).optional(),
+  
+  // Arrival/departure
+  arrivalDate: z.string().optional(),
+  arrivalTime: z.string().optional(),
+  departureDate: z.string().optional(),
+  departureTime: z.string().optional(),
+  
+  // Additional details
+  specialRequests: z.string().optional(),
+});
+
+// Combined schema for type definitions
+const formSchema = z.object({
+  // Stage 1 fields
+  email: z.string().email("Please enter a valid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  rsvpStatus: z.enum(["confirmed", "declined"]),
+  plusOneName: z.string().optional(),
   message: z.string().optional(),
   ceremonies: z.record(z.string(), z.boolean()).optional(),
+  
+  // Stage 2 fields
+  numberOfChildren: z.preprocess(
+    (val) => (val === "" ? 0 : Number(val)),
+    z.number().min(0).max(10)
+  ),
+  childrenNames: z.string().optional(),
+  dietaryRestrictions: z.string().optional(),
   mealSelections: z.record(z.string(), z.string()).optional(),
+  needsAccommodation: z.boolean().optional(),
+  accommodationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  accommodationNotes: z.string().optional(),
+  needsTransportation: z.boolean().optional(),
+  transportationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  transportationNotes: z.string().optional(),
+  travelMode: z.enum(['air', 'train', 'bus', 'car', 'other']).optional(),
+  arrivalDate: z.string().optional(),
+  arrivalTime: z.string().optional(),
+  departureDate: z.string().optional(),
+  departureTime: z.string().optional(),
+  specialRequests: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }: RsvpFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStage, setCurrentStage] = useState<"stage1" | "stage2">("stage1");
+  const [guestData, setGuestData] = useState<any>(null);
   const { toast } = useToast();
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  // Create separate form for each stage
+  const stage1Form = useForm<z.infer<typeof stage1Schema>>({
+    resolver: zodResolver(stage1Schema),
     defaultValues: {
       email: "",
       firstName: "",
       lastName: "",
       rsvpStatus: "confirmed",
       plusOneName: "",
-      numberOfChildren: 0,
-      childrenNames: "",
-      dietaryRestrictions: "",
       message: "",
       ceremonies: {},
-      mealSelections: {},
     },
   });
   
-  const rsvpStatus = form.watch("rsvpStatus");
-  const numberOfChildren = form.watch("numberOfChildren");
+  const stage2Form = useForm<z.infer<typeof stage2Schema>>({
+    resolver: zodResolver(stage2Schema),
+    defaultValues: {
+      numberOfChildren: 0,
+      childrenNames: "",
+      dietaryRestrictions: "",
+      mealSelections: {},
+      needsAccommodation: false,
+      needsTransportation: false,
+      travelMode: "car",
+      specialRequests: "",
+    },
+  });
   
-  const handleSubmit = async (values: FormValues) => {
+  // Create a reference to the current active form
+  const form = currentStage === "stage1" ? stage1Form : stage2Form;
+  
+  // Get form values with proper type checking
+  const rsvpStatus = currentStage === "stage1" ? stage1Form.watch("rsvpStatus") : "confirmed";
+  const numberOfChildren = currentStage === "stage2" ? stage2Form.watch("numberOfChildren") : 0;
+  
+  // Handle Stage 1 submission (basic attendance)
+  const handleStage1Submit = async (values: z.infer<typeof stage1Schema>) => {
     setIsSubmitting(true);
     
     try {
-      // Submit RSVP
-      const rsvpResponse = await apiRequest("POST", "/api/rsvp", {
+      // Submit basic RSVP information
+      const rsvpResponse = await apiRequest("POST", "/api/rsvp/stage1", {
         eventId,
         email: values.email,
         firstName: values.firstName,
         lastName: values.lastName,
         rsvpStatus: values.rsvpStatus,
         plusOneName: values.plusOneName,
-        numberOfChildren: values.numberOfChildren,
-        childrenNames: values.childrenNames,
-        dietaryRestrictions: values.dietaryRestrictions,
         message: values.message,
       });
       
       const rsvpData = await rsvpResponse.json();
+      setGuestData(rsvpData.guest);
       
       // If declined, we're done
       if (values.rsvpStatus === "declined") {
@@ -108,7 +184,7 @@ export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }
         return;
       }
       
-      // Otherwise, handle ceremony attendance and meal selections
+      // Otherwise, handle ceremony attendance
       const guestId = rsvpData.guest.id;
       
       // Submit ceremony attendance
@@ -125,12 +201,76 @@ export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }
         await Promise.all(attendancePromises);
       }
       
-      // Submit meal selections
-      if (values.mealSelections) {
+      // Show success message for Stage 1
+      toast({
+        title: "Basic RSVP Submitted",
+        description: "Thank you for confirming your attendance. Please complete the additional details.",
+      });
+      
+      // Move to Stage 2 for detailed travel and accommodation information
+      setCurrentStage("stage2");
+      
+    } catch (error) {
+      console.error("RSVP Stage 1 submission error:", error);
+      toast({
+        variant: "destructive",
+        title: "RSVP Submission Failed",
+        description: error instanceof Error ? error.message : "An error occurred while submitting your basic RSVP information.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Handle Stage 2 submission (travel and accommodation details)
+  const handleStage2Submit = async (values: z.infer<typeof stage2Schema>) => {
+    if (!guestData) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Missing guest information. Please try again.",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Submit detailed information
+      const detailsResponse = await apiRequest("POST", "/api/rsvp/stage2", {
+        guestId: guestData.id,
+        eventId: eventId,
+        
+        // Children information
+        numberOfChildren: values.numberOfChildren,
+        childrenNames: values.childrenNames,
+        dietaryRestrictions: values.dietaryRestrictions,
+        
+        // Accommodation and transportation details
+        needsAccommodation: values.needsAccommodation,
+        accommodationPreference: values.accommodationPreference,
+        accommodationNotes: values.accommodationNotes,
+        needsTransportation: values.needsTransportation,
+        transportationPreference: values.transportationPreference,
+        transportationNotes: values.transportationNotes,
+        
+        // Travel details
+        travelMode: values.travelMode,
+        arrivalDate: values.arrivalDate,
+        arrivalTime: values.arrivalTime,
+        departureDate: values.departureDate,
+        departureTime: values.departureTime,
+        specialRequests: values.specialRequests,
+      });
+      
+      const detailsData = await detailsResponse.json();
+      
+      // Submit meal selections if any
+      if (values.mealSelections && Object.keys(values.mealSelections).length > 0) {
         const mealPromises = Object.entries(values.mealSelections)
           .filter(([_, mealId]) => mealId)
           .map(([ceremonyId, mealOptionId]) => 
-            apiRequest("POST", `/api/guests/${guestId}/meal-selections`, {
+            apiRequest("POST", `/api/guests/${guestData.id}/meal-selections`, {
               ceremonyId: parseInt(ceremonyId),
               mealOptionId: parseInt(mealOptionId as string),
             })
@@ -139,23 +279,36 @@ export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }
         await Promise.all(mealPromises);
       }
       
+      // Show success message
       toast({
-        title: "RSVP Submitted",
-        description: "Thank you for your response. We look forward to celebrating with you!",
+        title: "RSVP Complete",
+        description: "Thank you for providing all your details. We look forward to celebrating with you!",
       });
       
-      if (onSuccess) onSuccess(rsvpData);
+      // Call the success callback with the combined data
+      if (onSuccess) {
+        const combinedData = {
+          guest: guestData,
+          details: detailsData,
+        };
+        onSuccess(combinedData);
+      }
     } catch (error) {
-      console.error("RSVP submission error:", error);
+      console.error("RSVP Stage 2 submission error:", error);
       toast({
         variant: "destructive",
-        title: "RSVP Submission Failed",
-        description: error instanceof Error ? error.message : "An error occurred while submitting your RSVP.",
+        title: "Details Submission Failed",
+        description: error instanceof Error ? error.message : "An error occurred while submitting your travel and accommodation details.",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  // Combined handler that routes to the appropriate stage handler
+  const handleSubmit = currentStage === "stage1" 
+    ? handleStage1Submit 
+    : handleStage2Submit;
   
   return (
     <Form {...form}>
