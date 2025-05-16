@@ -48,6 +48,9 @@ import oauthRoutes from "./routes/oauth";
 // Import Event Settings routes
 import eventSettingsRoutes from "./routes/event-settings";
 
+// Import Auto-Assignment routes
+import { registerAutoAssignmentRoutes } from "./routes/auto-assignments";
+
 // Import Email Templates routes
 import emailTemplatesRoutes from "./routes/email-templates";
 
@@ -2238,6 +2241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Hotel routes
   registerHotelRoutes(app, isAuthenticated, isAdmin);
+  
+  // Register Auto Assignment routes
+  registerAutoAssignmentRoutes(app, isAuthenticated, isAdmin);
   
   // Register RSVP Follow-up routes
   app.use('/api', isAuthenticated, rsvpFollowupRoutes);

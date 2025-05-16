@@ -266,10 +266,10 @@ export function AutoAssignmentDashboard({ eventId }: AutoAssignmentDashboardProp
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge variant={
-                        assignment.reviewStatus === "approved" ? "success" : 
+                        assignment.reviewStatus === "approved" ? "default" : 
                         assignment.reviewStatus === "reassigned" ? "secondary" : 
                         "outline"
-                      }>
+                      } className={assignment.reviewStatus === "approved" ? "bg-green-500" : ""}>
                         {assignment.reviewStatus === "pending" && <Clock className="h-3 w-3 mr-1" />}
                         {assignment.reviewStatus === "approved" && <Check className="h-3 w-3 mr-1" />}
                         {assignment.reviewStatus === "reassigned" && <RefreshCw className="h-3 w-3 mr-1" />}
