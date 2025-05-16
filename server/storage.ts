@@ -2275,6 +2275,18 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+  
+  async getAccommodationsByHotel(hotelId: number): Promise<Accommodation[]> {
+    try {
+      console.log(`Fetching accommodations for hotel ${hotelId}`);
+      const result = await db.select().from(accommodations).where(eq(accommodations.hotelId, hotelId));
+      console.log(`Found ${result.length} accommodations for hotel ${hotelId}`);
+      return result;
+    } catch (error) {
+      console.error(`Error fetching accommodations for hotel ${hotelId}:`, error);
+      return [];
+    }
+  }
 
   async createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation> {
     const result = await db.insert(accommodations).values(accommodation).returning();
