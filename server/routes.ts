@@ -28,6 +28,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
+import wizardRouter from "./routes/wizard";
 import { eq } from "drizzle-orm";
 // Import RSVP service and routes
 import { RSVPService } from "./services/rsvp";
