@@ -51,7 +51,7 @@ const TransportGroupCard = ({ group, onEdit, onDelete }: {
   });
 
   const totalGuests = allocations?.length || 0;
-  const totalPeople = allocations?.reduce((total, allocation) => {
+  const totalPeople = allocations?.reduce((total: number, allocation: any) => {
     let count = 1; // The guest
     if (allocation.includesPlusOne) count += 1;
     if (allocation.includesChildren) count += allocation.childrenCount;
@@ -66,8 +66,8 @@ const TransportGroupCard = ({ group, onEdit, onDelete }: {
             <CardTitle>{group.name}</CardTitle>
             <CardDescription className="mt-1">
               {group.transportMode === 'car' ? 
-                `${group.vehicleType.charAt(0).toUpperCase() + group.vehicleType.slice(1)} (${group.vehicleCapacity} seats)` : 
-                `${group.transportMode.charAt(0).toUpperCase() + group.transportMode.slice(1)} (${group.vehicleCapacity * group.vehicleCount} total seats)`
+                `${group.vehicleType ? (group.vehicleType.charAt(0).toUpperCase() + group.vehicleType.slice(1)) : 'Car'} (${group.vehicleCapacity || 4} seats)` : 
+                `${group.transportMode.charAt(0).toUpperCase() + group.transportMode.slice(1)} (${(group.vehicleCapacity || 1) * (group.vehicleCount || 1)} total seats)`
               }
             </CardDescription>
           </div>

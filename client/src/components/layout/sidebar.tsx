@@ -14,7 +14,8 @@ import {
   Cog,
   Hotel,
   Mail,
-  Code
+  Code,
+  Car
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,6 +53,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Travel Management",
       icon: <Plane className="mr-3 h-5 w-5" />,
       path: "/travel"
+    },
+    {
+      name: "Transport Groups",
+      icon: <Car className="mr-3 h-5 w-5" />,
+      path: "/transport"
     },
     {
       name: "Accommodations",
