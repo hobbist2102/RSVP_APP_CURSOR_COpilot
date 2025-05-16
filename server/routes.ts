@@ -54,6 +54,9 @@ import { registerAutoAssignmentRoutes } from "./routes/auto-assignments";
 // Import Email Templates routes
 import emailTemplatesRoutes from "./routes/email-templates";
 
+// Import Transport routes
+import transportRoutes from "./routes/transport";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 

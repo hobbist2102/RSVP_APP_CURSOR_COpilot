@@ -5,7 +5,7 @@
  */
 import { TravelInfo, Guest, TransportGroup, TransportAllocation, InsertTransportGroup, InsertTransportAllocation } from "@shared/schema";
 import { storage } from "../storage";
-import { format, parse, addHours } from "date-fns";
+import { format, parse } from "date-fns";
 
 // Interface for guest with travel info
 interface GuestWithTravelInfo {
@@ -177,8 +177,8 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
     // Create transport groups
     const transportGroups: TransportGroup[] = [];
     
-    // Use forEach instead of entries() to avoid type issues
-    finalGroups.forEach((group, index) => {
+    // Process each group and create transport groups
+    for (const group of finalGroups) {
       if (group.length === 0) continue;
       
       // Use first guest's travel info as reference
@@ -269,7 +269,7 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
       }
       
       transportGroups.push(transportGroup);
-    });
+    }
     
     return transportGroups;
   } catch (error) {
