@@ -486,7 +486,7 @@ const HotelsPage: React.FC = () => {
             hotelName: selectedHotel.name,
             name: data.name,
             category: data.roomType,
-            capacity: data.capacity,
+            capacity: data.maxOccupancy, // Use maxOccupancy instead of capacity
             specialFeatures: data.specialFeatures
           });
 
