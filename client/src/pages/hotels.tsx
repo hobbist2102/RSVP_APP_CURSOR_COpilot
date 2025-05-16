@@ -685,7 +685,7 @@ const HotelsPage: React.FC = () => {
                                   )}
                                 </CardTitle>
                                 <CardDescription>
-                                  {acc.roomType} · Capacity: {acc.capacity} guests per room
+                                  {acc.roomType} · {acc.bedType ? `${acc.bedType} bed · ` : ''}Max Occupancy: {acc.maxOccupancy} guests
                                 </CardDescription>
                               </div>
                               <div className="flex space-x-1">
@@ -1233,10 +1233,39 @@ const HotelsPage: React.FC = () => {
 
                   <FormField
                     control={accommodationForm.control}
-                    name="capacity"
+                    name="bedType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Capacity</FormLabel>
+                        <FormLabel>Bed Type</FormLabel>
+                        <Select value={field.value || ""} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select bed type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="single">Single</SelectItem>
+                            <SelectItem value="double">Double</SelectItem>
+                            <SelectItem value="twin">Twin</SelectItem>
+                            <SelectItem value="queen">Queen</SelectItem>
+                            <SelectItem value="king">King</SelectItem>
+                            <SelectItem value="mix">Mixed Types</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          The type of beds available in this room
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={accommodationForm.control}
+                    name="maxOccupancy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Maximum Occupancy</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -1245,6 +1274,9 @@ const HotelsPage: React.FC = () => {
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                           />
                         </FormControl>
+                        <FormDescription>
+                          Maximum number of guests allowed per room
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
