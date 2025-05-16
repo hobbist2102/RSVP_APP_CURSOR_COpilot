@@ -7,9 +7,34 @@ The Wedding RSVP system currently has these setup areas spread across different 
 1. **Event Settings** - Basic event information, dates, couple details
 2. **Hotels & Accommodations** - Hotel properties and room inventory management
 3. **Transport Groups** - Vehicle types and transportation arrangements
-4. **RSVP Configuration** - RSVP form settings and deadline management
+4. **RSVP Configuration** - RSVP form settings and guest preference options
 5. **Email Templates** - Communication templates and design
-6. **Email Configuration** - SMTP/OAuth settings for email delivery
+6. **Email Configuration** - Email providers (Gmail/Outlook/SMTP) including OAuth settings
+
+## Detailed Configuration Mapping
+
+### Event Settings Page Tabs
+1. **Email & OAuth**
+   - Email provider selection (Gmail, Outlook, SendGrid)
+   - OAuth credentials configuration
+   - Direct SMTP settings
+   - Email sender and reply-to addresses
+
+2. **RSVP Settings**
+   - Plus-one allowance options
+   - Children details collection options
+   - Custom RSVP URL settings
+   - RSVP deadline management
+
+3. **Travel & Accommodation**
+   - Accommodation provision mode (none, all guests, special deals, selected guests)
+   - Transport provision mode (none, all guests, special deals, selected guests)
+   - Flight assistance mode (none, all guests, special deals, selected guests)
+   - Hotel details (name, address, phone, website, special rates)
+   - Transport provider details (name, contact, website)
+   - Default arrival/departure locations
+   - Special deals and discount information
+   - Instructions for guests
 
 ## Centralized Wizard Concept
 
@@ -22,56 +47,80 @@ The proposed Event Setup Wizard will unify these areas into a guided, step-by-st
 
 ### 1. Basic Event Information
 - Event title
-- Couple names
+- Couple names (bride/groom/partners)
 - Event type
 - Start/end dates
-- Location
+- Main event location
 - Description
 - Banner images
+- Contact information for organizers
 
 ### 2. Venues & Ceremonies 
 - Add multiple venues
 - Ceremony details and times
-- Map links
+- Map links and directions
 - Venue photos
+- Parking information
 - Attire code per ceremony
+- Ceremony-specific notes
 
 ### 3. RSVP Configuration
 - RSVP form customization
-- Response deadline
-- Meal preferences (if applicable)
-- Question customization
+- Response deadline settings
+- Plus-one allowance configuration
+- Children attendance options
+- Custom questions for guests
 - Travel information requirements
+- Food preference collection options
+- Special needs accommodation questions
 
 ### 4. Hotels & Accommodation
-- Create hotel properties
+- Accommodation provision mode
+- Hotel properties creation
 - Room types and inventory per hotel
 - Room capacities and bed configurations
-- Pricing (if applicable)
+- Pricing options and special rates
+- Booking instructions
 - Amenities and special features
-- Hotel/room images
-- Contact information
+- Hotel images and contact information
+- Custom accommodation notes for guests
 
 ### 5. Transportation Options
-- Define vehicle types
-- Vehicle capacities
-- Driver information requirements
-- Transport provider contacts
-- Special accommodation options
+- Transport provision mode
+- Flight assistance configuration
+- Available transportation fleet definition:
+  - Vehicle types (car, bus, shuttle)
+  - Vehicle capacities and counts
+  - Provider details and contact information
+- Default pickup/dropoff locations
+- Special transport instructions
+- Recommended airlines and discount codes
+- Transport booking deadlines
 
 ### 6. Email & Communication Setup
-- Select/customize email templates
-- Define sender information
-- Configure email providers (Gmail/Outlook/SMTP)
-- OAuth authorization
-- Test email delivery
+- Email provider selection (Gmail, Outlook, SendGrid)
+- OAuth configuration:
+  - Client IDs and secrets
+  - Redirect URIs
+  - Account selection
+- SMTP settings (if using direct SMTP):
+  - SMTP host and port
+  - Security options
+  - Credentials
+- Default sender name and email
+- Reply-to address configuration
+- Email template selection
+- Email testing functionality
 
 ### 7. Design & Styling
-- Color schemes
-- Typography
-- Banner images
-- Brand elements
-- Photo uploads
+- Color scheme selection
+- Typography choices
+- Banner and hero images
+- Logo uploads
+- Custom theme settings
+- Mobile display options
+- Email design templates
+- RSVP form styling options
 
 ## Implementation Approach
 
