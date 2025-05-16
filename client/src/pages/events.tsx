@@ -68,7 +68,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { post, put, del } from "@/lib/api-utils"; // Using the consolidated API utilities
 import DataTable from "@/components/ui/data-table";
 import EventWizard from "@/components/event/event-wizard";
 
@@ -157,15 +157,10 @@ export default function Events() {
     enabled: !!selectedEventId,
   });
   
-  // Create ceremony mutation
+  // Create ceremony mutation using consolidated API utilities
   const createCeremonyMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest(
-        "POST", 
-        `/api/events/${selectedEventId}/ceremonies`, 
-        data
-      );
-      return await response.json();
+      return await post(`/api/events/${selectedEventId}/ceremonies`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${selectedEventId}/ceremonies`] });
@@ -185,15 +180,10 @@ export default function Events() {
     },
   });
   
-  // Update ceremony mutation
+  // Update ceremony mutation using consolidated API utilities
   const updateCeremonyMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest(
-        "PUT", 
-        `/api/ceremonies/${currentCeremony.id}`, 
-        data
-      );
-      return await response.json();
+      return await put(`/api/ceremonies/${currentCeremony.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${selectedEventId}/ceremonies`] });
@@ -213,15 +203,10 @@ export default function Events() {
     },
   });
   
-  // Delete ceremony mutation
+  // Delete ceremony mutation using consolidated API utilities
   const deleteCeremonyMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(
-        "DELETE", 
-        `/api/ceremonies/${currentCeremony.id}`, 
-        {}
-      );
-      return await response.json();
+      return await del(`/api/ceremonies/${currentCeremony.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${selectedEventId}/ceremonies`] });

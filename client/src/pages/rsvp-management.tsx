@@ -30,7 +30,7 @@ import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
 import RsvpLinkGenerator from "@/components/rsvp/rsvp-link-generator";
 import RsvpStatusDisplay from "@/components/rsvp/rsvp-status-display";
 import RsvpFollowupConfiguration from "@/components/rsvp/rsvp-followup-configuration";
-import { apiRequest } from "@/lib/queryClient";
+import { post, get } from "@/lib/api-utils"; // Using the consolidated API utilities
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 
