@@ -40,6 +40,10 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  console.log('Setting up session with DATABASE_URL present:', !!process.env.DATABASE_URL);
+  console.log('Session secret length:', process.env.SESSION_SECRET?.length);
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -47,7 +51,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
       sameSite: 'lax',
       maxAge: sessionTtl,
     },
