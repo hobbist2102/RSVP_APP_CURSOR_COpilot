@@ -7,7 +7,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
-import { sessions } from "@shared/schema";
+import { sessions, users } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 
@@ -78,32 +78,48 @@ async function upsertUser(claims: any) {
       has_profile_image: !!claims["profile_image_url"]
     }));
     
-    // Use the "users" table from schema instead of direct SQL
-    const [user] = await db
-      .insert(users)
-      .values({
-        id: claims["sub"] || "",
-        email: claims["email"] || null,
-        firstName: claims["first_name"] || null,
-        lastName: claims["last_name"] || null,
-        profileImageUrl: claims["profile_image_url"] || null,
-        role: "staff"
-      })
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
+    // Get user data from the database if it exists
+    let existingUser = null;
+    try {
+      const [foundUser] = await db.select().from(users).where(eq(users.id, claims["sub"] || ""));
+      existingUser = foundUser;
+    } catch (error) {
+      console.log("Error checking for existing user:", error);
+    }
+    
+    if (existingUser) {
+      // Update existing user
+      const [updatedUser] = await db
+        .update(users)
+        .set({
           email: claims["email"] || null,
           firstName: claims["first_name"] || null,
           lastName: claims["last_name"] || null,
           profileImageUrl: claims["profile_image_url"] || null,
           updatedAt: new Date()
-        }
-      })
-      .returning();
+        })
+        .where(eq(users.id, claims["sub"] || ""))
+        .returning();
       
-    return user;
-    
-    throw new Error("Failed to upsert user");
+      console.log("Updated existing user:", updatedUser?.id);
+      return updatedUser;
+    } else {
+      // Create new user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: claims["sub"] || "",
+          email: claims["email"] || null,
+          firstName: claims["first_name"] || null,
+          lastName: claims["last_name"] || null,
+          profileImageUrl: claims["profile_image_url"] || null,
+          role: "staff"
+        })
+        .returning();
+      
+      console.log("Created new user:", newUser?.id);
+      return newUser;
+    }
   } catch (error) {
     console.error("Error upserting user:", error);
     throw error;
