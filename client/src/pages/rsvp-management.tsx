@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PanelLeftOpen, BarChart3, CalendarDays, Users, Send, MessageSquareText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { formatDate, getRsvpStatusColor, calculateRsvpProgress } from "@/lib/utils";
+import { getRsvpStatusColor, calculateRsvpProgress } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import DataTable from "@/components/ui/data-table";
 import { 
   Table, 
@@ -105,7 +106,7 @@ export default function RsvpManagement() {
       header: "Responded On",
       accessor: "updatedAt",
       cell: (row: any) => (
-        row.rsvpStatus !== "pending" ? formatDate(row.updatedAt) : "Awaiting Response"
+        row.rsvpStatus !== "pending" ? formatDateForDisplay(row.updatedAt) : "Awaiting Response"
       ),
     },
     {
@@ -139,7 +140,7 @@ export default function RsvpManagement() {
     {
       header: "Date",
       accessor: "date",
-      cell: (row: any) => formatDate(row.date),
+      cell: (row: any) => formatDateForDisplay(row.date),
     },
     {
       header: "Time",
@@ -195,7 +196,7 @@ export default function RsvpManagement() {
     {
       header: "Date",
       accessor: "createdAt",
-      cell: (row: any) => formatDate(row.createdAt),
+      cell: (row: any) => formatDateForDisplay(row.createdAt),
     },
   ];
   
