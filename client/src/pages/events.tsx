@@ -45,8 +45,12 @@ import { useEvents } from "@/hooks/use-events";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format, parseISO } from "date-fns";
-import { formatDate, getDaysDifference } from "@/lib/utils";
+import { 
+  formatDate, 
+  formatForDateInput, 
+  formatDateForDisplay,
+  DATE_FORMATS 
+} from "@/lib/date-utils";
 import { 
   AlertCircle,
   AlertTriangle,
@@ -297,9 +301,9 @@ export default function Events() {
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-playfair text-2xl">Date Outside Event Range</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-3">
-                  <p>The ceremony date ({formatDate(data.date)}) is outside the wedding event dates:</p>
+                  <p>The ceremony date ({formatDateForDisplay(data.date)}) is outside the wedding event dates:</p>
                   <p className="font-medium text-primary font-script text-lg">
-                    {formatDate(event?.startDate)} to {formatDate(event?.endDate)}
+                    {formatDateForDisplay(event?.startDate)} to {formatDateForDisplay(event?.endDate)}
                   </p>
                   <p>Would you like to proceed with creating this ceremony?</p>
                 </AlertDialogDescription>
@@ -386,7 +390,7 @@ export default function Events() {
     setCurrentCeremony(ceremony);
     ceremonyForm.reset({
       name: ceremony.name,
-      date: ceremony.date ? format(new Date(ceremony.date), "yyyy-MM-dd") : "",
+      date: ceremony.date ? formatForDateInput(ceremony.date) : "",
       startTime: ceremony.startTime,
       endTime: ceremony.endTime,
       location: ceremony.location,
@@ -417,7 +421,7 @@ export default function Events() {
     {
       header: "Date",
       accessor: "date",
-      cell: (row: any) => formatDate(row.date),
+      cell: (row: any) => formatDateForDisplay(row.date),
     },
     {
       header: "Time",
@@ -535,8 +539,8 @@ export default function Events() {
                   <CalendarClock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div>
                     <div className="font-medium">
-                      {formatDate(event.startDate)}
-                      {event.startDate !== event.endDate && ` - ${formatDate(event.endDate)}`}
+                      {formatDateForDisplay(event.startDate)}
+                      {event.startDate !== event.endDate && ` - ${formatDateForDisplay(event.endDate)}`}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {getDaysDifference(event.startDate) > 0 
