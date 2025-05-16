@@ -52,7 +52,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle, Clock, Edit, Mail, MessageCircle, Plus, Smartphone, Trash } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Edit, Eye, Mail, MessageCircle, Plus, Smartphone, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -187,6 +187,9 @@ export default function RsvpFollowupConfiguration() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<RsvpFollowupTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [previewSubject, setPreviewSubject] = useState<string | null>(null);
+  const [selectedTemplateType, setSelectedTemplateType] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"email" | "whatsapp">("email");
   const [showPreview, setShowPreview] = useState(false);
   
   // OAuth configuration is now handled in Event Settings
@@ -393,9 +396,12 @@ export default function RsvpFollowupConfiguration() {
     saveCommunicationSettings(data);
   };
 
-  // Show a preview of the template
-  const handlePreviewTemplate = (template: string) => {
+  // Show a preview of the template with enhanced options
+  const handlePreviewTemplate = (template: string, subject?: string, templateType?: string, mode: "email" | "whatsapp" = "email") => {
     setPreviewTemplate(template);
+    setPreviewSubject(subject || null);
+    setSelectedTemplateType(templateType || null);
+    setPreviewMode(mode);
     setShowPreview(true);
   };
 
@@ -516,7 +522,12 @@ export default function RsvpFollowupConfiguration() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => handlePreviewTemplate(template.emailTemplate || "")}
+                onClick={() => handlePreviewTemplate(
+                  template.emailTemplate || "", 
+                  template.emailSubject || "",
+                  template.type,
+                  "email"
+                )}
               >
                 Preview
               </Button>
@@ -808,20 +819,86 @@ export default function RsvpFollowupConfiguration() {
         </DialogContent>
       </Dialog>
 
-      {/* Template Preview Dialog */}
+      {/* Enhanced Template Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Template Preview</DialogTitle>
+            <DialogTitle>
+              {previewMode === "email" ? "Email Template Preview" : "WhatsApp Message Preview"}
+            </DialogTitle>
             <DialogDescription>
-              This is how your template will appear to guests
+              This is how your {previewMode === "email" ? "email" : "WhatsApp message"} will appear to guests
             </DialogDescription>
           </DialogHeader>
-          {previewTemplate && (
-            <TemplatePreview template={previewTemplate} />
+          
+          {/* Preview mode selector tabs */}
+          {previewTemplate && previewSubject && (
+            <div className="flex space-x-2 mb-4">
+              <Button 
+                variant={previewMode === "email" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setPreviewMode("email")}
+                className="flex items-center"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email View
+              </Button>
+              {templateForm.watch("whatsappTemplate") && (
+                <Button 
+                  variant={previewMode === "whatsapp" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPreviewMode("whatsapp")}
+                  className="flex items-center"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  WhatsApp View
+                </Button>
+              )}
+            </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setShowPreview(false)}>Close</Button>
+          
+          {/* Template preview */}
+          {previewTemplate && (
+            <div className="border rounded-lg overflow-hidden">
+              {previewMode === "email" ? (
+                // Email preview
+                <TemplatePreview 
+                  template={previewTemplate} 
+                  subject={previewSubject}
+                  templateType={selectedTemplateType}
+                />
+              ) : (
+                // WhatsApp preview
+                <div className="bg-[#e5f7d3] p-5 rounded-lg border border-gray-200">
+                  <div className="bg-white rounded-lg p-3 shadow-sm mb-2 max-w-[85%] ml-auto relative">
+                    <div className="text-sm font-medium text-gray-700 mb-1">Sarah & Michael</div>
+                    <div className="whitespace-pre-wrap text-sm text-gray-800">
+                      {previewTemplate
+                        .replace(/{{guest_name}}/g, "John Smith")
+                        .replace(/{{first_name}}/g, "John")
+                        .replace(/{{last_name}}/g, "Smith")
+                        .replace(/{{couple_names}}/g, "Sarah & Michael")
+                        .replace(/{{event_name}}/g, "Sarah & Michael's Wedding")
+                        .replace(/{{rsvp_status}}/g, selectedTemplateType?.includes("confirm") ? "confirmed" : 
+                                 selectedTemplateType?.includes("decline") ? "declined" : 
+                                 selectedTemplateType?.includes("maybe") ? "maybe" : "pending")
+                        .replace(/{{rsvp_link}}/g, "https://wedding-app.com/rsvp?token=abc123")
+                        .replace(/{{rsvp_deadline}}/g, "August 15, 2025")}
+                    </div>
+                    <div className="text-[10px] text-gray-500 text-right mt-1">
+                      {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                  <div className="text-xs text-center text-gray-500 mt-4">
+                    This preview shows how your WhatsApp message will appear to guests
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter className="mt-4">
+            <Button onClick={() => setShowPreview(false)}>Close Preview</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
