@@ -1,110 +1,42 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import {
+  legacyApiRequest,
+  getQueryFn as apiUtilsGetQueryFn,
+  defaultQueryOptions
+} from "./api-utils";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
-}
-
+/**
+ * @deprecated Use apiRequest from api-utils.ts instead
+ */
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
   params?: Record<string, string | number>
 ): Promise<Response> {
-  const headers: Record<string, string> = {
-    "Accept": "application/json",
-    "Cache-Control": "no-cache"
-  };
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  // Add URL params if provided
-  if (params && Object.keys(params).length > 0) {
-    const searchParams = new URLSearchParams();
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        searchParams.append(key, String(value));
-      }
-    });
-    
-    const searchParamsString = searchParams.toString();
-    if (searchParamsString) {
-      url += (url.includes('?') ? '&' : '?') + searchParamsString;
-    }
-  }
-  
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  // Delegate to the legacy adapter in api-utils.ts
+  return legacyApiRequest(method, url, data, params);
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
+/**
+ * @deprecated Use getQueryFn from api-utils.ts instead
+ */
 export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    // Handle array query keys for passing event context and other parameters
-    let url = queryKey[0] as string;
-    
-    // Check if there are query parameters to add
-    if (queryKey.length > 1 && typeof queryKey[1] === 'object') {
-      const params = queryKey[1] as Record<string, string | number>;
-      const searchParams = new URLSearchParams();
-      
-      // Add all parameters to URL search params
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-      
-      // Append search params to URL if any exist
-      const searchParamsString = searchParams.toString();
-      if (searchParamsString) {
-        url += (url.includes('?') ? '&' : '?') + searchParamsString;
-      }
-    }
-    
-    const res = await fetch(url, {
-      credentials: "include",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache"
-      }
-    });
+  on401: "returnNull" | "throw";
+}) => QueryFunction<T> = (options) => {
+  // Delegate to the getQueryFn in api-utils.ts
+  return apiUtilsGetQueryFn<T>({ 
+    unauthorized: options.on401 
+  });
+};
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
-
+// Export the query client with the consolidated configuration
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Use the getQueryFn from api-utils to ensure consistency
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      // Reduce staleTime to ensure fresh data when switching events
-      staleTime: 0,
-      // Force new queries when event context changes
-      refetchOnMount: true,
-      retry: false,
+      ...defaultQueryOptions
     },
     mutations: {
       retry: false,

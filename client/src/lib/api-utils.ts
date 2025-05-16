@@ -4,16 +4,23 @@
  * This file provides standardized API request functions to ensure consistent
  * API interactions throughout the application.
  */
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import { QueryFunction } from "@tanstack/react-query";
 import { queryClient } from "./queryClient";
 
+/**
+ * ========================================================
+ * API REQUEST TYPES
+ * ========================================================
+ */
+
 // Standard API request options
-export interface ApiRequestOptions extends Omit<AxiosRequestConfig, "url" | "method"> {
-  url: string;
+export interface ApiRequestOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  withCredentials?: boolean;
-  includeHeaders?: boolean;
+  data?: unknown;
+  params?: Record<string, string | number>;
   headers?: Record<string, string>;
+  credentials?: RequestCredentials;
+  unauthorized?: "returnNull" | "throw";
 }
 
 // API response interface with improved typing
@@ -36,146 +43,233 @@ export interface ApiError extends Error {
 }
 
 /**
+ * ========================================================
+ * ERROR HANDLING
+ * ========================================================
+ */
+
+/**
  * Creates a detailed API error with additional context
  */
-function createApiError(error: AxiosError): ApiError {
-  const apiError: ApiError = new Error(
-    error.response?.data?.message || error.message
-  ) as ApiError;
+function createApiError(response: Response, errorText: string): ApiError {
+  const apiError: ApiError = new Error(errorText) as ApiError;
   
   apiError.name = "ApiError";
+  apiError.status = response.status;
+  apiError.statusText = response.statusText;
   
-  if (error.response) {
-    // Server responded with a non-2xx status
-    apiError.status = error.response.status;
-    apiError.statusText = error.response.statusText;
-    apiError.data = error.response.data;
-    apiError.isServerError = error.response.status >= 500;
-    apiError.isClientError = error.response.status >= 400 && error.response.status < 500;
-  } else if (error.request) {
-    // Request made but no response received
-    apiError.isNetworkError = error.message.includes("Network Error");
-    apiError.isTimeoutError = error.message.includes("timeout");
+  try {
+    // Try to parse error data if it's JSON
+    apiError.data = JSON.parse(errorText);
+  } catch (e) {
+    apiError.data = errorText;
   }
+  
+  // Classify the error
+  apiError.isServerError = response.status >= 500;
+  apiError.isClientError = response.status >= 400 && response.status < 500;
   
   return apiError;
 }
 
 /**
+ * Helper to throw standardized error for non-OK responses
+ */
+async function throwIfResNotOk(res: Response): Promise<void> {
+  if (!res.ok) {
+    const text = await res.text() || res.statusText;
+    throw createApiError(res, text);
+  }
+}
+
+/**
+ * ========================================================
+ * CORE API REQUEST FUNCTIONS
+ * ========================================================
+ */
+
+/**
  * Main API request function that standardizes error handling and request configuration
  */
 export async function apiRequest<T = any>(
-  options: ApiRequestOptions
+  url: string,
+  options: ApiRequestOptions = { method: "GET" }
 ): Promise<ApiResponse<T>> {
-  const { url, method, data, params, withCredentials = true, includeHeaders = false, headers = {} } = options;
+  const { 
+    method, 
+    data, 
+    params, 
+    headers = {}, 
+    credentials = "include",
+    unauthorized = "throw"
+  } = options;
+  
+  // Build request headers
+  const requestHeaders: Record<string, string> = {
+    "Accept": "application/json",
+    "Cache-Control": "no-cache",
+    ...headers
+  };
+  
+  if (data && !headers["Content-Type"]) {
+    requestHeaders["Content-Type"] = "application/json";
+  }
+  
+  // Add URL params if provided
+  if (params && Object.keys(params).length > 0) {
+    const searchParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+    
+    const searchParamsString = searchParams.toString();
+    if (searchParamsString) {
+      url += (url.includes('?') ? '&' : '?') + searchParamsString;
+    }
+  }
   
   try {
-    const config: AxiosRequestConfig = {
-      url,
+    // Make the fetch request
+    const response = await fetch(url, {
       method,
-      data,
-      params,
-      withCredentials,
-      headers: {
-        ...headers,
-        "Content-Type": headers["Content-Type"] || "application/json",
-      },
-    };
+      headers: requestHeaders,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials
+    });
     
-    const response: AxiosResponse<T> = await axios(config);
-    
-    return {
-      data: response.data,
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers as Record<string, string>,
-    };
-  } catch (error) {
-    const apiError = createApiError(error as AxiosError);
-    
-    // Handle specific error cases
-    if (apiError.status === 401) {
-      // Authentication error - could trigger a re-login flow
-      console.warn("Authentication error:", apiError);
-      // Optional: invalidate auth state
-      queryClient.invalidateQueries(["/api/auth/user"]);
-    } else if (apiError.status === 403) {
-      // Authorization error
-      console.warn("Authorization error:", apiError);
-    } else if (apiError.isNetworkError) {
-      // Network error
-      console.error("Network error:", apiError);
-    } else if (apiError.isTimeoutError) {
-      // Timeout error
-      console.error("Request timeout:", apiError);
-    } else if (apiError.isServerError) {
-      // Server error (5xx)
-      console.error("Server error:", apiError);
+    // Handle unauthorized response based on the option
+    if (unauthorized === "returnNull" && response.status === 401) {
+      return {
+        data: null as T,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      };
     }
     
-    throw apiError;
+    // Throw if the response is not OK
+    await throwIfResNotOk(response);
+    
+    // Parse the response data
+    const responseData = await response.json();
+    
+    return {
+      data: responseData,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    };
+  } catch (error) {
+    // Handle specific error cases
+    if ((error as ApiError).status === 401) {
+      // Authentication error
+      console.warn("Authentication error:", error);
+      // Invalidate auth state
+      queryClient.invalidateQueries(["/api/auth/user"]);
+    } else if ((error as ApiError).status === 403) {
+      // Authorization error
+      console.warn("Authorization error:", error);
+    } else if ((error as ApiError).isServerError) {
+      // Server error (5xx)
+      console.error("Server error:", error);
+    } else if (error instanceof TypeError && error.message.includes('fetch')) {
+      // Network error
+      const networkError = error as ApiError;
+      networkError.isNetworkError = true;
+      console.error("Network error:", error);
+    }
+    
+    throw error;
   }
 }
 
 /**
  * Shorthand for GET requests
  */
-export function get<T = any>(url: string, params?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
-  return apiRequest<T>({
-    url,
+export function get<T = any>(url: string, params?: Record<string, string | number>, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>(url, {
     method: "GET",
     params,
-    ...options,
+    ...options
   });
 }
 
 /**
  * Shorthand for POST requests
  */
-export function post<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
-  return apiRequest<T>({
-    url,
+export function post<T = any>(url: string, data?: unknown, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>(url, {
     method: "POST",
     data,
-    ...options,
+    ...options
   });
 }
 
 /**
  * Shorthand for PUT requests
  */
-export function put<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
-  return apiRequest<T>({
-    url,
+export function put<T = any>(url: string, data?: unknown, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>(url, {
     method: "PUT",
     data,
-    ...options,
+    ...options
   });
 }
 
 /**
  * Shorthand for PATCH requests
  */
-export function patch<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
-  return apiRequest<T>({
-    url,
+export function patch<T = any>(url: string, data?: unknown, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>(url, {
     method: "PATCH",
     data,
-    ...options,
+    ...options
   });
 }
 
 /**
  * Shorthand for DELETE requests
  */
-export function del<T = any>(url: string, params?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
-  return apiRequest<T>({
-    url,
+export function del<T = any>(url: string, params?: Record<string, string | number>, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>(url, {
     method: "DELETE",
     params,
-    ...options,
+    ...options
   });
 }
+
+/**
+ * Create a TanStack Query queryFn that uses our standardized API utility
+ */
+export function createQueryFn<T>(options: { 
+  unauthorized?: "returnNull" | "throw" 
+} = {}): QueryFunction<T> {
+  return async ({ queryKey }) => {
+    // Handle array query keys for passing parameters
+    let url = queryKey[0] as string;
+    let params: Record<string, string | number> | undefined;
+    
+    // Check if there are query parameters to add
+    if (queryKey.length > 1 && typeof queryKey[1] === 'object') {
+      params = queryKey[1] as Record<string, string | number>;
+    }
+    
+    const response = await get<T>(url, params, { 
+      unauthorized: options.unauthorized 
+    });
+    
+    return response.data;
+  };
+}
+
+/**
+ * ========================================================
+ * RESOURCE OPERATIONS & CACHE MANAGEMENT
+ * ========================================================
+ */
 
 /**
  * Utility function to invalidate related query cache
@@ -238,6 +332,74 @@ export const apiOperations = {
     return response.data;
   },
 };
+
+/**
+ * ========================================================
+ * REACT-QUERY HOOKS (TANSTACK QUERY)
+ * ========================================================
+ */
+
+/**
+ * Default query options for TanStack Query
+ */
+export const defaultQueryOptions = {
+  staleTime: 0,
+  refetchOnMount: true,
+  refetchOnWindowFocus: false,
+  refetchInterval: false,
+  retry: false,
+};
+
+/**
+ * Function to get the default query function for queryClient
+ */
+export function getQueryFn<T>({ on401 = "throw" }: { on401?: "returnNull" | "throw" } = {}): QueryFunction<T> {
+  return async ({ queryKey }) => {
+    // Use our standardized API request function
+    const url = queryKey[0] as string;
+    const params = queryKey.length > 1 && typeof queryKey[1] === 'object' 
+      ? queryKey[1] as Record<string, string | number>
+      : undefined;
+    
+    const response = await get<T>(url, params, { unauthorized: on401 });
+    return response.data;
+  };
+}
+
+/**
+ * ========================================================
+ * BACKWARD COMPATIBILITY
+ * ========================================================
+ */
+
+/**
+ * @deprecated Use the signature from api-utils.ts instead: apiRequest(url, { method, data, params })
+ */
+export function legacyApiRequest(
+  method: string, 
+  url: string, 
+  data?: unknown, 
+  params?: Record<string, string | number>
+): Promise<Response> {
+  return apiRequest(url, {
+    method: method as any,
+    data,
+    params
+  }).then(async res => {
+    // Convert our ApiResponse to a fetch Response for backwards compatibility
+    const response = new Response(JSON.stringify(res.data), {
+      status: res.status,
+      statusText: res.statusText,
+      headers: new Headers(res.headers)
+    });
+    
+    // Add json method to mimic fetch Response
+    const originalJson = response.json;
+    response.json = async () => res.data;
+    
+    return response;
+  });
+}
 
 /**
  * Constants for common API endpoints
