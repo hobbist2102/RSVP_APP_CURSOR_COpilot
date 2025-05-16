@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQueryParams } from "../hooks/use-query-params";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import RsvpStage1Form from "@/components/rsvp/rsvp-stage1-form";
-import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
+import TwoStageRsvpForm from "@/components/rsvp/two-stage-rsvp-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -14,8 +12,7 @@ import { extractRsvpToken } from "@/lib/rsvp-token-handler";
 enum RSVPStage {
   LOADING = "loading",
   INVALID = "invalid",
-  STAGE1 = "stage1",
-  STAGE2 = "stage2",
+  FORM = "form",
   SUCCESS = "success",
 }
 
@@ -60,7 +57,7 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
         }
         
         setTokenData(data);
-        setStage(RSVPStage.STAGE1);
+        setStage(RSVPStage.FORM);
       } catch (error) {
         console.error("Token verification error:", error);
         setStage(RSVPStage.INVALID);
