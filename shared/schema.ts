@@ -584,6 +584,66 @@ export type InsertGuestMealSelection = z.infer<typeof insertGuestMealSelectionSc
 export type CoupleMessage = typeof coupleMessages.$inferSelect;
 export type InsertCoupleMessage = z.infer<typeof insertCoupleMessageSchema>;
 
+// Transport Groups - groups of guests traveling together
+export const transportGroups = pgTable("transport_groups", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  name: text("name").notNull(), // Group identifier (e.g., "Airport Group A - May 15 Morning")
+  transportMode: text("transport_mode").notNull(), // 'car', 'bus', 'shuttle', 'taxi', etc.
+  vehicleType: text("vehicle_type"), // 'sedan', 'suv', 'mini-bus', 'coach', etc.
+  vehicleCapacity: integer("vehicle_capacity"), // Number of people the vehicle can accommodate
+  pickupLocation: text("pickup_location").notNull(), // Airport, train station, etc.
+  pickupLocationDetails: text("pickup_location_details"), // Terminal, gate, etc.
+  pickupDate: date("pickup_date").notNull(),
+  pickupTimeSlot: text("pickup_time_slot").notNull(), // 2-hour time slot
+  dropoffLocation: text("dropoff_location").notNull(), // Hotel, venue, etc.
+  dropoffLocationDetails: text("dropoff_location_details"), // Room number, entrance, etc.
+  vehicleCount: integer("vehicle_count").default(1), // Number of vehicles needed
+  status: text("status").default("draft").notNull(), // 'draft', 'approved', 'completed', 'cancelled'
+  providerName: text("provider_name"), // Name of transport provider
+  providerContact: text("provider_contact"), // Contact details for provider
+  driverInfo: text("driver_info"), // Driver name, contact, etc.
+  specialInstructions: text("special_instructions"), // Instructions for driver, coordinator, or guests
+  plannerNotes: text("planner_notes"), // Private notes for planner
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTransportGroupSchema = createInsertSchema(transportGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Transport Allocations - assigns guests to transport groups
+export const transportAllocations = pgTable("transport_allocations", {
+  id: serial("id").primaryKey(),
+  transportGroupId: integer("transport_group_id").notNull(),
+  guestId: integer("guest_id").notNull(),
+  status: text("status").default("pending").notNull(), // 'pending', 'confirmed', 'cancelled', 'no-show'
+  includesPlusOne: boolean("includes_plus_one").default(false), // If the guest's plus one is included
+  includesChildren: boolean("includes_children").default(false), // If the guest's children are included
+  childrenCount: integer("children_count").default(0), // Number of children included
+  specialNeeds: text("special_needs"), // Accessibility needs, extra luggage, etc.
+  confirmedByGuest: boolean("confirmed_by_guest").default(false), // If the guest has confirmed
+  flightDelayed: boolean("flight_delayed").default(false), // Flag for delayed flights
+  delayInformation: text("delay_information"), // Details about the delay
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTransportAllocationSchema = createInsertSchema(transportAllocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type TransportGroup = typeof transportGroups.$inferSelect;
+export type InsertTransportGroup = z.infer<typeof insertTransportGroupSchema>;
+
+export type TransportAllocation = typeof transportAllocations.$inferSelect;
+export type InsertTransportAllocation = z.infer<typeof insertTransportAllocationSchema>;
+
 export type RelationshipType = typeof relationshipTypes.$inferSelect;
 export type InsertRelationshipType = z.infer<typeof insertRelationshipTypeSchema>;
 
