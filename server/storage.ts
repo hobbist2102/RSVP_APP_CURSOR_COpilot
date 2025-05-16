@@ -1982,6 +1982,43 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return result[0];
   }
+  
+  // Global Room Type operations
+  async getGlobalRoomType(id: number): Promise<GlobalRoomType | undefined> {
+    const result = await db.select().from(globalRoomTypes).where(eq(globalRoomTypes.id, id));
+    return result[0];
+  }
+  
+  async getGlobalRoomTypesByHotelName(hotelName: string): Promise<GlobalRoomType[]> {
+    return await db.select().from(globalRoomTypes).where(eq(globalRoomTypes.hotelName, hotelName));
+  }
+  
+  async getAllGlobalRoomTypes(): Promise<GlobalRoomType[]> {
+    return await db.select().from(globalRoomTypes);
+  }
+  
+  async createGlobalRoomType(roomType: InsertGlobalRoomType): Promise<GlobalRoomType> {
+    const result = await db.insert(globalRoomTypes).values(roomType).returning();
+    return result[0];
+  }
+  
+  async updateGlobalRoomType(id: number, roomType: Partial<InsertGlobalRoomType>): Promise<GlobalRoomType | undefined> {
+    const result = await db.update(globalRoomTypes)
+      .set(roomType)
+      .where(eq(globalRoomTypes.id, id))
+      .returning();
+    return result[0];
+  }
+  
+  async deleteGlobalRoomType(id: number): Promise<boolean> {
+    try {
+      await db.delete(globalRoomTypes).where(eq(globalRoomTypes.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting global room type ${id}:`, error);
+      return false;
+    }
+  }
 
   // Accommodation operations
   async getAccommodation(id: number): Promise<Accommodation | undefined> {

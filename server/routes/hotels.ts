@@ -1,7 +1,14 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
-import { hotels, insertHotelSchema, accommodations } from '../../shared/schema';
+import { 
+  hotels, 
+  insertHotelSchema, 
+  accommodations, 
+  insertAccommodationSchema,
+  globalRoomTypes,
+  insertGlobalRoomTypeSchema
+} from '../../shared/schema';
 import { z } from 'zod';
 import { storage } from '../storage';
 
@@ -261,6 +268,32 @@ export function registerHotelRoutes(
         return res.status(400).json({ message: 'Hotel does not belong to this event' });
       }
 
+      // If a global room type ID is provided, link it to this accommodation
+      let globalRoomTypeId = accommodationData.globalRoomTypeId;
+      
+      // If createGlobalType flag is set, create a new global room type 
+      // to share across events
+      if (req.body.createGlobalType && !globalRoomTypeId) {
+        try {
+          const globalRoomTypeData = {
+            hotelName: hotel.name,
+            name: accommodationData.name,
+            category: accommodationData.roomType,
+            capacity: accommodationData.capacity,
+            specialFeatures: accommodationData.specialFeatures
+          };
+          
+          const newGlobalRoomType = await storage.createGlobalRoomType(globalRoomTypeData);
+          globalRoomTypeId = newGlobalRoomType.id;
+          accommodationData.globalRoomTypeId = globalRoomTypeId;
+          
+          console.log(`Created new global room type: ${newGlobalRoomType.name} (ID: ${newGlobalRoomType.id}) for hotel ${hotel.name}`);
+        } catch (error) {
+          console.error('Error creating global room type:', error);
+          // Continue with accommodation creation even if global room type creation fails
+        }
+      }
+
       // Create the accommodation
       const accommodation = await storage.createAccommodation(accommodationData);
       console.log(`Created new accommodation: ${accommodation.name} (ID: ${accommodation.id}) for hotel ${accommodationData.hotelId}`);
@@ -270,6 +303,64 @@ export function registerHotelRoutes(
       console.error('Error creating accommodation:', error);
       return res.status(500).json({ 
         message: 'Failed to create accommodation',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Global Room Types API
+  
+  // Get all global room types
+  app.get('/api/global-room-types', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const roomTypes = await storage.getAllGlobalRoomTypes();
+      return res.status(200).json(roomTypes);
+    } catch (error) {
+      console.error('Error fetching global room types:', error);
+      return res.status(500).json({ 
+        message: 'Failed to fetch global room types',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get global room types for a specific hotel name
+  app.get('/api/global-room-types/hotel/:hotelName', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const hotelName = req.params.hotelName;
+      const roomTypes = await storage.getGlobalRoomTypesByHotelName(hotelName);
+      return res.status(200).json(roomTypes);
+    } catch (error) {
+      console.error(`Error fetching global room types for hotel ${req.params.hotelName}:`, error);
+      return res.status(500).json({ 
+        message: 'Failed to fetch global room types',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Create a new global room type
+  app.post('/api/global-room-types', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      // Validate room type data
+      const validationResult = insertGlobalRoomTypeSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Invalid global room type data',
+          errors: validationResult.error.format()
+        });
+      }
+      
+      const roomTypeData = validationResult.data;
+      const roomType = await storage.createGlobalRoomType(roomTypeData);
+      
+      console.log(`Created new global room type: ${roomType.name} (ID: ${roomType.id}) for hotel ${roomType.hotelName}`);
+      return res.status(201).json(roomType);
+    } catch (error) {
+      console.error('Error creating global room type:', error);
+      return res.status(500).json({ 
+        message: 'Failed to create global room type',
         details: error instanceof Error ? error.message : String(error)
       });
     }
