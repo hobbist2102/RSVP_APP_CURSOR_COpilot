@@ -9,6 +9,7 @@ import { insertRsvpFollowupTemplateSchema, insertRsvpFollowupLogSchema } from '@
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { rsvpFollowupTemplates } from '@shared/schema';
+import { rsvpFollowupService } from '../services/rsvp-followup';
 
 const router = Router();
 
@@ -177,6 +178,70 @@ router.put('/events/:eventId/communication-settings', async (req: Request, res: 
     }
     console.error('Error updating communication settings:', error);
     res.status(500).json({ message: 'Failed to update communication settings' });
+  }
+});
+
+/**
+ * Get all RSVP follow-up logs for an event
+ */
+router.get('/events/:eventId/rsvp-followup-logs', async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+    }
+    
+    // Get all logs for this event
+    const logs = await storage.getRsvpFollowupLogsByEvent(eventId);
+    
+    // Enhance logs with guest names
+    const enhancedLogs = await Promise.all(logs.map(async (log) => {
+      const guest = await storage.getGuest(log.guestId);
+      const template = await storage.getRsvpFollowupTemplate(log.templateId);
+      
+      return {
+        ...log,
+        guestName: guest ? `${guest.firstName} ${guest.lastName}` : null,
+        templateType: template?.type || null
+      };
+    }));
+    
+    res.json(enhancedLogs);
+  } catch (error) {
+    console.error('Error fetching RSVP follow-up logs:', error);
+    res.status(500).json({ message: 'Failed to fetch RSVP follow-up logs' });
+  }
+});
+
+/**
+ * Process all pending RSVP follow-up messages for an event
+ */
+router.post('/events/:eventId/rsvp-followup/process-pending', async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+    }
+    
+    // Get all guests with pending RSVP responses
+    const guests = await storage.getGuestsByEvent(eventId);
+    
+    // Process follow-up messages for each guest
+    let processedCount = 0;
+    for (const guest of guests) {
+      if (guest.rsvpStatus) {
+        const result = await rsvpFollowupService.processRsvpFollowup(guest.id, eventId);
+        if (result) processedCount++;
+      }
+    }
+    
+    res.json({ 
+      message: 'Processed pending RSVP follow-up messages', 
+      processed: processedCount 
+    });
+  } catch (error) {
+    console.error('Error processing pending RSVP follow-up messages:', error);
+    res.status(500).json({ message: 'Failed to process pending RSVP follow-up messages' });
   }
 });
 
