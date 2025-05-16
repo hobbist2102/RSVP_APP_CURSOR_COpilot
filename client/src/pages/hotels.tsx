@@ -60,8 +60,9 @@ type Hotel = {
 const accommodationSchema = z.object({
   hotelId: z.number(),
   name: z.string().min(1, "Room name is required"),
-  roomType: z.string().min(1, "Room type is required"),
-  capacity: z.number().min(1, "Capacity must be at least 1"),
+  roomType: z.string().min(1, "Room type is required (e.g., Single, Double, Suite)"),
+  bedType: z.string().optional(),
+  maxOccupancy: z.number().min(1, "Maximum occupancy must be at least 1"),
   totalRooms: z.number().min(1, "Total rooms must be at least 1"),
   pricePerNight: z.string().optional(),
   specialFeatures: z.string().optional(),
@@ -77,7 +78,8 @@ type Accommodation = {
   globalRoomTypeId?: number;
   name: string;
   roomType: string;
-  capacity: number;
+  bedType?: string;
+  maxOccupancy: number;
   totalRooms: number;
   allocatedRooms: number;
   pricePerNight?: string;
@@ -167,7 +169,8 @@ const HotelsPage: React.FC = () => {
       hotelId: 0,
       name: "",
       roomType: "",
-      capacity: 1,
+      bedType: "",
+      maxOccupancy: 1,
       totalRooms: 1,
       pricePerNight: "",
       specialFeatures: "",
