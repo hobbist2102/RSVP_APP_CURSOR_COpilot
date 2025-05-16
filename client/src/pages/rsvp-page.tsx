@@ -202,33 +202,12 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
         </p>
       </div>
       
-      {stage === RSVPStage.STAGE1 && tokenData && (
+      {stage === RSVPStage.FORM && tokenData && (
         <div className="mb-10">
-          <RsvpStage1Form
+          <TwoStageRsvpForm
             eventId={tokenData.event.id}
-            guestId={tokenData.guest.id}
-            defaultValues={{
-              firstName: tokenData.guest.firstName,
-              lastName: tokenData.guest.lastName,
-              email: tokenData.guest.email,
-              rsvpStatus: tokenData.guest.rsvpStatus || "confirmed",
-              plusOneName: tokenData.guest.plusOneName,
-              dietaryRestrictions: tokenData.guest.dietaryRestrictions,
-            }}
             ceremonies={tokenData.ceremonies}
-            onSuccess={handleStage1Success}
-            onProceedToStage2={handleProceedToStage2}
-          />
-        </div>
-      )}
-      
-      {stage === RSVPStage.STAGE2 && tokenData && stageData && (
-        <div className="mb-10">
-          <RsvpStage2Form
-            eventId={tokenData.event.id}
-            guestId={tokenData.guest.id}
             mealOptions={tokenData.ceremonies.flatMap((c: any) => c.mealOptions || [])}
-            onBack={handleBackToStage1}
             onSuccess={handleStage2Success}
           />
         </div>

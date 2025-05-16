@@ -113,6 +113,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Note: This form is being replaced by TwoStageRsvpForm which properly handles the two-stage RSVP process
+// This component is kept for reference and backward compatibility
 export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }: RsvpFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStage, setCurrentStage] = useState<"stage1" | "stage2">("stage1");
@@ -311,27 +313,9 @@ export default function RsvpForm({ eventId, ceremonies, mealOptions, onSuccess }
     : handleStage2Submit;
   
   return (
-    <div className="space-y-8">
-      {/* Progress indicator */}
-      {rsvpStatus === "confirmed" && (
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${currentStage === "stage1" ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-muted-foreground text-muted-foreground"}`}>
-            1
-          </div>
-          <div className="h-1 w-16 bg-muted">
-            <div className={`h-full ${currentStage === "stage2" ? "bg-primary" : ""}`} style={{ width: currentStage === "stage1" ? "0%" : "100%" }}></div>
-          </div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${currentStage === "stage2" ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-muted-foreground text-muted-foreground"}`}>
-            2
-          </div>
-        </div>
-      )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
       
-      {/* Stage 1: Basic attendance form */}
-      {currentStage === "stage1" ? (
-        <Form {...stage1Form}>
-          <form onSubmit={stage1Form.handleSubmit(handleStage1Submit)} className="space-y-8">
-          
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-lg font-medium mb-4 font-playfair">Your Information</h3>
