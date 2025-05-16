@@ -66,7 +66,8 @@ interface AutoAssignment {
     name: string;
     hotelId: number;
     roomType: string;
-    capacity: number;
+    bedType?: string;
+    maxOccupancy: number;
   };
   hotel: {
     id: number;
@@ -236,7 +237,13 @@ export function AutoAssignmentDashboard({ eventId }: AutoAssignmentDashboardProp
                     <TableCell>
                       <div className="flex flex-col">
                         <span>{assignment.accommodation.name}</span>
-                        <span className="text-xs text-muted-foreground">{assignment.accommodation.roomType}</span>
+                        <div className="text-xs text-muted-foreground">
+                          <span>{assignment.accommodation.roomType}</span>
+                          {assignment.accommodation.bedType && (
+                            <span> · {assignment.accommodation.bedType.charAt(0).toUpperCase() + assignment.accommodation.bedType.slice(1)} bed</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">Max occupancy: {assignment.accommodation.maxOccupancy}</span>
                       </div>
                     </TableCell>
                     <TableCell>{assignment.hotel.name}</TableCell>
