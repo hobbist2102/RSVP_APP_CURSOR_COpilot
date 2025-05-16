@@ -103,6 +103,8 @@ const HotelsPage: React.FC = () => {
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [showPricing, setShowPricing] = useState(false);
+  
+
 
   // Fetch hotels for current event
   const {
