@@ -311,25 +311,36 @@ export function AutoAssignmentDashboard({ eventId }: AutoAssignmentDashboardProp
       
       {/* Room change dialog */}
       {selectedAssignment && (
-        <RoomAssignmentDialog
-          isOpen={isChangingRoom}
-          onClose={() => {
+        <Dialog open={isChangingRoom} onOpenChange={(open) => {
+          if (!open) {
             setIsChangingRoom(false);
             setSelectedAssignment(null);
-          }}
-          eventId={eventId}
-          guestId={selectedAssignment.guestId}
-          existingAllocationId={selectedAssignment.id}
-          onAssignmentComplete={() => {
-            setIsChangingRoom(false);
-            setSelectedAssignment(null);
-            queryClient.invalidateQueries({ queryKey: ["auto-assignments", eventId] });
-            toast({
-              title: "Room Changed",
-              description: "The room assignment has been updated",
-            });
-          }}
-        />
+          }
+        }}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Change Room Assignment</DialogTitle>
+              <DialogDescription>
+                Reassign {selectedAssignment.guest.firstName} {selectedAssignment.guest.lastName} to a different room
+              </DialogDescription>
+            </DialogHeader>
+            
+            <RoomAssignmentDialog
+              eventId={eventId}
+              guestId={selectedAssignment.guestId}
+              existingAllocationId={selectedAssignment.id}
+              onAssignmentComplete={() => {
+                setIsChangingRoom(false);
+                setSelectedAssignment(null);
+                queryClient.invalidateQueries({ queryKey: ["auto-assignments", eventId] });
+                toast({
+                  title: "Room Changed",
+                  description: "The room assignment has been updated",
+                });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </Card>
   );

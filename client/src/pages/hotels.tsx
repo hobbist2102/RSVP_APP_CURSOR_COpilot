@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { RoomAllocationList } from "@/components/room/room-allocation-list";
+import { AutoAssignmentDashboard } from "@/components/room/auto-assignment-dashboard";
 import { exportToExcel, formatHotelAssignmentsForExport } from "@/lib/xlsx-utils";
 
 // Define schemas
@@ -642,6 +643,7 @@ const HotelsPage: React.FC = () => {
               <TabsList>
                 <TabsTrigger value="rooms">Room Types</TabsTrigger>
                 <TabsTrigger value="details">Hotel Details</TabsTrigger>
+                <TabsTrigger value="auto-assignments">Auto Assignments</TabsTrigger>
               </TabsList>
 
               <TabsContent value="rooms" className="py-4">
@@ -830,6 +832,19 @@ const HotelsPage: React.FC = () => {
                     </div>
                     <Separator className="mb-6" />
                   </>
+                )}
+              </TabsContent>
+
+              <TabsContent value="auto-assignments" className="py-4">
+                {currentEvent ? (
+                  <AutoAssignmentDashboard eventId={currentEvent.id} />
+                ) : (
+                  <Alert>
+                    <AlertTitle>No Event Selected</AlertTitle>
+                    <AlertDescription>
+                      Please select an event to view auto-assigned rooms
+                    </AlertDescription>
+                  </Alert>
                 )}
               </TabsContent>
 
