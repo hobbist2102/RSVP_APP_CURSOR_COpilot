@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "./header";
 import Sidebar from "./sidebar";
-import { formatDate } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import EventSelector from "../event/event-selector";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 

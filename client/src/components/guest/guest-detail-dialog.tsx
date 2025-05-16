@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { formatDate, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/date-utils";
 import { 
   Phone, 
   Mail, 
@@ -145,7 +146,7 @@ export default function GuestDetailDialog({
               
               <div>
                 <p className="text-sm text-muted-foreground">Created Date</p>
-                <p>{formatDate(guest.createdAt)}</p>
+                <p>{formatDateForDisplay(guest.createdAt)}</p>
               </div>
             </div>
             
@@ -423,7 +424,7 @@ export default function GuestDetailDialog({
                   <div>
                     <p className="text-sm text-muted-foreground">Arrival</p>
                     <div>
-                      <p>{guest.travel.arrivalDate ? formatDate(guest.travel.arrivalDate) : "Not specified"}</p>
+                      <p>{guest.travel.arrivalDate ? formatDateForDisplay(guest.travel.arrivalDate) : "Not specified"}</p>
                       <p className="text-sm text-muted-foreground">
                         {guest.travel.arrivalTime} {guest.travel.arrivalLocation ? `at ${guest.travel.arrivalLocation}` : ""}
                       </p>
@@ -433,7 +434,7 @@ export default function GuestDetailDialog({
                   <div>
                     <p className="text-sm text-muted-foreground">Departure</p>
                     <div>
-                      <p>{guest.travel.departureDate ? formatDate(guest.travel.departureDate) : "Not specified"}</p>
+                      <p>{guest.travel.departureDate ? formatDateForDisplay(guest.travel.departureDate) : "Not specified"}</p>
                       <p className="text-sm text-muted-foreground">
                         {guest.travel.departureTime} {guest.travel.departureLocation ? `at ${guest.travel.departureLocation}` : ""}
                       </p>
@@ -496,8 +497,8 @@ export default function GuestDetailDialog({
                       <div>
                         <p className="text-sm text-muted-foreground">Check-in/Check-out</p>
                         <p>
-                          {guest.accommodation.checkIn ? formatDate(guest.accommodation.checkIn) : "TBD"} - {" "}
-                          {guest.accommodation.checkOut ? formatDate(guest.accommodation.checkOut) : "TBD"}
+                          {guest.accommodation.checkIn ? formatDateForDisplay(guest.accommodation.checkIn) : "TBD"} - {" "}
+                          {guest.accommodation.checkOut ? formatDateForDisplay(guest.accommodation.checkOut) : "TBD"}
                         </p>
                       </div>
                     </div>
