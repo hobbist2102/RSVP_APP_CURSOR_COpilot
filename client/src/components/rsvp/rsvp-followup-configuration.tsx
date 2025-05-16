@@ -577,7 +577,7 @@ export default function RsvpFollowupConfiguration() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      This determines when the message will be sent
+                      This determines when the message will be sent to your guests based on their RSVP response
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
