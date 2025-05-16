@@ -70,24 +70,38 @@ function updateUserSession(
 
 async function upsertUser(claims: any) {
   try {
-    // Insert into the replit_users table instead
-    const result = await db.execute(sql`
-      INSERT INTO replit_users 
-        (id, email, first_name, last_name, profile_image_url, role)
-      VALUES 
-        (${claims["sub"]}, ${claims["email"]}, ${claims["first_name"]}, ${claims["last_name"]}, ${claims["profile_image_url"]}, 'staff')
-      ON CONFLICT (id) DO UPDATE SET
-        email = ${claims["email"]},
-        first_name = ${claims["first_name"]},
-        last_name = ${claims["last_name"]},
-        profile_image_url = ${claims["profile_image_url"]},
-        updated_at = CURRENT_TIMESTAMP
-      RETURNING *
-    `);
+    console.log("Received claims for user:", JSON.stringify({
+      sub: claims["sub"],
+      email: claims["email"],
+      first_name: claims["first_name"],
+      last_name: claims["last_name"],
+      has_profile_image: !!claims["profile_image_url"]
+    }));
     
-    if (result && result.rows && result.rows.length > 0) {
-      return result.rows[0];
-    }
+    // Use the "users" table from schema instead of direct SQL
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: claims["sub"] || "",
+        email: claims["email"] || null,
+        firstName: claims["first_name"] || null,
+        lastName: claims["last_name"] || null,
+        profileImageUrl: claims["profile_image_url"] || null,
+        role: "staff"
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: claims["email"] || null,
+          firstName: claims["first_name"] || null,
+          lastName: claims["last_name"] || null,
+          profileImageUrl: claims["profile_image_url"] || null,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+      
+    return user;
     
     throw new Error("Failed to upsert user");
   } catch (error) {
