@@ -62,12 +62,16 @@ const accommodationSchema = z.object({
   totalRooms: z.number().min(1, "Total rooms must be at least 1"),
   pricePerNight: z.string().optional(),
   specialFeatures: z.string().optional(),
+  globalRoomTypeId: z.number().optional(),
+  showPricing: z.boolean().default(false),
+  createGlobalType: z.boolean().default(true),
 });
 
 type Accommodation = {
   id: number;
   eventId: number;
   hotelId: number;
+  globalRoomTypeId?: number;
   name: string;
   roomType: string;
   capacity: number;
@@ -75,6 +79,17 @@ type Accommodation = {
   allocatedRooms: number;
   pricePerNight?: string;
   specialFeatures?: string;
+  showPricing?: boolean;
+};
+
+type GlobalRoomType = {
+  id: number;
+  hotelName: string;
+  name: string;
+  category: string;
+  capacity: number;
+  specialFeatures?: string;
+  createdAt: string;
 };
 
 const HotelsPage: React.FC = () => {
@@ -85,6 +100,7 @@ const HotelsPage: React.FC = () => {
   const [isAddingHotel, setIsAddingHotel] = useState(false);
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
+  const [showPricing, setShowPricing] = useState(false);
   
   // Fetch hotels for current event
   const {
@@ -133,6 +149,9 @@ const HotelsPage: React.FC = () => {
       totalRooms: 1,
       pricePerNight: "",
       specialFeatures: "",
+      globalRoomTypeId: undefined,
+      showPricing: false,
+      createGlobalType: true
     }
   });
   
@@ -174,6 +193,38 @@ const HotelsPage: React.FC = () => {
       accommodationForm.setValue("hotelId", selectedHotel.id);
     }
   }, [selectedHotel, accommodationForm]);
+  
+  // Fetch global room types
+  const {
+    data: globalRoomTypes = [],
+    isLoading: globalRoomTypesLoading
+  } = useQuery({
+    queryKey: ['globalRoomTypes'],
+    queryFn: async () => {
+      const response = await fetch('/api/global-room-types');
+      if (!response.ok) {
+        throw new Error('Failed to fetch global room types');
+      }
+      return response.json();
+    }
+  });
+  
+  // Fetch global room types for selected hotel
+  const {
+    data: hotelGlobalRoomTypes = [],
+    isLoading: hotelGlobalRoomTypesLoading
+  } = useQuery({
+    queryKey: ['globalRoomTypes', selectedHotel?.name],
+    queryFn: async () => {
+      if (!selectedHotel) return [];
+      const response = await fetch(`/api/global-room-types/hotel/${encodeURIComponent(selectedHotel.name)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch global room types for hotel');
+      }
+      return response.json();
+    },
+    enabled: !!selectedHotel
+  });
   
   // Fetch accommodations for selected hotel
   const {
