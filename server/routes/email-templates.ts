@@ -12,7 +12,7 @@ import {
   insertEmailTemplateStyleSchema,
   insertEmailAssetSchema,
   insertEmailSignatureSchema
-} from '../../../shared/schema-email-templates';
+} from '@shared/schema';
 import { weddingEvents } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { isAuthenticated } from '../middleware';
