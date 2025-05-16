@@ -1,53 +1,38 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
   FormMessage,
   FormDescription
-} from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogDescription 
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { Loader2, PenTool, Edit, Trash2, Save, Plus, Copy } from 'lucide-react';
+} from "@/components/ui/form";
+import { Loader2, Plus, X } from "lucide-react";
 
 interface EmailSignatureEditorProps {
   eventId: number;
 }
 
-// Schema for email signature form
 const emailSignatureSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  content: z.string().min(1, 'HTML content is required'),
+  name: z.string().min(1, "Name is required"),
+  content: z.string().min(1, "Signature content is required"),
   plainText: z.string().optional(),
   includesSocialLinks: z.boolean().default(false),
+  socialLinks: z.any().optional(),
   isDefault: z.boolean().default(false),
+  eventId: z.number()
 });
 
 type EmailSignatureFormValues = z.infer<typeof emailSignatureSchema>;
@@ -60,453 +45,413 @@ type EmailSignature = {
   includesSocialLinks: boolean;
   socialLinks?: any;
   isDefault: boolean;
+  createdAt: string;
+  eventId: number;
 };
 
 export default function EmailSignatureEditor({ eventId }: EmailSignatureEditorProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [editingSignature, setEditingSignature] = useState<EmailSignature | null>(null);
-  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [selectedSignature, setSelectedSignature] = useState<EmailSignature | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string>("");
 
-  // Fetch email signatures
-  const { data: signaturesData, isLoading: signaturesLoading } = useQuery({
-    queryKey: [`/api/events/${eventId}/email-signatures`],
-    queryFn: () => apiRequest('GET', `/api/events/${eventId}/email-signatures`).then(res => res.json()),
+  const { data: signaturesData, isLoading } = useQuery({
+    queryKey: ['/api/events', eventId, 'email-signatures'],
+    queryFn: async () => {
+      const res = await fetch(`/api/events/${eventId}/email-signatures`);
+      if (!res.ok) throw new Error('Failed to fetch signatures');
+      return res.json();
+    }
   });
 
-  // Create signature mutation
   const createSignatureMutation = useMutation({
     mutationFn: (data: EmailSignatureFormValues) => 
-      apiRequest('POST', `/api/events/${eventId}/email-signatures`, {
-        ...data,
-        eventId,
-        socialLinks: data.includesSocialLinks ? JSON.stringify({
-          instagram: true,
-          facebook: true,
-          website: true
-        }) : null
-      }),
+      apiRequest('POST', `/api/events/${eventId}/email-signatures`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/email-signatures`] });
-      toast({
-        title: 'Signature created',
-        description: 'The email signature has been created successfully.',
-      });
-      setIsEditorOpen(false);
-      setEditingSignature(null);
+      toast({ title: "Signature created successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });
+      setIsCreating(false);
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: `Failed to create signature: ${error.message}`,
-        variant: 'destructive',
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to create signature", 
+        description: error.message,
+        variant: "destructive" 
       });
     }
   });
 
-  // Update signature mutation
   const updateSignatureMutation = useMutation({
     mutationFn: (data: EmailSignatureFormValues & { id: number }) => 
-      apiRequest('PUT', `/api/events/${eventId}/email-signatures/${data.id}`, {
-        name: data.name,
-        content: data.content,
-        plainText: data.plainText,
-        includesSocialLinks: data.includesSocialLinks,
-        socialLinks: data.includesSocialLinks ? JSON.stringify({
-          instagram: true,
-          facebook: true,
-          website: true
-        }) : null,
-        isDefault: data.isDefault
-      }),
+      apiRequest('PUT', `/api/events/${eventId}/email-signatures/${data.id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/email-signatures`] });
-      toast({
-        title: 'Signature updated',
-        description: 'The email signature has been updated successfully.',
-      });
-      setIsEditorOpen(false);
-      setEditingSignature(null);
+      toast({ title: "Signature updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });
+      setSelectedSignature(null);
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: `Failed to update signature: ${error.message}`,
-        variant: 'destructive',
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to update signature", 
+        description: error.message,
+        variant: "destructive" 
       });
     }
   });
 
-  // Delete signature mutation
   const deleteSignatureMutation = useMutation({
-    mutationFn: (signatureId: number) => 
-      apiRequest('DELETE', `/api/events/${eventId}/email-signatures/${signatureId}`),
+    mutationFn: (id: number) => 
+      apiRequest('DELETE', `/api/events/${eventId}/email-signatures/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/email-signatures`] });
-      toast({
-        title: 'Signature deleted',
-        description: 'The email signature has been deleted successfully.',
-      });
+      toast({ title: "Signature deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });
+      setSelectedSignature(null);
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: `Failed to delete signature: ${error.message}`,
-        variant: 'destructive',
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to delete signature", 
+        description: error.message,
+        variant: "destructive" 
       });
     }
   });
 
-  // Initialize form
+  const defaultSignatureHtml = `<table cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 450px; font-family: Arial, sans-serif; color: #333333;">
+  <tr>
+    <td style="padding: 10px 0; border-top: 1px solid #dddddd;">
+      <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+        <tr>
+          <td style="vertical-align: top; padding-right: 15px;">
+            <img src="https://via.placeholder.com/100x100" alt="Profile Photo" style="width: 80px; height: 80px; border-radius: 50%;">
+          </td>
+          <td style="vertical-align: top;">
+            <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 16px;">Your Name</p>
+            <p style="margin: 0 0 5px 0; font-size: 14px;">Wedding Planner</p>
+            <p style="margin: 0 0 5px 0; font-size: 14px;">Phone: +91 98765 43210</p>
+            <p style="margin: 0; font-size: 14px;">Email: your.email@example.com</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+
   const form = useForm<EmailSignatureFormValues>({
     resolver: zodResolver(emailSignatureSchema),
     defaultValues: {
-      name: editingSignature?.name || '',
-      content: editingSignature?.content || '',
-      plainText: editingSignature?.plainText || '',
-      includesSocialLinks: editingSignature?.includesSocialLinks || false,
-      isDefault: editingSignature?.isDefault || false
+      name: "",
+      content: defaultSignatureHtml,
+      plainText: "Your Name\nWedding Planner\nPhone: +91 98765 43210\nEmail: your.email@example.com",
+      includesSocialLinks: false,
+      socialLinks: {},
+      isDefault: false,
+      eventId: eventId
     }
   });
 
-  // Open editor with a signature to edit
+  useEffect(() => {
+    if (selectedSignature) {
+      form.reset({
+        name: selectedSignature.name,
+        content: selectedSignature.content,
+        plainText: selectedSignature.plainText || "",
+        includesSocialLinks: selectedSignature.includesSocialLinks,
+        socialLinks: selectedSignature.socialLinks || {},
+        isDefault: selectedSignature.isDefault,
+        eventId: selectedSignature.eventId
+      });
+      setPreviewHtml(selectedSignature.content);
+    } else if (!isCreating) {
+      form.reset({
+        name: "",
+        content: defaultSignatureHtml,
+        plainText: "Your Name\nWedding Planner\nPhone: +91 98765 43210\nEmail: your.email@example.com",
+        includesSocialLinks: false,
+        socialLinks: {},
+        isDefault: false,
+        eventId: eventId
+      });
+      setPreviewHtml(defaultSignatureHtml);
+    }
+  }, [selectedSignature, isCreating, form, eventId]);
+
+  // Update preview when content changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'content') {
+        setPreviewHtml(value.content as string || "");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
   const openEditor = (signature?: EmailSignature) => {
     if (signature) {
-      setEditingSignature(signature);
-      form.reset({
-        name: signature.name,
-        content: signature.content,
-        plainText: signature.plainText || '',
-        includesSocialLinks: signature.includesSocialLinks,
-        isDefault: signature.isDefault
-      });
+      setSelectedSignature(signature);
+      setPreviewHtml(signature.content);
     } else {
-      setEditingSignature(null);
-      form.reset({
-        name: '',
-        content: defaultSignatureTemplate,
-        plainText: '',
-        includesSocialLinks: false,
-        isDefault: false
-      });
+      setIsCreating(true);
+      setSelectedSignature(null);
+      setPreviewHtml(defaultSignatureHtml);
     }
-    setIsEditorOpen(true);
   };
 
-  // Handle form submission
+  const closeEditor = () => {
+    setIsCreating(false);
+    setSelectedSignature(null);
+    form.reset();
+  };
+
   const onSubmit = (values: EmailSignatureFormValues) => {
-    if (editingSignature) {
-      updateSignatureMutation.mutate({ ...values, id: editingSignature.id });
+    if (selectedSignature) {
+      updateSignatureMutation.mutate({ ...values, id: selectedSignature.id });
     } else {
       createSignatureMutation.mutate(values);
     }
   };
 
-  // Generate plain text from HTML
-  const generatePlainText = () => {
-    const htmlContent = form.getValues('content');
-    // This is a very basic conversion, in a real app you'd want a better HTML-to-text conversion
-    let textContent = htmlContent
-      .replace(/<div>/g, '')
-      .replace(/<\/div>/g, '\n')
-      .replace(/<p>/g, '')
-      .replace(/<\/p>/g, '\n\n')
-      .replace(/<br\s*\/?>/g, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
-    
-    form.setValue('plainText', textContent);
-  };
-
-  // Preview signature
   const previewSignature = (signature: EmailSignature) => {
-    setSignaturePreview(signature.content);
+    setPreviewHtml(signature.content);
   };
 
-  // Default signature template
-  const defaultSignatureTemplate = `
-<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-family: Arial, sans-serif;">
-  <p style="margin: 0;">Warm regards,</p>
-  <p style="margin: 5px 0; font-weight: bold;">{{brideName}} & {{groomName}}</p>
-  
-  {{#if includesSocialLinks}}
-  <div style="margin-top: 10px;">
-    {{#if instagramUrl}}<a href="{{instagramUrl}}" style="display: inline-block; margin-right: 10px;"><img src="{{instagramIcon}}" alt="Instagram" style="width: 24px; height: 24px;"></a>{{/if}}
-    {{#if facebookUrl}}<a href="{{facebookUrl}}" style="display: inline-block; margin-right: 10px;"><img src="{{facebookIcon}}" alt="Facebook" style="width: 24px; height: 24px;"></a>{{/if}}
-    {{#if websiteUrl}}<a href="{{websiteUrl}}" style="display: inline-block;"><img src="{{websiteIcon}}" alt="Website" style="width: 24px; height: 24px;"></a>{{/if}}
-  </div>
-  {{/if}}
-</div>
-  `;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isCreating || selectedSignature) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{selectedSignature ? 'Edit Email Signature' : 'Create New Signature'}</CardTitle>
+          <Button variant="ghost" size="icon" onClick={closeEditor}>
+            <X className="h-5 w-5" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Signature Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="E.g., Personal Signature" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isDefault"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-end space-x-3 space-y-0 h-[74px]">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-medium leading-none">
+                        Set as default signature
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Tabs defaultValue="html">
+                <TabsList>
+                  <TabsTrigger value="html">HTML Content</TabsTrigger>
+                  <TabsTrigger value="text">Plain Text</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="html" className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>HTML Content</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            rows={12} 
+                            placeholder="HTML signature content" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          HTML markup for your signature. This will be displayed in email clients that support HTML.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+                <TabsContent value="text" className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="plainText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Plain Text Version</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            rows={8} 
+                            placeholder="Plain text signature content" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Text-only version of your signature. This will be used in email clients that don't support HTML.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+                <TabsContent value="preview" className="space-y-4">
+                  <div className="border rounded-md p-6 bg-white">
+                    <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    This is how your signature will appear in HTML-compatible email clients.
+                  </p>
+                </TabsContent>
+              </Tabs>
+
+              <FormField
+                control={form.control}
+                name="includesSocialLinks"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    </FormControl>
+                    <div>
+                      <FormLabel className="text-sm font-medium leading-none">
+                        Include social media links
+                      </FormLabel>
+                      <FormDescription>
+                        Social media links will be displayed as icons in your signature.
+                        Edit the HTML directly to customize these links.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={closeEditor}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createSignatureMutation.isPending || updateSignatureMutation.isPending}
+                >
+                  {(createSignatureMutation.isPending || updateSignatureMutation.isPending) && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {selectedSignature ? 'Update Signature' : 'Create Signature'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Email Signatures</h2>
         <Button onClick={() => openEditor()}>
           <Plus className="mr-2 h-4 w-4" /> New Signature
         </Button>
       </div>
 
-      {signaturesLoading ? (
-        <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : signaturesData?.signatures?.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {signaturesData.signatures.map((signature: EmailSignature) => (
-            <Card key={signature.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{signature.name}</CardTitle>
-                  {signature.isDefault && (
-                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Default</span>
-                  )}
-                </div>
-                <CardDescription>
-                  {signature.includesSocialLinks ? 'Includes social links' : 'Basic signature'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div 
-                  className="border rounded-md p-3 bg-gray-50 overflow-hidden"
-                  style={{ maxHeight: '100px' }}
-                >
-                  <div
-                    className="text-sm"
-                    dangerouslySetInnerHTML={{ 
-                      __html: signature.content
-                        .replace(/{{brideName}}/g, 'Priya')
-                        .replace(/{{groomName}}/g, 'Raj') 
-                    }}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0 flex justify-end">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => previewSignature(signature)}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => openEditor(signature)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this signature?')) {
-                      deleteSignatureMutation.mutate(signature.id);
-                    }
-                  }}
-                  disabled={deleteSignatureMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center p-10 border rounded-lg">
-          <PenTool className="h-10 w-10 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-medium">No signatures found</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Create your first email signature to add a professional touch to your communications.
-          </p>
-          <Button onClick={() => openEditor()}>
-            <Plus className="mr-2 h-4 w-4" /> Create Signature
-          </Button>
-        </div>
-      )}
-
-      {/* Signature Editor Dialog */}
-      <Dialog open={isEditorOpen} onOpenChange={(open) => !open && setIsEditorOpen(false)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingSignature ? 'Edit Email Signature' : 'Create Email Signature'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingSignature 
-                ? 'Update your email signature settings below.' 
-                : 'Create a new signature for your email communications.'}
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Signature Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Formal Signature" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>HTML Content</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        className="font-mono h-[200px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Use variables like {"{{"} brideName {"}}"}, {"{{"} groomName {"}}"}, and social media placeholders.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end mb-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={generatePlainText}
-                >
-                  Generate Plain Text
-                </Button>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="plainText"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plain Text Version</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        className="font-mono h-[100px]"
-                        placeholder="Plain text version of the signature (for email clients that don't support HTML)"
-                        {...field} 
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="includesSocialLinks"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                    <div className="space-y-0.5">
-                      <FormLabel>Include Social Media Links</FormLabel>
-                      <FormDescription>
-                        Enable to include social media icons and links in the signature
-                      </FormDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          {signaturesData?.signatures?.length === 0 ? (
+            <div className="text-center py-8 border rounded-md">
+              <p className="text-gray-500 mb-4">No email signatures found</p>
+              <Button onClick={() => openEditor()}>Create Your First Signature</Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {signaturesData?.signatures?.map((signature: EmailSignature) => (
+                <Card key={signature.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex justify-between items-center">
+                      {signature.name}
+                      {signature.isDefault && <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">Default</span>}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-0 cursor-pointer" onClick={() => previewSignature(signature)}>
+                    <div className="border rounded bg-gray-50 p-2 h-24 overflow-hidden">
+                      <div className="transform scale-75 origin-top-left">
+                        <div dangerouslySetInnerHTML={{ __html: signature.content }} />
+                      </div>
                     </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="isDefault"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                    <div className="space-y-0.5">
-                      <FormLabel>Default Signature</FormLabel>
-                      <FormDescription>
-                        Set as the default signature for new emails
-                      </FormDescription>
+                  </CardContent>
+                  <CardFooter className="flex justify-end pt-4">
+                    <div className="space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => openEditor(signature)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this signature?')) {
+                            deleteSignatureMutation.mutate(signature.id);
+                          }
+                        }}
+                        disabled={deleteSignatureMutation.isPending}
+                      >
+                        Delete
+                      </Button>
                     </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setIsEditorOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={createSignatureMutation.isPending || updateSignatureMutation.isPending}
-                >
-                  {(createSignatureMutation.isPending || updateSignatureMutation.isPending) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  <Save className="mr-2 h-4 w-4" />
-                  {editingSignature ? 'Update Signature' : 'Create Signature'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Signature Preview Dialog */}
-      <Dialog open={!!signaturePreview} onOpenChange={(open) => !open && setSignaturePreview(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Signature Preview</DialogTitle>
-          </DialogHeader>
-          
-          <div className="border rounded-lg p-4 bg-white">
-            <div
-              dangerouslySetInnerHTML={{ 
-                __html: signaturePreview
-                  ?.replace(/{{brideName}}/g, 'Priya')
-                  .replace(/{{groomName}}/g, 'Raj')
-                  .replace(/{{instagramUrl}}/g, 'https://instagram.com/')
-                  .replace(/{{facebookUrl}}/g, 'https://facebook.com/')
-                  .replace(/{{websiteUrl}}/g, 'https://example.com/')
-                  .replace(/{{instagramIcon}}/g, 'https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/instagram.svg')
-                  .replace(/{{facebookIcon}}/g, 'https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/facebook.svg')
-                  .replace(/{{websiteIcon}}/g, 'https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/internetexplorer.svg')
-                || ''
-              }}
-            />
+        <div className="border rounded-md p-6 bg-white">
+          <h3 className="text-lg font-semibold mb-4">Signature Preview</h3>
+          <div className="border-t pt-4">
+            <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
           </div>
-          
-          <DialogFooter>
-            <Button onClick={() => setSignaturePreview(null)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }

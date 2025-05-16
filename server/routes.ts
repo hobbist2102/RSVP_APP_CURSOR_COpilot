@@ -48,6 +48,9 @@ import oauthRoutes from "./routes/oauth";
 // Import Event Settings routes
 import eventSettingsRoutes from "./routes/event-settings";
 
+// Import Email Templates routes
+import emailTemplatesRoutes from "./routes/email-templates";
+
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
