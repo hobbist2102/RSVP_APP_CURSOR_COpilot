@@ -97,22 +97,39 @@ The proposed Event Setup Wizard will unify these areas into a guided, step-by-st
 - Recommended airlines and discount codes
 - Transport booking deadlines
 
-### 6. Email & Communication Setup
-- Email provider selection (Gmail, Outlook, SendGrid)
-- OAuth configuration:
-  - Client IDs and secrets
-  - Redirect URIs
-  - Account selection
-- SMTP settings (if using direct SMTP):
-  - SMTP host and port
-  - Security options
-  - Credentials
-- Default sender name and email
-- Reply-to address configuration
+### 6. Communication Setup
+- Email configuration:
+  - Provider selection (Gmail, Outlook, SendGrid)
+  - OAuth configuration (Client IDs, secrets, redirect URIs)
+  - SMTP settings (host, port, security options, credentials)
+  - Default sender name and email
+  - Reply-to address configuration
+- WhatsApp integration (placeholder for future implementation):
+  - WhatsApp Business API integration settings
+  - Message templates approval management
+  - Default country code settings
+  - Messaging quota configuration
+  - Automated message scheduling options
 - Email template selection
-- Email testing functionality
+- Communication testing functionality
 
-### 7. Design & Styling
+### 7. AI Assistant Configuration (placeholder for future implementation)
+- AI chatbot integration options:
+  - Chatbot personality customization
+  - Response style settings
+  - Custom knowledge base inputs
+  - Guest FAQs management
+  - Automated guest interaction rules
+  - Fallback response configuration
+- Integration points:
+  - RSVP form assistance
+  - Guest information collection
+  - Accommodation/travel guidance
+  - Venue directions and information
+  - Schedule clarifications
+- Monitoring and reporting settings
+
+### 8. Design & Styling
 - Color scheme selection
 - Typography choices
 - Banner and hero images
@@ -121,18 +138,38 @@ The proposed Event Setup Wizard will unify these areas into a guided, step-by-st
 - Mobile display options
 - Email design templates
 - RSVP form styling options
+- WhatsApp message styling (placeholder)
+- AI chatbot appearance settings (placeholder)
 
 ## Implementation Approach
 
-### Phase 1: Wizard Framework
-1. Create wizard UI framework
-2. Implement step navigation
-3. Develop progress tracking
-4. Build saving/resuming functionality
+### Phase 1: Wizard Framework and Database Structure
+- Create base UI components for the wizard (navigation, progress tracking)
+- Implement database schema for storing wizard progress
+- Build the navigation and state management system
+- Create skeleton pages for all wizard sections
+- Implement "save & continue" and "skip section" functionality
 
-### Phase 2: Data Integration
-1. Connect existing data models to wizard
-2. Ensure data consistency between wizard and individual pages
+### Phase 2: Data Connections
+- Connect existing data models to wizard sections
+- Implement data validation for each step
+- Create APIs for saving partial configuration
+- Build progress tracking and completion indicators
+- Implement data prefetching for wizard sections
+
+### Phase 3: Feature Integration
+- Migrate existing configuration screens to wizard format
+- Ensure all current functionality is preserved
+- Implement new features within wizard framework
+- Add placeholders for WhatsApp and AI integration
+- Create upgrade paths for future features
+
+### Phase 4: Testing and Refinement
+- Test wizard flow with various use cases
+- Ensure data consistency across sections
+- Optimize user experience and navigation
+- Document wizard architecture for future expansion
+- Create comprehensive onboarding guide
 3. Develop data validation for each step
 4. Create comprehensive event status tracking
 
