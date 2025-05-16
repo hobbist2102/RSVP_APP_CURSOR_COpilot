@@ -48,6 +48,8 @@ import {
   coupleMessages, type CoupleMessage, type InsertCoupleMessage,
   relationshipTypes, type RelationshipType, type InsertRelationshipType,
   whatsappTemplates, type WhatsappTemplate, type InsertWhatsappTemplate,
+  transportGroups, type TransportGroup, type InsertTransportGroup,
+  transportAllocations, type TransportAllocation, type InsertTransportAllocation,
   rsvpFollowupTemplates, type RsvpFollowupTemplate, type InsertRsvpFollowupTemplate,
   rsvpFollowupLogs, type RsvpFollowupLog, type InsertRsvpFollowupLog
 } from "@shared/schema";
