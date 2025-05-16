@@ -368,16 +368,34 @@ Stores messages from guests to the couple.
 
 ## Data Validation Rules
 
+### Validation Implementation
+
+All validation rules are implemented using Zod schemas located in `shared/validation-schemas.ts`. This provides:
+
+- Consistent validation between frontend and backend
+- Type-safe schema definitions with TypeScript
+- Reusable validation logic across the application
+- Clear validation error messages
+
 ### Email Validation
 - Must conform to RFC 5322 standard
 - Maximum length: 100 characters
 - Required format: `local-part@domain`
+- Implemented with `z.string().email().max(100)`
 
 ### Phone Validation
 - Accepts international formats with country code
 - Allows for spaces, hyphens, and parentheses
 - Minimum length: 7 characters
 - Maximum length: 20 characters
+- Implemented with custom regex validation
+
+### Date Validation
+- All dates validated using standardized date utilities
+- Support for various input formats
+- Consistent display format across the application
+- Range validation for event dates, RSVP deadlines
+- Implemented with date-fns and custom validators
 
 ### Password Requirements
 - Minimum length: 8 characters

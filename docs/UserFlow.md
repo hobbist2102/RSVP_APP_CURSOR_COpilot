@@ -215,6 +215,12 @@ The application serves several distinct user types with different needs:
 
 ## Forms Inventory
 
+All forms in the application use standardized components and utilities:
+- Consistent validation using shared Zod schemas
+- Standardized date formatting with date utilities
+- Uniform error handling and notifications
+- Responsive layouts with consistent styling
+
 ### Login Form
 - **Fields:**
   - Username (required)
