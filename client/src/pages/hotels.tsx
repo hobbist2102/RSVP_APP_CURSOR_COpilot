@@ -138,6 +138,23 @@ const HotelsPage: React.FC = () => {
     }
   });
   
+  // Fetch global room types for the selected hotel
+  const {
+    data: hotelGlobalRoomTypes = [],
+    isLoading: hotelGlobalRoomTypesLoading
+  } = useQuery({
+    queryKey: ['hotelGlobalRoomTypes', selectedHotel?.name],
+    queryFn: async () => {
+      if (!selectedHotel) return [];
+      const response = await fetch(`/api/global-room-types/by-hotel/${encodeURIComponent(selectedHotel.name)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch global room types for hotel');
+      }
+      return response.json();
+    },
+    enabled: !!selectedHotel
+  });
+  
   // Create accommodation form
   const accommodationForm = useForm<z.infer<typeof accommodationSchema>>({
     resolver: zodResolver(accommodationSchema),
@@ -151,7 +168,7 @@ const HotelsPage: React.FC = () => {
       specialFeatures: "",
       globalRoomTypeId: undefined,
       showPricing: false,
-      createGlobalType: true
+      createGlobalType: false
     }
   });
   
@@ -194,37 +211,7 @@ const HotelsPage: React.FC = () => {
     }
   }, [selectedHotel, accommodationForm]);
   
-  // Fetch global room types
-  const {
-    data: globalRoomTypes = [],
-    isLoading: globalRoomTypesLoading
-  } = useQuery({
-    queryKey: ['globalRoomTypes'],
-    queryFn: async () => {
-      const response = await fetch('/api/global-room-types');
-      if (!response.ok) {
-        throw new Error('Failed to fetch global room types');
-      }
-      return response.json();
-    }
-  });
-  
-  // Fetch global room types for selected hotel
-  const {
-    data: hotelGlobalRoomTypes = [],
-    isLoading: hotelGlobalRoomTypesLoading
-  } = useQuery({
-    queryKey: ['globalRoomTypes', selectedHotel?.name],
-    queryFn: async () => {
-      if (!selectedHotel) return [];
-      const response = await fetch(`/api/global-room-types/hotel/${encodeURIComponent(selectedHotel.name)}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch global room types for hotel');
-      }
-      return response.json();
-    },
-    enabled: !!selectedHotel
-  });
+
   
   // Fetch accommodations for selected hotel
   const {
@@ -436,12 +423,89 @@ const HotelsPage: React.FC = () => {
     }
   };
   
+  // Create global room type mutation
+  const createGlobalRoomTypeMutation = useMutation({
+    mutationFn: async (data: {
+      hotelName: string;
+      name: string;
+      category: string;
+      capacity: number;
+      specialFeatures?: string;
+    }) => {
+      const response = await fetch('/api/global-room-types', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create global room type');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: "Global room type created successfully",
+      });
+      queryClient.invalidateQueries({queryKey: ['allGlobalRoomTypes']});
+      queryClient.invalidateQueries({queryKey: ['hotelGlobalRoomTypes', selectedHotel?.name]});
+      return data;
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Accommodation form submit handler
-  const onAccommodationSubmit = (data: z.infer<typeof accommodationSchema>) => {
-    if (selectedAccommodation) {
-      updateAccommodationMutation.mutate(data);
-    } else {
-      createAccommodationMutation.mutate(data);
+  const onAccommodationSubmit = async (data: z.infer<typeof accommodationSchema>) => {
+    try {
+      if (selectedAccommodation) {
+        // Update existing accommodation
+        updateAccommodationMutation.mutate(data);
+      } else {
+        // Handle global room type creation if requested
+        let globalRoomTypeId = data.globalRoomTypeId;
+        
+        if (data.createGlobalType && selectedHotel) {
+          // Create global room type first
+          const globalRoomType = await createGlobalRoomTypeMutation.mutateAsync({
+            hotelName: selectedHotel.name,
+            name: data.name,
+            category: data.roomType,
+            capacity: data.capacity,
+            specialFeatures: data.specialFeatures
+          });
+          
+          // Use the ID of the newly created global room type
+          globalRoomTypeId = globalRoomType.id;
+          
+          toast({
+            title: "Success",
+            description: "Room type added to global room types library",
+          });
+        }
+        
+        // Create accommodation with global room type reference if applicable
+        createAccommodationMutation.mutate({
+          ...data,
+          globalRoomTypeId: globalRoomTypeId
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process room type",
+        variant: "destructive",
+      });
     }
   };
   
@@ -1012,17 +1076,43 @@ const HotelsPage: React.FC = () => {
                   
                   <FormField
                     control={accommodationForm.control}
-                    name="pricePerNight"
+                    name="showPricing"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price Per Night</FormLabel>
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
-                          <Input placeholder="₹5000" {...field} />
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              setShowPricing(!!checked);
+                            }}
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Show Pricing</FormLabel>
+                          <FormDescription>
+                            Enable when guests are responsible for payment
+                          </FormDescription>
+                        </div>
                       </FormItem>
                     )}
                   />
+                  
+                  {showPricing && (
+                    <FormField
+                      control={accommodationForm.control}
+                      name="pricePerNight"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price Per Night</FormLabel>
+                          <FormControl>
+                            <Input placeholder="₹5000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   
                   <FormField
                     control={accommodationForm.control}
@@ -1037,6 +1127,29 @@ const HotelsPage: React.FC = () => {
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator className="my-4" />
+                  
+                  <FormField
+                    control={accommodationForm.control}
+                    name="createGlobalType"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Create as Global Room Type</FormLabel>
+                          <FormDescription>
+                            Make this room type available for reuse across different wedding events
+                          </FormDescription>
+                        </div>
                       </FormItem>
                     )}
                   />

@@ -325,7 +325,7 @@ export function registerHotelRoutes(
   });
   
   // Get global room types for a specific hotel name
-  app.get('/api/global-room-types/hotel/:hotelName', isAuthenticated, async (req: Request, res: Response) => {
+  app.get('/api/global-room-types/by-hotel/:hotelName', isAuthenticated, async (req: Request, res: Response) => {
     try {
       const hotelName = req.params.hotelName;
       const roomTypes = await storage.getGlobalRoomTypesByHotelName(hotelName);
