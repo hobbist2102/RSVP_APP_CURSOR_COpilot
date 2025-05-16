@@ -1407,7 +1407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 hotel: hotel ? {
                   id: hotel.id,
                   name: hotel.name,
-                  location: hotel.location
+                  address: hotel.address
                 } : null
               };
             } catch (err) {
