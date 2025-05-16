@@ -4,12 +4,10 @@ import { storage } from "./storage";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
-import session from "express-session";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import MemoryStore from "memorystore";
 // Import session type extensions
 import './types';
+// Import Replit Auth
+import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { 
   insertUserSchema, 
   insertGuestSchema, 
@@ -55,6 +53,8 @@ import emailTemplatesRoutes from "./routes/email-templates";
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+  
   // Special handling for client-side routes that should be handled by React router
   app.get('/guest-rsvp/:token', (req, res, next) => {
     console.log(`Received RSVP request with token: ${req.params.token}`);
@@ -65,174 +65,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`Received RSVP request with query token: ${req.query.token || 'none'}`);
     next(); // Pass through to client-side router
   });
-  const httpServer = createServer(app);
   
-  // Session setup
-  const sessionStore = MemoryStore(session);
-  app.use(session({
-    secret: 'wedding-rsvp-secret',
-    resave: true, // Changed to true to ensure session is saved after each request
-    saveUninitialized: true, // Changed to true to create session unconditionally
-    cookie: { 
-      secure: false, // False for development, should be conditional in production
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/'
-    },
-    store: new sessionStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    })
-  }));
+  // Setup Replit Auth
+  await setupAuth(app);
   
-  // Passport setup
-  app.use(passport.initialize());
-  app.use(passport.session());
-  
-  passport.use(new LocalStrategy(async (username, password, done) => {
+  // Auth routes for Replit Auth
+  app.get('/api/auth/user', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = await storage.getUserByUsername(username);
+      const userId = (req.user as any).claims.sub;
+      const user = await storage.getUser(userId);
       if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
+        return res.status(404).json({ message: 'User not found' });
       }
-      if (user.password !== password) { // In production, use proper password hashing
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
+      res.json(user);
     } catch (error) {
-      return done(error);
-    }
-  }));
-  
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-  
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error, null);
-    }
-  });
-  
-  // Authentication middleware
-  const isAuthenticated = (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated()) {
-      console.log('User is authenticated:', req.user);
-      return next();
-    }
-    console.log('Authentication failed - session:', req.sessionID);
-    res.status(401).json({ message: 'Please log in again' });
-  };
-  
-  const isAdmin = (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated() && req.user && (req.user as any).role === 'admin') {
-      return next();
-    }
-    res.status(403).json({ message: 'Forbidden' });
-  };
-  
-  // Auth routes
-  app.post('/api/auth/register', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      
-      // Create new user
-      const user = await storage.createUser(userData);
-      
-      // Log the user in automatically
-      req.login(user, (err) => {
-        if (err) {
-          console.error('Login after registration failed:', err);
-          return res.status(500).json({ message: 'Registration successful but login failed' });
-        }
-        
-        console.log('Registration and login successful, user:', user);
-        
-        // Save the session explicitly before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error('Session save error:', saveErr);
-            return res.status(500).json({ message: 'Registration successful but session save failed' });
-          }
-          
-          console.log('Session after registration (saved):', req.session);
-          res.status(201).json({ user });
-        });
-      });
-    } catch (error) {
-      console.error('Registration error:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to register user' });
-    }
-  });
-  
-  app.post('/api/auth/login', (req, res, next) => {
-    passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
-        return res.status(401).json({ message: info?.message || 'Invalid credentials' });
-      }
-      
-      req.login(user, (loginErr: Error | null) => {
-        if (loginErr) {
-          return next(loginErr);
-        }
-        
-        // Log the session after login to debug
-        console.log('Login successful, session:', req.session);
-        console.log('User after login:', req.user);
-        
-        // Save the session before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            return next(saveErr);
-          }
-          return res.json({ user: req.user });
-        });
-      });
-    })(req, res, next);
-  });
-  
-  app.post('/api/auth/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Logout failed' });
-      }
-      res.json({ message: 'Logged out successfully' });
-    });
-  });
-  
-  app.get('/api/auth/user', (req, res) => {
-    console.log('Checking user authentication, session ID:', req.sessionID);
-    console.log('Session object:', req.session);
-    
-    if (req.isAuthenticated() && req.user) {
-      console.log('User is authenticated:', req.user);
-      // Ensure we return a consistent user object
-      const user = {
-        id: (req.user as any).id,
-        username: (req.user as any).username,
-        name: (req.user as any).name || 'User',
-        email: (req.user as any).email || '',
-        role: (req.user as any).role || 'couple',
-      };
-      return res.json({ user });
-    } else {
-      console.log('User is not authenticated');
-      return res.status(401).json({ message: 'Not authenticated' });
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Failed to fetch user information' });
     }
   });
   
