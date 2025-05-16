@@ -1,19 +1,18 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { WeddingEvent } from "@shared/schema";
+import { Check, Palette, Upload, XCircle } from "lucide-react";
+import { DESIGN_THEMES, FONT_FAMILIES } from "@/lib/constants";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,71 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, Image, Upload, Palette, Type, Trash2 } from "lucide-react";
-import { WeddingEvent } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
-
-// Define schema for design styles
-const designStyleSchema = z.object({
-  colorPrimary: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-    message: "Must be a valid hex color code",
-  }),
-  colorSecondary: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-    message: "Must be a valid hex color code",
-  }),
-  colorAccent: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-    message: "Must be a valid hex color code",
-  }),
-  fontPrimary: z.string(),
-  fontSecondary: z.string(),
-  styleTheme: z.enum(["classic", "modern", "traditional", "minimalist", "custom"]),
-});
-
-// Define schema for digital assets
-const digitalAssetsSchema = z.object({
-  bannerImage: z.string().optional(),
-  logoImage: z.string().optional(),
-  backgroundPattern: z.string().optional(),
-  couplePhoto: z.string().optional(),
-  emailHeader: z.string().optional(),
-  emailFooter: z.string().optional(),
-});
-
-// Define schema for customization options
-const customizationSchema = z.object({
-  rsvpButtonStyle: z.enum(["rounded", "square", "pill"]).default("rounded"),
-  cardStyle: z.enum(["bordered", "filled", "minimal"]).default("bordered"),
-  animationsEnabled: z.boolean().default(true),
-  customCss: z.string().optional(),
-});
-
-// Define combined schema for design settings
-const designStepSchema = z.object({
-  designStyle: designStyleSchema,
-  digitalAssets: digitalAssetsSchema,
-  customization: customizationSchema,
-});
-
-type DesignStyleData = z.infer<typeof designStyleSchema>;
-type DigitalAssetsData = z.infer<typeof digitalAssetsSchema>;
-type CustomizationData = z.infer<typeof customizationSchema>;
-type DesignStepData = z.infer<typeof designStepSchema>;
 
 interface DesignStepProps {
   eventId: string;
   currentEvent: WeddingEvent | undefined;
-  onComplete: (data: DesignStepData) => void;
+  onComplete: (data: any) => void;
   isCompleted: boolean;
 }
 
@@ -93,786 +32,419 @@ export default function DesignStep({
   eventId,
   currentEvent,
   onComplete,
-  isCompleted,
+  isCompleted
 }: DesignStepProps) {
-  // Fetch existing design settings
-  const { 
-    data: designSettings, 
-    isLoading: isLoadingSettings 
-  } = useQuery({
-    queryKey: [`/api/events/${eventId}/design-settings`],
-    enabled: !!eventId,
-  });
+  const [isEditing, setIsEditing] = useState(!isCompleted);
+  const [selectedTheme, setSelectedTheme] = useState("Classic");
+  const [primaryColor, setPrimaryColor] = useState("#F9C4D2");
+  const [secondaryColor, setSecondaryColor] = useState("#B6E5D8");
+  const [accentColor, setAccentColor] = useState("#FBB917");
+  const [headerFont, setHeaderFont] = useState("Playfair Display");
+  const [bodyFont, setBodyFont] = useState("Montserrat");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerImage, setBannerImage] = useState<File | null>(null);
+  
+  // Simplified file upload handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
+    if (e.target.files && e.target.files[0]) {
+      setter(e.target.files[0]);
+    }
+  };
+  
+  // Clear file selection
+  const clearFile = (setter: React.Dispatch<React.SetStateAction<File | null>>) => {
+    setter(null);
+  };
 
-  // State for file uploads
-  const [uploads, setUploads] = useState<{[key: string]: string}>({});
-  const [isUploading, setIsUploading] = useState<{[key: string]: boolean}>({});
-
-  // Create form
-  const form = useForm<DesignStepData>({
-    resolver: zodResolver(designStepSchema),
-    defaultValues: {
-      designStyle: {
-        colorPrimary: designSettings?.colorPrimary || "#F472B6", // Pink
-        colorSecondary: designSettings?.colorSecondary || "#4F46E5", // Indigo
-        colorAccent: designSettings?.colorAccent || "#F59E0B", // Amber
-        fontPrimary: designSettings?.fontPrimary || "Playfair Display",
-        fontSecondary: designSettings?.fontSecondary || "Lato",
-        styleTheme: designSettings?.styleTheme || "classic",
-      },
-      digitalAssets: {
-        bannerImage: designSettings?.bannerImage || "",
-        logoImage: designSettings?.logoImage || "",
-        backgroundPattern: designSettings?.backgroundPattern || "",
-        couplePhoto: designSettings?.couplePhoto || "",
-        emailHeader: designSettings?.emailHeader || "",
-        emailFooter: designSettings?.emailFooter || "",
-      },
-      customization: {
-        rsvpButtonStyle: designSettings?.rsvpButtonStyle || "rounded",
-        cardStyle: designSettings?.cardStyle || "bordered",
-        animationsEnabled: designSettings?.animationsEnabled ?? true,
-        customCss: designSettings?.customCss || "",
-      },
+  // Design settings 
+  const designSettings = {
+    theme: selectedTheme,
+    colors: {
+      primary: primaryColor,
+      secondary: secondaryColor,
+      accent: accentColor
     },
-  });
-
-  // Handle file upload
-  const handleFileUpload = async (field: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    setIsUploading({...isUploading, [field]: true});
-    
-    // Create FormData
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('eventId', eventId);
-    formData.append('type', field);
-    
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Update form value
-        form.setValue(`digitalAssets.${field}` as any, data.url);
-        // Update preview
-        setUploads({...uploads, [field]: data.url});
-      } else {
-        console.error('Upload failed:', data.message);
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-    } finally {
-      setIsUploading({...isUploading, [field]: false});
-    }
+    fonts: {
+      header: headerFont,
+      body: bodyFont
+    },
+    logo: logoFile ? URL.createObjectURL(logoFile) : null,
+    banner: bannerImage ? URL.createObjectURL(bannerImage) : null,
+    customCSS: ""
+  };
+  
+  // Handle form submission
+  const handleComplete = () => {
+    onComplete(designSettings);
+    setIsEditing(false);
   };
 
-  // Submit handler
-  function onSubmit(data: DesignStepData) {
-    onComplete(data);
-  }
-
-  // Set theme
-  const setTheme = (theme: string) => {
-    switch(theme) {
-      case 'classic':
-        form.setValue('designStyle.colorPrimary', '#F472B6'); // Pink
-        form.setValue('designStyle.colorSecondary', '#4F46E5'); // Indigo
-        form.setValue('designStyle.colorAccent', '#F59E0B'); // Amber
-        form.setValue('designStyle.fontPrimary', 'Playfair Display');
-        form.setValue('designStyle.fontSecondary', 'Lato');
-        break;
-      case 'modern':
-        form.setValue('designStyle.colorPrimary', '#10B981'); // Emerald
-        form.setValue('designStyle.colorSecondary', '#3B82F6'); // Blue
-        form.setValue('designStyle.colorAccent', '#EC4899'); // Pink
-        form.setValue('designStyle.fontPrimary', 'Montserrat');
-        form.setValue('designStyle.fontSecondary', 'Roboto');
-        break;
-      case 'traditional':
-        form.setValue('designStyle.colorPrimary', '#B91C1C'); // Red
-        form.setValue('designStyle.colorSecondary', '#9D174D'); // Pink
-        form.setValue('designStyle.colorAccent', '#D97706'); // Amber
-        form.setValue('designStyle.fontPrimary', 'Cormorant Garamond');
-        form.setValue('designStyle.fontSecondary', 'Source Sans Pro');
-        break;
-      case 'minimalist':
-        form.setValue('designStyle.colorPrimary', '#1F2937'); // Gray
-        form.setValue('designStyle.colorSecondary', '#6B7280'); // Gray
-        form.setValue('designStyle.colorAccent', '#4B5563'); // Gray
-        form.setValue('designStyle.fontPrimary', 'Inter');
-        form.setValue('designStyle.fontSecondary', 'Inter');
-        break;
-    }
-    form.setValue('designStyle.styleTheme', theme as any);
-  };
-
-  if (isLoadingSettings) {
+  // If step is completed and not editing, show summary view
+  if (isCompleted && !isEditing) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Loading design settings...</p>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Theme:</h3>
+              <p className="col-span-3">{designSettings.theme}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <h3 className="font-medium text-sm">Colors:</h3>
+              <div className="col-span-3 flex gap-2">
+                <div className="flex flex-col items-center">
+                  <div 
+                    className="w-8 h-8 rounded-full border" 
+                    style={{ backgroundColor: designSettings.colors.primary }}
+                  ></div>
+                  <span className="text-xs mt-1">Primary</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div 
+                    className="w-8 h-8 rounded-full border" 
+                    style={{ backgroundColor: designSettings.colors.secondary }}
+                  ></div>
+                  <span className="text-xs mt-1">Secondary</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div 
+                    className="w-8 h-8 rounded-full border" 
+                    style={{ backgroundColor: designSettings.colors.accent }}
+                  ></div>
+                  <span className="text-xs mt-1">Accent</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Header Font:</h3>
+              <p className="col-span-3">{designSettings.fonts.header}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Body Font:</h3>
+              <p className="col-span-3">{designSettings.fonts.body}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Logo:</h3>
+              <p className="col-span-3">
+                {designSettings.logo ? 
+                  <img src={designSettings.logo} alt="Logo" className="w-16 h-16 object-contain" /> : 
+                  "No logo uploaded"
+                }
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Banner:</h3>
+              <p className="col-span-3">
+                {designSettings.banner ? 
+                  <img src={designSettings.banner} alt="Banner" className="h-16 w-auto object-cover rounded" /> : 
+                  "No banner uploaded"
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <Button type="button" onClick={() => setIsEditing(true)}>
+          Edit Design Settings
+        </Button>
       </div>
     );
   }
 
+  // Editing interface
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Tabs defaultValue="colors" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="colors">Colors & Fonts</TabsTrigger>
-            <TabsTrigger value="assets">Digital Assets</TabsTrigger>
-            <TabsTrigger value="custom">Customization</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="colors" className="space-y-4 pt-4">
+    <div className="space-y-6">
+      <Tabs defaultValue="theme">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="theme">Theme & Colors</TabsTrigger>
+          <TabsTrigger value="typography">Typography</TabsTrigger>
+          <TabsTrigger value="assets">Assets & Branding</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="theme" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Design Theme</CardTitle>
+                <CardTitle>Theme Selection</CardTitle>
                 <CardDescription>
-                  Choose a pre-defined theme or customize your own
+                  Choose a base theme for your wedding website
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {DESIGN_THEMES.map((theme) => (
+                    <Card 
+                      key={theme}
+                      className={`cursor-pointer hover:border-primary/50 ${
+                        selectedTheme === theme ? 'border-2 border-primary' : ''
+                      }`}
+                      onClick={() => setSelectedTheme(theme)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="h-16 bg-muted rounded-md flex items-center justify-center mb-2">
+                          <Palette className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm font-medium">{theme}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Color Palette</CardTitle>
+                <CardDescription>
+                  Customize the colors for your event design
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div 
-                    className={`cursor-pointer p-3 rounded-md border hover:border-primary ${form.watch('designStyle.styleTheme') === 'classic' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setTheme('classic')}
-                  >
-                    <div className="h-12 rounded overflow-hidden grid grid-cols-3">
-                      <div className="bg-[#F472B6]"></div>
-                      <div className="bg-[#4F46E5]"></div>
-                      <div className="bg-[#F59E0B]"></div>
-                    </div>
-                    <p className="mt-2 text-center text-sm font-medium">Classic</p>
-                  </div>
-                  <div 
-                    className={`cursor-pointer p-3 rounded-md border hover:border-primary ${form.watch('designStyle.styleTheme') === 'modern' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setTheme('modern')}
-                  >
-                    <div className="h-12 rounded overflow-hidden grid grid-cols-3">
-                      <div className="bg-[#10B981]"></div>
-                      <div className="bg-[#3B82F6]"></div>
-                      <div className="bg-[#EC4899]"></div>
-                    </div>
-                    <p className="mt-2 text-center text-sm font-medium">Modern</p>
-                  </div>
-                  <div 
-                    className={`cursor-pointer p-3 rounded-md border hover:border-primary ${form.watch('designStyle.styleTheme') === 'traditional' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setTheme('traditional')}
-                  >
-                    <div className="h-12 rounded overflow-hidden grid grid-cols-3">
-                      <div className="bg-[#B91C1C]"></div>
-                      <div className="bg-[#9D174D]"></div>
-                      <div className="bg-[#D97706]"></div>
-                    </div>
-                    <p className="mt-2 text-center text-sm font-medium">Traditional</p>
-                  </div>
-                  <div 
-                    className={`cursor-pointer p-3 rounded-md border hover:border-primary ${form.watch('designStyle.styleTheme') === 'minimalist' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setTheme('minimalist')}
-                  >
-                    <div className="h-12 rounded overflow-hidden grid grid-cols-3">
-                      <div className="bg-[#1F2937]"></div>
-                      <div className="bg-[#6B7280]"></div>
-                      <div className="bg-[#4B5563]"></div>
-                    </div>
-                    <p className="mt-2 text-center text-sm font-medium">Minimalist</p>
+                <div className="space-y-2">
+                  <Label htmlFor="primary-color">Primary Color</Label>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-8 h-8 rounded-full" 
+                      style={{ backgroundColor: primaryColor }}
+                    ></div>
+                    <Input 
+                      id="primary-color" 
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-full h-10"
+                    />
                   </div>
                 </div>
-
-                <Separator className="my-4" />
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="designStyle.colorPrimary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Primary Color</FormLabel>
-                          <div className="flex space-x-2">
-                            <div 
-                              className="w-8 h-8 rounded border" 
-                              style={{ backgroundColor: field.value }}
-                            />
-                            <FormControl>
-                              <Input {...field} type="text" />
-                            </FormControl>
-                          </div>
-                          <FormDescription>
-                            Main color for headings and buttons
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="designStyle.colorSecondary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Secondary Color</FormLabel>
-                          <div className="flex space-x-2">
-                            <div 
-                              className="w-8 h-8 rounded border" 
-                              style={{ backgroundColor: field.value }}
-                            />
-                            <FormControl>
-                              <Input {...field} type="text" />
-                            </FormControl>
-                          </div>
-                          <FormDescription>
-                            Supporting color for backgrounds
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="designStyle.colorAccent"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Accent Color</FormLabel>
-                          <div className="flex space-x-2">
-                            <div 
-                              className="w-8 h-8 rounded border" 
-                              style={{ backgroundColor: field.value }}
-                            />
-                            <FormControl>
-                              <Input {...field} type="text" />
-                            </FormControl>
-                          </div>
-                          <FormDescription>
-                            Highlight color for special elements
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="secondary-color">Secondary Color</Label>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-8 h-8 rounded-full" 
+                      style={{ backgroundColor: secondaryColor }}
+                    ></div>
+                    <Input 
+                      id="secondary-color" 
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="w-full h-10"
                     />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="designStyle.fontPrimary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Primary Font</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select primary font" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Playfair Display">Playfair Display</SelectItem>
-                              <SelectItem value="Montserrat">Montserrat</SelectItem>
-                              <SelectItem value="Roboto">Roboto</SelectItem>
-                              <SelectItem value="Cormorant Garamond">Cormorant Garamond</SelectItem>
-                              <SelectItem value="Dancing Script">Dancing Script</SelectItem>
-                              <SelectItem value="Great Vibes">Great Vibes</SelectItem>
-                              <SelectItem value="Inter">Inter</SelectItem>
-                              <SelectItem value="Poppins">Poppins</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Used for headings and titles
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="designStyle.fontSecondary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Secondary Font</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select secondary font" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Lato">Lato</SelectItem>
-                              <SelectItem value="Roboto">Roboto</SelectItem>
-                              <SelectItem value="Open Sans">Open Sans</SelectItem>
-                              <SelectItem value="Source Sans Pro">Source Sans Pro</SelectItem>
-                              <SelectItem value="Inter">Inter</SelectItem>
-                              <SelectItem value="Poppins">Poppins</SelectItem>
-                              <SelectItem value="Nunito">Nunito</SelectItem>
-                              <SelectItem value="Raleway">Raleway</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Used for body text and paragraphs
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="accent-color">Accent Color</Label>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-8 h-8 rounded-full" 
+                      style={{ backgroundColor: accentColor }}
+                    ></div>
+                    <Input 
+                      id="accent-color" 
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-full h-10"
                     />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="assets" className="space-y-4 pt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Digital Assets</CardTitle>
-                <CardDescription>
-                  Upload images and graphics for your event communications
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium">Banner Image</div>
-                    <div className="h-40 bg-muted rounded-md flex flex-col items-center justify-center border border-dashed relative">
-                      {form.watch('digitalAssets.bannerImage') ? (
-                        <>
-                          <img 
-                            src={form.watch('digitalAssets.bannerImage')} 
-                            alt="Banner" 
-                            className="h-full w-full object-cover rounded-md"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2"
-                            onClick={() => {
-                              form.setValue('digitalAssets.bannerImage', '');
-                              setUploads({...uploads, bannerImage: ''});
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Image className="h-10 w-10 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">Banner image (1200×400)</p>
-                          <div className="mt-2">
-                            <label className="cursor-pointer">
-                              <span className="relative inline-block">
-                                <Button 
-                                  type="button"
-                                  size="sm"
-                                  disabled={isUploading['bannerImage']}
-                                >
-                                  {isUploading['bannerImage'] ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Uploading...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="mr-2 h-4 w-4" />
-                                      Upload
-                                    </>
-                                  )}
-                                </Button>
-                                <input 
-                                  type="file" 
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                                  accept="image/*"
-                                  onChange={(e) => handleFileUpload('bannerImage', e)}
-                                  disabled={isUploading['bannerImage']}
-                                />
-                              </span>
-                            </label>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium">Logo or Monogram</div>
-                    <div className="h-40 bg-muted rounded-md flex flex-col items-center justify-center border border-dashed relative">
-                      {form.watch('digitalAssets.logoImage') ? (
-                        <>
-                          <img 
-                            src={form.watch('digitalAssets.logoImage')} 
-                            alt="Logo" 
-                            className="h-full w-full object-contain p-4 rounded-md"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2"
-                            onClick={() => {
-                              form.setValue('digitalAssets.logoImage', '');
-                              setUploads({...uploads, logoImage: ''});
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Type className="h-10 w-10 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">Logo or monogram (300×300)</p>
-                          <div className="mt-2">
-                            <label className="cursor-pointer">
-                              <span className="relative inline-block">
-                                <Button 
-                                  type="button"
-                                  size="sm"
-                                  disabled={isUploading['logoImage']}
-                                >
-                                  {isUploading['logoImage'] ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Uploading...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="mr-2 h-4 w-4" />
-                                      Upload
-                                    </>
-                                  )}
-                                </Button>
-                                <input 
-                                  type="file" 
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                                  accept="image/*"
-                                  onChange={(e) => handleFileUpload('logoImage', e)}
-                                  disabled={isUploading['logoImage']}
-                                />
-                              </span>
-                            </label>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium">Background Pattern</div>
-                    <div className="h-40 bg-muted rounded-md flex flex-col items-center justify-center border border-dashed relative">
-                      {form.watch('digitalAssets.backgroundPattern') ? (
-                        <>
-                          <img 
-                            src={form.watch('digitalAssets.backgroundPattern')} 
-                            alt="Background Pattern" 
-                            className="h-full w-full object-cover rounded-md"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2"
-                            onClick={() => {
-                              form.setValue('digitalAssets.backgroundPattern', '');
-                              setUploads({...uploads, backgroundPattern: ''});
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Palette className="h-10 w-10 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">Background pattern</p>
-                          <div className="mt-2">
-                            <label className="cursor-pointer">
-                              <span className="relative inline-block">
-                                <Button 
-                                  type="button"
-                                  size="sm"
-                                  disabled={isUploading['backgroundPattern']}
-                                >
-                                  {isUploading['backgroundPattern'] ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Uploading...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="mr-2 h-4 w-4" />
-                                      Upload
-                                    </>
-                                  )}
-                                </Button>
-                                <input 
-                                  type="file" 
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                                  accept="image/*"
-                                  onChange={(e) => handleFileUpload('backgroundPattern', e)}
-                                  disabled={isUploading['backgroundPattern']}
-                                />
-                              </span>
-                            </label>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium">Couple Photo</div>
-                    <div className="h-40 bg-muted rounded-md flex flex-col items-center justify-center border border-dashed relative">
-                      {form.watch('digitalAssets.couplePhoto') ? (
-                        <>
-                          <img 
-                            src={form.watch('digitalAssets.couplePhoto')} 
-                            alt="Couple Photo" 
-                            className="h-full w-full object-cover rounded-md"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2"
-                            onClick={() => {
-                              form.setValue('digitalAssets.couplePhoto', '');
-                              setUploads({...uploads, couplePhoto: ''});
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Image className="h-10 w-10 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">Couple photo</p>
-                          <div className="mt-2">
-                            <label className="cursor-pointer">
-                              <span className="relative inline-block">
-                                <Button 
-                                  type="button"
-                                  size="sm"
-                                  disabled={isUploading['couplePhoto']}
-                                >
-                                  {isUploading['couplePhoto'] ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Uploading...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="mr-2 h-4 w-4" />
-                                      Upload
-                                    </>
-                                  )}
-                                </Button>
-                                <input 
-                                  type="file" 
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                                  accept="image/*"
-                                  onChange={(e) => handleFileUpload('couplePhoto', e)}
-                                  disabled={isUploading['couplePhoto']}
-                                />
-                              </span>
-                            </label>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+          </div>
+          
+          <div className="bg-muted/30 p-4 rounded-md">
+            <h3 className="text-sm font-medium mb-2">Theme Preview</h3>
+            <div className="h-32 border rounded-md bg-gradient-to-r p-4"
+              style={{ backgroundImage: `linear-gradient(to right, ${primaryColor}40, ${secondaryColor}40)` }}
+            >
+              <div className="flex flex-col h-full justify-between">
+                <h4 className="text-lg font-semibold" style={{ color: primaryColor }}>
+                  {currentEvent?.brideName || 'Bride'} & {currentEvent?.groomName || 'Groom'}
+                </h4>
+                <div className="flex justify-between items-end">
+                  <p className="text-sm">Join us for our special day</p>
+                  <Button size="sm" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
+                    RSVP Now
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="typography" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Typography Settings</CardTitle>
+              <CardDescription>
+                Choose fonts for your wedding website
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="header-font">Header Font</Label>
+                <Select value={headerFont} onValueChange={setHeaderFont}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FONT_FAMILIES.map((font) => (
+                      <SelectItem key={font} value={font}>
+                        {font}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="bg-muted/20 p-3 rounded mt-2">
+                  <p className="text-xl" style={{ fontFamily: headerFont }}>
+                    Header Sample - {headerFont}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="body-font">Body Font</Label>
+                <Select value={bodyFont} onValueChange={setBodyFont}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FONT_FAMILIES.map((font) => (
+                      <SelectItem key={font} value={font}>
+                        {font}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="bg-muted/20 p-3 rounded mt-2">
+                  <p style={{ fontFamily: bodyFont }}>
+                    This is a sample paragraph text in {bodyFont}. The quick brown fox jumps over the lazy dog.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="assets" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Logo</CardTitle>
+              <CardDescription>
+                Upload your wedding logo or monogram
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                {logoFile ? (
+                  <div className="relative">
+                    <img 
+                      src={URL.createObjectURL(logoFile)} 
+                      alt="Logo Preview" 
+                      className="w-32 h-32 object-contain border rounded p-2" 
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white"
+                      onClick={() => clearFile(setLogoFile)}
+                    >
+                      <XCircle className="h-5 w-5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 border border-dashed rounded flex items-center justify-center bg-muted/30">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="file"
+                    id="logo-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, setLogoFile)}
+                  />
+                  <Label 
+                    htmlFor="logo-upload" 
+                    className="cursor-pointer bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    {logoFile ? "Change Logo" : "Upload Logo"}
+                  </Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Banner Image</CardTitle>
+              <CardDescription>
+                Upload a header banner for your wedding website
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                {bannerImage ? (
+                  <div className="relative">
+                    <img 
+                      src={URL.createObjectURL(bannerImage)} 
+                      alt="Banner Preview" 
+                      className="w-full h-32 object-cover border rounded" 
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white"
+                      onClick={() => clearFile(setBannerImage)}
+                    >
+                      <XCircle className="h-5 w-5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full h-32 border border-dashed rounded flex items-center justify-center bg-muted/30">
+                    <div className="text-center">
+                      <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">Recommended size: 1500 x 500px</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="file"
+                    id="banner-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, setBannerImage)}
+                  />
+                  <Label 
+                    htmlFor="banner-upload" 
+                    className="cursor-pointer bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    {bannerImage ? "Change Banner" : "Upload Banner"}
+                  </Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-          <TabsContent value="custom" className="space-y-4 pt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>UI Customization</CardTitle>
-                <CardDescription>
-                  Customize the appearance of your event website and communications
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="customization.rsvpButtonStyle"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>RSVP Button Style</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="rounded" id="rounded" />
-                            <label
-                              htmlFor="rounded"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Rounded
-                            </label>
-                            <div className="w-24 h-10 bg-primary text-primary-foreground rounded-md flex items-center justify-center text-sm font-medium">
-                              Rounded
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="square" id="square" />
-                            <label
-                              htmlFor="square"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Square
-                            </label>
-                            <div className="w-24 h-10 bg-primary text-primary-foreground rounded-none flex items-center justify-center text-sm font-medium">
-                              Square
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="pill" id="pill" />
-                            <label
-                              htmlFor="pill"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Pill
-                            </label>
-                            <div className="w-24 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                              Pill
-                            </div>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormDescription>
-                        The style of buttons on your RSVP form
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Separator />
-
-                <FormField
-                  control={form.control}
-                  name="customization.cardStyle"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Card Style</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="bordered" id="bordered" />
-                            <label
-                              htmlFor="bordered"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Bordered
-                            </label>
-                            <div className="w-24 h-10 bg-card text-card-foreground border rounded-md flex items-center justify-center text-sm font-medium">
-                              Bordered
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="filled" id="filled" />
-                            <label
-                              htmlFor="filled"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Filled
-                            </label>
-                            <div className="w-24 h-10 bg-muted text-muted-foreground rounded-md flex items-center justify-center text-sm font-medium">
-                              Filled
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="minimal" id="minimal" />
-                            <label
-                              htmlFor="minimal"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Minimal
-                            </label>
-                            <div className="w-24 h-10 bg-transparent text-foreground border-b rounded-none flex items-center justify-center text-sm font-medium">
-                              Minimal
-                            </div>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormDescription>
-                        The style of cards and containers
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customization.customCss"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Custom CSS</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Add custom CSS rules here..." 
-                          {...field} 
-                          rows={5}
-                          className="font-mono text-sm"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Advanced: Add custom CSS for fine-grained styling
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex justify-end">
-          <Button 
-            type="submit" 
-            disabled={form.formState.isSubmitting || isCompleted}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : isCompleted ? (
-              "Completed"
-            ) : (
-              "Complete & Continue"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <div className="flex justify-end mt-8">
+        <Button onClick={handleComplete} className="flex items-center gap-2">
+          <Check className="h-4 w-4" />
+          Save Design Settings
+        </Button>
+      </div>
+    </div>
   );
 }

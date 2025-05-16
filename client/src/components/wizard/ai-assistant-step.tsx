@@ -1,8 +1,26 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { WeddingEvent } from "@shared/schema";
+import { Check, Bot, Info } from "lucide-react";
+import { AI_MODELS } from "@/lib/constants";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -12,38 +30,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Loader2, Bot, MessageSquare, BrainCircuit } from "lucide-react";
-import { WeddingEvent } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // Define schema for AI assistant settings
 const aiAssistantSchema = z.object({
-  enableAiAssistant: z.boolean().default(false),
-  chatbotName: z.string().optional(),
-  welcomeMessage: z.string().optional(),
-  aiModel: z.enum(["gpt-4", "claude-3", "gemini-pro"]).default("claude-3"),
+  enableAiAssistant: z.boolean().default(true),
+  chatbotName: z.string().min(2, {
+    message: "Chatbot name must be at least 2 characters.",
+  }).default("Wedding Assistant"),
+  welcomeMessage: z.string().min(10, {
+    message: "Welcome message must be at least 10 characters.",
+  }).default("Hello! I'm your wedding assistant. How can I help you today?"),
+  aiModel: z.string().default("GPT-4"),
   knowledgeBase: z.array(z.string()).default([
-    "event_details",
-    "guest_faq",
-    "travel_info",
-    "accommodation_details",
+    "Guest List",
+    "Venue Information",
+    "Accommodation Details",
+    "Transport Schedule"
   ]),
   customInstructions: z.string().optional(),
   availableOnWebsite: z.boolean().default(true),
-  availableOnWhatsapp: z.boolean().default(false),
+  availableOnWhatsapp: z.boolean().default(false)
 });
 
+// TypeScript type for the form data
 type AiAssistantData = z.infer<typeof aiAssistantSchema>;
 
 interface AiAssistantStepProps {
@@ -57,285 +69,298 @@ export default function AiAssistantStep({
   eventId,
   currentEvent,
   onComplete,
-  isCompleted,
+  isCompleted
 }: AiAssistantStepProps) {
-  // Fetch existing AI assistant settings
-  const { 
-    data: aiSettings, 
-    isLoading: isLoadingSettings 
-  } = useQuery({
-    queryKey: [`/api/events/${eventId}/ai-settings`],
-    enabled: !!eventId,
-  });
-
-  // Create form
+  const [isEditing, setIsEditing] = useState(!isCompleted);
+  
+  // Set up form with default values
   const form = useForm<AiAssistantData>({
     resolver: zodResolver(aiAssistantSchema),
     defaultValues: {
-      enableAiAssistant: aiSettings?.enableAiAssistant || false,
-      chatbotName: aiSettings?.chatbotName || "Wedding Assistant",
-      welcomeMessage: aiSettings?.welcomeMessage || "Hello! I'm your wedding assistant. How can I help you today?",
-      aiModel: aiSettings?.aiModel || "claude-3",
-      knowledgeBase: aiSettings?.knowledgeBase || [
-        "event_details",
-        "guest_faq",
-        "travel_info",
-        "accommodation_details",
+      enableAiAssistant: true,
+      chatbotName: "Wedding Assistant",
+      welcomeMessage: "Hello! I'm your wedding assistant. How can I help you today?",
+      aiModel: "GPT-4",
+      knowledgeBase: [
+        "Guest List",
+        "Venue Information",
+        "Accommodation Details",
+        "Transport Schedule"
       ],
-      customInstructions: aiSettings?.customInstructions || "",
-      availableOnWebsite: aiSettings?.availableOnWebsite ?? true,
-      availableOnWhatsapp: aiSettings?.availableOnWhatsapp || false,
-    },
+      customInstructions: "",
+      availableOnWebsite: true,
+      availableOnWhatsapp: false
+    }
   });
 
-  // Submit handler
   function onSubmit(data: AiAssistantData) {
     onComplete(data);
+    setIsEditing(false);
   }
 
-  if (isLoadingSettings) {
+  // If step is completed and not editing, show summary view
+  if (isCompleted && !isEditing) {
+    const formData = form.getValues();
+    
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Loading AI settings...</p>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">AI Assistant:</h3>
+              <p className="col-span-3">{formData.enableAiAssistant ? "Enabled" : "Disabled"}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Chatbot Name:</h3>
+              <p className="col-span-3">{formData.chatbotName}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">AI Model:</h3>
+              <p className="col-span-3">{formData.aiModel}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <h3 className="font-medium text-sm">Welcome Message:</h3>
+              <p className="col-span-3 text-sm">{formData.welcomeMessage}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <h3 className="font-medium text-sm">Knowledge Base:</h3>
+              <div className="col-span-3">
+                {formData.knowledgeBase.map((item, i) => (
+                  <span key={i} className="inline-block bg-muted rounded-full px-3 py-1 text-xs mr-2 mb-2">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Available On:</h3>
+              <p className="col-span-3">
+                {[
+                  formData.availableOnWebsite && "Website",
+                  formData.availableOnWhatsapp && "WhatsApp"
+                ].filter(Boolean).join(", ") || "None"}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <Button type="button" onClick={() => setIsEditing(true)}>
+          Edit AI Assistant Settings
+        </Button>
       </div>
     );
   }
 
-  const enableAiAssistant = form.watch("enableAiAssistant");
-
+  // Editing interface
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BrainCircuit className="h-5 w-5" />
-              AI Wedding Assistant
-            </CardTitle>
-            <CardDescription>
-              Set up a virtual assistant to help your guests with information and inquiries
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <FormField
-              control={form.control}
-              name="enableAiAssistant"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Enable AI Assistant</FormLabel>
-                    <FormDescription>
-                      Add an AI chatbot to help guests with questions
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {enableAiAssistant && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="chatbotName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assistant Name</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g., Wedding Helper, Event Guide" 
-                            {...field} 
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          How the assistant will introduce itself to guests
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="aiModel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>AI Model</FormLabel>
-                        <FormControl>
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            value={field.value}
-                            onChange={field.onChange}
-                          >
-                            <option value="claude-3">Claude 3 (Recommended)</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gemini-pro">Gemini Pro</option>
-                          </select>
-                        </FormControl>
-                        <FormDescription>
-                          The AI language model powering your assistant
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="welcomeMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Welcome Message</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Introduce your assistant to guests..." 
-                          {...field} 
-                          value={field.value || ""}
-                          rows={3}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        The first message guests will see from the assistant
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customInstructions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Custom Instructions</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Add special instructions for your AI assistant..." 
-                          {...field} 
-                          rows={4}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Special guidance for how the AI should respond (tone, style, etc.)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Knowledge Base</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["event_details", "guest_faq", "travel_info", "accommodation_details", "venue_information", "schedule", "dress_code", "special_requirements"].map((item) => (
-                      <label key={item} className="flex items-center space-x-2 border rounded-md p-2 cursor-pointer">
-                        <input 
-                          type="checkbox"
-                          checked={form.watch("knowledgeBase").includes(item)}
-                          onChange={(e) => {
-                            const current = form.watch("knowledgeBase");
-                            if (e.target.checked) {
-                              form.setValue("knowledgeBase", [...current, item]);
-                            } else {
-                              form.setValue("knowledgeBase", current.filter(i => i !== item));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm">
-                          {item.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="availableOnWebsite"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4" />
-                            <FormLabel className="text-base">Website Chat</FormLabel>
-                          </div>
-                          <FormDescription>
-                            Show chat widget on wedding website
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="availableOnWhatsapp"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <Bot className="h-4 w-4" />
-                            <FormLabel className="text-base">WhatsApp Integration</FormLabel>
-                          </div>
-                          <FormDescription>
-                            Allow guests to chat via WhatsApp
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </>
-            )}
-          </CardContent>
-          <CardFooter>
-            <div className="flex justify-between items-center w-full">
-              <p className="text-sm text-muted-foreground">
-                {enableAiAssistant ? 
-                  "AI Assistant will help answer guest questions about your wedding" : 
-                  "Enable the AI Assistant to provide automated help to your guests"}
-              </p>
-              <Button 
-                type="submit" 
-                disabled={form.formState.isSubmitting || isCompleted}
-              >
-                {form.formState.isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : isCompleted ? (
-                  "Completed"
-                ) : (
-                  "Complete & Continue"
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="bg-muted/30 p-6 rounded-md">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-medium">AI Wedding Assistant</h3>
+              </div>
+              <FormField
+                control={form.control}
+                name="enableAiAssistant"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg space-y-0">
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-              </Button>
+              />
             </div>
-          </CardFooter>
-        </Card>
-      </form>
-    </Form>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Basic Configuration</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="chatbotName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chatbot Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Wedding Assistant" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="aiModel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>AI Model</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an AI model" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {AI_MODELS.map((model) => (
+                                <SelectItem key={model} value={model}>
+                                  {model}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="welcomeMessage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Welcome Message</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Hello! I'm your wedding assistant. How can I help you today?" 
+                              className="resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Knowledge & Availability</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-muted/50 p-3 rounded-md">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">The AI assistant will have access to the selected information sources</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="info-guests" className="rounded text-primary" defaultChecked />
+                          <label htmlFor="info-guests" className="text-sm">Guest List</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="info-venues" className="rounded text-primary" defaultChecked />
+                          <label htmlFor="info-venues" className="text-sm">Venue Information</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="info-accom" className="rounded text-primary" defaultChecked />
+                          <label htmlFor="info-accom" className="text-sm">Accommodation Details</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="info-transport" className="rounded text-primary" defaultChecked />
+                          <label htmlFor="info-transport" className="text-sm">Transport Schedule</label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="customInstructions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Custom Instructions (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Add any custom instructions for the AI assistant..." 
+                              className="resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="space-y-3 pt-2">
+                      <FormField
+                        control={form.control}
+                        name="availableOnWebsite"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel>Available on Wedding Website</FormLabel>
+                              <FormDescription className="text-xs">
+                                Show the chatbot on your wedding website
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="availableOnWhatsapp"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel>Available on WhatsApp</FormLabel>
+                              <FormDescription className="text-xs">
+                                Allow guests to interact via WhatsApp (Coming Soon)
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                disabled
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button type="submit" className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              Save AI Assistant Settings
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

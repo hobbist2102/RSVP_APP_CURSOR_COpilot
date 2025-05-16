@@ -1,10 +1,63 @@
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Plus, Trash2 } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { WeddingEvent } from "@shared/schema";
-import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+import { Plus, Trash2, MapPin, Check, Calendar } from "lucide-react";
+import { ATTIRE_CODES } from "@/lib/constants";
+
+// Define schema for a venue
+const venueSchema = z.object({
+  name: z.string().min(2, {
+    message: "Venue name must be at least 2 characters.",
+  }),
+  location: z.string().min(5, {
+    message: "Location must be at least 5 characters.",
+  }),
+  date: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  description: z.string().optional(),
+  attireCode: z.string().optional(),
+});
+
+// Define schema for venues collection
+const venuesSettingsSchema = z.object({
+  venues: z.array(venueSchema).min(1, {
+    message: "You must add at least one venue.",
+  }),
+});
+
+// TypeScript type for the form data
+type VenuesSettingsData = z.infer<typeof venuesSettingsSchema>;
+type VenueData = z.infer<typeof venueSchema>;
 
 interface VenuesStepProps {
   eventId: string;
@@ -20,20 +73,62 @@ export default function VenuesStep({
   isCompleted
 }: VenuesStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
-
-  // Fetch existing ceremonies for this event
-  const { data: ceremonies, isLoading } = useQuery({
-    queryKey: [`/api/events/${eventId}/ceremonies`],
-    enabled: !!eventId
+  const [venues, setVenues] = useState<VenueData[]>([]);
+  const [isAddingVenue, setIsAddingVenue] = useState(false);
+  const [editingVenueIndex, setEditingVenueIndex] = useState<number | null>(null);
+  
+  // Setup form for managing venues
+  const venueForm = useForm<VenueData>({
+    resolver: zodResolver(venueSchema),
+    defaultValues: {
+      name: "",
+      location: "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      description: "",
+      attireCode: "",
+    },
   });
 
-  // This is a simplified component for demonstration purposes
-  const handleComplete = () => {
-    // In a real implementation, we would validate and save ceremonies data
-    onComplete({
-      ceremonies: ceremonies || [],
-      completed: true
-    });
+  // Add a new venue
+  const addVenue = (data: VenueData) => {
+    if (editingVenueIndex !== null) {
+      // Update existing venue
+      const updatedVenues = [...venues];
+      updatedVenues[editingVenueIndex] = data;
+      setVenues(updatedVenues);
+      setEditingVenueIndex(null);
+    } else {
+      // Add new venue
+      setVenues([...venues, data]);
+    }
+    
+    setIsAddingVenue(false);
+    venueForm.reset();
+  };
+
+  // Edit an existing venue
+  const editVenue = (index: number) => {
+    setEditingVenueIndex(index);
+    setIsAddingVenue(true);
+    venueForm.reset(venues[index]);
+  };
+
+  // Remove a venue
+  const removeVenue = (index: number) => {
+    const updatedVenues = venues.filter((_, i) => i !== index);
+    setVenues(updatedVenues);
+  };
+
+  // Save all venue settings
+  const saveVenues = () => {
+    if (venues.length === 0) {
+      // Show error if no venues are added
+      return;
+    }
+    
+    onComplete({ venues });
     setIsEditing(false);
   };
 
@@ -41,68 +136,294 @@ export default function VenuesStep({
   if (isCompleted && !isEditing) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {ceremonies && ceremonies.length > 0 ? (
-            ceremonies.map((ceremony: any) => (
-              <Card key={ceremony.id} className="overflow-hidden">
-                <CardHeader className="bg-muted/50 py-3">
-                  <CardTitle className="text-lg">{ceremony.name}</CardTitle>
-                  <CardDescription>{format(new Date(ceremony.date), "PPP")}</CardDescription>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Event Venues</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {venues.map((venue, index) => (
+              <Card key={index}>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between">
+                    <CardTitle>{venue.name}</CardTitle>
+                  </div>
+                  <CardDescription className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {venue.location}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-4">
-                  <p className="text-sm font-medium">Location: {ceremony.location}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {ceremony.startTime} - {ceremony.endTime}
-                  </p>
-                  {ceremony.description && (
-                    <p className="text-sm mt-2">{ceremony.description}</p>
-                  )}
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{venue.date}, {venue.startTime} - {venue.endTime}</span>
+                    </div>
+                    {venue.attireCode && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
+                      </div>
+                    )}
+                    {venue.description && (
+                      <p className="text-muted-foreground mt-2">{venue.description}</p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <div className="col-span-2 text-center py-8 text-muted-foreground">
-              No ceremonies have been added yet.
-            </div>
-          )}
+            ))}
+          </div>
         </div>
         
         <Button type="button" onClick={() => setIsEditing(true)}>
-          Edit Ceremonies
+          Edit Venues
         </Button>
       </div>
     );
   }
 
-  // This is a placeholder for the editing interface
-  // In a real implementation, we would include forms to add and edit ceremonies
   return (
     <div className="space-y-6">
-      <div className="bg-muted/30 rounded-md p-6 text-center">
-        <h3 className="text-lg font-medium mb-2">Ceremony Management</h3>
-        <p className="text-muted-foreground text-sm mb-4">
-          This is a placeholder for the ceremony/venues management interface. 
-          In a complete implementation, you would be able to add, edit, and manage 
-          different ceremonies for the wedding event.
-        </p>
-        <div className="flex justify-center gap-4 mt-6">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Ceremony
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4" />
-            Remove Ceremony
+      {isAddingVenue ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingVenueIndex !== null ? "Edit Venue" : "Add Venue"}</CardTitle>
+            <CardDescription>
+              Enter the details for this venue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...venueForm}>
+              <form onSubmit={venueForm.handleSubmit(addVenue)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={venueForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Venue Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Main Wedding Venue" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={venueForm.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Hotel Grand, Mumbai" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={venueForm.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={venueForm.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={venueForm.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={venueForm.control}
+                  name="attireCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attire Code</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select attire code" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ATTIRE_CODES.map((code) => (
+                            <SelectItem key={code} value={code}>
+                              {code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        The dress code for this venue/ceremony
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={venueForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Add details about the venue or specific instructions..." 
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Any additional information for guests about this venue
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex gap-2 justify-end">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddingVenue(false);
+                      setEditingVenueIndex(null);
+                      venueForm.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingVenueIndex !== null ? "Update Venue" : "Add Venue"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Event Venues</h3>
+            <Button 
+              onClick={() => setIsAddingVenue(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Venue
+            </Button>
+          </div>
+          
+          {venues.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {venues.map((venue, index) => (
+                <Card key={index}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between">
+                      <CardTitle>{venue.name}</CardTitle>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground"
+                          onClick={() => editVenue(index)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => removeVenue(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <CardDescription className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {venue.location}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{venue.date}, {venue.startTime} - {venue.endTime}</span>
+                      </div>
+                      {venue.attireCode && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
+                        </div>
+                      )}
+                      {venue.description && (
+                        <p className="text-muted-foreground mt-2">{venue.description}</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-muted/30 rounded-md p-6 text-center">
+              <h3 className="text-lg font-medium mb-2">No Venues Added Yet</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Add venues for your wedding ceremonies and events.
+                You can add multiple venues for different functions.
+              </p>
+              <Button 
+                onClick={() => setIsAddingVenue(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add First Venue
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+      
+      {!isAddingVenue && venues.length > 0 && (
+        <div className="flex justify-end mt-8">
+          <Button onClick={saveVenues} className="flex items-center gap-2">
+            <Check className="h-4 w-4" />
+            Save Venues
           </Button>
         </div>
-      </div>
-
-      <div className="flex justify-end mt-8">
-        <Button onClick={handleComplete} className="flex items-center gap-2">
-          <Check className="h-4 w-4" />
-          Save Ceremonies
-        </Button>
-      </div>
+      )}
     </div>
   );
 }

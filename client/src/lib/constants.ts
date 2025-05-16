@@ -1,99 +1,112 @@
-// Room types for hotels and accommodations
+// Wizard step IDs
+export const WIZARD_STEPS = {
+  BASIC_INFO: "basic_info",
+  VENUES: "venues",
+  RSVP_CONFIG: "rsvp_config",
+  HOTELS: "hotels",
+  TRANSPORT: "transport",
+  COMMUNICATION: "communication",
+  DESIGN: "design",
+  AI_ASSISTANT: "ai_assistant",
+};
+
+// Attire codes for venues
+export const ATTIRE_CODES = [
+  "Indian Traditional",
+  "Western Formal",
+  "Indian Fusion",
+  "Black Tie",
+  "Cocktail Attire",
+  "Formal",
+  "Semi-Formal",
+  "Smart Casual",
+  "Casual",
+  "Theme Specific",
+];
+
+// Room types for hotels
 export const ROOM_TYPES = [
-  "Standard Room",
-  "Deluxe Room",
+  "Standard",
+  "Deluxe",
   "Suite",
-  "Family Room",
-  "Executive Room",
-  "Presidential Suite"
+  "Executive",
+  "Family",
+  "Accessible",
+  "Presidential",
+  "Villa",
+  "Cottage",
 ];
 
-// Bed types for accommodations
+// Bed types for hotel rooms
 export const BED_TYPES = [
-  "Single",
-  "Double",
-  "Queen",
   "King",
+  "Queen",
   "Twin",
-  "Sofa Bed"
+  "Double",
+  "Single",
+  "California King",
+  "Sofa Bed",
+  "Bunk Bed",
 ];
 
-// Vehicle types for transportation
+// Vehicle types for transport
 export const VEHICLE_TYPES = [
   "Sedan",
   "SUV",
-  "Luxury Car",
   "Minivan",
+  "Luxury Car",
   "Bus",
-  "Coach"
+  "Coach",
+  "Limousine",
+  "Classic Car",
+  "Electric Vehicle",
 ];
 
-// Meal types for food options
-export const MEAL_TYPES = [
-  "Vegetarian",
-  "Non-Vegetarian",
-  "Vegan",
-  "Gluten-Free",
-  "Pescatarian",
-  "Jain"
-];
-
-// RSVP statuses
-export const RSVP_STATUSES = [
-  "Attending",
-  "Not Attending",
-  "Pending",
-  "Maybe"
-];
-
-// Guest relationship types
-export const RELATIONSHIP_TYPES = [
-  "Family",
-  "Friend",
-  "Colleague",
-  "Acquaintance"
-];
-
-// Guest sides (bride or groom)
-export const GUEST_SIDES = [
-  "Bride",
-  "Groom",
-  "Both"
-];
-
-// Attire codes for ceremonies
-export const ATTIRE_CODES = [
-  "Casual",
-  "Semi-Formal",
-  "Formal",
-  "Black Tie",
-  "Traditional",
-  "Festive"
+// Communication channel types
+export const COMMUNICATION_CHANNELS = [
+  "Email",
+  "WhatsApp",
+  "SMS",
+  "Phone Call",
+  "Mobile App",
+  "Web Portal",
 ];
 
 // Email providers
 export const EMAIL_PROVIDERS = [
+  "SMTP",
   "Gmail",
   "Outlook",
-  "Custom SMTP"
+  "SendGrid",
+  "Mailchimp",
+  "Custom",
 ];
 
-// Design themes
-export const DESIGN_THEMES = [
-  "Classic",
-  "Modern",
-  "Rustic",
-  "Elegant",
-  "Minimalist",
-  "Traditional Indian"
-];
-
-// Font families
+// Font families for design
 export const FONT_FAMILIES = [
+  "Inter",
+  "Roboto",
+  "Poppins",
   "Playfair Display",
   "Montserrat",
-  "Roboto",
-  "Open Sans",
+  "Raleway",
   "Lato",
-  "Poppins"
+  "Open Sans",
+  "Merriweather",
+  "Source Sans Pro",
+  "Libre Baskerville",
+  "Dancing Script",
+  "Great Vibes",
+];
+
+// Color themes for design
+export const COLOR_THEMES = [
+  { name: "Classic Elegance", primary: "#8B0000", secondary: "#F5F5DC", accent: "#FFD700" },
+  { name: "Royal Indian", primary: "#9C27B0", secondary: "#FFEB3B", accent: "#4CAF50" },
+  { name: "Modern Minimalist", primary: "#212121", secondary: "#FFFFFF", accent: "#00BCD4" },
+  { name: "Romantic Blush", primary: "#E91E63", secondary: "#F8BBD0", accent: "#9E9E9E" },
+  { name: "Traditional Maroon", primary: "#800000", secondary: "#FFC107", accent: "#FFFFFF" },
+  { name: "Garden Fresh", primary: "#4CAF50", secondary: "#F1F8E9", accent: "#FF5722" },
+  { name: "Ocean Breeze", primary: "#03A9F4", secondary: "#E1F5FE", accent: "#FF9800" },
+  { name: "Sunset Glow", primary: "#FF9800", secondary: "#FFF3E0", accent: "#3F51B5" },
 ];
