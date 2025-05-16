@@ -526,8 +526,8 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
             <AlertTitle className="text-blue-800">Email Configuration Overview</AlertTitle>
             <AlertDescription className="text-blue-700">
               <p className="mt-1">Configure your email provider to send invitations, RSVP confirmations, and other communications to guests.</p>
-              <p className="mt-2 font-medium">You have three options:</p>
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <p className="mt-2 font-medium">You have the following options:</p>
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="bg-blue-100 p-1.5 rounded-full">
@@ -536,6 +536,15 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
                     <h3 className="font-medium text-sm">Gmail OAuth</h3>
                   </div>
                   <p className="text-xs">Connect using your Google account with OAuth for secure access.</p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-blue-100 p-1.5 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="13" x="4" y="5" rx="2"/><path d="m22 10-9 2-9-2"/><path d="M20 5H9l-3 6 9 2 9-2-3-6Z"/></svg>
+                    </div>
+                    <h3 className="font-medium text-sm">Outlook OAuth</h3>
+                  </div>
+                  <p className="text-xs">Connect using Microsoft account with OAuth for secure access.</p>
                 </div>
                 <div className="bg-white p-3 rounded-md border border-blue-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
