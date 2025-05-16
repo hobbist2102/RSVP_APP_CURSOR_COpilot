@@ -80,6 +80,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Event Settings",
       icon: <Cog className="mr-3 h-5 w-5" />,
       path: "/event-settings"
+    },
+    {
+      name: "Email Templates",
+      icon: <Mail className="mr-3 h-5 w-5" />,
+      path: "/email-templates"
     }
   ];
 

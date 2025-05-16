@@ -15,6 +15,7 @@ import Meals from "@/pages/meals";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import EventSettings from "@/pages/event-settings";
+import EmailTemplatesPage from "@/pages/email-templates-page";
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 
@@ -109,6 +110,13 @@ function App() {
           {() => (
             <PrivateRoute>
               <EventSettings />
+            </PrivateRoute>
+          )}
+        </Route>
+        <Route path="/email-templates">
+          {() => (
+            <PrivateRoute>
+              <EmailTemplatesPage />
             </PrivateRoute>
           )}
         </Route>
