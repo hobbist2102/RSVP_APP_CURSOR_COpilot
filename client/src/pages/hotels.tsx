@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Building, Hotel, BedDouble } from "lucide-react";
+import { Plus, Edit, Trash2, Building, Hotel, BedDouble, Users, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { useCurrentEvent } from "@/hooks/use-current-event";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { RoomAllocationList } from "@/components/room/room-allocation-list";
 
 // Define schemas
 const hotelSchema = z.object({
@@ -627,44 +628,121 @@ const HotelsPage: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
                       {accommodations.map((acc: Accommodation) => (
-                        <div 
-                          key={acc.id} 
-                          className="flex items-center justify-between p-3 border rounded-md hover:bg-muted cursor-pointer"
-                          onClick={() => {
-                            setSelectedAccommodation(acc);
-                            accommodationForm.reset({
-                              hotelId: acc.hotelId,
-                              name: acc.name,
-                              roomType: acc.roomType,
-                              capacity: acc.capacity,
-                              totalRooms: acc.totalRooms,
-                              pricePerNight: acc.pricePerNight || "",
-                              specialFeatures: acc.specialFeatures || "",
-                              globalRoomTypeId: acc.globalRoomTypeId,
-                              showPricing: acc.showPricing || false,
-                              createGlobalType: false
-                            });
-                            setIsAddingRoom(true);
-                          }}
-                        >
-                          <div>
-                            <div className="font-medium flex items-center">
-                              {acc.name}
-                              {acc.globalRoomTypeId && <Badge className="ml-2" variant="outline">Global</Badge>}
+                        <Card key={acc.id} className="overflow-hidden">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-xl flex items-center">
+                                  {acc.name}
+                                  {acc.globalRoomTypeId && (
+                                    <Badge className="ml-2" variant="outline">Global</Badge>
+                                  )}
+                                </CardTitle>
+                                <CardDescription>
+                                  {acc.roomType} · Capacity: {acc.capacity} guests per room
+                                </CardDescription>
+                              </div>
+                              <div className="flex space-x-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedAccommodation(acc);
+                                    accommodationForm.reset({
+                                      hotelId: acc.hotelId,
+                                      name: acc.name,
+                                      roomType: acc.roomType,
+                                      capacity: acc.capacity,
+                                      totalRooms: acc.totalRooms,
+                                      pricePerNight: acc.pricePerNight || "",
+                                      specialFeatures: acc.specialFeatures || "",
+                                      globalRoomTypeId: acc.globalRoomTypeId,
+                                      showPricing: acc.showPricing || false,
+                                      createGlobalType: false
+                                    });
+                                    setIsAddingRoom(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {acc.roomType} · Capacity: {acc.capacity} · {acc.totalRooms} rooms
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex justify-between items-center mb-2">
+                              <div>
+                                <span className="text-sm font-medium">Room Inventory:</span>
+                                <span className="text-sm ml-1">
+                                  {acc.allocatedRooms || 0}/{acc.totalRooms} assigned
+                                </span>
+                              </div>
+                              {acc.specialFeatures && (
+                                <Badge variant="secondary">
+                                  {acc.specialFeatures.length > 20 
+                                    ? acc.specialFeatures.substring(0, 20) + '...' 
+                                    : acc.specialFeatures}
+                                </Badge>
+                              )}
                             </div>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
+                            
+                            <div className="flex justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Set the selected accommodation for room management
+                                  setSelectedAccommodation(acc);
+                                }}
+                              >
+                                <Users className="h-4 w-4 mr-2" />
+                                Manage Assignments
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
-                    <Separator className="mb-6" />
+                    
+                    {/* Show room assignments for selected accommodation */}
+                    {selectedAccommodation && (
+                      <div className="mt-8 border rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-bold">
+                            Room Assignments: {selectedAccommodation.name}
+                          </h3>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setSelectedAccommodation(null)}
+                          >
+                            Back to Room Types
+                          </Button>
+                        </div>
+                        
+                        <RoomAllocationList
+                          accommodationId={selectedAccommodation.id}
+                          accommodationName={selectedAccommodation.name}
+                          capacity={selectedAccommodation.capacity}
+                          totalRooms={selectedAccommodation.totalRooms}
+                          allocatedRooms={selectedAccommodation.allocatedRooms || 0}
+                          eventId={currentEvent?.id || 0}
+                        />
+                      </div>
+                    )}
+                    
+                    {!selectedAccommodation && (
+                      <div className="text-center border rounded-lg p-8 bg-muted/20">
+                        <UserPlus className="h-12 w-12 mx-auto text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-medium">Room Assignment Management</h3>
+                        <p className="text-muted-foreground mt-2 mb-4 max-w-md mx-auto">
+                          Select a room type above to manage guest assignments and track room inventory
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               
