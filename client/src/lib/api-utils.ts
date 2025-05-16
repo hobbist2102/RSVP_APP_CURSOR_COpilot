@@ -1,190 +1,312 @@
 /**
- * Centralized API utilities for consistent request handling
+ * API Utilities
+ * 
+ * This file provides standardized API request functions to ensure consistent
+ * API interactions throughout the application.
  */
-import { QueryFunction, UseQueryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 import { queryClient } from "./queryClient";
-import { useToast } from "@/hooks/use-toast";
 
-/**
- * Error handler that extracts message from API responses
- */
-export async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
-}
-
-/**
- * Builds a URL with query parameters
- */
-export function buildUrl(baseUrl: string, params?: Record<string, string | number>): string {
-  if (!params || Object.keys(params).length === 0) {
-    return baseUrl;
-  }
-  
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value));
-    }
-  });
-  
-  const searchParamsString = searchParams.toString();
-  if (searchParamsString) {
-    return baseUrl + (baseUrl.includes('?') ? '&' : '?') + searchParamsString;
-  }
-  
-  return baseUrl;
-}
-
-interface ApiRequestOptions {
-  method: string;
+// Standard API request options
+export interface ApiRequestOptions extends Omit<AxiosRequestConfig, "url" | "method"> {
   url: string;
-  data?: unknown;
-  params?: Record<string, string | number>;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  withCredentials?: boolean;
+  includeHeaders?: boolean;
   headers?: Record<string, string>;
-  returnRaw?: boolean;
+}
+
+// API response interface with improved typing
+export interface ApiResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+}
+
+// API error interface with more detailed information
+export interface ApiError extends Error {
+  status?: number;
+  statusText?: string;
+  data?: any;
+  isNetworkError?: boolean;
+  isTimeoutError?: boolean;
+  isServerError?: boolean;
+  isClientError?: boolean;
 }
 
 /**
- * Standard API request function
- * @returns The parsed JSON response or raw Response if returnRaw is true
+ * Creates a detailed API error with additional context
  */
-export async function apiRequest<T = any>({
-  method,
-  url,
-  data,
-  params,
-  headers = {},
-  returnRaw = false
-}: ApiRequestOptions): Promise<T | Response> {
-  const requestHeaders: Record<string, string> = {
-    "Accept": "application/json",
-    "Cache-Control": "no-cache",
-    ...headers
-  };
+function createApiError(error: AxiosError): ApiError {
+  const apiError: ApiError = new Error(
+    error.response?.data?.message || error.message
+  ) as ApiError;
   
-  if (data && !requestHeaders["Content-Type"]) {
-    requestHeaders["Content-Type"] = "application/json";
+  apiError.name = "ApiError";
+  
+  if (error.response) {
+    // Server responded with a non-2xx status
+    apiError.status = error.response.status;
+    apiError.statusText = error.response.statusText;
+    apiError.data = error.response.data;
+    apiError.isServerError = error.response.status >= 500;
+    apiError.isClientError = error.response.status >= 400 && error.response.status < 500;
+  } else if (error.request) {
+    // Request made but no response received
+    apiError.isNetworkError = error.message.includes("Network Error");
+    apiError.isTimeoutError = error.message.includes("timeout");
   }
   
-  const fullUrl = buildUrl(url, params);
-  
-  const res = await fetch(fullUrl, {
-    method,
-    headers: requestHeaders,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  
-  if (returnRaw) {
-    return res;
-  }
-  
-  return await res.json() as T;
+  return apiError;
 }
 
 /**
- * Hook to use standardized API mutations with consistent error handling
+ * Main API request function that standardizes error handling and request configuration
  */
-export function useApiMutation<TData = unknown, TVariables = unknown>({
-  mutationFn,
-  onSuccess,
-  onError,
-  successMessage,
-  errorMessage,
-  invalidateQueries,
-  ...options
-}: {
-  mutationFn: (variables: TVariables) => Promise<TData>;
-  onSuccess?: (data: TData, variables: TVariables) => void;
-  onError?: (error: Error, variables: TVariables) => void;
-  successMessage?: string;
-  errorMessage?: string;
-  invalidateQueries?: string[];
-  options?: any;
-}) {
-  const { toast } = useToast();
+export async function apiRequest<T = any>(
+  options: ApiRequestOptions
+): Promise<ApiResponse<T>> {
+  const { url, method, data, params, withCredentials = true, includeHeaders = false, headers = {} } = options;
   
-  return useMutation({
-    mutationFn,
-    onSuccess: (data, variables) => {
-      if (successMessage) {
-        toast({
-          title: "Success",
-          description: successMessage,
-        });
-      }
-      
-      if (invalidateQueries) {
-        invalidateQueries.forEach(queryKey => {
-          queryClient.invalidateQueries({ queryKey: [queryKey] });
-        });
-      }
-      
-      if (onSuccess) {
-        onSuccess(data, variables);
-      }
-    },
-    onError: (error: Error, variables) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: errorMessage || error.message,
-      });
-      
-      if (onError) {
-        onError(error, variables);
-      }
-    },
-    ...options
-  });
-}
-
-// Type for unified query behavior options
-type UnauthorizedBehavior = "returnNull" | "throw";
-
-/**
- * Creates a query function for TanStack Query
- */
-export function createQueryFn<T>({ on401 = "throw" as UnauthorizedBehavior } = {}): QueryFunction<T> {
-  return async ({ queryKey }) => {
-    // Handle array query keys
-    const [url, params] = queryKey;
+  try {
+    const config: AxiosRequestConfig = {
+      url,
+      method,
+      data,
+      params,
+      withCredentials,
+      headers: {
+        ...headers,
+        "Content-Type": headers["Content-Type"] || "application/json",
+      },
+    };
     
-    try {
-      return await apiRequest<T>({
-        method: "GET",
-        url: url as string,
-        params: typeof params === 'object' ? params : undefined,
-      });
-    } catch (error) {
-      if (on401 === "returnNull" && error instanceof Error && error.message.startsWith("401:")) {
-        return null as unknown as T;
-      }
-      throw error;
+    const response: AxiosResponse<T> = await axios(config);
+    
+    return {
+      data: response.data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers as Record<string, string>,
+    };
+  } catch (error) {
+    const apiError = createApiError(error as AxiosError);
+    
+    // Handle specific error cases
+    if (apiError.status === 401) {
+      // Authentication error - could trigger a re-login flow
+      console.warn("Authentication error:", apiError);
+      // Optional: invalidate auth state
+      queryClient.invalidateQueries(["/api/auth/user"]);
+    } else if (apiError.status === 403) {
+      // Authorization error
+      console.warn("Authorization error:", apiError);
+    } else if (apiError.isNetworkError) {
+      // Network error
+      console.error("Network error:", apiError);
+    } else if (apiError.isTimeoutError) {
+      // Timeout error
+      console.error("Request timeout:", apiError);
+    } else if (apiError.isServerError) {
+      // Server error (5xx)
+      console.error("Server error:", apiError);
     }
-  };
+    
+    throw apiError;
+  }
 }
 
 /**
- * Hook for standardized data fetching with query
+ * Shorthand for GET requests
  */
-export function useApiQuery<TData>(
-  queryKey: unknown[],
-  options?: Omit<UseQueryOptions<TData, Error, TData>, 'queryKey' | 'queryFn'> & {
-    on401?: UnauthorizedBehavior;
-  }
-) {
-  const { on401 = "throw", ...queryOptions } = options || {};
-  
-  return useQuery<TData, Error>({
-    queryKey,
-    queryFn: createQueryFn<TData>({ on401 }),
-    ...queryOptions,
+export function get<T = any>(url: string, params?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>({
+    url,
+    method: "GET",
+    params,
+    ...options,
   });
+}
+
+/**
+ * Shorthand for POST requests
+ */
+export function post<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>({
+    url,
+    method: "POST",
+    data,
+    ...options,
+  });
+}
+
+/**
+ * Shorthand for PUT requests
+ */
+export function put<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>({
+    url,
+    method: "PUT",
+    data,
+    ...options,
+  });
+}
+
+/**
+ * Shorthand for PATCH requests
+ */
+export function patch<T = any>(url: string, data?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>({
+    url,
+    method: "PATCH",
+    data,
+    ...options,
+  });
+}
+
+/**
+ * Shorthand for DELETE requests
+ */
+export function del<T = any>(url: string, params?: any, options?: Partial<ApiRequestOptions>): Promise<ApiResponse<T>> {
+  return apiRequest<T>({
+    url,
+    method: "DELETE",
+    params,
+    ...options,
+  });
+}
+
+/**
+ * Utility function to invalidate related query cache
+ * after a mutation operation on a resource
+ */
+export function invalidateRelatedQueries(resourcePath: string, id?: number | string): void {
+  // Invalidate collection
+  queryClient.invalidateQueries([resourcePath]);
+  
+  // Invalidate specific resource if ID is provided
+  if (id !== undefined) {
+    queryClient.invalidateQueries([`${resourcePath}/${id}`]);
+  }
+}
+
+/**
+ * Utility to handle common operations with proper error handling and cache invalidation
+ */
+export const apiOperations = {
+  /**
+   * Create a new resource
+   */
+  create: async <T = any, R = any>(resourcePath: string, data: T): Promise<R> => {
+    const response = await post<R>(resourcePath, data);
+    invalidateRelatedQueries(resourcePath);
+    return response.data;
+  },
+  
+  /**
+   * Fetch a collection of resources
+   */
+  fetchAll: async <T = any>(resourcePath: string, params?: any): Promise<T[]> => {
+    const response = await get<T[]>(resourcePath, params);
+    return response.data;
+  },
+  
+  /**
+   * Fetch a single resource by ID
+   */
+  fetchById: async <T = any>(resourcePath: string, id: number | string, params?: any): Promise<T> => {
+    const response = await get<T>(`${resourcePath}/${id}`, params);
+    return response.data;
+  },
+  
+  /**
+   * Update a resource
+   */
+  update: async <T = any, R = any>(resourcePath: string, id: number | string, data: T): Promise<R> => {
+    const response = await patch<R>(`${resourcePath}/${id}`, data);
+    invalidateRelatedQueries(resourcePath, id);
+    return response.data;
+  },
+  
+  /**
+   * Delete a resource
+   */
+  delete: async <R = any>(resourcePath: string, id: number | string): Promise<R> => {
+    const response = await del<R>(`${resourcePath}/${id}`);
+    invalidateRelatedQueries(resourcePath, id);
+    return response.data;
+  },
+};
+
+/**
+ * Constants for common API endpoints
+ */
+export const ApiEndpoints = {
+  AUTH: {
+    LOGIN: "/api/auth/login",
+    LOGOUT: "/api/auth/logout",
+    REGISTER: "/api/auth/register",
+    USER: "/api/auth/user",
+  },
+  EVENTS: {
+    BASE: "/api/events",
+    DETAILS: (id: number | string) => `/api/events/${id}`,
+    CEREMONIES: (id: number | string) => `/api/events/${id}/ceremonies`,
+    GUESTS: (id: number | string) => `/api/events/${id}/guests`,
+    SETTINGS: (id: number | string) => `/api/events/${id}/settings`,
+  },
+  GUESTS: {
+    BASE: "/api/guests",
+    DETAILS: (id: number | string) => `/api/guests/${id}`,
+    RSVP: (id: number | string) => `/api/guests/${id}/rsvp`,
+  },
+  RSVP: {
+    VERIFY: "/api/rsvp/verify",
+    SUBMIT: "/api/rsvp/submit",
+    STAGE1: "/api/rsvp/stage1",
+    STAGE2: "/api/rsvp/stage2",
+  },
+  HOTELS: {
+    BASE: "/api/hotels",
+    DETAILS: (id: number | string) => `/api/hotels/${id}`,
+  },
+  COMMUNICATIONS: {
+    TEST_EMAIL: "/api/test-email",
+    EMAIL_TEMPLATES: "/api/email-templates",
+    WHATSAPP_TEMPLATES: "/api/whatsapp-templates",
+    FOLLOW_UP: "/api/rsvp-followup",
+  },
+  ADMIN: {
+    USERS: "/api/users",
+    STATS: "/api/stats",
+  },
+};
+
+/**
+ * Common error handling for form submissions using react-hook-form
+ */
+export function handleApiValidationErrors(error: any, setError: any): void {
+  if (error?.data?.errors) {
+    // Handle structured validation errors
+    const validationErrors = error.data.errors;
+    Object.keys(validationErrors).forEach((field) => {
+      setError(field, {
+        type: "server",
+        message: validationErrors[field],
+      });
+    });
+  } else if (error?.data?.message) {
+    // Handle general error message
+    setError("root.serverError", {
+      type: "server",
+      message: error.data.message,
+    });
+  } else {
+    // Handle unknown error
+    setError("root.serverError", {
+      type: "server",
+      message: "An unexpected error occurred. Please try again.",
+    });
+  }
 }
