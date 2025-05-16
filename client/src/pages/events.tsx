@@ -46,7 +46,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
-  formatDate, 
   formatForDateInput, 
   formatDateForDisplay,
   DATE_FORMATS 
@@ -621,9 +620,9 @@ export default function Events() {
                       <div>
                         <p className="text-sm text-muted-foreground">Event Dates</p>
                         <p className="font-medium">
-                          {formatDate(events.find(e => e.id === selectedEventId)?.startDate)} 
+                          {formatDateForDisplay(events.find(e => e.id === selectedEventId)?.startDate)} 
                           {" - "} 
-                          {formatDate(events.find(e => e.id === selectedEventId)?.endDate)}
+                          {formatDateForDisplay(events.find(e => e.id === selectedEventId)?.endDate)}
                         </p>
                       </div>
                       <div>
@@ -658,7 +657,7 @@ export default function Events() {
                             </div>
                             <div className="space-y-1 pt-1">
                               <div className="font-medium">{ceremony.name}</div>
-                              <div className="text-sm text-muted-foreground">{formatDate(ceremony.date)}</div>
+                              <div className="text-sm text-muted-foreground">{formatDateForDisplay(ceremony.date)}</div>
                               <div className="text-sm">{ceremony.startTime} - {ceremony.endTime}</div>
                               <div className="text-sm flex items-center">
                                 <MapPin className="h-3 w-3 mr-1" /> {ceremony.location}
@@ -881,7 +880,7 @@ export default function Events() {
             <div className="py-4">
               <p className="font-medium">{currentCeremony.name}</p>
               <p className="text-sm text-muted-foreground">
-                {formatDate(currentCeremony.date)}, {currentCeremony.startTime} - {currentCeremony.endTime}
+                {formatDateForDisplay(currentCeremony.date)}, {currentCeremony.startTime} - {currentCeremony.endTime}
               </p>
               <p className="text-sm text-muted-foreground">{currentCeremony.location}</p>
             </div>
@@ -937,7 +936,7 @@ export default function Events() {
                 <p className="mb-2"><strong>Event:</strong> {currentEvent.title}</p>
                 <p className="mb-2"><strong>Couple:</strong> {currentEvent.coupleNames}</p>
                 <p className="mb-2">
-                  <strong>Dates:</strong> {formatDate(currentEvent.startDate)} - {formatDate(currentEvent.endDate)}
+                  <strong>Dates:</strong> {formatDateForDisplay(currentEvent.startDate)} - {formatDateForDisplay(currentEvent.endDate)}
                 </p>
                 <p><strong>Location:</strong> {currentEvent.location}</p>
               </div>

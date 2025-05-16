@@ -125,7 +125,7 @@ export default function Dashboard() {
           <p className="text-sm text-gray-500">
             Wedding: <span className="font-medium">{currentEvent?.title || "Loading..."}</span> | 
             Dates: <span className="font-medium">
-              {currentEvent ? `${formatDate(currentEvent.startDate)} - ${formatDate(currentEvent.endDate)}` : "Loading..."}
+              {currentEvent ? `${formatDateForDisplay(currentEvent.startDate)} - ${formatDateForDisplay(currentEvent.endDate)}` : "Loading..."}
             </span>
           </p>
         </div>
