@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Globe, Send, Mail } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { post, get } from '@/lib/api-utils'; // Using the consolidated API utilities
 import { useToast } from '@/hooks/use-toast';
 
 interface EmailTemplatePreviewProps {
@@ -40,13 +40,13 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
   // Fetch template details
   const { data: templateData, isLoading: templateLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/email-templates/${templateId}`],
-    queryFn: () => apiRequest('GET', `/api/events/${eventId}/email-templates/${templateId}`).then(res => res.json()),
+    // The queryFn is now automatically provided by our API utils configuration
   });
 
   // Fetch available styles
   const { data: stylesData, isLoading: stylesLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/email-styles`],
-    queryFn: () => apiRequest('GET', `/api/events/${eventId}/email-styles`).then(res => res.json()),
+    // The queryFn is now automatically provided by our API utils configuration
   });
 
   // Set default style when data is loaded
@@ -119,7 +119,7 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
     }
   }, [templateData, selectedStyle, stylesData]);
 
-  // Send test email
+  // Send test email using the consolidated API utilities
   const sendTestEmail = async () => {
     if (!testEmail) {
       toast({
@@ -132,16 +132,11 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
     
     setIsSending(true);
     try {
-      const response = await apiRequest('POST', `/api/events/${eventId}/test-email`, {
+      const response = await post(`/api/events/${eventId}/test-email`, {
         templateId,
         styleId: selectedStyle,
         toEmail: testEmail
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send test email');
-      }
       
       toast({
         title: 'Test email sent',
