@@ -227,4 +227,51 @@ export function registerHotelRoutes(
       });
     }
   });
+
+  // Create a new accommodation/room type
+  app.post('/api/events/:eventId/accommodations', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+
+      // Validate accommodation data
+      const validationResult = insertAccommodationSchema.safeParse({
+        ...req.body,
+        eventId
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Invalid accommodation data',
+          errors: validationResult.error.format()
+        });
+      }
+
+      const accommodationData = validationResult.data;
+      
+      // Verify the hotel exists for this event
+      const hotel = await storage.getHotel(accommodationData.hotelId);
+      if (!hotel) {
+        return res.status(404).json({ message: 'Hotel not found' });
+      }
+      
+      if (hotel.eventId !== eventId) {
+        return res.status(400).json({ message: 'Hotel does not belong to this event' });
+      }
+
+      // Create the accommodation
+      const accommodation = await storage.createAccommodation(accommodationData);
+      console.log(`Created new accommodation: ${accommodation.name} (ID: ${accommodation.id}) for hotel ${accommodationData.hotelId}`);
+
+      return res.status(201).json(accommodation);
+    } catch (error) {
+      console.error('Error creating accommodation:', error);
+      return res.status(500).json({ 
+        message: 'Failed to create accommodation',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 }
