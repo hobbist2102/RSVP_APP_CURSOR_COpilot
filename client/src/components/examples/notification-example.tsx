@@ -1,207 +1,132 @@
 /**
- * Example component showcasing the standardized notification system
+ * Example component showcasing the notification utility
+ * This demonstrates patterns for using the standardized notification system
  */
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNotification, NotificationMessages } from "@/lib/notification-utils";
-import { 
-  AlertCircle, 
-  CheckCircle2, 
-  InfoIcon, 
-  AlertTriangle, 
-  Trash, 
-  Save, 
-  Plus, 
-  RefreshCw 
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNotification } from "@/lib/notification-utils";
 
 export default function NotificationExample() {
   const notification = useNotification();
   
-  // Examples of different notification types
   const showSuccessNotification = () => {
     notification.success({
-      title: "Operation Successful",
-      description: "Your changes have been saved successfully.",
+      title: "Success!",
+      description: "This is a success notification example."
     });
   };
   
   const showErrorNotification = () => {
     notification.error({
-      title: "Error Occurred",
-      description: "There was a problem processing your request. Please try again.",
+      title: "Error!",
+      description: "This is an error notification example."
     });
   };
   
   const showWarningNotification = () => {
     notification.warning({
-      title: "Please Note",
-      description: "This action may have unexpected consequences.",
+      title: "Warning!",
+      description: "This is a warning notification example."
     });
   };
   
   const showInfoNotification = () => {
     notification.info({
-      title: "Did You Know?",
-      description: "You can customize email templates for different RSVP statuses.",
+      title: "Information",
+      description: "This is an informational notification example."
     });
   };
   
-  // Examples of operation-specific notifications
-  const showSaveNotification = () => {
-    notification.dataSaved(true, NotificationMessages.SAVED_SUCCESS);
-  };
-  
-  const showDeleteNotification = () => {
-    notification.deleteOperation(true, "The guest has been removed from the event.");
-  };
-  
-  const showCreateNotification = () => {
-    notification.createOperation(true, "New ceremony added to the event schedule.");
-  };
-  
-  const showUpdateNotification = () => {
-    notification.updateOperation(true, "Guest information has been updated successfully.");
-  };
-  
-  const showFormSubmissionNotification = () => {
-    notification.formSubmission(true, "Your RSVP has been submitted successfully.");
-  };
-  
-  // Example of a custom notification
   const showCustomNotification = () => {
-    notification.notify({
+    notification.custom({
       title: "Custom Notification",
-      description: "This is a customized notification with special styling.",
-      className: "bg-gradient-to-r from-purple-50 to-blue-50 border-purple-300",
-      duration: 5000,
+      description: "This is a custom notification with longer duration and action.",
+      duration: 8000,
+      action: (
+        <Button variant="outline" size="sm" onClick={() => console.log("Action clicked")}>
+          Action
+        </Button>
+      )
     });
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Notification System</CardTitle>
-        <CardDescription>
-          Examples of the standardized notification system
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* Basic notification types */}
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 h-auto py-4 justify-start"
-            onClick={showSuccessNotification}
-          >
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
-            <div className="text-left">
-              <p className="font-medium">Success</p>
-              <p className="text-xs text-muted-foreground">Show success notification</p>
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic Notifications</CardTitle>
+          <CardDescription>
+            Standardized notification types for common user feedback scenarios.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <Button onClick={showSuccessNotification} variant="outline" className="border-green-200 bg-green-50 hover:bg-green-100 text-green-700">
+            Success
           </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 h-auto py-4 justify-start"
-            onClick={showErrorNotification}
-          >
-            <AlertCircle className="h-5 w-5 text-red-500" />
-            <div className="text-left">
-              <p className="font-medium">Error</p>
-              <p className="text-xs text-muted-foreground">Show error notification</p>
-            </div>
+          <Button onClick={showErrorNotification} variant="outline" className="border-red-200 bg-red-50 hover:bg-red-100 text-red-700">
+            Error
           </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 h-auto py-4 justify-start"
-            onClick={showWarningNotification}
-          >
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            <div className="text-left">
-              <p className="font-medium">Warning</p>
-              <p className="text-xs text-muted-foreground">Show warning notification</p>
-            </div>
+          <Button onClick={showWarningNotification} variant="outline" className="border-yellow-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-700">
+            Warning
           </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 h-auto py-4 justify-start"
-            onClick={showInfoNotification}
-          >
-            <InfoIcon className="h-5 w-5 text-blue-500" />
-            <div className="text-left">
-              <p className="font-medium">Info</p>
-              <p className="text-xs text-muted-foreground">Show info notification</p>
-            </div>
+          <Button onClick={showInfoNotification} variant="outline" className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700">
+            Info
           </Button>
-        </div>
-        
-        <div className="pt-4 border-t">
-          <h3 className="text-sm font-medium mb-3">Operation-specific Notifications</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <Button 
-              variant="secondary" 
-              size="sm"
-              className="flex gap-2 items-center"
-              onClick={showSaveNotification}
-            >
-              <Save className="h-4 w-4" />
-              Save
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              size="sm"
-              className="flex gap-2 items-center"
-              onClick={showDeleteNotification}
-            >
-              <Trash className="h-4 w-4" />
-              Delete
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              size="sm"
-              className="flex gap-2 items-center"
-              onClick={showCreateNotification}
-            >
-              <Plus className="h-4 w-4" />
-              Create
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              size="sm"
-              className="flex gap-2 items-center"
-              onClick={showUpdateNotification}
-            >
-              <RefreshCw className="h-4 w-4" />
-              Update
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              size="sm"
-              onClick={showFormSubmissionNotification}
-            >
-              Form Submission
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Advanced Notification</CardTitle>
+          <CardDescription>
+            Customizable notification with actions and extended duration.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center">
+            <Button onClick={showCustomNotification} className="w-full sm:w-auto">
+              Show Custom Notification
             </Button>
           </div>
-        </div>
-        
-        <div className="pt-4 border-t">
-          <Button 
-            variant="default" 
-            className="w-full"
-            onClick={showCustomNotification}
-          >
-            Show Custom Notification
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+        <CardFooter className="text-sm text-muted-foreground">
+          <p>
+            Custom notifications can include action buttons, longer durations, and can be styled
+            differently based on the use case.
+          </p>
+        </CardFooter>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Integration with API Operations</CardTitle>
+          <CardDescription>
+            The notification system is integrated with API operations for automatic feedback.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            When using the standardized API utilities, notifications are automatically triggered
+            for success and error states, ensuring consistent user feedback throughout the application.
+          </p>
+          <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
+{`// Example of API operation with automatic notification
+const { mutate, isPending } = useMutation({
+  mutationFn: async (data) => {
+    return await apiRequest("POST", "/api/resource", data);
+  },
+  onSuccess: () => {
+    // Notification automatically shown
+    queryClient.invalidateQueries(["/api/resource"]);
+  },
+  onError: (error) => {
+    // Error notification automatically shown with details
+  }
+});`}
+          </pre>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

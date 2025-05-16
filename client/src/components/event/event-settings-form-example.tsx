@@ -1,496 +1,404 @@
 /**
- * Example Form Component using standardized validation schemas
- * This demonstrates how to use centralized validation schemas
+ * Example component showcasing standardized form validation
+ * This demonstrates patterns for form validation using centralized schemas
  */
 import React from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2, Save } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { DatePicker } from "@/components/ui/date-picker";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/api-utils";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { put } from "@/lib/api-utils";
+import { useNotification } from "@/lib/notification-utils";
 
-// Import validation schemas
-import {
-  eventBasicInfoSchema,
-  guestManagementSchema,
-  emailConfigSchema,
-  whatsappConfigSchema,
-  type EventBasicInfo,
-  type GuestManagementSettings,
-  type EmailConfig,
-  type WhatsappConfig
-} from "@shared/validation-schemas";
-
-// Create combined schema for this form
+// Example validation schema for event settings form
 const eventSettingsSchema = z.object({
-  basicInfo: eventBasicInfoSchema,
-  guestManagement: guestManagementSchema,
-  communications: z.object({
-    ...emailConfigSchema.shape,
-    ...whatsappConfigSchema.shape,
-  }),
+  emailBanner: z.string().url("Banner must be a valid URL").optional().or(z.literal("")),
+  emailSignature: z.string().max(500, "Signature must be less than 500 characters").optional(),
+  sendReminderEmails: z.boolean().default(false),
+  reminderDaysBeforeEvent: z.number().min(1, "Must be at least 1 day").max(30, "Must be no more than 30 days"),
+  customWelcomeMessage: z.string().max(1000, "Welcome message must be less than 1000 characters").optional(),
+  whatsappEnabled: z.boolean().default(false),
+  whatsappApiKey: z.string().min(10, "API key must be at least 10 characters").optional(),
+  collectDietaryRestrictions: z.boolean().default(true),
+  collectAccommodationPreferences: z.boolean().default(true),
+  collectTransportationNeeds: z.boolean().default(true),
 });
 
-// Define type for form data
-type EventSettingsFormData = z.infer<typeof eventSettingsSchema>;
+// Derive the type from our schema
+type EventSettingsFormValues = z.infer<typeof eventSettingsSchema>;
 
-interface EventSettingsFormProps {
+interface EventSettingsFormExampleProps {
   eventId: number;
-  initialData?: Partial<EventSettingsFormData>;
-  onSuccess?: (data: EventSettingsFormData) => void;
 }
 
-export default function EventSettingsFormExample({ 
-  eventId, 
-  initialData,
-  onSuccess
-}: EventSettingsFormProps) {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = React.useState("basicInfo");
+export default function EventSettingsFormExample({ eventId }: EventSettingsFormExampleProps) {
+  const notification = useNotification();
   
-  // Initialize form with default values
-  const defaultValues: Partial<EventSettingsFormData> = {
-    basicInfo: {
-      title: "",
-      coupleNames: "",
-      brideName: "",
-      groomName: "",
-      startDate: "",
-      endDate: "",
-      location: "",
-      description: "",
-      ...initialData?.basicInfo
-    },
-    guestManagement: {
-      allowPlusOnes: true,
-      allowChildrenDetails: true,
-      rsvpDeadline: "",
-      ...initialData?.guestManagement
-    },
-    communications: {
-      emailFrom: "",
-      emailReplyTo: "",
-      sendRsvpReminders: true,
-      sendRsvpConfirmations: true,
-      sendTravelUpdates: true,
-      enableWhatsapp: false,
-      whatsappBusinessNumber: "",
-      ...initialData?.communications
-    }
-  };
-  
-  // Initialize form with zod resolver
-  const form = useForm<EventSettingsFormData>({
-    resolver: zodResolver(eventSettingsSchema),
-    defaultValues,
-    mode: "onChange",
+  // Example query for fetching event settings with proper loading and error states
+  const { data: settings, isLoading, error } = useQuery({
+    queryKey: ["/api/event-settings", eventId],
+    // Simulated query function that returns mock data
+    queryFn: () => Promise.resolve({
+      emailBanner: "https://example.com/banner.jpg",
+      emailSignature: "Best Regards,\nThe Wedding Team",
+      sendReminderEmails: true,
+      reminderDaysBeforeEvent: 7,
+      customWelcomeMessage: "We're excited to celebrate with you!",
+      whatsappEnabled: false,
+      whatsappApiKey: "",
+      collectDietaryRestrictions: true,
+      collectAccommodationPreferences: true,
+      collectTransportationNeeds: true,
+    }),
   });
-  
-  // Handle form submission
-  const onSubmit = async (data: EventSettingsFormData) => {
-    try {
-      // Submit form data to API
-      await apiRequest({
-        method: "PATCH",
-        url: `/api/events/${eventId}/settings`,
-        data,
+
+  // Example mutation for updating event settings
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data: EventSettingsFormValues) => {
+      // Simulated API call that logs the data but doesn't actually make a request
+      console.log("Would update event settings:", data);
+      return new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 1000); // Simulate API delay
       });
-      
-      toast({
-        title: "Settings updated",
-        description: "Event settings have been saved successfully.",
+    },
+    onSuccess: () => {
+      notification.success({
+        title: "Settings Updated",
+        description: "Event settings have been updated successfully."
       });
-      
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess(data);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error saving settings",
-        description: error instanceof Error 
-          ? error.message 
-          : "An error occurred while saving settings.",
+    },
+    onError: (error: any) => {
+      notification.error({
+        title: "Update Failed",
+        description: error.message || "An error occurred while updating settings."
       });
     }
+  });
+
+  // Initialize form with resolver and default values
+  const form = useForm<EventSettingsFormValues>({
+    resolver: zodResolver(eventSettingsSchema),
+    defaultValues: {
+      emailBanner: "",
+      emailSignature: "",
+      sendReminderEmails: false,
+      reminderDaysBeforeEvent: 7,
+      customWelcomeMessage: "",
+      whatsappEnabled: false,
+      whatsappApiKey: "",
+      collectDietaryRestrictions: true,
+      collectAccommodationPreferences: true,
+      collectTransportationNeeds: true,
+    },
+  });
+
+  // Update form values when settings data is loaded
+  React.useEffect(() => {
+    if (settings) {
+      form.reset(settings);
+    }
+  }, [settings, form]);
+
+  // Form submission handler
+  const onSubmit = (data: EventSettingsFormValues) => {
+    updateSettingsMutation.mutate(data);
   };
-  
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load event settings: {(error as Error).message}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full max-w-2xl">
-            <TabsTrigger value="basicInfo">
-              Basic Information
-            </TabsTrigger>
-            <TabsTrigger value="guestManagement">
-              Guest Management
-            </TabsTrigger>
-            <TabsTrigger value="communications">
-              Communications
-            </TabsTrigger>
-          </TabsList>
-          
-          {/* Basic Information Tab */}
-          <TabsContent value="basicInfo">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="basicInfo.title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Wedding Title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="basicInfo.brideName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bride's Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Bride's Name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="basicInfo.groomName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Groom's Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Groom's Name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="basicInfo.coupleNames"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Couple Names (for display)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Couple Names" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="basicInfo.startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="basicInfo.endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="basicInfo.location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Wedding Location" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="basicInfo.description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe your wedding event..." 
-                          className="min-h-24" 
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Guest Management Tab */}
-          <TabsContent value="guestManagement">
-            <Card>
-              <CardHeader>
-                <CardTitle>Guest Management</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="guestManagement.allowPlusOnes"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Allow Plus Ones
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          Guests can bring a partner to the wedding
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="guestManagement.allowChildrenDetails"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Allow Children Details
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          Collect information about guests' children
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="guestManagement.rsvpDeadline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>RSVP Deadline</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Communications Tab */}
-          <TabsContent value="communications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Communications</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="communications.emailFrom"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email From</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="name@example.com" 
-                          type="email"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="communications.emailReplyTo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Reply-To Email (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="replyto@example.com" 
-                          type="email"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="communications.sendRsvpReminders"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Send RSVP Reminders
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          Send reminder emails for RSVP completion
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="communications.sendRsvpConfirmations"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Send RSVP Confirmations
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          Send confirmation emails after RSVP submission
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="communications.enableWhatsapp"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Enable WhatsApp
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          Use WhatsApp for guest communications
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {form.watch("communications.enableWhatsapp") && (
-                  <FormField
-                    control={form.control}
-                    name="communications.whatsappBusinessNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>WhatsApp Business Number</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="+1234567890" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="flex justify-end">
-          <Button type="submit">Save Settings</Button>
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Event Settings</CardTitle>
+            <CardDescription>
+              Configure communication and RSVP preferences for your event
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="ml-2">
+            Event ID: {eventId}
+          </Badge>
         </div>
-      </form>
-    </Form>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Email Settings</h3>
+              
+              <FormField
+                control={form.control}
+                name="emailBanner"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Banner URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/banner.jpg" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      URL to the image that will appear at the top of emails
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="emailSignature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Signature</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Best Regards,&#10;The Wedding Team" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Signature that will appear at the bottom of all emails
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sendReminderEmails"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Send Reminder Emails</FormLabel>
+                        <FormDescription>
+                          Automatically send reminder emails before the event
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="reminderDaysBeforeEvent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Days Before Event</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value}
+                          disabled={!form.watch("sendReminderEmails")} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        How many days before the event to send reminders
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="customWelcomeMessage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Welcome Message</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="We're excited to celebrate with you!" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Custom message shown to guests when they first visit the RSVP page
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">WhatsApp Integration</h3>
+              
+              <FormField
+                control={form.control}
+                name="whatsappEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Enable WhatsApp Notifications</FormLabel>
+                      <FormDescription>
+                        Send RSVP confirmations and reminders via WhatsApp
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="whatsappApiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>WhatsApp API Key</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Enter your WhatsApp Business API key" 
+                        {...field} 
+                        disabled={!form.watch("whatsappEnabled")} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      API key from WhatsApp Business API provider
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">RSVP Form Settings</h3>
+              
+              <FormField
+                control={form.control}
+                name="collectDietaryRestrictions"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Collect Dietary Restrictions</FormLabel>
+                      <FormDescription>
+                        Ask guests about dietary restrictions during RSVP
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="collectAccommodationPreferences"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Collect Accommodation Preferences</FormLabel>
+                      <FormDescription>
+                        Ask guests about accommodation needs during RSVP
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="collectTransportationNeeds"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Collect Transportation Needs</FormLabel>
+                      <FormDescription>
+                        Ask guests about transportation needs during RSVP
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={updateSettingsMutation.isPending}
+            >
+              {updateSettingsMutation.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+              ) : (
+                <><Save className="mr-2 h-4 w-4" /> Save Settings</>
+              )}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter className="bg-muted/50 flex flex-col items-start text-sm text-muted-foreground">
+        <p>
+          This form demonstrates centralized validation schemas, conditional field validation,
+          and integration with the notification system.
+        </p>
+      </CardFooter>
+    </Card>
   );
 }

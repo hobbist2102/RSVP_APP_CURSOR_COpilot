@@ -2,72 +2,114 @@
  * Example component showcasing the standardized API utilities
  * This demonstrates patterns for API interaction in a component
  */
-import React, { useState } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { Loader2, Send, Plus, RefreshCw, Trash } from "lucide-react";
-import { useEventManagement } from "@/hooks/use-api-example";
+import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
-// Event form schema using Zod
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { post, apiRequest } from "@/lib/api-utils";
+import { useNotification } from "@/lib/notification-utils";
+
+// Example validation schema for an event form
 const eventFormSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  coupleNames: z.string().min(1, "Couple names are required"),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  coupleNames: z.string().min(3, "Couple names must be at least 3 characters"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  location: z.string().min(1, "Location is required"),
+  location: z.string().min(3, "Location must be at least 3 characters"),
   description: z.string().optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
 export default function ApiExample() {
-  const [selectedEventId, setSelectedEventId] = useState<number | undefined>(undefined);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [testEmailAddress, setTestEmailAddress] = useState("");
+  const [selectedEvent, setSelectedEvent] = React.useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const notification = useNotification();
+  
+  // Example of using standardized query with proper loading states
+  const { data: events, isLoading, error } = useQuery({
+    queryKey: ["/api/events"],
+    queryFn: () => fetch("/api/events").then(res => res.json()),
+  });
+  
+  // Example mutation for creating a new event
+  const createEventMutation = useMutation({
+    mutationFn: async (data: EventFormValues) => {
+      const response = await post("/api/events", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      notification.success({
+        title: "Event Created",
+        description: "The event was created successfully."
+      });
+    },
+    onError: (error: any) => {
+      notification.error({
+        title: "Failed to Create Event",
+        description: error.message || "An error occurred while creating the event."
+      });
+    }
+  });
 
-  // Use our custom hook that leverages the API utilities
-  const {
-    events,
-    isLoadingEvents,
-    event,
-    isLoadingEvent,
-    createEvent,
-    isCreatingEvent,
-    updateEvent,
-    isUpdatingEvent,
-    deleteEvent,
-    isDeletingEvent,
-    sendTestEmail,
-    isSendingTestEmail
-  } = useEventManagement(selectedEventId);
-
-  // Form for creating a new event
+  // Example mutation for updating an existing event
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: EventFormValues }) => {
+      const response = await apiRequest({
+        url: `/api/events/${id}`,
+        method: "PUT",
+        data
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      notification.success({
+        title: "Event Updated",
+        description: "The event was updated successfully."
+      });
+    },
+    onError: (error: any) => {
+      notification.error({
+        title: "Failed to Update Event",
+        description: error.message || "An error occurred while updating the event."
+      });
+    }
+  });
+  
+  // Create form setup with validation
   const createForm = useForm<EventFormValues>({
+    resolver: zodResolver(eventFormSchema),
+    defaultValues: {
+      title: "",
+      coupleNames: "",
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      location: "",
+      description: "",
+    },
+  });
+  
+  // Edit form setup with validation
+  const editForm = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       title: "",
@@ -75,408 +117,81 @@ export default function ApiExample() {
       startDate: "",
       endDate: "",
       location: "",
-      description: ""
-    }
+      description: "",
+    },
   });
-
-  // Form for editing an event
-  const editForm = useForm<EventFormValues>({
-    resolver: zodResolver(eventFormSchema),
-    defaultValues: {
-      title: event?.title || "",
-      coupleNames: event?.coupleNames || "",
-      startDate: event?.startDate || "",
-      endDate: event?.endDate || "",
-      location: event?.location || "",
-      description: event?.description || ""
-    }
-  });
-
-  // Update edit form when selected event changes
+  
+  // Set edit form values when an event is selected
   React.useEffect(() => {
-    if (event) {
-      editForm.reset({
-        title: event.title,
-        coupleNames: event.coupleNames,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        location: event.location,
-        description: event.description || ""
-      });
-    }
-  }, [event, editForm]);
-
-  // Handle create event form submission
-  const onCreateSubmit = (data: EventFormValues) => {
-    createEvent(data, {
-      onSuccess: () => {
-        setIsCreateDialogOpen(false);
-        createForm.reset();
+    if (selectedEvent && events) {
+      const event = events.find((e: any) => e.id === selectedEvent);
+      if (event) {
+        editForm.reset({
+          title: event.title,
+          coupleNames: event.coupleNames,
+          startDate: event.startDate.split("T")[0],
+          endDate: event.endDate.split("T")[0],
+          location: event.location,
+          description: event.description || "",
+        });
       }
-    });
+    }
+  }, [selectedEvent, events, editForm]);
+  
+  const onCreateSubmit = (data: EventFormValues) => {
+    createEventMutation.mutate(data);
+    createForm.reset();
   };
-
-  // Handle edit event form submission
+  
   const onEditSubmit = (data: EventFormValues) => {
-    if (selectedEventId) {
-      updateEvent({
-        id: selectedEventId,
-        data
-      }, {
-        onSuccess: () => {
-          setIsEditDialogOpen(false);
-        }
-      });
+    if (selectedEvent) {
+      updateEventMutation.mutate({ id: selectedEvent, data });
     }
   };
-
-  // Handle delete event
-  const onDeleteConfirm = () => {
-    if (selectedEventId) {
-      deleteEvent(selectedEventId, {
-        onSuccess: () => {
-          setIsDeleteDialogOpen(false);
-          setSelectedEventId(undefined);
-        }
-      });
-    }
-  };
-
-  // Handle send test email
-  const onSendTestEmail = () => {
-    if (selectedEventId && testEmailAddress) {
-      sendTestEmail({
-        eventId: selectedEventId,
-        email: testEmailAddress
-      });
-    }
-  };
-
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-700">
+        Error loading events: {(error as Error).message}
+      </div>
+    );
+  }
+  
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Event Management API Example</CardTitle>
-          <CardDescription>
-            This example demonstrates the standardized API utilities in action
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Events</h3>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create Event
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Event</DialogTitle>
-                    <DialogDescription>
-                      Fill in the details to create a new wedding event
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
-                      <FormField
-                        control={createForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Event Title</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Wedding Event Title" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={createForm.control}
-                        name="coupleNames"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Couple Names</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="John & Jane" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="startDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Start Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={createForm.control}
-                          name="endDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <FormField
-                        control={createForm.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Event Location" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={createForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} placeholder="Event Description" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsCreateDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={isCreatingEvent}>
-                          {isCreatingEvent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Create Event
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            
-            {isLoadingEvents ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : events && events.length > 0 ? (
-              <div className="divide-y">
-                {events.map((event) => (
-                  <div 
-                    key={event.id} 
-                    className={`py-4 px-2 cursor-pointer hover:bg-muted/50 transition-colors rounded ${
-                      selectedEventId === event.id ? 'bg-muted' : ''
-                    }`}
-                    onClick={() => setSelectedEventId(event.id)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground">{event.coupleNames}</p>
-                        <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                          <span>{event.startDate} to {event.endDate}</span>
-                          <span>•</span>
-                          <span>{event.location}</span>
-                        </div>
-                      </div>
-                      {selectedEventId === event.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                No events found. Create your first event to get started.
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <Tabs defaultValue="create" className="space-y-6">
+      <TabsList className="grid grid-cols-2">
+        <TabsTrigger value="create">Create Event</TabsTrigger>
+        <TabsTrigger value="edit">Edit Event</TabsTrigger>
+      </TabsList>
       
-      {selectedEventId && (
+      <TabsContent value="create" className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Selected Event Details</CardTitle>
-            <CardDescription>Manage the selected event</CardDescription>
+            <CardTitle>Create New Event</CardTitle>
+            <CardDescription>
+              Example form using standardized API utilities and form validation.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoadingEvent ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : event ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">Title</Label>
-                    <p className="font-medium">{event.title}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Couple</Label>
-                    <p className="font-medium">{event.coupleNames}</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">Start Date</Label>
-                    <p className="font-medium">{event.startDate}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs">End Date</Label>
-                    <p className="font-medium">{event.endDate}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label className="text-xs">Location</Label>
-                  <p className="font-medium">{event.location}</p>
-                </div>
-                
-                {event.description && (
-                  <div>
-                    <Label className="text-xs">Description</Label>
-                    <p className="text-sm">{event.description}</p>
-                  </div>
-                )}
-                
-                <div className="border-t pt-4 mt-6">
-                  <h4 className="font-medium mb-3">Send Test Email</h4>
-                  <div className="flex gap-3">
-                    <Input
-                      type="email"
-                      placeholder="Email address"
-                      value={testEmailAddress}
-                      onChange={(e) => setTestEmailAddress(e.target.value)}
-                    />
-                    <Button 
-                      disabled={!testEmailAddress || isSendingTestEmail}
-                      onClick={onSendTestEmail}
-                      className="flex gap-2 items-center whitespace-nowrap"
-                    >
-                      {isSendingTestEmail ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                Event details not available.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Event</DialogTitle>
-            <DialogDescription>
-              Update the details of the selected event
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Title</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={editForm.control}
-                name="coupleNames"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Couple Names</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-2 gap-4">
+          <Separator />
+          <CardContent className="pt-6">
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
                 <FormField
-                  control={editForm.control}
-                  name="startDate"
+                  control={createForm.control}
+                  name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel>Event Title</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input placeholder="Enter event title" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -484,95 +199,244 @@ export default function ApiExample() {
                 />
                 
                 <FormField
-                  control={editForm.control}
-                  name="endDate"
+                  control={createForm.control}
+                  name="coupleNames"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Date</FormLabel>
+                      <FormLabel>Couple Names</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input placeholder="Enter couple names" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-              
-              <FormField
-                control={editForm.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={editForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={createForm.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={createForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter event location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={createForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter event description" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
                 <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditDialogOpen(false)}
+                  type="submit" 
+                  className="w-full"
+                  disabled={createEventMutation.isPending}
                 >
-                  Cancel
+                  {createEventMutation.isPending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
+                  ) : (
+                    "Create Event"
+                  )}
                 </Button>
-                <Button type="submit" disabled={isUpdatingEvent}>
-                  {isUpdatingEvent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="bg-muted/50 flex flex-col items-start text-sm text-muted-foreground">
+            <p>
+              This form uses the standardized API utilities for making requests and handling responses,
+              with consistent loading states and error handling.
+            </p>
+          </CardFooter>
+        </Card>
+      </TabsContent>
       
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this event? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={onDeleteConfirm} 
-              disabled={isDeletingEvent}
-            >
-              {isDeletingEvent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Delete Event
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <TabsContent value="edit" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Existing Event</CardTitle>
+            <CardDescription>
+              Select an event to edit using the standardized API utilities.
+            </CardDescription>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">Select Event to Edit</label>
+                <select
+                  className="w-full p-2 border rounded-md"
+                  value={selectedEvent || ""}
+                  onChange={(e) => setSelectedEvent(Number(e.target.value) || null)}
+                >
+                  <option value="">-- Select an event --</option>
+                  {events && events.map((event: any) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title} ({event.coupleNames})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedEvent ? (
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                    <FormField
+                      control={editForm.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter event title" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="coupleNames"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Couple Names</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter couple names" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editForm.control}
+                        name="endDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Date</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Location</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter event location" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Enter event description" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                      disabled={updateEventMutation.isPending}
+                    >
+                      {updateEventMutation.isPending ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</>
+                      ) : (
+                        "Update Event"
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              ) : (
+                <div className="p-4 border rounded-md bg-muted">
+                  <p className="text-center text-muted-foreground">Select an event to edit</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="bg-muted/50 flex flex-col items-start text-sm text-muted-foreground">
+            <p>
+              This example demonstrates how to update an existing resource using standardized API utilities,
+              with proper loading states, error handling, and cache invalidation.
+            </p>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
