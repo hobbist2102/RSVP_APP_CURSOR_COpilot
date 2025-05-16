@@ -388,6 +388,8 @@ export function RoomAllocationList({
         onOpenChange={handleAssignDialogClose}
         accommodationId={accommodationId}
         accommodationName={accommodationName}
+        maxOccupancy={maxOccupancy}
+        bedType={bedType}
         existingAllocation={selectedAllocation}
         onSuccess={() => {
           // This will be called after successful assignment or update
