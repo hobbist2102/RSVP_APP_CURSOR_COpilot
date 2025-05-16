@@ -1,6 +1,25 @@
 import * as XLSX from "xlsx";
 
 /**
+ * Format hotel assignments for Excel export
+ * @param accommodations List of accommodations with guest assignments
+ * @returns Formatted data for Excel export
+ */
+export function formatHotelAssignmentsForExport(hotelData: any[]) {
+  return hotelData.map(assignment => ({
+    'Guest Name': `${assignment.guest.firstName} ${assignment.guest.lastName}`,
+    'Email': assignment.guest.email || '',
+    'RSVP Status': assignment.guest.rsvpStatus || 'Pending',
+    'Hotel': assignment.hotel.name,
+    'Room Type': assignment.accommodation.name,
+    'Room Features': assignment.accommodation.specialFeatures || '',
+    'Check-in Date': assignment.checkInDate || '',
+    'Check-out Date': assignment.checkOutDate || '',
+    'Special Requests': assignment.specialRequests || ''
+  }));
+}
+
+/**
  * Exports data to an Excel file
  * @param data Array of objects to export
  * @param filename Filename for the exported file

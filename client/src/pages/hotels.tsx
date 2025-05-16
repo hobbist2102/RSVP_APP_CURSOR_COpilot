@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Building, Hotel, BedDouble, Users, UserPlus } from "lucide-react";
+import { Plus, Edit, Trash2, Building, Hotel, BedDouble, Users, UserPlus, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { RoomAllocationList } from "@/components/room/room-allocation-list";
+import { exportToExcel, formatHotelAssignmentsForExport } from "@/lib/xlsx-utils";
 
 // Define schemas
 const hotelSchema = z.object({
@@ -102,7 +103,7 @@ const HotelsPage: React.FC = () => {
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [showPricing, setShowPricing] = useState(false);
-  
+
   // Fetch hotels for current event
   const {
     data: hotels = [],
@@ -120,7 +121,7 @@ const HotelsPage: React.FC = () => {
     },
     enabled: !!currentEvent
   });
-  
+
   // Create hotel form
   const hotelForm = useForm<z.infer<typeof hotelSchema>>({
     resolver: zodResolver(hotelSchema),
@@ -138,7 +139,7 @@ const HotelsPage: React.FC = () => {
       bookingInstructions: "",
     }
   });
-  
+
   // Fetch global room types for the selected hotel
   const {
     data: hotelGlobalRoomTypes = [],
@@ -155,7 +156,7 @@ const HotelsPage: React.FC = () => {
     },
     enabled: !!selectedHotel
   });
-  
+
   // Create accommodation form
   const accommodationForm = useForm<z.infer<typeof accommodationSchema>>({
     resolver: zodResolver(accommodationSchema),
@@ -172,7 +173,7 @@ const HotelsPage: React.FC = () => {
       createGlobalType: false
     }
   });
-  
+
   // Reset forms when selection changes
   React.useEffect(() => {
     if (selectedHotel) {
@@ -205,13 +206,13 @@ const HotelsPage: React.FC = () => {
       });
     }
   }, [selectedHotel, hotelForm]);
-  
+
   React.useEffect(() => {
     if (selectedHotel) {
       accommodationForm.setValue("hotelId", selectedHotel.id);
     }
   }, [selectedHotel, accommodationForm]);
-  
+
   // Fetch accommodations for selected hotel
   const {
     data: accommodations = [],
@@ -229,7 +230,7 @@ const HotelsPage: React.FC = () => {
     },
     enabled: !!currentEvent && !!selectedHotel
   });
-  
+
   // Create hotel mutation
   const createHotelMutation = useMutation({
     mutationFn: async (hotelData: z.infer<typeof hotelSchema>) => {
@@ -244,12 +245,12 @@ const HotelsPage: React.FC = () => {
           eventId: currentEvent.id,
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create hotel');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -268,7 +269,7 @@ const HotelsPage: React.FC = () => {
       });
     }
   });
-  
+
   // Update hotel mutation
   const updateHotelMutation = useMutation({
     mutationFn: async (hotelData: z.infer<typeof hotelSchema>) => {
@@ -280,12 +281,12 @@ const HotelsPage: React.FC = () => {
         },
         body: JSON.stringify(hotelData),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update hotel');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -304,19 +305,19 @@ const HotelsPage: React.FC = () => {
       });
     }
   });
-  
+
   // Delete hotel mutation
   const deleteHotelMutation = useMutation({
     mutationFn: async (hotelId: number) => {
       const response = await fetch(`/api/hotels/${hotelId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete hotel');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -335,7 +336,7 @@ const HotelsPage: React.FC = () => {
       });
     }
   });
-  
+
   // Create accommodation mutation
   const createAccommodationMutation = useMutation({
     mutationFn: async (data: z.infer<typeof accommodationSchema>) => {
@@ -350,12 +351,12 @@ const HotelsPage: React.FC = () => {
           eventId: currentEvent.id,
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create accommodation');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -375,7 +376,7 @@ const HotelsPage: React.FC = () => {
       });
     }
   });
-  
+
   // Update accommodation mutation
   const updateAccommodationMutation = useMutation({
     mutationFn: async (data: z.infer<typeof accommodationSchema>) => {
@@ -387,12 +388,12 @@ const HotelsPage: React.FC = () => {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update accommodation');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -412,7 +413,7 @@ const HotelsPage: React.FC = () => {
       });
     }
   });
-  
+
   // Hotel form submit handler
   const onHotelSubmit = (data: z.infer<typeof hotelSchema>) => {
     if (selectedHotel) {
@@ -421,7 +422,7 @@ const HotelsPage: React.FC = () => {
       createHotelMutation.mutate(data);
     }
   };
-  
+
   // Create global room type mutation
   const createGlobalRoomTypeMutation = useMutation({
     mutationFn: async (data: {
@@ -438,12 +439,12 @@ const HotelsPage: React.FC = () => {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create global room type');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -472,7 +473,7 @@ const HotelsPage: React.FC = () => {
       } else {
         // Handle global room type creation if requested
         let globalRoomTypeId = data.globalRoomTypeId;
-        
+
         if (data.createGlobalType && selectedHotel) {
           // Create global room type first
           const globalRoomType = await createGlobalRoomTypeMutation.mutateAsync({
@@ -482,16 +483,16 @@ const HotelsPage: React.FC = () => {
             capacity: data.capacity,
             specialFeatures: data.specialFeatures
           });
-          
+
           // Use the ID of the newly created global room type
           globalRoomTypeId = globalRoomType.id;
-          
+
           toast({
             title: "Success",
             description: "Room type added to global room types library",
           });
         }
-        
+
         // Create accommodation with global room type reference if applicable
         createAccommodationMutation.mutate({
           ...data,
@@ -508,20 +509,56 @@ const HotelsPage: React.FC = () => {
     }
   };
 
+  const handleExportToExcel = async () => {
+    if (!currentEvent) {
+      toast({
+        title: "Error",
+        description: "No event selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formattedData = await formatHotelAssignmentsForExport(currentEvent.id);
+      exportToExcel(formattedData, `hotel-assignments-${currentEvent.name}.xlsx`);
+      toast({
+        title: "Success",
+        description: "Hotel assignments exported to Excel.",
+      });
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to export hotel assignments.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Hotels & Accommodation</h1>
-          <Button onClick={() => {
-            setSelectedHotel(null);
-            setIsAddingHotel(true);
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Hotel
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleExportToExcel}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Export to Excel
+            </Button>
+            <Button onClick={() => {
+              setSelectedHotel(null);
+              setIsAddingHotel(true);
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Hotel
+            </Button>
+          </div>
         </div>
-        
+
         {hotelsLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-border" />
@@ -579,7 +616,7 @@ const HotelsPage: React.FC = () => {
             ))}
           </div>
         )}
-        
+
         {/* Hotel detail/edit view */}
         {selectedHotel && (
           <div className="mt-10">
@@ -598,13 +635,13 @@ const HotelsPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
+
             <Tabs defaultValue="rooms" className="w-full">
               <TabsList>
                 <TabsTrigger value="rooms">Room Types</TabsTrigger>
                 <TabsTrigger value="details">Hotel Details</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="rooms" className="py-4">
                 {accommodationsLoading ? (
                   <div className="flex items-center justify-center h-32">
@@ -687,7 +724,7 @@ const HotelsPage: React.FC = () => {
                                 </Badge>
                               )}
                             </div>
-                            
+
                             <div className="flex justify-end">
                               <Button
                                 size="sm"
@@ -707,7 +744,7 @@ const HotelsPage: React.FC = () => {
                         </Card>
                       ))}
                     </div>
-                    
+
                     {/* Show room assignments for selected accommodation */}
                     {selectedAccommodation && (
                       <div className="mt-8 border rounded-lg p-6">
@@ -722,7 +759,7 @@ const HotelsPage: React.FC = () => {
                             Back to Room Types
                           </Button>
                         </div>
-                        
+
                         <RoomAllocationList
                           accommodationId={selectedAccommodation.id}
                           accommodationName={selectedAccommodation.name}
@@ -733,7 +770,7 @@ const HotelsPage: React.FC = () => {
                         />
                       </div>
                     )}
-                    
+
                     {!selectedAccommodation && (
                       <div className="text-center border rounded-lg p-8 bg-muted/20">
                         <UserPlus className="h-12 w-12 mx-auto text-muted-foreground" />
@@ -745,7 +782,7 @@ const HotelsPage: React.FC = () => {
                     )}
                   </>
                 )}
-              
+
                 {/* Display available global room types */}
                 {!selectedAccommodation && hotelGlobalRoomTypes.length > 0 && (
                   <>
@@ -767,7 +804,7 @@ const HotelsPage: React.FC = () => {
                             accommodationForm.setValue("capacity", roomType.capacity);
                             accommodationForm.setValue("specialFeatures", roomType.specialFeatures || "");
                             accommodationForm.setValue("globalRoomTypeId", roomType.id);
-                            
+
                             toast({
                               title: "Global Room Type Selected",
                               description: "Form populated with global room type data.",
@@ -793,7 +830,7 @@ const HotelsPage: React.FC = () => {
                   </>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="details" className="py-4">
                 <Form {...hotelForm}>
                   <form onSubmit={hotelForm.handleSubmit(onHotelSubmit)} className="space-y-6">
@@ -811,7 +848,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="address"
@@ -825,7 +862,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="phone"
@@ -839,7 +876,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="website"
@@ -853,7 +890,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="priceRange"
@@ -867,7 +904,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="distanceFromVenue"
@@ -881,7 +918,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="amenities"
@@ -895,7 +932,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="description"
@@ -913,7 +950,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="specialNotes"
@@ -931,7 +968,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="bookingInstructions"
@@ -949,7 +986,7 @@ const HotelsPage: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={hotelForm.control}
                         name="isDefault"
@@ -971,7 +1008,7 @@ const HotelsPage: React.FC = () => {
                         )}
                       />
                     </div>
-                    
+
                     <div className="flex justify-end gap-2">
                       <Button 
                         type="button" 
@@ -996,7 +1033,7 @@ const HotelsPage: React.FC = () => {
             </Tabs>
           </div>
         )}
-        
+
         {/* Hotel creation dialog */}
         <Dialog open={isAddingHotel && !selectedHotel} onOpenChange={setIsAddingHotel}>
           <DialogContent className="max-w-2xl">
@@ -1006,7 +1043,7 @@ const HotelsPage: React.FC = () => {
                 Add a new hotel for guest accommodations
               </DialogDescription>
             </DialogHeader>
-            
+
             <Form {...hotelForm}>
               <form onSubmit={hotelForm.handleSubmit(onHotelSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1023,7 +1060,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={hotelForm.control}
                     name="address"
@@ -1037,7 +1074,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={hotelForm.control}
                     name="phone"
@@ -1051,7 +1088,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={hotelForm.control}
                     name="website"
@@ -1065,7 +1102,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={hotelForm.control}
                     name="isDefault"
@@ -1087,7 +1124,7 @@ const HotelsPage: React.FC = () => {
                     )}
                   />
                 </div>
-                
+
                 <div className="flex justify-end gap-2">
                   <Button 
                     type="button" 
@@ -1110,7 +1147,7 @@ const HotelsPage: React.FC = () => {
             </Form>
           </DialogContent>
         </Dialog>
-        
+
         {/* Room type creation/edit dialog */}
         <Dialog open={isAddingRoom} onOpenChange={(open) => {
           setIsAddingRoom(open);
@@ -1142,7 +1179,7 @@ const HotelsPage: React.FC = () => {
                 }
               </DialogDescription>
             </DialogHeader>
-            
+
             <Form {...accommodationForm}>
               <form onSubmit={accommodationForm.handleSubmit(onAccommodationSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1159,7 +1196,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={accommodationForm.control}
                     name="roomType"
@@ -1173,7 +1210,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={accommodationForm.control}
                     name="capacity"
@@ -1192,7 +1229,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={accommodationForm.control}
                     name="totalRooms"
@@ -1211,7 +1248,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={accommodationForm.control}
                     name="showPricing"
@@ -1235,7 +1272,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   {(showPricing || accommodationForm.watch("showPricing")) && (
                     <FormField
                       control={accommodationForm.control}
@@ -1251,7 +1288,7 @@ const HotelsPage: React.FC = () => {
                       )}
                     />
                   )}
-                  
+
                   <FormField
                     control={accommodationForm.control}
                     name="specialFeatures"
@@ -1269,7 +1306,7 @@ const HotelsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   {!selectedAccommodation && (
                     <FormField
                       control={accommodationForm.control}
@@ -1293,7 +1330,7 @@ const HotelsPage: React.FC = () => {
                     />
                   )}
                 </div>
-                
+
                 <div className="flex justify-end gap-2">
                   <Button 
                     type="button" 
