@@ -323,18 +323,60 @@ export default function CommunicationStep({
     }
   };
   
+  // Save template mutation
+  const saveTemplateMutation = useMutation({
+    mutationFn: async (templateData: EmailTemplate) => {
+      // If template has an ID, update it, otherwise create new one
+      const method = templateData.id ? 'PATCH' : 'POST';
+      const url = templateData.id 
+        ? `/api/events/${eventId}/email-templates/${templateData.id}`
+        : `/api/events/${eventId}/email-templates`;
+        
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...templateData,
+          eventId: Number(eventId)
+        }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to save template');
+      }
+      
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/email-templates`] });
+      setEditingTemplate(null);
+      toast({
+        title: "Template saved",
+        description: "Your template has been saved successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save template",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Save template handler
   const handleSaveTemplate = () => {
     const templateData = templateForm.getValues();
-    console.log("Saving template:", templateData);
     
-    // In a real implementation, we would save this to the database
-    // For now, just close the dialog and show a success message
-    setEditingTemplate(null);
-    toast({
-      title: "Template saved",
-      description: "Your template has been saved successfully.",
-    });
+    // If we're editing an existing template, preserve its ID
+    if (editingTemplate?.id) {
+      templateData.id = editingTemplate.id;
+    }
+    
+    saveTemplateMutation.mutate(templateData as EmailTemplate);
   };
   
   // Handle form submission
@@ -496,6 +538,15 @@ export default function CommunicationStep({
               {isLoadingTemplates ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : templatesError ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertCircle className="h-10 w-10 mx-auto mb-2 text-orange-500" />
+                  <p className="mb-1">Unable to load email templates</p>
+                  <p className="text-sm mb-4">There was an issue loading your templates. Please try refreshing the page.</p>
+                  <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                    Refresh Page
+                  </Button>
                 </div>
               ) : !emailTemplates || emailTemplates.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
