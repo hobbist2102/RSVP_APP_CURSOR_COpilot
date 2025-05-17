@@ -379,6 +379,53 @@ export default function CommunicationStep({
     saveTemplateMutation.mutate(templateData as EmailTemplate);
   };
   
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: number) => {
+      const res = await fetch(`/api/events/${eventId}/email-templates/${templateId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to delete template');
+      }
+      
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/email-templates`] });
+      toast({
+        title: "Template deleted",
+        description: "Your template has been deleted successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete template",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle template deletion
+  const handleDeleteTemplate = (template: EmailTemplate) => {
+    if (!template.id) {
+      toast({
+        title: "Cannot delete template",
+        description: "This template hasn't been saved yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Show confirmation dialog here
+    if (confirm("Are you sure you want to delete this template?")) {
+      deleteTemplateMutation.mutate(template.id);
+    }
+  };
+  
   // Handle form submission
   const handleComplete = () => {
     // In a real implementation, we would include the actual saved templates
