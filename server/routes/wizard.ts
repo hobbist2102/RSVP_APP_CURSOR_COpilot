@@ -20,21 +20,57 @@ router.get('/:eventId/progress', isAuthenticated, async (req: Request, res: Resp
       return res.status(404).json({ error: 'Event not found' });
     }
     
-    // Get all step progress data
-    const progressData = await db.select().from(eventSetupProgress)
+    // Get progress data
+    const [progressData] = await db.select().from(eventSetupProgress)
       .where(eq(eventSetupProgress.eventId, eventId));
     
-    // Transform into a structured response
-    const steps = progressData.map(step => ({
-      stepId: step.stepId,
-      isCompleted: step.isCompleted,
-      lastUpdated: step.updatedAt,
-      stepData: step.stepData,
-    }));
+    if (!progressData) {
+      // Create default progress entry if none exists
+      const newProgress = {
+        eventId,
+        currentStep: 'basic_info',
+        basicInfoComplete: false,
+        venuesComplete: false,
+        rsvpComplete: false,
+        accommodationComplete: false,
+        transportComplete: false,
+        communicationComplete: false,
+        stylingComplete: false,
+        updatedAt: new Date(),
+      };
+      
+      await db.insert(eventSetupProgress).values(newProgress);
+      
+      return res.status(200).json({ 
+        eventId,
+        currentStep: 'basic_info',
+        steps: {
+          basic_info: { isCompleted: false },
+          venues: { isCompleted: false },
+          rsvp_config: { isCompleted: false },
+          hotels: { isCompleted: false },
+          transport: { isCompleted: false },
+          communication: { isCompleted: false },
+          ai_assistant: { isCompleted: false },
+          design: { isCompleted: false }
+        }
+      });
+    }
     
+    // Transform into a structured response
     return res.status(200).json({ 
       eventId, 
-      steps 
+      currentStep: progressData.currentStep || 'basic_info',
+      steps: {
+        basic_info: { isCompleted: !!progressData.basicInfoComplete },
+        venues: { isCompleted: !!progressData.venuesComplete },
+        rsvp_config: { isCompleted: !!progressData.rsvpComplete },
+        hotels: { isCompleted: !!progressData.accommodationComplete },
+        transport: { isCompleted: !!progressData.transportComplete },
+        communication: { isCompleted: !!progressData.communicationComplete },
+        ai_assistant: { isCompleted: false }, // Not in the original schema, defaulting to false
+        design: { isCompleted: !!progressData.stylingComplete }
+      }
     });
   } catch (error) {
     console.error('Error fetching setup progress:', error);
@@ -56,24 +92,51 @@ router.get('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res:
       return res.status(404).json({ error: 'Event not found' });
     }
     
-    // Get specific step progress data
-    const [stepData] = await db.select().from(eventSetupProgress)
-      .where(
-        and(
-          eq(eventSetupProgress.eventId, eventId),
-          eq(eventSetupProgress.stepId, stepId)
-        )
-      );
+    // Get progress data
+    const [progressData] = await db.select().from(eventSetupProgress)
+      .where(eq(eventSetupProgress.eventId, eventId));
     
-    if (!stepData) {
-      return res.status(404).json({ error: 'Step data not found' });
+    if (!progressData) {
+      return res.status(404).json({ error: 'Progress data not found' });
     }
     
+    let isCompleted = false;
+    
+    // Map stepId to the corresponding field in the database
+    switch (stepId) {
+      case 'basic_info':
+        isCompleted = !!progressData.basicInfoComplete;
+        break;
+      case 'venues':
+        isCompleted = !!progressData.venuesComplete;
+        break;
+      case 'rsvp_config':
+        isCompleted = !!progressData.rsvpComplete;
+        break;
+      case 'hotels':
+        isCompleted = !!progressData.accommodationComplete;
+        break;
+      case 'transport':
+        isCompleted = !!progressData.transportComplete;
+        break;
+      case 'communication':
+        isCompleted = !!progressData.communicationComplete;
+        break;
+      case 'ai_assistant':
+        isCompleted = false; // Not in original schema
+        break;
+      case 'design':
+        isCompleted = !!progressData.stylingComplete;
+        break;
+      default:
+        return res.status(404).json({ error: 'Invalid step ID' });
+    }
+    
+    // For now, we don't store step-specific data, just completion status
     return res.status(200).json({
-      stepId: stepData.stepId,
-      isCompleted: stepData.isCompleted,
-      lastUpdated: stepData.updatedAt,
-      stepData: stepData.stepData,
+      stepId,
+      isCompleted,
+      lastUpdated: progressData.updatedAt
     });
   } catch (error) {
     console.error('Error fetching step data:', error);
@@ -96,40 +159,85 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
       return res.status(404).json({ error: 'Event not found' });
     }
     
-    // Check if step data already exists
-    const existingStepData = await db.select().from(eventSetupProgress)
-      .where(
-        and(
-          eq(eventSetupProgress.eventId, eventId),
-          eq(eventSetupProgress.stepId, stepId)
-        )
-      );
+    // Get current progress data
+    const progressData = await db.select().from(eventSetupProgress)
+      .where(eq(eventSetupProgress.eventId, eventId));
     
-    if (existingStepData && existingStepData.length > 0) {
-      // Update existing step data
+    const updateValues: any = {
+      updatedAt: new Date(),
+      currentStep: stepId
+    };
+    
+    // Set the appropriate completion field based on the step ID
+    switch (stepId) {
+      case 'basic_info':
+        updateValues.basicInfoComplete = true;
+        break;
+      case 'venues':
+        updateValues.venuesComplete = true;
+        break;
+      case 'rsvp_config':
+        updateValues.rsvpComplete = true;
+        break;
+      case 'hotels':
+        updateValues.accommodationComplete = true;
+        break;
+      case 'transport':
+        updateValues.transportComplete = true;
+        break;
+      case 'communication':
+        updateValues.communicationComplete = true;
+        break;
+      case 'ai_assistant':
+        // Not in original schema, we'll just update currentStep
+        break;
+      case 'design':
+        updateValues.stylingComplete = true;
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid step ID' });
+    }
+    
+    if (progressData && progressData.length > 0) {
+      // Update existing progress data
       await db.update(eventSetupProgress)
-        .set({
-          stepData,
-          isCompleted: true,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(eventSetupProgress.eventId, eventId),
-            eq(eventSetupProgress.stepId, stepId)
-          )
-        );
+        .set(updateValues)
+        .where(eq(eventSetupProgress.eventId, eventId));
     } else {
-      // Insert new step data
-      await db.insert(eventSetupProgress)
-        .values({
-          eventId,
-          stepId,
-          stepData,
-          isCompleted: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+      // Insert new progress data with all fields defaulting to false except the current step
+      const initialValues = {
+        eventId,
+        currentStep: stepId,
+        basicInfoComplete: stepId === 'basic_info',
+        venuesComplete: stepId === 'venues',
+        rsvpComplete: stepId === 'rsvp_config',
+        accommodationComplete: stepId === 'hotels',
+        transportComplete: stepId === 'transport',
+        communicationComplete: stepId === 'communication',
+        stylingComplete: stepId === 'design',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      await db.insert(eventSetupProgress).values(initialValues);
+    }
+    
+    // Check if all required steps are completed, and if so, mark the setup as complete
+    if (progressData && progressData.length > 0) {
+      const current = progressData[0];
+      if (
+        current.basicInfoComplete && 
+        current.venuesComplete && 
+        current.rsvpComplete && 
+        current.accommodationComplete &&
+        current.transportComplete && 
+        current.communicationComplete && 
+        current.stylingComplete
+      ) {
+        await db.update(eventSetupProgress)
+          .set({ completedAt: new Date() })
+          .where(eq(eventSetupProgress.eventId, eventId));
+      }
     }
     
     return res.status(200).json({
@@ -156,14 +264,47 @@ router.delete('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, r
       return res.status(404).json({ error: 'Event not found' });
     }
     
-    // Delete step data
-    await db.delete(eventSetupProgress)
-      .where(
-        and(
-          eq(eventSetupProgress.eventId, eventId),
-          eq(eventSetupProgress.stepId, stepId)
-        )
-      );
+    const updateValues: any = {
+      updatedAt: new Date()
+    };
+    
+    // Set the appropriate completion field to false based on the step ID
+    switch (stepId) {
+      case 'basic_info':
+        updateValues.basicInfoComplete = false;
+        break;
+      case 'venues':
+        updateValues.venuesComplete = false;
+        break;
+      case 'rsvp_config':
+        updateValues.rsvpComplete = false;
+        break;
+      case 'hotels':
+        updateValues.accommodationComplete = false;
+        break;
+      case 'transport':
+        updateValues.transportComplete = false;
+        break;
+      case 'communication':
+        updateValues.communicationComplete = false;
+        break;
+      case 'ai_assistant':
+        // Not in original schema, we'll just update updatedAt
+        break;
+      case 'design':
+        updateValues.stylingComplete = false;
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid step ID' });
+    }
+    
+    // Reset the completedAt date since at least one step is now incomplete
+    updateValues.completedAt = null;
+    
+    // Update progress data
+    await db.update(eventSetupProgress)
+      .set(updateValues)
+      .where(eq(eventSetupProgress.eventId, eventId));
     
     return res.status(200).json({
       success: true,

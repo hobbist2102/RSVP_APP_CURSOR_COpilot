@@ -638,23 +638,28 @@ export const insertTransportAllocationSchema = createInsertSchema(transportAlloc
   updatedAt: true,
 });
 
-// Event Setup Wizard Progress
+// Event Setup Wizard Progress (matching the actual database structure)
 export const eventSetupProgress = pgTable("event_setup_progress", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull().references(() => weddingEvents.id, { onDelete: 'cascade' }),
-  stepId: text("step_id").notNull(), // e.g., "basic_info", "venues", "rsvp_config"
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  stepData: json("step_data"), // JSON data specific to the step
+  currentStep: text("current_step"),
+  basicInfoComplete: boolean("basic_info_complete").default(false),
+  venuesComplete: boolean("venues_complete").default(false),
+  rsvpComplete: boolean("rsvp_complete").default(false),
+  accommodationComplete: boolean("accommodation_complete").default(false),
+  transportComplete: boolean("transport_complete").default(false),
+  communicationComplete: boolean("communication_complete").default(false),
+  stylingComplete: boolean("styling_complete").default(false),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-// No need for a separate constraint - we'll handle uniqueness in application logic
 
 export const insertEventSetupProgressSchema = createInsertSchema(eventSetupProgress).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  completedAt: true,
 });
 
 export type TransportGroup = typeof transportGroups.$inferSelect;
