@@ -239,16 +239,28 @@ export default function RsvpConfigStep({
           <Card>
             <CardHeader>
               <CardTitle>Transport Settings</CardTitle>
-              <CardDescription>Define how transportation will be handled for your event</CardDescription>
+              <CardDescription>Define if transportation will be provided for your event</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="bg-muted p-4 rounded-md">
-                <h3 className="text-sm font-medium mb-2">Transport Mode: Create Transport Draft</h3>
-                <p className="text-xs text-muted-foreground">
-                  The system will create a draft transportation plan based on guest data.
-                  You will be able to review and adjust this draft before finalizing.
-                </p>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="transport-enabled">Enable Transport Management</Label>
+                  <p className="text-xs text-muted-foreground">Provide transport options for guests (detailed configuration in Transport step)</p>
+                </div>
+                <Switch 
+                  id="transport-enabled" 
+                  checked={rsvpSettings.transportMode === "draft"}
+                  onCheckedChange={(checked) => handleSettingChange('transportMode', checked ? "draft" : "none")}
+                />
               </div>
+              
+              {rsvpSettings.transportMode === "draft" && (
+                <div className="bg-muted/50 p-3 rounded-md mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    You'll be able to configure detailed transport settings in the dedicated Transport step.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -43,7 +43,9 @@ const aiAssistantSchema = z.object({
   welcomeMessage: z.string().min(10, {
     message: "Welcome message must be at least 10 characters.",
   }).default("Hello! I'm your wedding assistant. How can I help you today?"),
-  aiModel: z.string().default("GPT-4"),
+  aiModel: z.string().default("claude-3-7-sonnet-20250219"),
+  apiKey: z.string().optional(),
+  apiProvider: z.enum(["anthropic", "openai", "google"]).default("anthropic"),
   knowledgeBase: z.array(z.string()).default([
     "Guest List",
     "Venue Information",
@@ -80,7 +82,9 @@ export default function AiAssistantStep({
       enableAiAssistant: true,
       chatbotName: "Wedding Assistant",
       welcomeMessage: "Hello! I'm your wedding assistant. How can I help you today?",
-      aiModel: "GPT-4",
+      aiModel: "claude-3-7-sonnet-20250219",
+      apiKey: "",
+      apiProvider: "anthropic",
       knowledgeBase: [
         "Guest List",
         "Venue Information",
@@ -211,7 +215,16 @@ export default function AiAssistantStep({
                         <FormItem>
                           <FormLabel>AI Model</FormLabel>
                           <Select 
-                            onValueChange={field.onChange} 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Update the api provider based on the selected model
+                              const model = AI_MODELS.find(m => m.id === value);
+                              if (model) {
+                                const provider = model.provider.toLowerCase();
+                                form.setValue('apiProvider', provider === 'anthropic' ? 'anthropic' : 
+                                                           provider === 'openai' ? 'openai' : 'google');
+                              }
+                            }} 
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -227,6 +240,29 @@ export default function AiAssistantStep({
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Key</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder={`Enter your ${form.watch('apiProvider')} API key`}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            {form.watch('apiProvider') === 'anthropic' && 'Your Anthropic API key (starts with "sk-ant-")'}
+                            {form.watch('apiProvider') === 'openai' && 'Your OpenAI API key (starts with "sk-")'}
+                            {form.watch('apiProvider') === 'google' && 'Your Google AI API key'}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
