@@ -189,7 +189,7 @@ export default function DesignStep({
                         <div className="h-16 bg-muted rounded-md flex items-center justify-center mb-2">
                           <Palette className="h-6 w-6 text-muted-foreground" />
                         </div>
-                        <p className="text-sm font-medium">{theme}</p>
+                        <p className="text-sm font-medium">{typeof theme === 'object' ? theme.name : 'Theme'}</p>
                       </CardContent>
                     </Card>
                   ))}

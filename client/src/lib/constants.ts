@@ -110,3 +110,13 @@ export const COLOR_THEMES = [
   { name: "Ocean Breeze", primary: "#03A9F4", secondary: "#E1F5FE", accent: "#FF9800" },
   { name: "Sunset Glow", primary: "#FF9800", secondary: "#FFF3E0", accent: "#3F51B5" },
 ];
+
+// AI Model options for the assistant
+export const AI_MODELS = [
+  { id: "claude-3-7-sonnet-20250219", name: "Claude 3.7 Sonnet", provider: "Anthropic" },
+  { id: "claude-3-5-sonnet-20240620", name: "Claude 3.5 Sonnet", provider: "Anthropic" },
+  { id: "claude-3-opus-20240229", name: "Claude 3 Opus", provider: "Anthropic" },
+  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
+  { id: "gpt-4-turbo", name: "GPT-4 Turbo", provider: "OpenAI" },
+  { id: "gemini-pro", name: "Gemini Pro", provider: "Google" },
+];
