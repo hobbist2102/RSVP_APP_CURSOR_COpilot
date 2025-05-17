@@ -519,7 +519,7 @@ export default function Events() {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {new Date(event.startDate) > new Date() 
-                        ? `${getRelativeTimeFromNow(event.startDate)}` 
+                        ? `${formatDateForDisplay(event.startDate)} (${formatForDateInput(event.startDate)})` 
                         : "Event has passed"}
                     </div>
                   </div>

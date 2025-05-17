@@ -1,12 +1,101 @@
 import React, { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { WeddingEvent } from "@shared/schema";
-import { Check, Mail, MessageSquare, Edit } from "lucide-react";
+import { 
+  Check, 
+  Mail, 
+  MessageSquare, 
+  Edit, 
+  Plus, 
+  Eye, 
+  Clock, 
+  AlertCircle, 
+  CheckCircle,
+  Trash
+} from "lucide-react";
 import { EMAIL_PROVIDERS } from "@/lib/constants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Badge } from "@/components/ui/badge";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
+
+// Template types with friendly names
+const templateTypes = [
+  { id: "invitation", name: "Invitation", description: "Sent when inviting guests to your event" },
+  { id: "rsvp_confirmation", name: "RSVP Confirmation", description: "Sent when guests confirm their attendance" },
+  { id: "rsvp_declined", name: "RSVP Declined", description: "Sent when guests decline their attendance" },
+  { id: "rsvp_pending", name: "RSVP Reminder", description: "Sent to remind guests who haven't completed their RSVP" },
+  { id: "rsvp_maybe", name: "RSVP Maybe", description: "Sent to guests who aren't sure if they can attend" },
+  { id: "pre_event_reminder", name: "Pre-Event Reminder", description: "Sent a few days before the event" },
+  { id: "post_event_thanks", name: "Post-Event Thanks", description: "Sent after the event to thank guests" },
+];
+
+// Form schema for template editing
+const templateFormSchema = z.object({
+  type: z.string(),
+  emailSubject: z.string().min(1, "Email subject is required"),
+  emailTemplate: z.string().min(1, "Email template is required"),
+  whatsappTemplate: z.string().optional(),
+  sendImmediately: z.boolean().default(true),
+  scheduledDate: z.string().optional().nullable(),
+  scheduledTime: z.string().optional().nullable(),
+  enabled: z.boolean().default(true),
+});
+
+// Communication settings schema
+const communicationSettingsSchema = z.object({
+  emailFrom: z.string().email("Invalid email address").min(1, "Email address is required"),
+  emailReplyTo: z.string().email("Invalid email address").optional(),
+  whatsappNumber: z.string().min(10, "Phone number is required").optional(),
+  useGmail: z.boolean().default(false),
+  useOutlook: z.boolean().default(false),
+  useSendGrid: z.boolean().default(false),
+  gmailAccount: z.string().email("Invalid email address").optional(),
+  outlookAccount: z.string().email("Invalid email address").optional(),
+  sendGridApiKey: z.string().optional(),
+});
+
+interface EmailTemplate {
+  id?: number;
+  eventId?: number;
+  type: string;
+  emailTemplate: string | null;
+  emailSubject: string | null;
+  whatsappTemplate: string | null;
+  sendImmediately: boolean | null;
+  scheduledDate: string | null;
+  scheduledTime: string | null;
+  enabled: boolean | null;
+  lastUpdated?: Date | null;
+}
 
 interface CommunicationStepProps {
   eventId: string;
