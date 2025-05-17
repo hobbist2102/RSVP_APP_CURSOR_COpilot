@@ -338,20 +338,10 @@ export default function Events() {
     }
   };
   
-  // Open edit event dialog
+  // Redirect to Event Setup Wizard
   const handleEditEvent = (event: any) => {
-    setCurrentEvent(event);
-    eventForm.reset({
-      title: event.title,
-      coupleNames: event.coupleNames,
-      brideName: event.brideName || "",
-      groomName: event.groomName || "",
-      startDate: event.startDate || "",
-      endDate: event.endDate || "",
-      location: event.location,
-      description: event.description || "",
-    });
-    setShowEditEventDialog(true);
+    // Redirect to the wizard instead of opening the edit dialog
+    setLocation(`/event-setup-wizard/${event.id}`);
   };
   
   // Open add ceremony dialog
