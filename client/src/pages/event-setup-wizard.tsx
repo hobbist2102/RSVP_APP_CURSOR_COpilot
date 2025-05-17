@@ -290,9 +290,9 @@ export default function EventSetupWizard() {
               <Button 
                 variant="outline" 
                 className="w-full"
-                onClick={() => setLocation(`/events/${eventId}/settings`)}
+                onClick={() => setLocation(`/events/${eventId}`)}
               >
-                Back to Settings
+                Back to Event
               </Button>
             </div>
           </div>
