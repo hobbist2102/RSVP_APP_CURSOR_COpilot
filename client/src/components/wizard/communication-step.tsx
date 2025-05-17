@@ -637,6 +637,14 @@ export default function CommunicationStep({
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 text-destructive hover:text-destructive/80"
+                                onClick={() => handleDeleteTemplate(template)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>
