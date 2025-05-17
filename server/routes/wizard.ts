@@ -2,7 +2,7 @@ import express from 'express';
 import { Request, Response } from 'express';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
-import { events, eventSetupProgress } from '@shared/schema';
+import { weddingEvents, eventSetupProgress } from '@shared/schema';
 import { isAuthenticated, isAdmin } from '../middleware';
 
 const router = express.Router();

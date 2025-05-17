@@ -2264,6 +2264,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Email Templates routes
   app.use(emailTemplatesRoutes);
   
+  // Register Wizard routes
+  app.use('/api/wizard', wizardRouter);
+  
   // Add a test email endpoint for debugging
   app.post('/api/test-email', async (req: Request, res: Response) => {
     try {

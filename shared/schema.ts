@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -633,6 +633,29 @@ export const transportAllocations = pgTable("transport_allocations", {
 });
 
 export const insertTransportAllocationSchema = createInsertSchema(transportAllocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Event Setup Wizard Progress
+export const eventSetupProgress = pgTable("event_setup_progress", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => weddingEvents.id, { onDelete: 'cascade' }),
+  stepId: text("step_id").notNull(), // e.g., "basic_info", "venues", "rsvp_config"
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  stepData: json("step_data"), // JSON data specific to the step
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Create a unique constraint to ensure only one record per event and step
+export const eventSetupProgressConstraint = eventSetupProgress.createUniqueConstraint('event_step_unique', [
+  eventSetupProgress.eventId,
+  eventSetupProgress.stepId
+]);
+
+export const insertEventSetupProgressSchema = createInsertSchema(eventSetupProgress).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
