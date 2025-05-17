@@ -218,13 +218,20 @@ export default function CommunicationStep({
 
   // Fetch templates for current event
   const {
-    data: emailTemplates = [],
+    data: emailTemplatesData,
     isLoading: isLoadingTemplates,
     error: templatesError,
   } = useQuery({
     queryKey: [`/api/events/${eventId}/email-templates`],
     enabled: !!eventId,
+    retry: 1,
+    retryDelay: 1000,
   });
+  
+  // Extract templates array from response - handle both formats that the API might return
+  const emailTemplates = 
+    Array.isArray(emailTemplatesData) ? emailTemplatesData : 
+    emailTemplatesData?.templates || [];
 
   // Default communication settings
   const defaultCommunicationSettings = {
@@ -490,7 +497,7 @@ export default function CommunicationStep({
                 <div className="flex justify-center py-8">
                   <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
                 </div>
-              ) : emailTemplates.length === 0 ? (
+              ) : !emailTemplates || emailTemplates.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Mail className="h-10 w-10 mx-auto mb-2 opacity-50" />
                   <p className="mb-1">No email templates yet</p>
@@ -498,7 +505,7 @@ export default function CommunicationStep({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(emailTemplates as EmailTemplate[]).map((template: EmailTemplate) => {
+                  {emailTemplates.map((template: EmailTemplate) => {
                     const templateType = templateTypes.find(t => t.id === template.type);
                     
                     return (
