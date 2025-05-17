@@ -26,13 +26,18 @@ export function useEvents() {
       const response = await post("/api/events", eventData);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       
       toast({
         title: "Event Created",
-        description: "The wedding event has been successfully created.",
+        description: "The wedding event has been successfully created. Redirecting to setup wizard...",
       });
+      
+      // Set a small delay before redirecting to ensure the toast is visible
+      setTimeout(() => {
+        window.location.href = `/event-setup-wizard/${data.id}`;
+      }, 1500);
     },
     onError: (error) => {
       toast({
