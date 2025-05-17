@@ -72,21 +72,38 @@ export default function EventSetupWizard() {
 
   // Initialize completed steps and step data from fetched progress
   useEffect(() => {
-    if (setupProgress) {
+    if (setupProgress && setupProgress.steps) {
       const completed: Record<string, boolean> = {};
       const data: Record<string, any> = {};
       
-      setupProgress.steps.forEach((step: any) => {
-        completed[step.stepId] = step.isCompleted;
-        if (step.stepData) {
-          data[step.stepId] = step.stepData;
-        }
-      });
+      // Handle new API response format
+      if (typeof setupProgress.steps === 'object' && !Array.isArray(setupProgress.steps)) {
+        // New format: setupProgress.steps is an object with step IDs as keys
+        Object.entries(setupProgress.steps).forEach(([stepId, stepInfo]: [string, any]) => {
+          completed[stepId] = stepInfo.isCompleted;
+          if (stepInfo.stepData) {
+            data[stepId] = stepInfo.stepData;
+          }
+        });
+      } else if (Array.isArray(setupProgress.steps)) {
+        // Old format: setupProgress.steps is an array of step objects
+        setupProgress.steps.forEach((step: any) => {
+          completed[step.stepId] = step.isCompleted;
+          if (step.stepData) {
+            data[step.stepId] = step.stepData;
+          }
+        });
+      }
       
       setCompletedSteps(completed);
       setStepData(data);
+      
+      // Set current step if available
+      if (setupProgress.currentStep && !currentStep) {
+        setCurrentStep(setupProgress.currentStep);
+      }
     }
-  }, [setupProgress]);
+  }, [setupProgress, currentStep]);
 
   // Handle step change
   const navigateToStep = (stepId: string) => {
