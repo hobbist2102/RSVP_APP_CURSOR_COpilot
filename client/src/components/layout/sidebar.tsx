@@ -6,16 +6,12 @@ import {
   Reply,
   Calendar,
   Plane,
-  Bed,
   Utensils,
   FileSpreadsheet,
   Settings,
   LogOut,
-  Cog,
-  Hotel,
   Mail,
-  Code,
-  Car
+  Wand2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,6 +31,16 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       path: "/dashboard"
     },
     {
+      name: "Event Setup Wizard",
+      icon: <Wand2 className="mr-3 h-5 w-5" />,
+      path: "/event-setup-wizard"
+    },
+    {
+      name: "Events",
+      icon: <Calendar className="mr-3 h-5 w-5" />,
+      path: "/events"
+    },
+    {
       name: "Guest List",
       icon: <Users className="mr-3 h-5 w-5" />,
       path: "/guests"
@@ -45,29 +51,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       path: "/rsvp"
     },
     {
-      name: "Events & Ceremonies",
-      icon: <Calendar className="mr-3 h-5 w-5" />,
-      path: "/events"
-    },
-    {
       name: "Travel Management",
       icon: <Plane className="mr-3 h-5 w-5" />,
       path: "/travel"
-    },
-    {
-      name: "Transport Groups",
-      icon: <Car className="mr-3 h-5 w-5" />,
-      path: "/transport"
-    },
-    {
-      name: "Accommodations",
-      icon: <Bed className="mr-3 h-5 w-5" />,
-      path: "/accommodations"
-    },
-    {
-      name: "Hotels",
-      icon: <Hotel className="mr-3 h-5 w-5" />,
-      path: "/hotels"
     },
     {
       name: "Meal Planning",
@@ -83,11 +69,6 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Settings",
       icon: <Settings className="mr-3 h-5 w-5" />,
       path: "/settings"
-    },
-    {
-      name: "Event Settings",
-      icon: <Cog className="mr-3 h-5 w-5" />,
-      path: "/event-settings"
     },
     {
       name: "Email Templates",

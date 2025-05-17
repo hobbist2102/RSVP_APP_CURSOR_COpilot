@@ -40,6 +40,9 @@ export default function EventSetupWizard() {
   const eventId = params.eventId || '';
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Check if this is a direct access without an event ID
+  const isDirectAccess = !eventId;
 
   // Fetch the current event
   const { data: currentEvent, isLoading } = useQuery({
