@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { WeddingEvent } from "@shared/schema";
 import { Check, Palette, Upload, XCircle } from "lucide-react";
-import { DESIGN_THEMES, FONT_FAMILIES } from "@/lib/constants";
+import { COLOR_THEMES, FONT_FAMILIES } from "@/lib/constants";
 import { 
   Card, 
   CardContent, 
@@ -35,7 +35,7 @@ export default function DesignStep({
   isCompleted
 }: DesignStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
-  const [selectedTheme, setSelectedTheme] = useState("Classic");
+  const [selectedTheme, setSelectedTheme] = useState(COLOR_THEMES[0].name);
   const [primaryColor, setPrimaryColor] = useState("#F9C4D2");
   const [secondaryColor, setSecondaryColor] = useState("#B6E5D8");
   const [accentColor, setAccentColor] = useState("#FBB917");
@@ -177,13 +177,13 @@ export default function DesignStep({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {DESIGN_THEMES.map((theme) => (
+                  {COLOR_THEMES.map((theme) => (
                     <Card 
-                      key={theme}
+                      key={theme.name}
                       className={`cursor-pointer hover:border-primary/50 ${
-                        selectedTheme === theme ? 'border-2 border-primary' : ''
+                        selectedTheme === theme.name ? 'border-2 border-primary' : ''
                       }`}
-                      onClick={() => setSelectedTheme(theme)}
+                      onClick={() => setSelectedTheme(theme.name)}
                     >
                       <CardContent className="p-4 text-center">
                         <div className="h-16 bg-muted rounded-md flex items-center justify-center mb-2">
