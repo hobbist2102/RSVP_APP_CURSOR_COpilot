@@ -1,0 +1,93 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, ChevronRight, PlusCircle, Settings } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useLocation } from "wouter";
+import { format } from "date-fns";
+
+interface EventSelectorProps {
+  onSelectEvent: (eventId: number) => void;
+}
+
+export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
+  const [_, setLocation] = useLocation();
+  
+  // Fetch all events
+  const { data: events, isLoading } = useQuery({
+    queryKey: ['/api/events'],
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Select an Event</CardTitle>
+        <CardDescription>
+          Choose an event to configure with the Event Setup Wizard
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-20 w-full rounded-md" />
+            <Skeleton className="h-20 w-full rounded-md" />
+            <Skeleton className="h-20 w-full rounded-md" />
+          </div>
+        ) : events && events.length > 0 ? (
+          <div className="space-y-4">
+            {events.map((event: any) => (
+              <div 
+                key={event.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {event.startDate ? format(new Date(event.startDate), 'MMM dd, yyyy') : 'No date set'}
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => onSelectEvent(event.id)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configure
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            
+            <div className="flex items-center justify-center pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation('/events')}
+                className="flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Create New Event
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="py-8 text-center">
+            <p className="text-muted-foreground mb-4">No events found. Create an event to get started.</p>
+            <Button 
+              onClick={() => setLocation('/events')}
+              className="flex items-center gap-2"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Create New Event
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

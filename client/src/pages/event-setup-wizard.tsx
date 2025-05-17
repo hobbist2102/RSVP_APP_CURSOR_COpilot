@@ -14,9 +14,11 @@ import TransportStep from "@/components/wizard/transport-step";
 import CommunicationStep from "@/components/wizard/communication-step";
 import DesignStep from "@/components/wizard/design-step";
 import AiAssistantStep from "@/components/wizard/ai-assistant-step";
+import EventSelector from "@/components/wizard/event-selector";
 import { WIZARD_STEPS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Spinner } from "@/components/ui/spinner";
 
 // Define the wizard steps
 const steps = [
@@ -264,82 +266,88 @@ export default function EventSetupWizard() {
         <h1 className="text-2xl font-bold">Event Setup Wizard</h1>
       </div>
       
-      <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar with steps */}
-          <div className="md:col-span-1 space-y-6">
-            <Steps
-              steps={steps.map(step => ({
-                id: step.id,
-                label: step.label,
-                isCompleted: completedSteps[step.id] || false,
-                isActive: activeStep === step.id
-              }))}
-              onStepClick={navigateToStep}
-              orientation="vertical"
-            />
-            
-            <div className="space-y-2 pt-6">
-              {areAllStepsCompleted && (
-                <Button 
-                  className="w-full flex items-center gap-2"
-                  onClick={finishWizard}
-                >
-                  <Check className="h-4 w-4" />
-                  Finish Setup
-                </Button>
-              )}
+      {/* Show Event Selector when accessed from sidebar without an event ID */}
+      {isDirectAccess ? (
+        <EventSelector onSelectEvent={(selectedEventId) => setLocation(`/event-setup-wizard/${selectedEventId}`)} />
+      ) : (
+        /* Show wizard interface when accessed with an event ID */
+        <Card className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Left sidebar with steps */}
+            <div className="md:col-span-1 space-y-6">
+              <Steps
+                steps={steps.map(step => ({
+                  id: step.id,
+                  label: step.label,
+                  isCompleted: completedSteps[step.id] || false,
+                  isActive: activeStep === step.id
+                }))}
+                onStepClick={navigateToStep}
+                orientation="vertical"
+              />
               
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setLocation(`/events/${eventId}`)}
-              >
-                Back to Event
-              </Button>
-            </div>
-          </div>
-          
-          {/* Right content area */}
-          <div className="md:col-span-3">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">
-                  {steps.find(step => step.id === activeStep)?.label}
-                </h2>
-                <Separator />
-              </div>
-              
-              {/* Step content */}
-              <div className="min-h-[50vh]">
-                {renderStepContent()}
-              </div>
-              
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-4">
-                <Button
-                  variant="outline"
-                  onClick={goToPreviousStep}
-                  disabled={activeStep === steps[0].id}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous
-                </Button>
+              <div className="space-y-2 pt-6">
+                {areAllStepsCompleted && (
+                  <Button 
+                    className="w-full flex items-center gap-2"
+                    onClick={finishWizard}
+                  >
+                    <Check className="h-4 w-4" />
+                    Finish Setup
+                  </Button>
+                )}
                 
-                <Button
-                  onClick={goToNextStep}
-                  disabled={activeStep === steps[steps.length - 1].id}
-                  className="flex items-center gap-2"
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setLocation(`/events/${eventId}`)}
                 >
-                  Next
-                  <ArrowRight className="h-4 w-4" />
+                  Back to Event
                 </Button>
               </div>
             </div>
+            
+            {/* Right content area */}
+            <div className="md:col-span-3">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">
+                    {steps.find(step => step.id === activeStep)?.label}
+                  </h2>
+                  <Separator />
+                </div>
+                
+                {/* Step content */}
+                <div className="min-h-[50vh]">
+                  {renderStepContent()}
+                </div>
+                
+                {/* Navigation buttons */}
+                <div className="flex justify-between pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={goToPreviousStep}
+                    disabled={activeStep === steps[0].id}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  
+                  <Button
+                    onClick={goToNextStep}
+                    disabled={activeStep === steps[steps.length - 1].id}
+                    className="flex items-center gap-2"
+                  >
+                    Next
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
