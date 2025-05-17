@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
+import { useLocation } from "wouter";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -341,6 +342,7 @@ export default function Events() {
   // Redirect to Event Setup Wizard
   const handleEditEvent = (event: any) => {
     // Redirect to the wizard instead of opening the edit dialog
+    const [_, setLocation] = useLocation();
     setLocation(`/event-setup-wizard/${event.id}`);
   };
   
