@@ -221,8 +221,8 @@ export default function AiAssistantStep({
                             </FormControl>
                             <SelectContent>
                               {AI_MODELS.map((model) => (
-                                <SelectItem key={model} value={model}>
-                                  {model}
+                                <SelectItem key={model.id} value={model.id}>
+                                  {model.name} ({model.provider})
                                 </SelectItem>
                               ))}
                             </SelectContent>
