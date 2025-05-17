@@ -649,11 +649,7 @@ export const eventSetupProgress = pgTable("event_setup_progress", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Create a unique constraint to ensure only one record per event and step
-export const eventSetupProgressConstraint = eventSetupProgress.createUniqueConstraint('event_step_unique', [
-  eventSetupProgress.eventId,
-  eventSetupProgress.stepId
-]);
+// No need for a separate constraint - we'll handle uniqueness in application logic
 
 export const insertEventSetupProgressSchema = createInsertSchema(eventSetupProgress).omit({
   id: true,

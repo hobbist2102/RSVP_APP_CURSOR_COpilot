@@ -15,7 +15,7 @@ router.get('/:eventId/progress', isAuthenticated, async (req: Request, res: Resp
     const eventId = parseInt(req.params.eventId);
     
     // Check if event exists
-    const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+    const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
     if (!event || event.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
     }
@@ -51,7 +51,7 @@ router.get('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res:
     const stepId = req.params.stepId;
     
     // Check if event exists
-    const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+    const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
     if (!event || event.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
     }
@@ -91,7 +91,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
     const stepData = req.body;
     
     // Check if event exists
-    const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+    const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
     if (!event || event.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
     }
@@ -151,7 +151,7 @@ router.delete('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, r
     const stepId = req.params.stepId;
     
     // Check if event exists
-    const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+    const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
     if (!event || event.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
     }
