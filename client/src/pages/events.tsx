@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -517,8 +518,8 @@ export default function Events() {
                       {event.startDate !== event.endDate && ` - ${formatDateForDisplay(event.endDate)}`}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {getDaysDifference(event.startDate) > 0 
-                        ? `${getDaysDifference(event.startDate)} days to go` 
+                      {new Date(event.startDate) > new Date() 
+                        ? `${getRelativeTimeFromNow(event.startDate)}` 
                         : "Event has passed"}
                     </div>
                   </div>
