@@ -52,8 +52,10 @@ const aiAssistantSchema = z.object({
     "Accommodation Details",
     "Transport Schedule"
   ]),
+  contextRestriction: z.enum(["strict", "moderate", "flexible"]).default("strict"),
   customInstructions: z.string().optional(),
-  availableOnWebsite: z.boolean().default(true),
+  availableOnGuestWebsite: z.boolean().default(true),
+  availableOnPlannerDashboard: z.boolean().default(false),
   availableOnWhatsapp: z.boolean().default(false)
 });
 
@@ -91,8 +93,10 @@ export default function AiAssistantStep({
         "Accommodation Details",
         "Transport Schedule"
       ],
+      contextRestriction: "strict",
       customInstructions: "",
-      availableOnWebsite: true,
+      availableOnGuestWebsite: true,
+      availableOnPlannerDashboard: false,
       availableOnWhatsapp: false
     }
   });
@@ -142,10 +146,20 @@ export default function AiAssistantStep({
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Context Restriction:</h3>
+              <p className="col-span-3">
+                {formData.contextRestriction === "strict" && "Strict (Only answer questions about this specific event)"}
+                {formData.contextRestriction === "moderate" && "Moderate (Answer event questions and general wedding advice)"}
+                {formData.contextRestriction === "flexible" && "Flexible (Answer a wide range of questions)"}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
               <h3 className="font-medium text-sm">Available On:</h3>
               <p className="col-span-3">
                 {[
-                  formData.availableOnWebsite && "Website",
+                  formData.availableOnGuestWebsite && "Guest Wedding Website",
+                  formData.availableOnPlannerDashboard && "Planner Dashboard",
                   formData.availableOnWhatsapp && "WhatsApp"
                 ].filter(Boolean).join(", ") || "None"}
               </p>
@@ -339,16 +353,66 @@ export default function AiAssistantStep({
                       )}
                     />
                     
-                    <div className="space-y-3 pt-2">
+                    <FormField
+                      control={form.control}
+                      name="contextRestriction"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Response Restriction</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select context restriction" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="strict">Strict (Only this event's information)</SelectItem>
+                              <SelectItem value="moderate">Moderate (Event + general wedding advice)</SelectItem>
+                              <SelectItem value="flexible">Flexible (Wider range of topics)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-xs">
+                            Controls how strictly the AI will stay on topic about this specific wedding
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                      
+                    <div className="space-y-3 pt-4">
                       <FormField
                         control={form.control}
-                        name="availableOnWebsite"
+                        name="availableOnGuestWebsite"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                             <div className="space-y-0.5">
-                              <FormLabel>Available on Wedding Website</FormLabel>
+                              <FormLabel>Available on Guest Wedding Website</FormLabel>
                               <FormDescription className="text-xs">
-                                Show the chatbot on your wedding website
+                                Show the chatbot on the wedding website for guests
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="availableOnPlannerDashboard"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel>Available on Planner Dashboard</FormLabel>
+                              <FormDescription className="text-xs">
+                                Show the chatbot for wedding planners and organizers
                               </FormDescription>
                             </div>
                             <FormControl>
