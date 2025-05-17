@@ -45,7 +45,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       path: "/rsvp"
     },
     {
-      name: "Events",
+      name: "Events & Ceremonies",
       icon: <Calendar className="mr-3 h-5 w-5" />,
       path: "/events"
     },
@@ -53,6 +53,21 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Travel Management",
       icon: <Plane className="mr-3 h-5 w-5" />,
       path: "/travel"
+    },
+    {
+      name: "Transport Groups",
+      icon: <Car className="mr-3 h-5 w-5" />,
+      path: "/transport"
+    },
+    {
+      name: "Accommodations",
+      icon: <Bed className="mr-3 h-5 w-5" />,
+      path: "/accommodations"
+    },
+    {
+      name: "Hotels",
+      icon: <Hotel className="mr-3 h-5 w-5" />,
+      path: "/hotels"
     },
     {
       name: "Meal Planning",
@@ -68,6 +83,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       name: "Settings",
       icon: <Settings className="mr-3 h-5 w-5" />,
       path: "/settings"
+    },
+    {
+      name: "Event Settings",
+      icon: <Cog className="mr-3 h-5 w-5" />,
+      path: "/event-settings"
     },
     {
       name: "Email Templates",
