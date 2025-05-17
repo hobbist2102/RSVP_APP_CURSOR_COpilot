@@ -46,6 +46,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Template types with friendly names
 const templateTypes = [
@@ -104,6 +111,100 @@ interface CommunicationStepProps {
   isCompleted: boolean;
 }
 
+// Component for displaying template preview with personalized variables
+function TemplatePreview({ 
+  template,
+  subject,
+  templateType,
+  event
+}: { 
+  template: string;
+  subject?: string;
+  templateType?: string;
+  event?: any;
+}) {
+  // Define sample guest data based on template type
+  const guestName = "John Smith";
+  const firstName = "John";
+  const lastName = "Smith";
+  const coupleNames = event?.coupleNames || "Sarah & Michael";
+  const eventName = event?.title || "Wedding Celebration";
+  const rsvpStatus = templateType?.includes("confirmation") ? "confirmed" : 
+                    templateType?.includes("declined") ? "declined" : 
+                    templateType?.includes("maybe") ? "maybe" : "pending";
+  const rsvpLink = `${window.location.origin}/guest-rsvp/example-token`;
+  const rsvpDeadline = "June 15, 2025";
+
+  // Apply template variables with support for fallback syntax
+  let personalizedTemplate = template;
+  
+  // Process variables with || fallback syntax first
+  personalizedTemplate = personalizedTemplate.replace(/{{(\w+)\s*\|\|\s*["']([^"']*)["']}}/g, (match, varName, fallback) => {
+    switch (varName) {
+      case 'first_name': return firstName;
+      case 'last_name': return lastName;
+      case 'guest_name': return guestName;
+      case 'couple_names': return coupleNames;
+      case 'event_name': return eventName;
+      case 'rsvp_status': return rsvpStatus;
+      case 'rsvp_link': return rsvpLink;
+      case 'rsvp_deadline': return rsvpDeadline;
+      default: return fallback;
+    }
+  });
+  
+  // Then process regular variables
+  personalizedTemplate = personalizedTemplate
+    .replace(/{{guest_name}}/g, guestName)
+    .replace(/{{first_name}}/g, firstName)
+    .replace(/{{last_name}}/g, lastName)
+    .replace(/{{couple_names}}/g, coupleNames)
+    .replace(/{{event_name}}/g, eventName)
+    .replace(/{{rsvp_status}}/g, rsvpStatus)
+    .replace(/{{rsvp_link}}/g, rsvpLink)
+    .replace(/{{rsvp_deadline}}/g, rsvpDeadline);
+    
+  // Also personalize the subject if provided with support for fallback syntax
+  let personalizedSubject = subject;
+  
+  if (personalizedSubject) {
+    // Process variables with || fallback syntax first
+    personalizedSubject = personalizedSubject.replace(/{{(\w+)\s*\|\|\s*["']([^"']*)["']}}/g, (match, varName, fallback) => {
+      switch (varName) {
+        case 'first_name': return firstName;
+        case 'last_name': return lastName;
+        case 'guest_name': return guestName;
+        case 'couple_names': return coupleNames;
+        case 'event_name': return eventName;
+        case 'rsvp_status': return rsvpStatus;
+        default: return fallback;
+      }
+    });
+    
+    // Then process regular variables
+    personalizedSubject = personalizedSubject
+      .replace(/{{guest_name}}/g, guestName)
+      .replace(/{{first_name}}/g, firstName)
+      .replace(/{{last_name}}/g, lastName)
+      .replace(/{{couple_names}}/g, coupleNames)
+      .replace(/{{event_name}}/g, eventName)
+      .replace(/{{rsvp_status}}/g, rsvpStatus);
+  }
+
+  return (
+    <div className="border rounded-md p-4 text-sm space-y-2">
+      {personalizedSubject && (
+        <div className="mb-2">
+          <Badge variant="secondary" className="mb-1">Subject</Badge>
+          <div className="font-medium">{personalizedSubject}</div>
+        </div>
+      )}
+      <Badge variant="secondary" className="mb-1">Body</Badge>
+      <div className="whitespace-pre-wrap">{personalizedTemplate}</div>
+    </div>
+  );
+}
+
 export default function CommunicationStep({
   eventId,
   currentEvent,
@@ -111,6 +212,19 @@ export default function CommunicationStep({
   isCompleted
 }: CommunicationStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch templates for current event
+  const {
+    data: emailTemplates = [],
+    isLoading: isLoadingTemplates,
+    error: templatesError,
+  } = useQuery({
+    queryKey: [`/api/events/${eventId}/email-templates`],
+    enabled: !!eventId,
+  });
 
   // Default communication settings
   const defaultCommunicationSettings = {
@@ -122,29 +236,120 @@ export default function CommunicationStep({
     enableSmsNotifications: false,
     enableWhatsappNotifications: false,
     emailSender: `${currentEvent?.brideName || 'Bride'} and ${currentEvent?.groomName || 'Groom'}`,
-    emailTemplates: {
-      invitation: {
-        subject: "You're Invited to Our Wedding!",
-        enabled: true
-      },
-      rsvpConfirmation: {
-        subject: "Thank You for Your RSVP",
-        enabled: true
-      },
-      reminder: {
-        subject: "Wedding Reminder",
-        enabled: true
-      },
-      followUp: {
-        subject: "Thank You for Attending Our Wedding",
-        enabled: true
-      }
+    emailFrom: currentEvent?.emailFrom || '',
+    emailReplyTo: currentEvent?.emailReplyTo || '',
+    whatsappNumber: currentEvent?.whatsappBusinessNumber || '',
+  };
+  
+  // Form for template editing
+  const templateForm = useForm({
+    resolver: zodResolver(templateFormSchema),
+    defaultValues: {
+      type: "",
+      emailSubject: "",
+      emailTemplate: "",
+      whatsappTemplate: "",
+      sendImmediately: true,
+      scheduledDate: null,
+      scheduledTime: null,
+      enabled: true,
+    },
+  });
+
+  // Form for communication settings
+  const communicationForm = useForm({
+    resolver: zodResolver(communicationSettingsSchema),
+    defaultValues: {
+      emailFrom: currentEvent?.emailFrom || "",
+      emailReplyTo: currentEvent?.emailReplyTo || "",
+      whatsappNumber: currentEvent?.whatsappBusinessNumber || "",
+      useGmail: false,
+      useOutlook: false,
+      useSendGrid: false,
+      gmailAccount: "",
+      outlookAccount: "",
+      sendGridApiKey: "",
+    },
+  });
+  
+  // Initialize editing template
+  const handleEditTemplate = (template: EmailTemplate) => {
+    templateForm.reset({
+      type: template.type,
+      emailSubject: template.emailSubject || "",
+      emailTemplate: template.emailTemplate || "",
+      whatsappTemplate: template.whatsappTemplate || "",
+      sendImmediately: template.sendImmediately || true,
+      scheduledDate: template.scheduledDate || null,
+      scheduledTime: template.scheduledTime || null,
+      enabled: template.enabled || true,
+    });
+    setEditingTemplate(template);
+  };
+  
+  // Create new template
+  const handleCreateTemplate = () => {
+    const newTemplateType = templateTypes.find(t => 
+      !emailTemplates || (Array.isArray(emailTemplates) && !emailTemplates.some((template: EmailTemplate) => template.type === t.id))
+    );
+    
+    if (newTemplateType) {
+      const newTemplate = {
+        type: newTemplateType.id,
+        emailSubject: `${currentEvent?.title || 'Event'} - ${newTemplateType.name}`,
+        emailTemplate: `Dear {{guest_name}},\n\nWe hope this email finds you well.\n\nBest regards,\n${currentEvent?.brideName || 'Bride'} & ${currentEvent?.groomName || 'Groom'}`,
+        whatsappTemplate: "",
+        sendImmediately: true,
+        scheduledDate: null,
+        scheduledTime: null,
+        enabled: true,
+      };
+      
+      templateForm.reset(newTemplate as any);
+      setEditingTemplate(newTemplate);
+    } else {
+      toast({
+        title: "All template types already exist",
+        description: "You've already created all available template types.",
+        variant: "default",
+      });
     }
+  };
+  
+  // Save template handler
+  const handleSaveTemplate = () => {
+    const templateData = templateForm.getValues();
+    console.log("Saving template:", templateData);
+    
+    // In a real implementation, we would save this to the database
+    // For now, just close the dialog and show a success message
+    setEditingTemplate(null);
+    toast({
+      title: "Template saved",
+      description: "Your template has been saved successfully.",
+    });
   };
   
   // Handle form submission
   const handleComplete = () => {
-    onComplete(defaultCommunicationSettings);
+    // In a real implementation, we would include the actual saved templates
+    // For this prototype, we're using the default settings with placeholder templates
+    onComplete({
+      ...defaultCommunicationSettings,
+      // Use provided templates if available, otherwise use default structure
+      emailTemplates: Array.isArray(emailTemplates) && emailTemplates.length > 0 
+        ? emailTemplates 
+        : Object.entries(defaultCommunicationSettings.emailTemplates || {}).map(([key, template]) => ({
+            type: key,
+            emailSubject: template.subject,
+            emailTemplate: `Dear {{guest_name}},\n\nThis is a default template for ${key}.\n\nBest regards,\n${currentEvent?.brideName || 'Bride'} & ${currentEvent?.groomName || 'Groom'}`,
+            whatsappTemplate: "",
+            sendImmediately: true,
+            scheduledDate: null,
+            scheduledTime: null,
+            enabled: template.enabled,
+          }))
+    });
     setIsEditing(false);
   };
 
@@ -262,32 +467,272 @@ export default function CommunicationStep({
           
           <Card>
             <CardHeader>
-              <CardTitle>Email Templates</CardTitle>
-              <CardDescription>
-                Manage email templates for different event communications
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Email Templates</CardTitle>
+                  <CardDescription>
+                    Manage email templates for all event communications
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={handleCreateTemplate}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Template
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(defaultCommunicationSettings.emailTemplates).map(([key, template]) => (
-                  <Card key={key}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-base capitalize">{key.replace(/([A-Z])/g, ' $1')}</CardTitle>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm">{template.subject}</p>
-                        <Switch defaultChecked={template.enabled} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {isLoadingTemplates ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : emailTemplates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Mail className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p className="mb-1">No email templates yet</p>
+                  <p className="text-sm">Click "Add Template" to create your first email template</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(emailTemplates as EmailTemplate[]).map((template: EmailTemplate) => {
+                    const templateType = templateTypes.find(t => t.id === template.type);
+                    
+                    return (
+                      <Card key={template.id || template.type}>
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <CardTitle className="text-base">{templateType?.name || template.type}</CardTitle>
+                              <CardDescription className="text-xs">
+                                {templateType?.description || "Custom email template"}
+                              </CardDescription>
+                            </div>
+                            
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7" 
+                                onClick={() => {
+                                  setShowTemplatePreview(true);
+                                  setEditingTemplate(template);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7"
+                                onClick={() => handleEditTemplate(template)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1 text-sm">
+                              <p className="font-medium truncate max-w-[200px]">{template.emailSubject}</p>
+                              {template.sendImmediately ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex gap-1 items-center">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span className="text-xs">Send immediately</span>
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex gap-1 items-center">
+                                  <Clock className="h-3 w-3" />
+                                  <span className="text-xs">Scheduled</span>
+                                </Badge>
+                              )}
+                            </div>
+                            <Switch checked={template.enabled || false} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Template edit dialog */}
+              <Dialog open={!!editingTemplate && !showTemplatePreview} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingTemplate?.id ? "Edit Email Template" : "Create Email Template"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Customize this template for communications with your guests
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...templateForm}>
+                    <form className="space-y-6">
+                      <FormField
+                        control={templateForm.control}
+                        name="type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Template Type</FormLabel>
+                            <Select
+                              disabled={!!editingTemplate?.id}
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select template type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {templateTypes.map((type) => (
+                                  <SelectItem key={type.id} value={type.id}>
+                                    {type.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              What type of communication is this template for?
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={templateForm.control}
+                        name="emailSubject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Subject</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Subject line for this email"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              You can use variables like <code className="text-primary font-medium">{"{{guest_name}}"}</code> in the subject
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={templateForm.control}
+                        name="emailTemplate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Body</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Enter the email content"
+                                className="min-h-[200px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Available variables: guest_name, first_name, last_name, couple_names, 
+                              event_name, rsvp_status, rsvp_link, rsvp_deadline
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={templateForm.control}
+                        name="enabled"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Enabled</FormLabel>
+                              <FormDescription>
+                                Enable or disable this email template
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={templateForm.control}
+                        name="sendImmediately"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Send Immediately</FormLabel>
+                              <FormDescription>
+                                Send email immediately when triggered or schedule for later
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </form>
+                  </Form>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveTemplate}>Save Template</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              {/* Template preview dialog */}
+              <Dialog open={!!editingTemplate && showTemplatePreview} onOpenChange={(open) => !open && setShowTemplatePreview(false)}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Template Preview</DialogTitle>
+                    <DialogDescription>
+                      This is how your template will appear to guests
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  {editingTemplate && (
+                    <TemplatePreview
+                      template={editingTemplate.emailTemplate || ""}
+                      subject={editingTemplate.emailSubject || ""}
+                      templateType={editingTemplate.type}
+                      event={currentEvent}
+                    />
+                  )}
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowTemplatePreview(false)}>
+                      Close
+                    </Button>
+                    <Button onClick={() => {
+                      setShowTemplatePreview(false);
+                      handleEditTemplate(editingTemplate as EmailTemplate);
+                    }}>
+                      Edit Template
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </TabsContent>
