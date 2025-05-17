@@ -79,43 +79,77 @@ export default function EventSettings() {
             Manage settings for {currentEvent?.title || "your event"}
           </p>
         </div>
-        <Button 
-          onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
-          className="flex items-center gap-2"
-        >
-          <Wand2 className="h-4 w-4" />
-          Setup Wizard
-        </Button>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full max-w-2xl mb-8">
-          <TabsTrigger value="oauth">Email & OAuth</TabsTrigger>
-          <TabsTrigger value="rsvp">RSVP Settings</TabsTrigger>
-          <TabsTrigger value="travel">Travel & Accommodation</TabsTrigger>
-        </TabsList>
+      <div className="space-y-6">
+        <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+            <div className="p-3 bg-amber-100 rounded-full">
+              <Wand2 className="h-8 w-8 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold mb-2">Event Setup Wizard Now Available!</h3>
+              <p className="text-muted-foreground mb-4">
+                We've moved all event settings to our new comprehensive Setup Wizard for a more guided experience.
+                Use the wizard to configure all aspects of your event including email settings, RSVP options,
+                travel arrangements, and more.
+              </p>
+            </div>
+            <Button 
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              className="flex-shrink-0 flex items-center gap-2"
+              size="lg"
+            >
+              <Wand2 className="h-4 w-4" />
+              Go to Setup Wizard
+            </Button>
+          </div>
+        </div>
         
-        <TabsContent value="oauth" className="space-y-4">
-          <OAuthConfiguration 
-            settings={eventSettings?.settings?.oauth} 
-            eventId={currentEvent?.id}
-          />
-        </TabsContent>
-        
-        <TabsContent value="rsvp" className="space-y-4">
-          <RsvpSettings 
-            settings={eventSettings?.settings?.rsvp} 
-            eventId={currentEvent?.id}
-          />
-        </TabsContent>
-        
-        <TabsContent value="travel" className="space-y-4">
-          <TravelAccommodationSettings 
-            settings={eventSettings?.settings?.travelAccommodation} 
-            eventId={currentEvent?.id}
-          />
-        </TabsContent>
-      </Tabs>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="border rounded-lg p-6 bg-card">
+            <h3 className="text-lg font-semibold mb-2">Email & Communication</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Configure email settings, OAuth integration, and communication preferences in the wizard.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              className="w-full"
+            >
+              Configure in Wizard
+            </Button>
+          </div>
+          
+          <div className="border rounded-lg p-6 bg-card">
+            <h3 className="text-lg font-semibold mb-2">RSVP Settings</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Customize your RSVP form, deadline settings, and guest preferences in the wizard.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              className="w-full"
+            >
+              Configure in Wizard
+            </Button>
+          </div>
+          
+          <div className="border rounded-lg p-6 bg-card">
+            <h3 className="text-lg font-semibold mb-2">Travel & Accommodation</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Set up travel arrangements, accommodation options, and transport groups in the wizard.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              className="w-full"
+            >
+              Configure in Wizard
+            </Button>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

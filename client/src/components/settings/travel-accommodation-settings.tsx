@@ -1,49 +1,48 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useCurrentEvent } from "@/hooks/use-current-event";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { Save, Plane, Building, Car, Hotel } from "lucide-react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Wand2 } from "lucide-react";
 
-// Define the possible modes for each category
-const PROVISION_MODES = {
-  NONE: "none",
-  ALL: "all",
-  SPECIAL_DEAL: "special_deal",
-  SELECTED: "selected"
-};
+interface TravelAccommodationSettingsProps {
+  settings: any;
+  eventId: number | undefined;
+}
+
+export default function TravelAccommodationSettings({ settings, eventId }: TravelAccommodationSettingsProps) {
+  const [_, setLocation] = useLocation();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Travel & Accommodation Settings</CardTitle>
+        <CardDescription>
+          Configure travel and accommodation options in the new Event Setup Wizard
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <Alert className="bg-amber-50 border-amber-200">
+            <Wand2 className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Settings Moved to Setup Wizard</AlertTitle>
+            <AlertDescription>
+              For a more comprehensive setup experience, all travel and accommodation settings 
+              have been moved to the Event Setup Wizard. Please use the wizard to configure these settings.
+            </AlertDescription>
+          </Alert>
+          
+          <Button 
+            onClick={() => setLocation(`/event-setup-wizard/${eventId}`)}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Wand2 className="h-4 w-4" />
+            Go to Setup Wizard
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // Define schema for Travel & Accommodation settings with new fields
 const travelAccommodationSettingsSchema = z.object({
@@ -234,32 +233,31 @@ export default function TravelAccommodationSettings({ settings, eventId }: Trave
       <CardHeader>
         <CardTitle>Travel & Accommodation Settings</CardTitle>
         <CardDescription>
-          Configure travel and accommodation options for your guests
+          Configure travel and accommodation options in the new Event Setup Wizard
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs 
-              defaultValue="accommodation" 
-              value={activeTab} 
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="grid grid-cols-3 mb-6">
-                <TabsTrigger value="accommodation">
-                  <Hotel className="h-4 w-4 mr-2" />
-                  Accommodation
-                </TabsTrigger>
-                <TabsTrigger value="transport">
-                  <Car className="h-4 w-4 mr-2" />
-                  Transport
-                </TabsTrigger>
-                <TabsTrigger value="flights">
-                  <Plane className="h-4 w-4 mr-2" />
-                  Flights
-                </TabsTrigger>
-              </TabsList>
+        <div className="space-y-6">
+          <Alert className="bg-amber-50 border-amber-200">
+            <Wand2 className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Settings Moved to Setup Wizard</AlertTitle>
+            <AlertDescription>
+              For a more comprehensive setup experience, all travel and accommodation settings 
+              have been moved to the Event Setup Wizard. Please use the wizard to configure these settings.
+            </AlertDescription>
+          </Alert>
+          
+          <Button 
+            onClick={() => {
+              const [_, setLocation] = useLocation();
+              setLocation(`/event-setup-wizard/${eventId}`);
+            }}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Wand2 className="h-4 w-4" />
+            Go to Setup Wizard
+          </Button>
+        </div>
               
               {/* Accommodation Tab */}
               <TabsContent value="accommodation" className="space-y-6">
