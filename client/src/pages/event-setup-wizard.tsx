@@ -32,6 +32,7 @@ const steps = [
 
 export default function EventSetupWizard() {
   const [activeStep, setActiveStep] = useState(WIZARD_STEPS.BASIC_INFO);
+  const [currentStep, setCurrentStep] = useState<string | null>(WIZARD_STEPS.BASIC_INFO);
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [stepData, setStepData] = useState<Record<string, any>>({});
   const [location, setLocation] = useLocation();
@@ -72,12 +73,12 @@ export default function EventSetupWizard() {
 
   // Initialize completed steps and step data from fetched progress
   useEffect(() => {
-    if (setupProgress && setupProgress.steps) {
+    if (setupProgress) {
       const completed: Record<string, boolean> = {};
       const data: Record<string, any> = {};
       
       // Handle new API response format
-      if (typeof setupProgress.steps === 'object' && !Array.isArray(setupProgress.steps)) {
+      if (setupProgress.steps && typeof setupProgress.steps === 'object' && !Array.isArray(setupProgress.steps)) {
         // New format: setupProgress.steps is an object with step IDs as keys
         Object.entries(setupProgress.steps).forEach(([stepId, stepInfo]: [string, any]) => {
           completed[stepId] = stepInfo.isCompleted;
@@ -85,7 +86,7 @@ export default function EventSetupWizard() {
             data[stepId] = stepInfo.stepData;
           }
         });
-      } else if (Array.isArray(setupProgress.steps)) {
+      } else if (setupProgress.steps && Array.isArray(setupProgress.steps)) {
         // Old format: setupProgress.steps is an array of step objects
         setupProgress.steps.forEach((step: any) => {
           completed[step.stepId] = step.isCompleted;
@@ -99,11 +100,13 @@ export default function EventSetupWizard() {
       setStepData(data);
       
       // Set current step if available
-      if (setupProgress.currentStep && !currentStep) {
-        setCurrentStep(setupProgress.currentStep);
+      const wizardCurrentStep = (setupProgress as any).currentStep;
+      if (wizardCurrentStep && (!currentStep || currentStep === WIZARD_STEPS.BASIC_INFO)) {
+        setCurrentStep(wizardCurrentStep);
+        setActiveStep(wizardCurrentStep);
       }
     }
-  }, [setupProgress, currentStep]);
+  }, [setupProgress, currentStep, setCurrentStep, setActiveStep]);
 
   // Handle step change
   const navigateToStep = (stepId: string) => {
