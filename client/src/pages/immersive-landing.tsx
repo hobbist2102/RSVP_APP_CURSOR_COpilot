@@ -348,12 +348,12 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.PROBLEM} 
         ref={problemRef}
-        className="relative py-24 bg-[#C5A6ED] text-[#3A1562] scroll-section"
+        className="relative py-24 bg-[#C5A6ED] text-[#5E239D] scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="problem-title text-center mb-10">
-            <span className="text-[#9F79D4] font-light text-base block">Behind the Beauty:</span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#3A1562]">The Wedding Planning Chaos</span>
+            <span className="text-[#BFA76F] font-light text-base block">Behind the Beauty:</span>
+            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">The Wedding Planning Chaos</span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -393,7 +393,7 @@ export default function ImmersiveLanding() {
             </div>
             
             {/* Content area - right side - exactly matching reference */}
-            <div className="text-[#3A1562] space-y-6">
+            <div className="text-[#5E239D] space-y-6">
               <p className="text-sm leading-relaxed">
                 Planning an Indian wedding involves coordinating hundreds of moving parts, from extensive guest lists to multiple ceremonies spanning several days.
               </p>
@@ -428,16 +428,16 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.SOLUTION} 
         ref={solutionRef}
-        className="relative py-24 bg-white text-[#3A1562] scroll-section"
+        className="relative py-24 bg-white text-[#5E239D] scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="solution-title text-center mb-10">
             <span className="text-[#BFA76F] font-light text-base block">Elegant Simplicity</span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#3A1562]">in Every Detail</span>
+            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">in Every Detail</span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="text-[#3A1562] space-y-5 order-2 md:order-1">
+            <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
               <p className="text-xs leading-relaxed">
                 Our platform transforms the chaotic planning process into a seamless, elegant experience with purpose-built tools for Indian weddings.
               </p>
