@@ -63,11 +63,11 @@ export default function ImmersiveStorytelling() {
   }, [user]);
   
   return (
-    <div className="bg-gradient-to-b from-[#5E239D] to-black text-white overflow-x-hidden min-h-screen">
+    <div className="bg-gradient-to-b from-[#2a1b5e] to-black text-white overflow-x-hidden min-h-screen">
       {/* Fixed navigation */}
-      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#5E239D]/80 border-b border-[#BFA76F]/20">
+      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#2a1b5e]/80 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-script text-gold">
+          <h1 className="text-2xl font-script text-gold-gradient">
             Eternally Yours
           </h1>
           
@@ -78,8 +78,8 @@ export default function ImmersiveStorytelling() {
                 onClick={() => scrollToSection(link.id)}
                 className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300
                   ${activeSection === link.id 
-                    ? 'bg-[#5E239D] text-[#BFA76F]' 
-                    : 'text-white/70 hover:bg-[#BFA76F]/10 hover:text-[#BFA76F]'
+                    ? 'bg-gradient-to-r from-purple-600/90 to-indigo-600/90 text-white' 
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
               >
                 {link.label}
@@ -120,7 +120,7 @@ export default function ImmersiveStorytelling() {
           <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
             {/* Main headline with 3D typography */}
             <motion.h1 
-              className="text-6xl md:text-8xl font-script mb-8 text-gold"
+              className="text-6xl md:text-8xl font-script mb-8 text-gold-gradient"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
