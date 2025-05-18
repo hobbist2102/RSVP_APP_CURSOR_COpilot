@@ -335,12 +335,12 @@ export default function ImmersiveLanding() {
           </div>
         </div>
         
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center text-white/50 animate-bounce">
-          <span className="text-sm mb-2">Scroll to explore</span>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
+        {/* Elegant floating scroll indicator with gold accent */}
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+          <div className="relative w-8 h-12 border border-[#BFA76F]/30 rounded-full flex items-center justify-center overflow-hidden backdrop-blur-sm bg-white/5">
+            <span className="absolute w-3 h-3 bg-gradient-to-b from-[#BFA76F] to-[#e9d9a8] rounded-full animate-bounce delay-300 duration-1000"></span>
+          </div>
+          <span className="text-xs font-light text-[#BFA76F]/70 mt-2 tracking-wider uppercase">Scroll to explore</span>
         </div>
       </section>
       
