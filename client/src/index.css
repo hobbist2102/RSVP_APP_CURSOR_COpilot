@@ -1,424 +1,81 @@
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced storytelling styles for immersive landing page */
-@layer components {
-  /* Visual storytelling elements */
-  .section-fade {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-  }
-  
-  .section-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Section transitions */
-  .section-connector {
-    @apply absolute w-px h-32 bg-gradient-to-b from-white/30 to-transparent left-1/2 -translate-x-1/2;
-  }
-  
-  /* Visual flow indicators */
-  .flow-indicator {
-    @apply absolute w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center left-1/2 -translate-x-1/2;
-    animation: pulse 2s infinite ease-in-out;
-  }
-  
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-    50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
-  }
+/* Animation for floating elements */
+@keyframes float1 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-10px) rotate(2deg); }
 }
 
-@layer base {
-  :root {
-    /* Base colors from the image */
-    --royal-purple: 280 67% 32%;   /* Royal purple from the image */
-    --charcoal: 0 0% 20%;          /* Dark charcoal/gray from the image */
-    --cream: 35 70% 90%;           /* Cream color from the image */
-    --light-gray: 0 0% 94%;        /* Light gray from the image */
-    --gold: 45 100% 50%;           /* Rich gold accent */
-    
-    /* Theme variables */
-    --background: 35 70% 98%;      /* Light cream background */
-    --foreground: var(--charcoal);
-    
-    --card: 0 0% 100%;
-    --card-foreground: var(--charcoal);
-    
-    --popover: 0 0% 100%;
-    --popover-foreground: var(--charcoal);
-    
-    --primary: var(--royal-purple);
-    --primary-foreground: 0 0% 100%;
-    
-    --secondary: var(--gold);
-    --secondary-foreground: 0 0% 20%;
-    
-    --muted: var(--light-gray);
-    --muted-foreground: 0 0% 45%;
-    
-    --accent: var(--cream);
-    --accent-foreground: var(--royal-purple);
-    
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: var(--gold);
-    
-    --radius: 0.75rem;
-    
-    --chart-1: var(--royal-purple);
-    --chart-2: var(--gold);
-    --chart-3: 0 0% 25%;
-    --chart-4: var(--cream);
-    --chart-5: 300 70% 50%;
-    
-    --sidebar-background: var(--royal-purple);
-    --sidebar-foreground: 45 100% 95%;
-    --sidebar-primary: var(--gold);
-    --sidebar-primary-foreground: 0 0% 20%;
-    --sidebar-accent: 280 50% 25%;
-    --sidebar-accent-foreground: 45 100% 95%;
-    --sidebar-border: 280 30% 50%;
-    --sidebar-ring: var(--gold);
-  }
-  
-  * {
-    @apply border-border;
-  }
-  
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair;
-  }
+@keyframes float2 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(-3deg); }
 }
 
-@layer utilities {
-  .font-script {
-    font-family: 'Great Vibes', cursive;
-  }
-  
-  .font-playfair {
-    font-family: 'Playfair Display', serif;
-  }
-  
-  .font-lato {
-    font-family: 'Lato', sans-serif;
-  }
-  
-  /* Gold effects */
-  .gold-gradient {
-    @apply bg-gradient-to-r from-amber-500 to-yellow-400;
-  }
-  
-  .gold-text {
-    @apply text-transparent bg-clip-text gold-gradient;
-  }
-  
-  .gold-border {
-    @apply border-2 border-secondary;
-  }
-  
-  .gold-shadow {
-    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
-  }
-  
-  /* Animation effects for the cinematic landing page */
-  .animate-float1 {
-    animation: float1 20s ease-in-out infinite;
-  }
-  
-  .animate-float2 {
-    animation: float2 25s ease-in-out infinite;
-  }
-  
-  .animate-float3 {
-    animation: float3 30s ease-in-out infinite;
-  }
-  
-  .animate-float4 {
-    animation: float4 22s ease-in-out infinite;
-  }
-  
-  .animate-float5 {
-    animation: float5 28s ease-in-out infinite;
-  }
-  
-  /* Character reveal animation for hero text */
-  .hero-char {
-    animation: charReveal 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
-  
-  /* Enhanced immersive scrolling experience */
-  .immersive-section {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    transition: opacity 0.8s ease, transform 0.8s ease;
-    will-change: transform, opacity;
-  }
-  
-  /* Section connector for visual continuity */
-  .section-connector {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 1px;
-    height: 100px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
-    transform: translateX(-50%);
-    z-index: 10;
-  }
-  
-  /* Scroll-driven animations */
-  .parallax-element {
-    will-change: transform;
-    transition: transform 0.1s linear;
-  }
-  
-  .parallax-slow {
-    transform: translateY(calc(var(--scroll-percentage, 0) * -30px));
-  }
-  
-  .parallax-medium {
-    transform: translateY(calc(var(--scroll-percentage, 0) * -50px));
-  }
-  
-  .parallax-fast {
-    transform: translateY(calc(var(--scroll-percentage, 0) * -80px));
-  }
-  
-  /* Interactive elements */
-  .interactive-card {
-    transition: all 0.3s ease;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  }
-  
-  .interactive-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Mobile optimizations */
-  @media (max-width: 768px) {
-    .parallax-element {
-      transform: none !important; /* Disable parallax on mobile for better performance */
-    }
-    
-    .section-content {
-      padding: 2rem 1rem;
-    }
-  }
-  
-  /* Loading animations for performance optimization */
-  .lazy-load {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  
-  .lazy-load.loaded {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Visual storytelling elements */
-  .story-element {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .story-element::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.1) 50%);
-    opacity: 0;
-    transition: all 0.5s ease;
-  }
-  
-  .story-element:hover::after {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-  
-  /* 3D text effect */
-  .text-3d {
-    text-shadow: 
-      0 1px 0 rgba(255, 255, 255, 0.2),
-      0 2px 0 rgba(255, 255, 255, 0.15),
-      0 3px 0 rgba(255, 255, 255, 0.1),
-      0 4px 0 rgba(255, 255, 255, 0.05),
-      0 5px 5px rgba(0, 0, 0, 0.3);
-    transform-style: preserve-3d;
-    perspective: 500px;
-    transform: translateZ(0);
-    transition: transform 0.3s ease;
-  }
-  
-  .text-3d-char {
-    display: inline-block;
-    animation: text3DFloat 5s ease-in-out infinite;
-    animation-delay: calc(var(--char-index) * 0.1s);
-    transform-style: preserve-3d;
-    transform: translateZ(0) rotateX(0) rotateY(0);
-    will-change: transform;
-  }
-  
-  @keyframes text3DFloat {
-    0%, 100% { 
-      transform: translateZ(0) rotateX(0) rotateY(0);
-    }
-    25% {
-      transform: translateZ(20px) rotateX(5deg) rotateY(-2deg);
-    }
-    50% {
-      transform: translateZ(10px) rotateX(-2deg) rotateY(5deg);
-    }
-    75% {
-      transform: translateZ(30px) rotateX(3deg) rotateY(-3deg);
-    }
-  }
-  
-  @keyframes charReveal {
-    0% {
-      opacity: 0;
-      transform: translateY(20px) rotateX(20deg);
-      filter: blur(10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) rotateX(0);
-      filter: blur(0);
-    }
-  }
-  
-  /* Cinematic section transitions */
-  .cinematic-section {
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    transition: transform 0.6s ease-out;
-  }
-  
-  .cinematic-section.active {
-    z-index: 10;
-  }
-  
-  /* Word animation for cinematic text reveal */
-  .word {
-    display: inline-block;
-    transform-origin: bottom center;
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  
-  /* Text reveal animations */
-  .text-reveal {
-    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-    animation: text-reveal-animation 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-  }
-  
-  @keyframes text-reveal-animation {
-    from { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
-    to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-  }
-  
-  /* Parallax depth classes */
-  .parallax-deep {
-    will-change: transform;
-    transform: translateZ(-100px) scale(1.5);
-  }
-  
-  .parallax-medium {
-    will-change: transform;
-    transform: translateZ(-50px) scale(1.25);
-  }
-  
-  .parallax-shallow {
-    will-change: transform;
-    transform: translateZ(-25px) scale(1.125);
-  }
-  
-  @keyframes float1 {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(50px, 80px); }
-    50% { transform: translate(100px, 20px); }
-    75% { transform: translate(60px, 100px); }
-  }
-  
-  @keyframes float2 {
-    0%, 100% { transform: translate(0, 0); }
-    20% { transform: translate(-30px, 50px); }
-    40% { transform: translate(-60px, 10px); }
-    60% { transform: translate(-40px, 70px); }
-    80% { transform: translate(-20px, 30px); }
-  }
-  
-  @keyframes float3 {
-    0%, 100% { transform: translate(0, 0); }
-    33% { transform: translate(-50px, -50px); }
-    66% { transform: translate(-100px, -20px); }
-  }
-  
-  @keyframes float4 {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(30px, -80px); }
-    50% { transform: translate(80px, -120px); }
-    75% { transform: translate(40px, -60px); }
-  }
-  
-  @keyframes float5 {
-    0%, 100% { transform: translate(0, 0); }
-    20% { transform: translate(-20px, -40px); }
-    40% { transform: translate(-55px, -95px); }
-    60% { transform: translate(-30px, -55px); }
-    80% { transform: translate(-10px, -25px); }
-  }
-  
-  /* Wedding specific styles */
-  .wedding-card {
-    @apply rounded-lg p-6 bg-white shadow-md border border-secondary/20 gold-shadow;
-  }
-  
-  .wedding-heading {
-    @apply font-playfair font-bold gold-text;
-  }
-  
-  .wedding-subheading {
-    @apply font-playfair text-primary/90;
-  }
-  
-  .wedding-script {
-    @apply font-script text-3xl gold-text;
-  }
-  
-  /* Indian wedding specific patterns and effects */
-  .mandala-pattern {
-    background-color: rgba(255, 255, 255, 0.95);
-    background-image: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 2px, transparent 2px);
-    background-size: 24px 24px;
-  }
-  
-  .paisley-border {
-    @apply border-t-4 border-b-4 border-secondary py-2;
-    background-image: repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.1) 10px, transparent 10px, transparent 20px);
-  }
+@keyframes float3 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+.animate-float1 {
+  animation: float1 6s ease-in-out infinite;
+}
+
+.animate-float2 {
+  animation: float2 8s ease-in-out infinite;
+}
+
+.animate-float3 {
+  animation: float3 10s ease-in-out infinite;
+}
+
+/* 3D effect for text */
+.text-3d {
+  text-shadow: 
+    0px 1px 0px rgba(255,255,255,0.2),
+    1px 2px 1px rgba(140, 100, 255, 0.3),
+    2px 3px 2px rgba(140, 100, 255, 0.2),
+    3px 4px 2px rgba(140, 100, 255, 0.1);
+  animation: slight-rotate 6s ease-in-out infinite;
+}
+
+@keyframes slight-rotate {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(5deg); }
+}
+
+/* Section transition styling */
+.section-transition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 6rem;
+  margin: -3rem 0;
+  position: relative;
+  z-index: 20;
+}
+
+.section-transition .line {
+  width: 1px;
+  height: 2.5rem;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(255,255,255,0));
+}
+
+.section-transition .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  margin: 0.25rem 0;
+}
+
+/* Grid pattern for backgrounds */
+.grid-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='40' height='40' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 0 10 L 40 10 M 10 0 L 10 40 M 0 20 L 40 20 M 20 0 L 20 40 M 0 30 L 40 30 M 30 0 L 30 40' stroke='%23fff' stroke-width='0.5' stroke-opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)'/%3E%3C/svg%3E");
+}
+
+/* Font for decorative text */
+.font-script {
+  font-family: "Playfair Display", serif, system-ui;
 }
