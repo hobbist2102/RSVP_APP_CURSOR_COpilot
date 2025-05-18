@@ -63,13 +63,13 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
     
     // Authentication failure
     this.client.on('auth_failure', (error) => {
-      console.error(`WhatsApp authentication failed for event ${this.eventId}:`, error);
+      // Silent error in production, just update state
       this.ready = false;
     });
     
     // Disconnected
     this.client.on('disconnected', (reason) => {
-      console.log(`WhatsApp disconnected for event ${this.eventId}:`, reason);
+      // Update state when disconnected without logging
       this.ready = false;
     });
   }
@@ -85,11 +85,10 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
     try {
       // Start the client if not already initialized
       if (!this.ready) {
-        console.log(`Initializing WhatsApp client for event ${this.eventId}...`);
         await this.client.initialize();
       }
     } catch (error) {
-      console.error(`Error initializing WhatsApp client for event ${this.eventId}:`, error);
+      // Re-throw error for proper handling by the service manager
       throw error;
     }
   }
@@ -116,10 +115,9 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
       if (this.client) {
         await this.client.destroy();
         this.ready = false;
-        console.log(`WhatsApp client disconnected for event ${this.eventId}`);
       }
     } catch (error) {
-      console.error(`Error disconnecting WhatsApp client for event ${this.eventId}:`, error);
+      // Re-throw error for proper handling by the service manager
       throw error;
     }
   }
@@ -167,7 +165,7 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
       const sent = await this.client.sendMessage(formattedNumber, message);
       return sent.id._serialized;
     } catch (error) {
-      console.error(`Error sending WhatsApp message to ${to}:`, error);
+      // Re-throw error for proper handling by caller
       throw error;
     }
   }
