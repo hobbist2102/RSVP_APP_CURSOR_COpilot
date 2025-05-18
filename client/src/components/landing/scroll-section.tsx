@@ -32,7 +32,7 @@ export const ScrollSection: React.FC<ScrollSectionProps> = ({
       ? [100, 0]
       : fadeDirection === 'down'
       ? [-100, 0]
-      : 0
+      : [0, 0]
   );
   const x = useTransform(
     scrollYProgress,
@@ -41,7 +41,7 @@ export const ScrollSection: React.FC<ScrollSectionProps> = ({
       ? [100, 0]
       : fadeDirection === 'right'
       ? [-100, 0]
-      : 0
+      : [0, 0]
   );
   
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1.1]);
