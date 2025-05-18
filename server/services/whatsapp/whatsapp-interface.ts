@@ -1,46 +1,48 @@
-import { EventEmitter } from 'events';
-
 /**
- * Common interface for all WhatsApp service implementations
+ * Interface for WhatsApp service implementations
  */
-export interface IWhatsAppService extends EventEmitter {
+export interface IWhatsAppService {
   /**
-   * Initialize the WhatsApp service
+   * Initialize the WhatsApp client
    */
-  initialize(...args: any[]): Promise<void>;
+  initialize(): Promise<void>;
   
   /**
-   * Check if the client is ready
+   * Check if the WhatsApp client is ready to send messages
    */
   isClientReady(): boolean;
   
   /**
-   * Get the QR code for authentication (Web client only)
+   * Get the QR code for authentication (Web.js only)
    */
   getQRCode?(): string | null;
   
   /**
-   * Send a text message
+   * Disconnect the WhatsApp client
    */
-  sendTextMessage(to: string, text: string): Promise<string | null>;
+  disconnect(): Promise<void>;
+  
+  /**
+   * Send a text message
+   * @param to Recipient phone number (with country code)
+   * @param message Text message to send
+   */
+  sendTextMessage(to: string, message: string): Promise<string>;
   
   /**
    * Send a media message
+   * @param to Recipient phone number (with country code)
+   * @param mediaPath Path to the media file
+   * @param caption Optional caption for the media
    */
-  sendMediaMessage(to: string, mediaPath: string, caption?: string): Promise<string | null>;
+  sendMediaMessage(to: string, mediaPath: string, caption?: string): Promise<string>;
   
   /**
-   * Send a template message
+   * Send a template message (Business API only)
+   * @param to Recipient phone number (with country code)
+   * @param templateName Name of the template
+   * @param languageCode Language code (e.g., en_US)
+   * @param components Template components
    */
-  sendTemplateMessage(to: string, templateName: string, languageCode: string, components: any[]): Promise<string | null>;
-  
-  /**
-   * Logout the client
-   */
-  logout?(): Promise<void>;
-  
-  /**
-   * Disconnect the client
-   */
-  disconnect?(): Promise<void>;
+  sendTemplateMessage?(to: string, templateName: string, languageCode: string, components: any[]): Promise<string>;
 }

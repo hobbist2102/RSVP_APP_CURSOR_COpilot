@@ -1,228 +1,205 @@
-import { Client, LocalAuth, Message } from 'whatsapp-web.js';
+import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
+import { IWhatsAppService } from './whatsapp-interface';
 import qrcode from 'qrcode-terminal';
 import fs from 'fs';
 import path from 'path';
-import mime from 'mime-types';
-import { EventEmitter } from 'events';
 
 /**
- * WhatsApp Web JS Service
- * Uses the whatsapp-web.js library to connect to WhatsApp Web
+ * WhatsApp Web.js implementation of WhatsApp service
  */
-class WhatsAppWebJSService extends EventEmitter {
-  private client: Client | null = null;
-  private isInitialized: boolean = false;
-  private isReady: boolean = false;
+export default class WhatsAppWebJSService implements IWhatsAppService {
+  private client: Client;
+  private ready: boolean = false;
   private qrCode: string | null = null;
-  private sessionId: string;
-  private sessionPath: string;
+  private sessionDir: string;
+  private eventId: number;
 
-  constructor(sessionId: string = 'default-session') {
-    super();
-    this.sessionId = sessionId;
-    this.sessionPath = path.join(process.cwd(), 'whatsapp-sessions', sessionId);
+  /**
+   * Constructor
+   * @param eventId Event ID
+   */
+  constructor(eventId: number) {
+    this.eventId = eventId;
+    this.sessionDir = path.join(process.cwd(), 'whatsapp-sessions', `event-${eventId}`);
     
-    // Create session directory if it doesn't exist
-    if (!fs.existsSync(path.join(process.cwd(), 'whatsapp-sessions'))) {
-      fs.mkdirSync(path.join(process.cwd(), 'whatsapp-sessions'), { recursive: true });
+    // Ensure session directory exists
+    if (!fs.existsSync(this.sessionDir)) {
+      fs.mkdirSync(this.sessionDir, { recursive: true });
     }
+    
+    // Initialize WhatsApp Web.js client
+    this.client = new Client({
+      authStrategy: new LocalAuth({ clientId: `event-${eventId}`, dataPath: this.sessionDir }),
+      puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-accelerated-2d-canvas', '--no-first-run', '--no-zygote', '--single-process', '--disable-gpu'],
+        headless: true
+      }
+    });
+    
+    // Set up event handlers
+    this.setupEventHandlers();
+  }
+
+  /**
+   * Set up WhatsApp Web.js event handlers
+   */
+  private setupEventHandlers(): void {
+    // QR code generation
+    this.client.on('qr', (qrCode) => {
+      this.qrCode = qrCode;
+      console.log(`WhatsApp QR Code for event ${this.eventId}:`);
+      qrcode.generate(qrCode, { small: true });
+    });
+    
+    // Authentication successful
+    this.client.on('authenticated', () => {
+      console.log(`WhatsApp authenticated for event ${this.eventId}`);
+      this.qrCode = null; // Clear QR code after authentication
+    });
+    
+    // Client ready
+    this.client.on('ready', () => {
+      console.log(`WhatsApp client ready for event ${this.eventId}`);
+      this.ready = true;
+    });
+    
+    // Authentication failure
+    this.client.on('auth_failure', (error) => {
+      console.error(`WhatsApp authentication failed for event ${this.eventId}:`, error);
+      this.ready = false;
+    });
+    
+    // Disconnected
+    this.client.on('disconnected', (reason) => {
+      console.log(`WhatsApp disconnected for event ${this.eventId}:`, reason);
+      this.ready = false;
+    });
   }
 
   /**
    * Initialize the WhatsApp client
    */
   public async initialize(): Promise<void> {
-    if (this.isInitialized) {
-      return;
+    if (!this.client) {
+      throw new Error('WhatsApp client has not been created');
     }
-
+    
     try {
-      this.client = new Client({
-        authStrategy: new LocalAuth({
-          clientId: this.sessionId,
-          dataPath: path.join(process.cwd(), 'whatsapp-sessions')
-        }),
-        puppeteer: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-        }
-      });
-
-      // Register event handlers
-      this.client.on('qr', (qr) => {
-        this.qrCode = qr;
-        // Generate QR code in terminal for scanning
-        qrcode.generate(qr, { small: true });
-        this.emit('qr', qr);
-      });
-
-      this.client.on('ready', () => {
-        console.log('WhatsApp client is ready!');
-        this.isReady = true;
-        this.qrCode = null;
-        this.emit('ready');
-      });
-
-      this.client.on('authenticated', () => {
-        console.log('WhatsApp client authenticated!');
-        this.emit('authenticated');
-      });
-
-      this.client.on('auth_failure', (msg) => {
-        console.error('WhatsApp authentication failed:', msg);
-        this.emit('auth_failure', msg);
-      });
-
-      this.client.on('disconnected', (reason) => {
-        console.log('WhatsApp client disconnected:', reason);
-        this.isReady = false;
-        this.emit('disconnected', reason);
-      });
-
-      this.client.on('message', (message) => {
-        this.emit('message', message);
-      });
-
-      // Initialize the client
-      await this.client.initialize();
-      this.isInitialized = true;
-      
+      // Start the client if not already initialized
+      if (!this.ready) {
+        console.log(`Initializing WhatsApp client for event ${this.eventId}...`);
+        await this.client.initialize();
+      }
     } catch (error) {
-      console.error('Error initializing WhatsApp client:', error);
+      console.error(`Error initializing WhatsApp client for event ${this.eventId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Check if the client is ready
+   * Check if the WhatsApp client is ready to send messages
    */
   public isClientReady(): boolean {
-    return this.isReady;
+    return this.ready;
   }
 
   /**
-   * Get the current QR code for authentication
+   * Get the QR code for authentication
    */
   public getQRCode(): string | null {
     return this.qrCode;
   }
 
   /**
-   * Send a text message to a specific number
-   */
-  public async sendTextMessage(to: string, text: string): Promise<string | null> {
-    if (!this.isReady || !this.client) {
-      throw new Error('WhatsApp client not ready');
-    }
-
-    try {
-      // Format the number to ensure it has the correct format
-      const formattedNumber = this.formatPhoneNumber(to);
-      const chatId = `${formattedNumber}@c.us`;
-      
-      // Send the message
-      const message = await this.client.sendMessage(chatId, text);
-      return message.id._serialized;
-    } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Send a media message to a specific number
-   */
-  public async sendMediaMessage(
-    to: string, 
-    mediaPath: string, 
-    caption?: string
-  ): Promise<string | null> {
-    if (!this.isReady || !this.client) {
-      throw new Error('WhatsApp client not ready');
-    }
-
-    try {
-      // Format the number
-      const formattedNumber = this.formatPhoneNumber(to);
-      const chatId = `${formattedNumber}@c.us`;
-      
-      // Check if the file exists
-      if (!fs.existsSync(mediaPath)) {
-        throw new Error(`File not found: ${mediaPath}`);
-      }
-
-      // Get the mime type
-      const mimeType = mime.lookup(mediaPath) || 'application/octet-stream';
-      
-      // Read the file
-      const media = fs.readFileSync(mediaPath);
-      const base64Media = media.toString('base64');
-      const fileData = `data:${mimeType};base64,${base64Media}`;
-      
-      // Send the media message
-      const message = await this.client.sendMessage(chatId, {
-        body: caption,
-        media: fileData
-      });
-      
-      return message.id._serialized;
-    } catch (error) {
-      console.error('Error sending WhatsApp media message:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Send a template message for business accounts
-   */
-  public async sendTemplateMessage(
-    to: string,
-    templateName: string,
-    languageCode: string,
-    parameters: Record<string, string>[]
-  ): Promise<string | null> {
-    throw new Error('Template messages not supported in WhatsApp Web JS. Use the WhatsApp Business API instead.');
-  }
-
-  /**
-   * Logout the WhatsApp client
-   */
-  public async logout(): Promise<void> {
-    if (this.client) {
-      await this.client.logout();
-      this.isReady = false;
-      this.qrCode = null;
-    }
-  }
-
-  /**
    * Disconnect the WhatsApp client
    */
   public async disconnect(): Promise<void> {
-    if (this.client) {
-      await this.client.destroy();
-      this.client = null;
-      this.isInitialized = false;
-      this.isReady = false;
-      this.qrCode = null;
+    try {
+      if (this.client) {
+        await this.client.destroy();
+        this.ready = false;
+        console.log(`WhatsApp client disconnected for event ${this.eventId}`);
+      }
+    } catch (error) {
+      console.error(`Error disconnecting WhatsApp client for event ${this.eventId}:`, error);
+      throw error;
     }
   }
 
   /**
-   * Format a phone number to ensure it has the correct format
-   * @param phoneNumber The phone number to format
+   * Format phone number to include country code if missing
+   * @param phoneNumber Phone number to format
+   * @returns Formatted phone number
    */
   private formatPhoneNumber(phoneNumber: string): string {
-    // Remove any non-digit characters
-    let formatted = phoneNumber.replace(/\D/g, '');
+    // Remove any spaces, dashes, or parentheses
+    let formattedNumber = phoneNumber.replace(/[\s\-()]/g, '');
     
-    // Make sure the number starts with the country code
-    if (!formatted.startsWith('1') && !formatted.startsWith('91')) {
-      // Default to India for this wedding platform
-      formatted = '91' + formatted;
+    // Add country code if missing
+    if (!formattedNumber.startsWith('+')) {
+      if (formattedNumber.startsWith('0')) {
+        // Assuming Indian number starting with 0, convert to +91
+        formattedNumber = '+91' + formattedNumber.substring(1);
+      } else if (!formattedNumber.match(/^\d{1,3}/)) {
+        // If no country code, default to +91 (India)
+        formattedNumber = '+91' + formattedNumber;
+      } else {
+        // Add + if missing but has country code
+        formattedNumber = '+' + formattedNumber;
+      }
     }
     
-    return formatted;
+    // WhatsApp Web.js requires number@c.us format
+    return formattedNumber.substring(1) + '@c.us';
+  }
+
+  /**
+   * Send a text message
+   * @param to Recipient phone number
+   * @param message Text message to send
+   * @returns Promise resolving to message ID
+   */
+  public async sendTextMessage(to: string, message: string): Promise<string> {
+    if (!this.isClientReady()) {
+      throw new Error('WhatsApp client is not ready. Please scan the QR code to authenticate.');
+    }
+    
+    try {
+      const formattedNumber = this.formatPhoneNumber(to);
+      const sent = await this.client.sendMessage(formattedNumber, message);
+      return sent.id._serialized;
+    } catch (error) {
+      console.error(`Error sending WhatsApp message to ${to}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send a media message
+   * @param to Recipient phone number
+   * @param mediaPath Path to the media file
+   * @param caption Optional caption for the media
+   * @returns Promise resolving to message ID
+   */
+  public async sendMediaMessage(to: string, mediaPath: string, caption?: string): Promise<string> {
+    if (!this.isClientReady()) {
+      throw new Error('WhatsApp client is not ready. Please scan the QR code to authenticate.');
+    }
+    
+    try {
+      // Check if file exists
+      if (!fs.existsSync(mediaPath)) {
+        throw new Error(`Media file not found: ${mediaPath}`);
+      }
+      
+      const formattedNumber = this.formatPhoneNumber(to);
+      const media = MessageMedia.fromFilePath(mediaPath);
+      
+      const sent = await this.client.sendMessage(formattedNumber, media, { caption });
+      return sent.id._serialized;
+    } catch (error) {
+      console.error(`Error sending WhatsApp media message to ${to}:`, error);
+      throw error;
+    }
   }
 }
-
-export default WhatsAppWebJSService;

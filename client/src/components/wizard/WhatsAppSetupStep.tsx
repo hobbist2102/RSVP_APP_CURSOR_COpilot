@@ -191,16 +191,19 @@ const WhatsAppSetupStep: React.FC<WhatsAppSetupStepProps> = ({ eventId, onComple
   
   // Handle save and continue
   const handleSaveAndContinue = () => {
-    updateConfigMutation.mutate({
+    const configData = {
       whatsappConfigured: useWhatsApp,
       whatsappAccessToken: businessApiKey,
       whatsappBusinessPhoneId: businessPhoneNumberId,
       whatsappBusinessNumber: businessNumber,
       whatsappBusinessAccountId: businessAccountId,
       whatsappProvider: provider
-    }, {
+    };
+    
+    updateConfigMutation.mutate(configData, {
       onSuccess: () => {
-        onComplete();
+        // Pass the data to the wizard's step completion handler
+        onComplete(configData);
       }
     });
   };

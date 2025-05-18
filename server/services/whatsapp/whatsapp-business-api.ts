@@ -1,78 +1,153 @@
-import { EventEmitter } from 'events';
-import axios from 'axios';
+import { IWhatsAppService } from './whatsapp-interface';
 import fs from 'fs';
-import FormData from 'form-data';
+import path from 'path';
+import axios from 'axios';
 
 /**
- * WhatsApp Business API Service
- * Uses the official WhatsApp Business API to send messages
+ * WhatsApp Business API implementation of WhatsApp service
  */
-class WhatsAppBusinessAPIService extends EventEmitter {
-  private apiKey: string | null = null;
-  private phoneNumberId: string | null = null;
-  private baseUrl: string = 'https://graph.facebook.com/v18.0';
-  private isInitialized: boolean = false;
+export default class WhatsAppBusinessAPIService implements IWhatsAppService {
+  private eventId: number;
+  private accessToken: string;
+  private phoneNumberId: string;
+  private phoneNumber: string;
+  private businessAccountId: string;
+  private ready: boolean = false;
+  private baseUrl: string = 'https://graph.facebook.com/v17.0';
 
-  constructor(apiKey?: string, phoneNumberId?: string) {
-    super();
-    if (apiKey) this.apiKey = apiKey;
-    if (phoneNumberId) this.phoneNumberId = phoneNumberId;
+  /**
+   * Constructor
+   * @param eventId Event ID
+   * @param accessToken WhatsApp Business API access token
+   * @param phoneNumberId WhatsApp Business API phone number ID
+   * @param phoneNumber WhatsApp Business phone number
+   * @param businessAccountId WhatsApp Business account ID
+   */
+  constructor(
+    eventId: number,
+    accessToken: string,
+    phoneNumberId: string,
+    phoneNumber: string = '',
+    businessAccountId: string = ''
+  ) {
+    this.eventId = eventId;
+    this.accessToken = accessToken;
+    this.phoneNumberId = phoneNumberId;
+    this.phoneNumber = phoneNumber;
+    this.businessAccountId = businessAccountId;
   }
 
   /**
-   * Initialize the WhatsApp Business API service
+   * Initialize the WhatsApp Business API client
    */
-  public async initialize(apiKey?: string, phoneNumberId?: string): Promise<void> {
-    if (apiKey) this.apiKey = apiKey;
-    if (phoneNumberId) this.phoneNumberId = phoneNumberId;
-
-    if (!this.apiKey || !this.phoneNumberId) {
-      throw new Error('API key and Phone Number ID are required to initialize WhatsApp Business API');
-    }
-
+  public async initialize(): Promise<void> {
     try {
-      // Verify the access token by making a test request
-      const response = await axios.get(
-        `${this.baseUrl}/${this.phoneNumberId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      // Validate required credentials
+      if (!this.accessToken || !this.phoneNumberId) {
+        throw new Error('WhatsApp Business API requires an access token and phone number ID');
+      }
 
-      if (response.status === 200) {
-        this.isInitialized = true;
-        this.emit('ready');
-        console.log('WhatsApp Business API is ready!');
-        return;
-      } 
+      // Verify the API token by making a test request
+      await this.verifyCredentials();
       
-      throw new Error(`Failed to initialize WhatsApp Business API: ${response.statusText}`);
+      this.ready = true;
+      console.log(`WhatsApp Business API client ready for event ${this.eventId}`);
     } catch (error) {
-      console.error('Error initializing WhatsApp Business API:', error);
+      this.ready = false;
+      console.error(`Error initializing WhatsApp Business API for event ${this.eventId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Check if the service is initialized
+   * Verify API credentials by making a test request
    */
-  public isClientReady(): boolean {
-    return this.isInitialized;
+  private async verifyCredentials(): Promise<void> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/${this.phoneNumberId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.status !== 200) {
+        throw new Error(`Failed to verify WhatsApp Business API credentials: ${response.status} ${response.statusText}`);
+      }
+      
+      // Store the phone number if available in the response
+      if (response.data?.phone_number && !this.phoneNumber) {
+        this.phoneNumber = response.data.phone_number;
+      }
+      
+      // Store the business account ID if available in the response
+      if (response.data?.waba_id && !this.businessAccountId) {
+        this.businessAccountId = response.data.waba_id;
+      }
+    } catch (error) {
+      console.error('Error verifying WhatsApp Business API credentials:', error);
+      throw new Error('Failed to verify WhatsApp Business API credentials. Please check your access token and phone number ID.');
+    }
   }
 
   /**
-   * Send a text message to a specific number
+   * Check if the WhatsApp client is ready to send messages
    */
-  public async sendTextMessage(to: string, text: string): Promise<string | null> {
-    if (!this.isInitialized) {
-      throw new Error('WhatsApp Business API not initialized');
-    }
+  public isClientReady(): boolean {
+    return this.ready;
+  }
 
+  /**
+   * Disconnect the WhatsApp client (no-op for Business API)
+   */
+  public async disconnect(): Promise<void> {
+    this.ready = false;
+    console.log(`WhatsApp Business API disconnected for event ${this.eventId}`);
+  }
+
+  /**
+   * Format phone number to include country code if missing
+   * @param phoneNumber Phone number to format
+   * @returns Formatted phone number
+   */
+  private formatPhoneNumber(phoneNumber: string): string {
+    // Remove any spaces, dashes, or parentheses
+    let formattedNumber = phoneNumber.replace(/[\s\-()]/g, '');
+    
+    // Add country code if missing
+    if (!formattedNumber.startsWith('+')) {
+      if (formattedNumber.startsWith('0')) {
+        // Assuming Indian number starting with 0, convert to +91
+        formattedNumber = '+91' + formattedNumber.substring(1);
+      } else if (!formattedNumber.match(/^\d{1,3}/)) {
+        // If no country code, default to +91 (India)
+        formattedNumber = '+91' + formattedNumber;
+      } else {
+        // Add + if missing but has country code
+        formattedNumber = '+' + formattedNumber;
+      }
+    }
+    
+    return formattedNumber;
+  }
+
+  /**
+   * Send a text message
+   * @param to Recipient phone number
+   * @param message Text message to send
+   * @returns Promise resolving to message ID
+   */
+  public async sendTextMessage(to: string, message: string): Promise<string> {
+    if (!this.isClientReady()) {
+      throw new Error('WhatsApp Business API client is not ready. Please check your credentials.');
+    }
+    
     try {
       const formattedNumber = this.formatPhoneNumber(to);
+      
       const response = await axios.post(
         `${this.baseUrl}/${this.phoneNumberId}/messages`,
         {
@@ -81,168 +156,226 @@ class WhatsAppBusinessAPIService extends EventEmitter {
           to: formattedNumber,
           type: 'text',
           text: {
-            body: text
+            body: message
           }
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            'Authorization': `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json'
           }
         }
       );
-
-      if (response.status === 200) {
-        return response.data.messages?.[0]?.id || null;
+      
+      if (!response.data?.messages || response.data.messages.length === 0) {
+        throw new Error('No message ID returned from WhatsApp Business API');
       }
-
-      throw new Error(`Failed to send WhatsApp message: ${response.statusText}`);
+      
+      return response.data.messages[0].id;
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
+      console.error(`Error sending WhatsApp Business API message to ${to}:`, error);
       throw error;
     }
   }
 
   /**
-   * Send a media message to a specific number
+   * Send a media message
+   * @param to Recipient phone number
+   * @param mediaPath Path to the media file
+   * @param caption Optional caption for the media
+   * @returns Promise resolving to message ID
    */
-  public async sendMediaMessage(
-    to: string, 
-    mediaPath: string, 
-    caption?: string
-  ): Promise<string | null> {
-    if (!this.isInitialized) {
-      throw new Error('WhatsApp Business API not initialized');
+  public async sendMediaMessage(to: string, mediaPath: string, caption?: string): Promise<string> {
+    if (!this.isClientReady()) {
+      throw new Error('WhatsApp Business API client is not ready. Please check your credentials.');
     }
-
+    
     try {
-      // First, upload the media to WhatsApp servers
-      const mediaId = await this.uploadMedia(mediaPath);
-      if (!mediaId) {
-        throw new Error('Failed to upload media');
+      // Check if file exists
+      if (!fs.existsSync(mediaPath)) {
+        throw new Error(`Media file not found: ${mediaPath}`);
       }
-
-      // Now send the media message
+      
+      // First, upload the media file to get an ID
+      const mediaType = this.getMediaType(mediaPath);
+      const mediaId = await this.uploadMedia(mediaPath, mediaType);
+      
+      if (!mediaId) {
+        throw new Error('Failed to upload media to WhatsApp Business API');
+      }
+      
+      // Then send the media message
       const formattedNumber = this.formatPhoneNumber(to);
       
-      // Determine media type based on file extension
-      const fileExtension = mediaPath.split('.').pop()?.toLowerCase();
-      let mediaType = 'document';
-      
-      if (['jpg', 'jpeg', 'png'].includes(fileExtension || '')) {
-        mediaType = 'image';
-      } else if (['mp4', 'mov', '3gp'].includes(fileExtension || '')) {
-        mediaType = 'video';
-      } else if (['mp3', 'ogg', 'wav'].includes(fileExtension || '')) {
-        mediaType = 'audio';
-      }
-
       const payload: any = {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
         to: formattedNumber,
-        type: mediaType,
-        [mediaType]: {
-          id: mediaId
-        }
+        type: mediaType
       };
-
-      // Add caption if provided (not applicable for audio)
-      if (caption && mediaType !== 'audio') {
+      
+      // Add the correct media type object with ID
+      payload[mediaType] = { id: mediaId };
+      
+      // Add caption if provided
+      if (caption && (mediaType === 'image' || mediaType === 'video' || mediaType === 'document')) {
         payload[mediaType].caption = caption;
       }
-
+      
       const response = await axios.post(
         `${this.baseUrl}/${this.phoneNumberId}/messages`,
         payload,
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            'Authorization': `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json'
           }
         }
       );
-
-      if (response.status === 200) {
-        return response.data.messages?.[0]?.id || null;
+      
+      if (!response.data?.messages || response.data.messages.length === 0) {
+        throw new Error('No message ID returned from WhatsApp Business API');
       }
-
-      throw new Error(`Failed to send WhatsApp media message: ${response.statusText}`);
+      
+      return response.data.messages[0].id;
     } catch (error) {
-      console.error('Error sending WhatsApp media message:', error);
+      console.error(`Error sending WhatsApp Business API media message to ${to}:`, error);
       throw error;
     }
   }
 
   /**
-   * Upload media to WhatsApp servers
+   * Upload media to the WhatsApp Business API
+   * @param mediaPath Path to the media file
+   * @param mediaType Type of the media (image, video, audio, document)
+   * @returns Promise resolving to media ID
    */
-  private async uploadMedia(mediaPath: string): Promise<string | null> {
+  private async uploadMedia(mediaPath: string, mediaType: string): Promise<string> {
     try {
-      // Check if the file exists
-      if (!fs.existsSync(mediaPath)) {
-        throw new Error(`File not found: ${mediaPath}`);
-      }
-
+      // Read the file
+      const media = fs.readFileSync(mediaPath);
+      
+      // Get the mime type
+      const mimeType = this.getMimeType(mediaPath);
+      
+      // Upload to WhatsApp Business API
       const formData = new FormData();
-      formData.append('file', fs.createReadStream(mediaPath));
+      const blob = new Blob([media], { type: mimeType });
+      formData.append('file', blob, path.basename(mediaPath));
       formData.append('messaging_product', 'whatsapp');
-      formData.append('type', this.getMediaType(mediaPath));
-
+      formData.append('type', mimeType);
+      
       const response = await axios.post(
         `${this.baseUrl}/${this.phoneNumberId}/media`,
         formData,
         {
           headers: {
-            ...formData.getHeaders(),
-            'Authorization': `Bearer ${this.apiKey}`
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'multipart/form-data'
           }
         }
       );
-
-      if (response.status === 200) {
-        return response.data.id || null;
+      
+      if (!response.data?.id) {
+        throw new Error('No media ID returned from WhatsApp Business API');
       }
-
-      return null;
+      
+      return response.data.id;
     } catch (error) {
-      console.error('Error uploading media to WhatsApp:', error);
+      console.error('Error uploading media to WhatsApp Business API:', error);
       throw error;
     }
   }
 
   /**
-   * Determine media type from file extension
+   * Get the media type based on the file extension
+   * @param filePath Path to the media file
+   * @returns Media type (image, video, audio, document)
    */
   private getMediaType(filePath: string): string {
-    const extension = filePath.split('.').pop()?.toLowerCase();
+    const ext = path.extname(filePath).toLowerCase();
     
-    if (['jpg', 'jpeg', 'png'].includes(extension || '')) {
+    if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
       return 'image';
-    } else if (['mp4', 'mov', '3gp'].includes(extension || '')) {
+    } else if (['.mp4', '.3gp', '.mov'].includes(ext)) {
       return 'video';
-    } else if (['mp3', 'ogg', 'wav'].includes(extension || '')) {
+    } else if (['.mp3', '.ogg', '.wav', '.opus'].includes(ext)) {
       return 'audio';
+    } else {
+      return 'document';
     }
-    
-    return 'document';
   }
 
   /**
-   * Send a template message (specific to WhatsApp Business API)
+   * Get the MIME type based on the file extension
+   * @param filePath Path to the media file
+   * @returns MIME type
+   */
+  private getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    
+    switch (ext) {
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.png':
+        return 'image/png';
+      case '.webp':
+        return 'image/webp';
+      case '.mp4':
+        return 'video/mp4';
+      case '.3gp':
+        return 'video/3gpp';
+      case '.mov':
+        return 'video/quicktime';
+      case '.mp3':
+        return 'audio/mpeg';
+      case '.ogg':
+        return 'audio/ogg';
+      case '.wav':
+        return 'audio/wav';
+      case '.opus':
+        return 'audio/opus';
+      case '.pdf':
+        return 'application/pdf';
+      case '.doc':
+        return 'application/msword';
+      case '.docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case '.xls':
+        return 'application/vnd.ms-excel';
+      case '.xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case '.ppt':
+        return 'application/vnd.ms-powerpoint';
+      case '.pptx':
+        return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  /**
+   * Send a template message
+   * @param to Recipient phone number
+   * @param templateName Name of the template
+   * @param languageCode Language code (e.g., en_US)
+   * @param components Template components
+   * @returns Promise resolving to message ID
    */
   public async sendTemplateMessage(
     to: string,
     templateName: string,
     languageCode: string = 'en_US',
     components: any[] = []
-  ): Promise<string | null> {
-    if (!this.isInitialized) {
-      throw new Error('WhatsApp Business API not initialized');
+  ): Promise<string> {
+    if (!this.isClientReady()) {
+      throw new Error('WhatsApp Business API client is not ready. Please check your credentials.');
     }
-
+    
     try {
       const formattedNumber = this.formatPhoneNumber(to);
+      
       const response = await axios.post(
         `${this.baseUrl}/${this.phoneNumberId}/messages`,
         {
@@ -255,44 +388,25 @@ class WhatsAppBusinessAPIService extends EventEmitter {
             language: {
               code: languageCode
             },
-            components: components
+            components
           }
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            'Authorization': `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json'
           }
         }
       );
-
-      if (response.status === 200) {
-        return response.data.messages?.[0]?.id || null;
+      
+      if (!response.data?.messages || response.data.messages.length === 0) {
+        throw new Error('No message ID returned from WhatsApp Business API');
       }
-
-      throw new Error(`Failed to send WhatsApp template message: ${response.statusText}`);
+      
+      return response.data.messages[0].id;
     } catch (error) {
-      console.error('Error sending WhatsApp template message:', error);
+      console.error(`Error sending WhatsApp Business API template message to ${to}:`, error);
       throw error;
     }
   }
-
-  /**
-   * Format a phone number to ensure it has the correct format
-   * @param phoneNumber The phone number to format
-   */
-  private formatPhoneNumber(phoneNumber: string): string {
-    // Remove any non-digit characters
-    let formatted = phoneNumber.replace(/\D/g, '');
-    
-    // Make sure the number starts with the country code
-    if (!formatted.startsWith('1') && !formatted.startsWith('91')) {
-      // Default to India for this wedding platform
-      formatted = '91' + formatted;
-    }
-    
-    return formatted;
-  }
 }
-
-export default WhatsAppBusinessAPIService;

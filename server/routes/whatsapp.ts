@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { db } from '../db';
-import { events } from '@shared/schema';
+import { guests, weddingEvents as events } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { WhatsAppManager, WhatsAppProvider } from '../services/whatsapp';
 
@@ -108,7 +108,7 @@ export function registerWhatsAppRoutes(
       }
       
       // Update the event's WhatsApp configuration in the database
-      if (req.body.whatsappConfigured) {
+      if (req.body.whatsappConfigured !== undefined) {
         const updateData: any = {
           whatsappConfigured: req.body.whatsappConfigured
         };
@@ -284,70 +284,89 @@ export function registerWhatsAppRoutes(
         return res.status(400).json({ message: 'Message is required' });
       }
       
+      let eventGuests;
+      
       // Get all guests for the event with phone numbers
-      const guestQuery = db.select().from(guests).where(eq(guests.eventId, eventId));
+      const baseQuery = db.select().from(guests).where(eq(guests.eventId, eventId));
       
       // Apply filters if provided
       if (filter?.rsvpStatus) {
-        // Use additional where clause for filtering by RSVP status
-        const guestsWithFilter = await guestQuery
+        eventGuests = await db.select()
+          .from(guests)
+          .where(eq(guests.eventId, eventId))
           .where(eq(guests.rsvpStatus, filter.rsvpStatus));
-        
-        if (!guestsWithFilter || guestsWithFilter.length === 0) {
-          return res.status(404).json({ message: 'No guests found matching the filter criteria' });
-        }
-        
-        // Filter guests with phone numbers
-        const guestsWithPhones = guestsWithFilter.filter(guest => guest.phone);
-        
-        if (guestsWithPhones.length === 0) {
-          return res.status(404).json({ message: 'No guests with phone numbers found matching the filter criteria' });
-        }
-        
-        // Process the filtered guests
-        const results = await processGuestMessages(eventId, guestsWithPhones, message, whatsappManager);
-        
-        // Compile results
-        const successCount = results.filter(r => r.status === 'sent').length;
-        const failureCount = results.filter(r => r.status === 'failed').length;
-        
-        res.json({
-          message: `Sent ${successCount} messages, ${failureCount} failed`,
-          totalGuests: guestsWithPhones.length,
-          successCount,
-          failureCount,
-          results
-        });
       } else {
-        // No filters, get all guests
-        const eventGuests = await guestQuery;
-        
-        if (!eventGuests || eventGuests.length === 0) {
-          return res.status(404).json({ message: 'No guests found for this event' });
-        }
-        
-        // Filter guests with phone numbers
-        const guestsWithPhones = eventGuests.filter(guest => guest.phone);
-        
-        if (guestsWithPhones.length === 0) {
-          return res.status(404).json({ message: 'No guests with phone numbers found' });
-        }
-        
-        // Process all guests with phone numbers
-        const results = await processGuestMessages(eventId, guestsWithPhones, message, whatsappManager);
-        
-        // Compile results
-        const successCount = results.filter(r => r.status === 'sent').length;
-        const failureCount = results.filter(r => r.status === 'failed').length;
-        
-        res.json({
-          message: `Sent ${successCount} messages, ${failureCount} failed`,
-          totalGuests: guestsWithPhones.length,
-          successCount,
-          failureCount,
-          results
-        });
+        eventGuests = await baseQuery;
       }
+      
+      if (!eventGuests || eventGuests.length === 0) {
+        return res.status(404).json({ message: 'No guests found for this event' });
+      }
+      
+      // Filter guests with phone numbers
+      const guestsWithPhones = eventGuests.filter(guest => guest.phone);
+      
+      if (guestsWithPhones.length === 0) {
+        return res.status(404).json({ message: 'No guests with phone numbers found' });
+      }
+      
+      // Process all guests with phone numbers in batches
+      const results = [];
+      const batchSize = 5; // Process in batches of 5 to avoid rate limiting
+      
+      for (let i = 0; i < guestsWithPhones.length; i += batchSize) {
+        const batch = guestsWithPhones.slice(i, i + batchSize);
+        
+        const batchPromises = batch.map(async (guest) => {
+          try {
+            // Create personalized message by replacing placeholders
+            let personalizedMessage = message;
+            personalizedMessage = personalizedMessage.replace(/{name}/g, guest.firstName || '');
+            personalizedMessage = personalizedMessage.replace(/{fullName}/g, `${guest.firstName || ''} ${guest.lastName || ''}`.trim());
+            
+            const messageId = await whatsappManager.sendTextMessage(eventId, guest.phone as string, personalizedMessage);
+            
+            return {
+              guestId: guest.id,
+              name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
+              phone: guest.phone,
+              status: 'sent',
+              messageId
+            };
+          } catch (err) {
+            const error = err as Error;
+            console.error(`Error sending to guest ${guest.id}:`, error);
+            
+            return {
+              guestId: guest.id,
+              name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
+              phone: guest.phone,
+              status: 'failed',
+              error: error.message
+            };
+          }
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+        
+        // Add a small delay between batches to prevent rate limiting
+        if (i + batchSize < guestsWithPhones.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      // Compile results
+      const successCount = results.filter(r => r.status === 'sent').length;
+      const failureCount = results.filter(r => r.status === 'failed').length;
+      
+      res.json({
+        message: `Sent ${successCount} messages, ${failureCount} failed`,
+        totalGuests: guestsWithPhones.length,
+        successCount,
+        failureCount,
+        results
+      });
     } catch (error) {
       console.error('Error sending bulk WhatsApp messages:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to send bulk WhatsApp messages';
@@ -379,9 +398,9 @@ export function registerWhatsAppRoutes(
         } else {
           res.json({ status: 'not_connected', provider: whatsappManager.getPreferredProvider() });
         }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        res.json({ status: 'not_connected', error: errorMessage, provider: whatsappManager.getPreferredProvider() });
+      } catch (err) {
+        const error = err as Error;
+        res.json({ status: 'not_connected', error: error.message, provider: whatsappManager.getPreferredProvider() });
       }
     } catch (error) {
       console.error('Error checking WhatsApp status:', error);
@@ -475,58 +494,4 @@ export function registerWhatsAppRoutes(
   
   // Mount the router
   app.use('/api/whatsapp', router);
-}
-
-// Helper function to process guest messages in batches
-async function processGuestMessages(
-  eventId: number,
-  guests: any[],
-  messageTemplate: string,
-  whatsappManager: any
-) {
-  const results = [];
-  const batchSize = 5; // Process in batches of 5 to avoid rate limiting
-  
-  for (let i = 0; i < guests.length; i += batchSize) {
-    const batch = guests.slice(i, i + batchSize);
-    
-    const batchPromises = batch.map(async (guest) => {
-      try {
-        // Create personalized message by replacing placeholders
-        let personalizedMessage = messageTemplate;
-        personalizedMessage = personalizedMessage.replace(/{name}/g, guest.firstName || '');
-        personalizedMessage = personalizedMessage.replace(/{fullName}/g, `${guest.firstName || ''} ${guest.lastName || ''}`.trim());
-        
-        const messageId = await whatsappManager.sendTextMessage(eventId, guest.phone!, personalizedMessage);
-        
-        return {
-          guestId: guest.id,
-          name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
-          phone: guest.phone,
-          status: 'sent',
-          messageId
-        };
-      } catch (error) {
-        console.error(`Error sending to guest ${guest.id}:`, error);
-        
-        return {
-          guestId: guest.id,
-          name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
-          phone: guest.phone,
-          status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
-    });
-    
-    const batchResults = await Promise.all(batchPromises);
-    results.push(...batchResults);
-    
-    // Add a small delay between batches to prevent rate limiting
-    if (i + batchSize < guests.length) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
-  
-  return results;
 }

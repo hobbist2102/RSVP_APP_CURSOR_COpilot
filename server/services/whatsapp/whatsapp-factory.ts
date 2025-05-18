@@ -1,33 +1,51 @@
-import { IWhatsAppService } from './whatsapp-interface';
-import WhatsAppWebJSService from './whatsapp-wwebjs';
-import WhatsAppBusinessAPIService from './whatsapp-business-api';
-
+/**
+ * WhatsApp Provider Enum - Defines which implementation to use
+ */
 export enum WhatsAppProvider {
   WebJS = 'webjs',
   BusinessAPI = 'business-api'
 }
 
 /**
- * Factory class to create WhatsApp service instances
+ * Configuration for WhatsApp services
  */
-class WhatsAppFactory {
+export interface WhatsAppConfig {
+  eventId: number;
+  accessToken?: string;
+  phoneNumberId?: string;
+  phoneNumber?: string;
+  businessAccountId?: string;
+}
+
+export default class WhatsAppFactory {
   /**
-   * Create a WhatsApp service instance based on the provider type
+   * Create a WhatsApp service instance based on the provider
+   * @param provider WhatsApp provider type
+   * @param config Configuration for the WhatsApp service
+   * @returns Promise resolving to a WhatsApp service instance
    */
-  static createService(provider: WhatsAppProvider, options?: any): IWhatsAppService {
+  static async createService(provider: WhatsAppProvider, config: WhatsAppConfig) {
+    // Dynamic imports to avoid circular dependencies
+    const { WhatsAppWebJSService, WhatsAppBusinessAPIService } = await import('./index');
+    
     switch (provider) {
       case WhatsAppProvider.WebJS:
-        const sessionId = options?.sessionId || 'default-session';
-        return new WhatsAppWebJSService(sessionId);
-        
+        return new WhatsAppWebJSService(config.eventId);
+      
       case WhatsAppProvider.BusinessAPI:
-        const { apiKey, phoneNumberId } = options || {};
-        return new WhatsAppBusinessAPIService(apiKey, phoneNumberId);
-        
+        if (!config.accessToken || !config.phoneNumberId) {
+          throw new Error('Access token and phone number ID are required for WhatsApp Business API');
+        }
+        return new WhatsAppBusinessAPIService(
+          config.eventId,
+          config.accessToken,
+          config.phoneNumberId,
+          config.phoneNumber || '',
+          config.businessAccountId || ''
+        );
+      
       default:
-        throw new Error(`Unknown WhatsApp provider: ${provider}`);
+        throw new Error(`Unsupported WhatsApp provider: ${provider}`);
     }
   }
 }
-
-export default WhatsAppFactory;
