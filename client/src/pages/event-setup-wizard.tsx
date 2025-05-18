@@ -10,7 +10,7 @@ import BasicInfoStep from "@/components/wizard/basic-info-step";
 import VenuesStep from "@/components/wizard/venues-step";
 import RsvpConfigStep from "@/components/wizard/rsvp-config-step";
 import HotelsStep from "@/components/wizard/hotels-step";
-import TransportStep from "@/components/wizard/transport-step";
+import TransportSetupStep from "@/components/wizard/transport-setup-step";
 import WhatsAppSetupStep from "@/components/wizard/WhatsAppSetupStep";
 import CommunicationStep from "@/components/wizard/communication-step";
 import DesignStep from "@/components/wizard/design-step";
@@ -244,10 +244,10 @@ export default function EventSetupWizard() {
         );
       case WIZARD_STEPS.TRANSPORT:
         return (
-          <TransportStep
+          <TransportSetupStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.TRANSPORT, data)}
+            onBack={goToPreviousStep}
             isCompleted={isCurrentStepCompleted}
           />
         );
