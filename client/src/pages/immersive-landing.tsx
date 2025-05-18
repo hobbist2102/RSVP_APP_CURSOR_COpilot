@@ -265,7 +265,7 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.HERO} 
         ref={heroRef}
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#5E239D] to-[#3A1562] scroll-section"
+        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#5E239D] scroll-section"
       >
         {/* Background Elements - Parallax Effect */}
         <div className="absolute inset-0 overflow-hidden">
@@ -825,7 +825,7 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.CTA} 
         ref={ctaRef}
-        className="relative py-24 bg-gradient-to-b from-primary/10 to-primary"
+        className="relative py-24 bg-[#C5A6ED]"
       >
         <div className="container mx-auto px-6 text-center relative z-10">
           {/* Gold particles */}
@@ -833,7 +833,7 @@ export default function ImmersiveLanding() {
             {Array(15).fill(0).map((_, i) => (
               <div 
                 key={i}
-                className="gold-particle absolute w-3 h-3 rounded-full bg-accent/80"
+                className="gold-particle absolute w-3 h-3 rounded-full bg-[#BFA76F]"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -843,23 +843,23 @@ export default function ImmersiveLanding() {
             ))}
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white">
-            Begin Your <span className="text-accent">Journey</span>
+          <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-[#5E239D]">
+            Begin Your <span className="text-[#5E239D]">Journey</span>
           </h2>
           
-          <p className="text-xl text-white/80 max-w-3xl mx-auto mb-12">
+          <p className="text-lg text-[#5E239D] max-w-3xl mx-auto mb-12">
             Transform your wedding planning experience today. Our platform brings elegance to every detail, letting you focus on what truly matters.
           </p>
           
           <Button 
             size="lg" 
-            className="cta-button bg-accent hover:bg-accent/90 text-primary text-xl py-6 px-10 rounded-md"
+            className="cta-button bg-[#5E239D] hover:bg-[#5E239D]/90 text-white text-xl py-6 px-10 rounded-md"
             asChild
           >
             <Link href="/auth">Get Started Now</Link>
           </Button>
           
-          <p className="text-white/60 mt-6">
+          <p className="text-[#5E239D]/70 mt-6">
             No credit card required • Free 14-day trial • Cancel anytime
           </p>
         </div>
