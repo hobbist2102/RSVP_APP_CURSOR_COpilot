@@ -19,6 +19,7 @@ import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
 import EventSetupWizard from "@/pages/event-setup-wizard";
 import ImmersiveLanding from "@/pages/immersive-landing";
+import ImmersiveStorytelling from "@/pages/immersive-storytelling";
 import VisualStorytelling from "@/pages/visual-storytelling";
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
@@ -33,8 +34,9 @@ function App() {
           {(params) => <RsvpPage />}
         </Route>
         <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
-        <Route path="/" component={VisualStorytelling} />
+        <Route path="/" component={ImmersiveStorytelling} />
         <Route path="/classic" component={ImmersiveLanding} />
+        <Route path="/visual" component={VisualStorytelling} />
         <Route path="/dashboard">
           {() => (
             <PrivateRoute>
