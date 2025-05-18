@@ -61,7 +61,7 @@ import transportRoutes from "./routes/transport";
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-import { registerWhatsAppRoutes } from './routes/whatsapp';
+// WhatsApp routes will be registered at the end of this file
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Special handling for client-side routes that should be handled by React router
@@ -2348,5 +2348,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Register WhatsApp routes
+  registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
+
   return httpServer;
 }

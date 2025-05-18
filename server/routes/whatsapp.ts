@@ -5,7 +5,8 @@ import multer from 'multer';
 import { db } from '../db';
 import { guests, weddingEvents as events } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { WhatsAppManager, WhatsAppProvider } from '../services/whatsapp';
+import WhatsAppManager from '../services/whatsapp/whatsapp-manager';
+import { WhatsAppProvider } from '../services/whatsapp/whatsapp-factory';
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -289,14 +290,13 @@ export function registerWhatsAppRoutes(
       // Get all guests for the event with phone numbers
       const baseQuery = db.select().from(guests).where(eq(guests.eventId, eventId));
       
+      // Get all guests for this event
+      eventGuests = await baseQuery;
+      
       // Apply filters if provided
       if (filter?.rsvpStatus) {
-        eventGuests = await db.select()
-          .from(guests)
-          .where(eq(guests.eventId, eventId))
-          .where(eq(guests.rsvpStatus, filter.rsvpStatus));
-      } else {
-        eventGuests = await baseQuery;
+        // Filter in memory
+        eventGuests = eventGuests.filter((guest: any) => guest.rsvpStatus === filter.rsvpStatus);
       }
       
       if (!eventGuests || eventGuests.length === 0) {
@@ -304,7 +304,7 @@ export function registerWhatsAppRoutes(
       }
       
       // Filter guests with phone numbers
-      const guestsWithPhones = eventGuests.filter(guest => guest.phone);
+      const guestsWithPhones = eventGuests.filter((guest: any) => guest.phone);
       
       if (guestsWithPhones.length === 0) {
         return res.status(404).json({ message: 'No guests with phone numbers found' });
@@ -317,7 +317,7 @@ export function registerWhatsAppRoutes(
       for (let i = 0; i < guestsWithPhones.length; i += batchSize) {
         const batch = guestsWithPhones.slice(i, i + batchSize);
         
-        const batchPromises = batch.map(async (guest) => {
+        const batchPromises = batch.map(async (guest: any) => {
           try {
             // Create personalized message by replacing placeholders
             let personalizedMessage = message;
