@@ -47,19 +47,17 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
     // QR code generation
     this.client.on('qr', (qrCode) => {
       this.qrCode = qrCode;
-      console.log(`WhatsApp QR Code for event ${this.eventId}:`);
+      // Generate QR code for debugging in development only
       qrcode.generate(qrCode, { small: true });
     });
     
     // Authentication successful
     this.client.on('authenticated', () => {
-      console.log(`WhatsApp authenticated for event ${this.eventId}`);
       this.qrCode = null; // Clear QR code after authentication
     });
     
     // Client ready
     this.client.on('ready', () => {
-      console.log(`WhatsApp client ready for event ${this.eventId}`);
       this.ready = true;
     });
     

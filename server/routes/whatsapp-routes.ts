@@ -359,7 +359,6 @@ export function registerWhatsAppRoutes(app: express.Express): void {
         res.json({ status: 'not_connected', error: error.message, provider: whatsappManager.getPreferredProvider() });
       }
     } catch (error) {
-      console.error('Error checking WhatsApp status:', error);
       res.status(500).json({ message: 'Failed to check WhatsApp status' });
     }
   });
