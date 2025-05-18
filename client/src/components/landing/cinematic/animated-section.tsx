@@ -1,7 +1,8 @@
-import React, { useRef, useEffect, ReactNode } from 'react';
+import React, { useRef, ReactNode } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
 // Ensure ScrollTrigger is registered
 gsap.registerPlugin(ScrollTrigger);
@@ -46,11 +47,11 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   useGSAP(() => {
     if (!sectionRef.current || !contentRef.current) return;
     
-    // GSAP configuration for this section
+    // Enhanced GSAP configuration for this section with better timing
     const scrollConfig = {
       trigger: sectionRef.current,
       start: startTrigger,
-      end: pinned ? `+=${window.innerHeight}` : endTrigger,
+      end: pinned ? `+=${window.innerHeight * 1.2}` : endTrigger,
       scrub: 0.5,
       markers: debug,
       pin: pinned,
@@ -214,7 +215,7 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
       }
       tl.kill();
     };
-  }, { scope: sectionRef, dependencies: [animationType, pinned] });
+  }, { scope: sectionRef, dependencies: [animationType, pinned, id] });
 
   return (
     <section
