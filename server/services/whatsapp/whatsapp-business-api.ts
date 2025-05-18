@@ -258,20 +258,45 @@ export default class WhatsAppBusinessAPIService implements IWhatsAppService {
       // Get the mime type
       const mimeType = this.getMimeType(mediaPath);
       
-      // Upload to WhatsApp Business API
-      const formData = new FormData();
-      const blob = new Blob([media], { type: mimeType });
-      formData.append('file', blob, path.basename(mediaPath));
-      formData.append('messaging_product', 'whatsapp');
-      formData.append('type', mimeType);
+      // Using FormData from form-data npm package would be better,
+      // but for now we'll use a direct approach with a multipart request
+      // Create boundary string
+      const boundary = `----WhatsAppFormBoundary${Math.random().toString(16).substr(2)}`;
       
+      // Create multipart form data manually
+      let formData = '';
+      
+      // Add the messaging_product field
+      formData += `--${boundary}\r\n`;
+      formData += 'Content-Disposition: form-data; name="messaging_product"\r\n\r\n';
+      formData += 'whatsapp\r\n';
+      
+      // Add the type field
+      formData += `--${boundary}\r\n`;
+      formData += 'Content-Disposition: form-data; name="type"\r\n\r\n';
+      formData += `${mimeType}\r\n`;
+      
+      // Add the file field
+      formData += `--${boundary}\r\n`;
+      formData += `Content-Disposition: form-data; name="file"; filename="${path.basename(mediaPath)}"\r\n`;
+      formData += `Content-Type: ${mimeType}\r\n\r\n`;
+      
+      // Convert form data to buffer and append file
+      const formBuffer = Buffer.from(formData, 'utf-8');
+      const endBuffer = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+      
+      // Concatenate all buffers
+      const dataBuffer = Buffer.concat([formBuffer, media, endBuffer]);
+      
+      // Make the request with proper headers
       const response = await axios.post(
         `${this.baseUrl}/${this.phoneNumberId}/media`,
-        formData,
+        dataBuffer,
         {
           headers: {
             'Authorization': `Bearer ${this.accessToken}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            'Content-Length': dataBuffer.length.toString()
           }
         }
       );

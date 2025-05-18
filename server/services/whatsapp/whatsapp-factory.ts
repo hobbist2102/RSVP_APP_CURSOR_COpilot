@@ -36,12 +36,13 @@ export default class WhatsAppFactory {
         if (!config.accessToken || !config.phoneNumberId) {
           throw new Error('Access token and phone number ID are required for WhatsApp Business API');
         }
+        // Pass only necessary parameters to match constructor
         return new WhatsAppBusinessAPIService(
           config.eventId,
           config.accessToken,
           config.phoneNumberId,
-          config.phoneNumber || '',
-          config.businessAccountId || ''
+          config.phoneNumber,
+          config.businessAccountId
         );
       
       default:

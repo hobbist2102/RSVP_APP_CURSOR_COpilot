@@ -202,8 +202,8 @@ const WhatsAppSetupStep: React.FC<WhatsAppSetupStepProps> = ({ eventId, onComple
     
     updateConfigMutation.mutate(configData, {
       onSuccess: () => {
-        // Pass the data to the wizard's step completion handler
-        onComplete(configData);
+        // Call the step completion handler without passing parameters
+        onComplete();
       }
     });
   };
