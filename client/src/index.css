@@ -170,6 +170,7 @@
     position: relative;
     overflow: hidden;
     transition: opacity 0.8s ease, transform 0.8s ease;
+    will-change: transform, opacity;
   }
   
   /* Section connector for visual continuity */
@@ -182,6 +183,82 @@
     background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
     transform: translateX(-50%);
     z-index: 10;
+  }
+  
+  /* Scroll-driven animations */
+  .parallax-element {
+    will-change: transform;
+    transition: transform 0.1s linear;
+  }
+  
+  .parallax-slow {
+    transform: translateY(calc(var(--scroll-percentage, 0) * -30px));
+  }
+  
+  .parallax-medium {
+    transform: translateY(calc(var(--scroll-percentage, 0) * -50px));
+  }
+  
+  .parallax-fast {
+    transform: translateY(calc(var(--scroll-percentage, 0) * -80px));
+  }
+  
+  /* Interactive elements */
+  .interactive-card {
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  
+  .interactive-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .parallax-element {
+      transform: none !important; /* Disable parallax on mobile for better performance */
+    }
+    
+    .section-content {
+      padding: 2rem 1rem;
+    }
+  }
+  
+  /* Loading animations for performance optimization */
+  .lazy-load {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  
+  .lazy-load.loaded {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Visual storytelling elements */
+  .story-element {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .story-element::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.1) 50%);
+    opacity: 0;
+    transition: all 0.5s ease;
+  }
+  
+  .story-element:hover::after {
+    opacity: 1;
+    transform: scale(1.1);
   }
   
   /* 3D text effect */
