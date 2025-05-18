@@ -6,6 +6,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 
+// Import custom styles for immersive landing page
+import '@/styles/immersive-landing.css';
+
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, SplitText);
 

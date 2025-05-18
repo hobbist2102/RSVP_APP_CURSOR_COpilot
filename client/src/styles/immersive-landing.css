@@ -1,0 +1,192 @@
+/* Immersive Landing Page Specific Styles */
+
+/* Font treatments */
+.font-serif {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.font-sans {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Text gradient - for special headings */
+.text-gradient {
+  background: linear-gradient(90deg, #BFA76F 0%, #e9d9a8 50%, #BFA76F 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: textShine 8s ease-in-out infinite alternate;
+}
+
+@keyframes textShine {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Color variables for immersive sections */
+:root {
+  --color-primary-light: rgba(94, 35, 157, 0.1);
+  --color-primary-medium: rgba(94, 35, 157, 0.3);
+  --color-primary-dark: rgba(94, 35, 157, 0.8);
+  --color-accent-light: rgba(191, 167, 111, 0.1);
+  --color-accent-medium: rgba(191, 167, 111, 0.3);
+  --color-accent-dark: rgba(191, 167, 111, 0.8);
+}
+
+/* Custom button styles */
+.hero-button {
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.hero-button-primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.hero-button-primary:hover {
+  background: #6d2eb8;
+  box-shadow: 0 5px 15px rgba(94, 35, 157, 0.4);
+  transform: translateY(-2px);
+}
+
+.hero-button-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(191, 167, 111, 0.5);
+  color: #BFA76F;
+}
+
+.hero-button-secondary:hover {
+  background: rgba(191, 167, 111, 0.15);
+  box-shadow: 0 5px 15px rgba(191, 167, 111, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Parallax scrolling containers */
+.parallax-container {
+  overflow: hidden;
+  position: relative;
+  height: 100vh;
+}
+
+.parallax-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  will-change: transform;
+}
+
+/* Gold particles effect */
+.gold-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e9d9a8 0%, #BFA76F 100%);
+  box-shadow: 0 0 10px 2px rgba(191, 167, 111, 0.3);
+  opacity: 0;
+  z-index: 1;
+}
+
+/* 3D effect for cards */
+.card-3d {
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.card-3d:hover {
+  transform: translateY(-10px) rotateX(5deg);
+  box-shadow: 0 30px 40px -20px rgba(0, 0, 0, 0.2);
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.floating-element {
+  animation: float 8s ease-in-out infinite;
+}
+
+.floating-element-slow {
+  animation: float 12s ease-in-out infinite;
+}
+
+.floating-element-fast {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Cinematic transitions */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 1s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Route path animation */
+@keyframes drawRoute {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.route-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawRoute 2s forwards;
+}
+
+/* WhatsApp message effects */
+.message-bubble {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.message-bubble.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* For the split text effect */
+.char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px) rotateX(-90deg);
+}
+
+/* Custom scroll snap */
+.scroll-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.scroll-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+  scroll-behavior: smooth;
+}
