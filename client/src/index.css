@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -138,12 +138,101 @@
     background-color: rgba(191, 167, 111, 0.1);
   }
   
-  /* Logo styling */
+  /* Logo and title styling */
   .logo-text {
-    font-family: 'Great Vibes', cursive;
+    font-family: 'Cormorant Garamond', serif;
     color: var(--color-accent);
     font-size: 2rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--color-accent);
+    font-size: 5rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3), 0 0 10px rgba(191, 167, 111, 0.3);
+    position: relative;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-title {
+      font-size: 8rem;
+    }
+  }
+  
+  /* Cinematic text animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes letterSpacing {
+    from {
+      letter-spacing: -0.1em;
+    }
+    to {
+      letter-spacing: 0.05em;
+    }
+  }
+  
+  @keyframes goldShimmer {
+    0%, 100% {
+      color: #BFA76F;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3), 0 0 15px rgba(191, 167, 111, 0.3);
+    }
+    50% {
+      color: #e9d9a8;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3), 0 0 20px rgba(233, 217, 168, 0.5);
+    }
+  }
+  
+  .cinematic-title {
+    animation: fadeInUp 1.5s ease-out, 
+               letterSpacing 1.8s ease-out,
+               goldShimmer 5s infinite;
+    display: inline-block;
+  }
+  
+  /* Hero button styling */
+  .hero-button {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+  }
+  
+  .hero-button-primary {
+    background: #5E239D;
+    color: white;
+    border: none;
+  }
+  
+  .hero-button-primary:hover {
+    background: #6d2eb8;
+    box-shadow: 0 5px 15px rgba(94, 35, 157, 0.4);
+  }
+  
+  .hero-button-secondary {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(191, 167, 111, 0.5);
+    color: #BFA76F;
+  }
+  
+  .hero-button-secondary:hover {
+    background: rgba(191, 167, 111, 0.15);
+    box-shadow: 0 5px 15px rgba(191, 167, 111, 0.3);
   }
 }
 

@@ -119,14 +119,11 @@ export default function ImmersiveStorytelling() {
           {/* Hero content */}
           <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
             {/* Main headline with 3D typography */}
-            <motion.h1 
-              className="text-6xl md:text-8xl font-script mb-8 text-accent-color"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
-            >
-              Eternally Yours
-            </motion.h1>
+            <h1 className="mb-8">
+              <span className="hero-title cinematic-title block">
+                Eternally Yours
+              </span>
+            </h1>
             
             {/* Subtitle */}
             <motion.p
@@ -148,7 +145,7 @@ export default function ImmersiveStorytelling() {
             >
               <Button 
                 size="lg" 
-                className="bg-primary text-white hover:bg-primary/90 text-lg shadow-md button-text"
+                className="hero-button hero-button-primary rounded-md py-6 px-10 text-lg font-medium"
                 asChild
               >
                 <Link href="/auth">Get Started</Link>
@@ -157,7 +154,7 @@ export default function ImmersiveStorytelling() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-accent text-accent hover:bg-accent/10 text-lg button-text"
+                className="hero-button hero-button-secondary rounded-md py-6 px-10 text-lg font-medium"
                 onClick={() => scrollToSection('problem')}
               >
                 See How It Works
