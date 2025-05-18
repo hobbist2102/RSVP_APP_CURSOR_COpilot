@@ -8,12 +8,16 @@ import { useAuth } from '@/hooks/use-auth';
 export default function ImmersiveStorytelling() {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('hero');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   
   // Navigation links
   const navLinks = [
     { id: 'hero', label: 'Home' },
-    { id: 'problem', label: 'Problem' },
-    { id: 'solution', label: 'Solution' },
+    { id: 'problem', label: 'The Challenge' },
+    { id: 'solution', label: 'Our Solution' },
+    { id: 'transport', label: 'Transport' },
+    { id: 'concierge', label: 'AI Concierge' },
     { id: 'cta', label: 'Get Started' }
   ];
   
@@ -29,6 +33,26 @@ export default function ImmersiveStorytelling() {
     }
   };
   
+  // Handle scroll events for navbar appearance and section highlighting
+  useEffect(() => {
+    const handleScroll = () => {
+      // Change header style on scroll
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+      
+      // Close mobile menu on scroll
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mobileMenuOpen]);
+
   // Track section visibility for navigation highlighting
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,7 +65,7 @@ export default function ImmersiveStorytelling() {
         });
       },
       {
-        rootMargin: "-20% 0px -20% 0px",
+        rootMargin: "-15% 0px -15% 0px",
         threshold: 0.5
       }
     );
@@ -55,6 +79,19 @@ export default function ImmersiveStorytelling() {
     };
   }, []);
   
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  
+  // Close mobile menu when clicking a link
+  const handleNavLinkClick = (sectionId: string) => {
+    scrollToSection(sectionId);
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
+  };
+  
   // Redirect logged in users to dashboard
   useEffect(() => {
     if (user) {
@@ -64,36 +101,111 @@ export default function ImmersiveStorytelling() {
   
   return (
     <div className="bg-gradient-to-b from-[#5E239D] to-black text-white overflow-x-hidden min-h-screen">
-      {/* Fixed navigation */}
-      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-primary/90 border-b border-accent/20">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="logo-text">
+      {/* Mammut-inspired sticky top navigation */}
+      <header 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled ? 'py-2' : 'py-4'
+        }`}
+        style={{
+          background: scrolled 
+            ? 'rgba(94, 35, 157, 0.95)' 
+            : 'linear-gradient(to bottom, rgba(94, 35, 157, 0.95), rgba(94, 35, 157, 0.85))',
+          backdropFilter: 'blur(8px)',
+          boxShadow: scrolled ? '0 4px 30px rgba(0, 0, 0, 0.25)' : 'none',
+          transform: `translateY(0)`,
+          borderBottom: '1px solid rgba(191, 167, 111, 0.15)'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
+          {/* Brand logo */}
+          <h1 className="logo-text text-accent tracking-wide z-50 relative">
             Eternally Yours
           </h1>
           
-          <nav className="hidden md:flex gap-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
-                className={`px-4 py-2 text-sm font-medium rounded transition-all duration-300
-                  ${activeSection === link.id 
-                    ? 'bg-accent text-white' 
-                    : 'text-white/80 hover:bg-accent/10 hover:text-accent'
-                  }`}
-              >
-                {link.label}
-              </button>
-            ))}
+          {/* Main navigation - desktop */}
+          <nav className="hidden lg:flex">
+            <ul className="flex gap-8">
+              {navLinks.map((link) => (
+                <li key={link.id} className="relative">
+                  <button
+                    onClick={() => handleNavLinkClick(link.id)}
+                    className="py-2 px-1 text-base font-medium transition-all duration-500 relative group"
+                  >
+                    <span className={`relative z-10 transition-colors duration-300 ${
+                      activeSection === link.id ? 'text-accent' : 'text-white/90 group-hover:text-accent'
+                    }`}>
+                      {link.label}
+                    </span>
+                    
+                    {/* Animated underline indicator */}
+                    <span 
+                      className={`absolute bottom-0 left-0 w-full h-0.5 transform origin-left transition-transform duration-300 ${
+                        activeSection === link.id ? 'bg-accent scale-x-100' : 'bg-accent scale-x-0 group-hover:scale-x-100'
+                      }`}
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
           </nav>
           
-          <Button
-            size="sm"
-            className="bg-primary text-white hover:bg-primary/90 font-medium"
-            asChild
-          >
-            <Link href="/auth">Login</Link>
-          </Button>
+          {/* Right-side action button and mobile menu toggle */}
+          <div className="flex items-center gap-6">
+            <Button
+              className="hidden md:inline-flex bg-accent/90 hover:bg-accent text-white rounded-sm px-6 py-5 font-medium text-sm tracking-wider transition-all duration-300 hover:shadow-lg"
+              asChild
+            >
+              <Link href="/auth">LOGIN</Link>
+            </Button>
+            
+            {/* Mobile menu toggle button */}
+            <div 
+              className={`mobile-nav-toggle lg:hidden ${mobileMenuOpen ? 'open' : ''}`} 
+              onClick={toggleMobileMenu}
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile menu overlay */}
+        <div 
+          className={`fixed inset-0 bg-primary/95 backdrop-blur-md flex flex-col z-40 transition-all duration-500 ease-in-out ${
+            mobileMenuOpen 
+              ? 'opacity-100 pointer-events-auto' 
+              : 'opacity-0 pointer-events-none'
+          }`}
+          style={{ paddingTop: '5rem' }}
+        >
+          <nav className="container mx-auto px-6 py-10">
+            <ul className="flex flex-col gap-6">
+              {navLinks.map((link) => (
+                <li key={link.id} className="border-b border-accent/20 pb-4">
+                  <button
+                    onClick={() => handleNavLinkClick(link.id)}
+                    className="w-full text-left py-2 text-xl font-medium"
+                  >
+                    <span className={`${
+                      activeSection === link.id ? 'text-accent' : 'text-white/90'
+                    }`}>
+                      {link.label}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            
+            <div className="mt-10">
+              <Button
+                className="w-full bg-accent text-white py-6 text-lg font-medium"
+                asChild
+              >
+                <Link href="/auth">LOGIN</Link>
+              </Button>
+            </div>
+          </nav>
         </div>
       </header>
       
