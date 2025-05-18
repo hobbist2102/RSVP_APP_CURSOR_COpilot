@@ -728,20 +728,17 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.COMMUNICATION} 
         ref={communicationRef}
-        className="relative py-24 bg-gradient-to-b from-background via-background/80 to-primary/10"
+        className="relative py-24 bg-[#C5A6ED]"
       >
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold mb-12 text-center">
-            <span className="text-accent">Seamless Communication</span>
+          <h2 className="text-center mb-10">
+            <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">Multichannel Guest Engagement</span>
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6 order-2 lg:order-1">
-              <h3 className="text-3xl font-serif font-semibold mb-4 text-foreground">Multichannel Guest Engagement</h3>
-              
-              <p className="text-lg text-foreground/80">
-                Keep your guests informed and engaged through personalized WhatsApp messages and email communications.
-              </p>
+          <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
+            Keep your guests informed and engaged through personalized WhatsApp messages
+            and email communications.
+          </p>
               
               <div className="space-y-4 mt-6">
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
