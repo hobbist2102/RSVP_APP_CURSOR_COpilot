@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion } from 'framer-motion';
@@ -19,40 +19,85 @@ const Hero = () => {
   useEffect(() => {
     if (!heroRef.current) return;
 
-    // Create hero animations
-    const tl = gsap.timeline();
-
-    // Video zoom in slightly as user loads the page
-    tl.fromTo('.hero-video', 
-      { scale: 1.1 }, 
-      { scale: 1, duration: 6, ease: 'power1.inOut' }
+    // Create master timeline for hero animations
+    const masterTl = gsap.timeline();
+    
+    // Initial load animations
+    const loadTl = gsap.timeline({
+      defaults: { ease: 'power2.out' }
+    });
+    
+    // Dramatic entrance for the video - zoom from larger scale with slight rotation
+    loadTl.fromTo('.hero-video', 
+      { scale: 1.5, opacity: 0, rotation: 1 }, 
+      { scale: 1.1, opacity: 1, rotation: 0, duration: 2.5, ease: 'power3.out' }
     );
     
-    // Then add a scroll effect to change opacity as user scrolls
+    // Staggered animation for the particles
+    loadTl.fromTo('.hero-particles div', 
+      { opacity: 0, scale: 0 },
+      { opacity: 0.3, scale: 1, stagger: 0.1, duration: 1 },
+      "-=2"
+    );
+    
+    // Add to master timeline
+    masterTl.add(loadTl);
+    
+    // Setup scroll-based animations
+    
+    // Content fades out as user scrolls down
     gsap.to('.hero-content', {
       opacity: 0,
-      y: -50,
+      y: -100,
       scrollTrigger: {
         trigger: heroRef.current,
         start: 'top top',
-        end: '50% top',
-        scrub: true
+        end: '40% top',
+        scrub: 0.5,
+        immediateRender: false
       }
     });
     
-    // Parallax effect on the video
+    // Parallax effect with dramatic movement on the video
     gsap.to('.hero-video', {
-      y: 100,
+      y: 150,
+      scale: 1.2,
       scrollTrigger: {
         trigger: heroRef.current,
         start: 'top top',
         end: 'bottom top',
-        scrub: true
+        scrub: 0.3,
+        immediateRender: false
+      }
+    });
+    
+    // Scale down and fade overlay to reveal more video as you scroll
+    gsap.to('.hero-overlay', {
+      opacity: 0.2,
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top top',
+        end: '30% top',
+        scrub: true,
+        immediateRender: false
+      }
+    });
+    
+    // Particles move faster as you scroll
+    gsap.to('.hero-particles div', {
+      y: (i) => 50 * (i + 1),
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.2,
+        immediateRender: false
       }
     });
     
     return () => {
       // Clean up
+      masterTl.kill();
       ScrollTrigger.getAll().forEach(st => st.kill());
     };
   }, []);
@@ -64,19 +109,45 @@ const Hero = () => {
     >
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full z-0">
+        {/* Fallback background gradient in case video fails to load */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/80 via-indigo-900/80 to-black"></div>
+        
+        {/* Video with error handling */}
         <video 
           className="hero-video absolute inset-0 h-full w-full object-cover"
           autoPlay 
           muted 
           loop 
           playsInline
+          poster="/wedding-bg-poster.jpg"
+          onError={(e) => {
+            // If video fails, make sure the gradient background is visible
+            const target = e.target as HTMLVideoElement;
+            target.style.display = 'none';
+          }}
         >
           <source 
-            src="https://assets.mixkit.co/videos/preview/mixkit-traditional-indian-wedding-ceremony-with-fire-40618-large.mp4" 
+            src="/wedding-ceremony.mp4" 
             type="video/mp4" 
           />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
+        
+        {/* Overlay gradient for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80"></div>
+        
+        {/* Animated particles effect */}
+        <div className="hero-particles absolute inset-0 opacity-30">
+          <div className="absolute w-2 h-2 bg-white rounded-full animate-float1 top-1/4 left-1/4"></div>
+          <div className="absolute w-3 h-3 bg-white rounded-full animate-float2 top-1/3 left-1/2"></div>
+          <div className="absolute w-2 h-2 bg-white rounded-full animate-float3 top-1/2 left-3/4"></div>
+          <div className="absolute w-1 h-1 bg-white rounded-full animate-float4 top-2/3 left-1/4"></div>
+          <div className="absolute w-2 h-2 bg-white rounded-full animate-float5 top-3/4 left-1/2"></div>
+          <div className="absolute w-1.5 h-1.5 bg-white rounded-full animate-float1 top-1/6 left-2/3"></div>
+          <div className="absolute w-1 h-1 bg-white rounded-full animate-float3 top-2/5 left-1/5"></div>
+          <div className="absolute w-2 h-2 bg-white rounded-full animate-float4 top-3/5 left-4/5"></div>
+          <div className="absolute w-1.5 h-1.5 bg-white rounded-full animate-float2 top-5/6 left-2/5"></div>
+          <div className="absolute w-1 h-1 bg-white rounded-full animate-float5 top-1/3 left-3/4"></div>
+        </div>
       </div>
       
       {/* Content */}
@@ -1023,33 +1094,104 @@ const Footer = () => {
 export default function ImmersiveLanding() {
   const { user, isLoading } = useAuth();
   
+  // Navigation links with scroll indicators
+  const navLinks = [
+    { label: 'Story', href: '#chaos' },
+    { label: 'Features', href: '#breakthrough' },
+    { label: 'AI', href: '#ai-concierge' },
+    { label: 'Rooms', href: '#room-assignment' },
+    { label: 'Transport', href: '#transport-planning' },
+    { label: 'Dashboard', href: '#command-center' }
+  ];
+  
+  // Track active section for navigation highlights
+  const [activeSection, setActiveSection] = useState('');
+  
+  // Scroll event handler for changing active section
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 100;
+      
+      // Find the current section
+      const sections = document.querySelectorAll('section[id]');
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+          setActiveSection(section.id);
+        }
+      });
+    };
+    
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Run once to set initial active section
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+  
+  // Navbar animation for transparency on scroll
+  const [navbarBg, setNavbarBg] = useState('transparent');
+  
+  useEffect(() => {
+    const handleNavScroll = () => {
+      if (window.scrollY > 100) {
+        setNavbarBg('rgba(0, 0, 0, 0.8)');
+      } else {
+        setNavbarBg('transparent');
+      }
+    };
+    
+    window.addEventListener('scroll', handleNavScroll);
+    return () => {
+      window.removeEventListener('scroll', handleNavScroll);
+    };
+  }, []);
+  
   // Render the full cinematic landing page
   return (
-    <div className="bg-black text-white">
+    <div className="bg-black text-white relative">
       {/* Fixed Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 py-4 px-6 flex justify-between items-center bg-gradient-to-b from-black to-transparent">
-        <Link href="/" className="text-white font-script text-3xl">Eternally Yours</Link>
+      <header 
+        className="fixed top-0 left-0 right-0 z-50 py-4 px-6 flex justify-between items-center backdrop-blur-sm transition-all duration-300"
+        style={{ 
+          backgroundColor: navbarBg,
+          boxShadow: navbarBg !== 'transparent' ? '0 4px 20px rgba(0, 0, 0, 0.3)' : 'none'
+        }}
+      >
+        <Link href="/" className="relative group">
+          <span className="font-script text-3xl bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text transition-all duration-300">
+            Eternally Yours
+          </span>
+          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 transition-all duration-300 group-hover:w-full"></span>
+        </Link>
         
         <nav className="hidden md:flex space-x-1">
-          {[
-            { label: 'Story', href: '#chaos' },
-            { label: 'Features', href: '#breakthrough' },
-            { label: 'AI', href: '#ai-concierge' },
-            { label: 'Rooms', href: '#room-assignment' },
-            { label: 'Transport', href: '#transport-planning' },
-            { label: 'Dashboard', href: '#command-center' }
-          ].map((link) => (
+          {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+              className={`
+                px-4 py-2 text-sm font-medium rounded-full transition-all duration-200
+                ${activeSection === link.href.substring(1) 
+                  ? 'text-white bg-primary/80' 
+                  : 'text-white/70 hover:text-white hover:bg-white/10'}
+              `}
             >
               {link.label}
             </a>
           ))}
         </nav>
         
-        <Link href="/auth" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors">
+        <Link 
+          href="/auth" 
+          className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-purple-500/30"
+        >
           Login
         </Link>
       </header>

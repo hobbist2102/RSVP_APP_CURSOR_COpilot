@@ -103,6 +103,108 @@
     box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
   }
   
+  /* Animation effects for the cinematic landing page */
+  .animate-float1 {
+    animation: float1 20s ease-in-out infinite;
+  }
+  
+  .animate-float2 {
+    animation: float2 25s ease-in-out infinite;
+  }
+  
+  .animate-float3 {
+    animation: float3 30s ease-in-out infinite;
+  }
+  
+  .animate-float4 {
+    animation: float4 22s ease-in-out infinite;
+  }
+  
+  .animate-float5 {
+    animation: float5 28s ease-in-out infinite;
+  }
+  
+  /* Cinematic section transitions */
+  .cinematic-section {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.6s ease-out;
+  }
+  
+  .cinematic-section.active {
+    z-index: 10;
+  }
+  
+  /* Word animation for cinematic text reveal */
+  .word {
+    display: inline-block;
+    transform-origin: bottom center;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  
+  /* Text reveal animations */
+  .text-reveal {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    animation: text-reveal-animation 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+  
+  @keyframes text-reveal-animation {
+    from { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+    to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  }
+  
+  /* Parallax depth classes */
+  .parallax-deep {
+    will-change: transform;
+    transform: translateZ(-100px) scale(1.5);
+  }
+  
+  .parallax-medium {
+    will-change: transform;
+    transform: translateZ(-50px) scale(1.25);
+  }
+  
+  .parallax-shallow {
+    will-change: transform;
+    transform: translateZ(-25px) scale(1.125);
+  }
+  
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(50px, 80px); }
+    50% { transform: translate(100px, 20px); }
+    75% { transform: translate(60px, 100px); }
+  }
+  
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-30px, 50px); }
+    40% { transform: translate(-60px, 10px); }
+    60% { transform: translate(-40px, 70px); }
+    80% { transform: translate(-20px, 30px); }
+  }
+  
+  @keyframes float3 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(-50px, -50px); }
+    66% { transform: translate(-100px, -20px); }
+  }
+  
+  @keyframes float4 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(30px, -80px); }
+    50% { transform: translate(80px, -120px); }
+    75% { transform: translate(40px, -60px); }
+  }
+  
+  @keyframes float5 {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-20px, -40px); }
+    40% { transform: translate(-55px, -95px); }
+    60% { transform: translate(-30px, -55px); }
+    80% { transform: translate(-10px, -25px); }
+  }
+  
   /* Wedding specific styles */
   .wedding-card {
     @apply rounded-lg p-6 bg-white shadow-md border border-secondary/20 gold-shadow;
