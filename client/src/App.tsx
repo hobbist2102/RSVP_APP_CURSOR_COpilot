@@ -20,7 +20,7 @@ import TransportPage from "@/pages/transport";
 import EventSetupWizard from "@/pages/event-setup-wizard";
 import ImmersiveLanding from "@/pages/immersive-landing";
 import ImmersiveStorytelling from "@/pages/immersive-storytelling";
-import VisualStorytelling from "@/pages/visual-storytelling";
+// Only using ImmersiveStorytelling for MVP
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 import WhatsAppSetupPage from "@/pages/wizard/WhatsAppSetupPage";

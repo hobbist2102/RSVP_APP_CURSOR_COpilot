@@ -56,8 +56,8 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
           scrub: 0.5, // smoother scrubbing for better performance
           anticipatePin: 1,
           markers: false,
-          onEnter: () => console.log(`Scene entered: ${sceneId}`),
-          onLeave: () => console.log(`Scene left: ${sceneId}`),
+          onEnter: () => {},
+          onLeave: () => {},
         }
       });
       
@@ -152,7 +152,8 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error setting up narrative scene animations:", error);
+      // Silent error in production to avoid console errors for users
+      // Animations will gracefully degrade if they fail
     }
   }, { scope: sceneRef, dependencies: [sceneId, pinnedDuration] });
 
