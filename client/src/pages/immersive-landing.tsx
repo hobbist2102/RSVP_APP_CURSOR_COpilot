@@ -455,57 +455,37 @@ export default function ImmersiveLanding() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="text-foreground/90 space-y-6 order-2 md:order-1">
-              <p className="text-xl leading-relaxed">
+            <div className="text-[#3A1562] space-y-6 order-2 md:order-1">
+              <p className="text-base leading-relaxed">
                 Our platform transforms the chaotic planning process into a seamless, elegant experience with purpose-built tools for Indian weddings.
               </p>
               
-              <div className="space-y-6">
-                <div className="solution-element flex items-start gap-4 p-4 rounded-lg bg-background border">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg mb-1">Centralized Management</h3>
-                    <p className="text-foreground/70">Every aspect of your wedding in one elegant dashboard</p>
+              <div className="space-y-5 mt-8">
+                <div className="solution-element flex items-start gap-4 p-5 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-base mb-1">Centralized Management</h3>
+                    <p className="text-sm text-[#3A1562]/80">Every aspect of your wedding in one elegant dashboard</p>
                   </div>
                 </div>
                 
-                <div className="solution-element flex items-start gap-4 p-4 rounded-lg bg-background border">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg mb-1">Family-Centered Design</h3>
-                    <p className="text-foreground/70">Keep families together in travel, seating, and communication</p>
+                <div className="solution-element flex items-start gap-4 p-5 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-base mb-1">Family-Centered Design</h3>
+                    <p className="text-sm text-[#3A1562]/80">Keep families together in travel, seating, and communication</p>
                   </div>
                 </div>
                 
-                <div className="solution-element flex items-start gap-4 p-4 rounded-lg bg-background border">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg mb-1">Multi-Day Event Support</h3>
-                    <p className="text-foreground/70">Seamlessly manage all your ceremonies and celebrations</p>
+                <div className="solution-element flex items-start gap-4 p-5 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-base mb-1">Multi-Day Event Support</h3>
+                    <p className="text-sm text-[#3A1562]/80">Seamlessly manage all your ceremonies and celebrations</p>
                   </div>
                 </div>
                 
-                <div className="solution-element flex items-start gap-4 p-4 rounded-lg bg-background border">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg mb-1">Integrated Communication</h3>
-                    <p className="text-foreground/70">Email and WhatsApp integration for seamless guest updates</p>
+                <div className="solution-element flex items-start gap-4 p-5 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-base mb-1">Integrated Communication</h3>
+                    <p className="text-sm text-[#3A1562]/80">Email and WhatsApp integration for seamless guest updates</p>
                   </div>
                 </div>
               </div>
