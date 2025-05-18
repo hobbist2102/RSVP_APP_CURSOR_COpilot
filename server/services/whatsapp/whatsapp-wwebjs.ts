@@ -194,7 +194,7 @@ export default class WhatsAppWebJSService implements IWhatsAppService {
       const sent = await this.client.sendMessage(formattedNumber, media, { caption });
       return sent.id._serialized;
     } catch (error) {
-      console.error(`Error sending WhatsApp media message to ${to}:`, error);
+      // Re-throw error for proper handling by caller
       throw error;
     }
   }
