@@ -23,6 +23,7 @@ import ImmersiveStorytelling from "@/pages/immersive-storytelling";
 import VisualStorytelling from "@/pages/visual-storytelling";
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
+import WhatsAppSetupPage from "@/pages/wizard/WhatsAppSetupPage";
 
 function App() {
   return (

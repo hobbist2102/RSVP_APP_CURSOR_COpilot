@@ -5,6 +5,7 @@ export const WIZARD_STEPS = {
   RSVP_CONFIG: "rsvp_config",
   HOTELS: "hotels",
   TRANSPORT: "transport",
+  WHATSAPP: "whatsapp",
   COMMUNICATION: "communication",
   DESIGN: "design",
   AI_ASSISTANT: "ai_assistant",
