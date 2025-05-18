@@ -63,11 +63,11 @@ export default function ImmersiveStorytelling() {
   }, [user]);
   
   return (
-    <div className="bg-gradient-to-b from-[#2a1b5e] to-black text-white overflow-x-hidden min-h-screen">
+    <div className="bg-gradient-to-b from-[#5E239D] to-black text-white overflow-x-hidden min-h-screen">
       {/* Fixed navigation */}
-      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#2a1b5e]/80 border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-primary/90 border-b border-accent/20">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-script text-gold-gradient">
+          <h1 className="logo-text">
             Eternally Yours
           </h1>
           
@@ -76,10 +76,10 @@ export default function ImmersiveStorytelling() {
               <button
                 key={link.id}
                 onClick={() => scrollToSection(link.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300
+                className={`px-4 py-2 text-sm font-medium rounded transition-all duration-300
                   ${activeSection === link.id 
-                    ? 'bg-gradient-to-r from-purple-600/90 to-indigo-600/90 text-white' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'bg-accent text-white' 
+                    : 'text-white/80 hover:bg-accent/10 hover:text-accent'
                   }`}
               >
                 {link.label}
@@ -89,7 +89,7 @@ export default function ImmersiveStorytelling() {
           
           <Button
             size="sm"
-            className="gold-gradient hover:opacity-90"
+            className="bg-primary text-white hover:bg-primary/90 font-medium"
             asChild
           >
             <Link href="/auth">Login</Link>
@@ -101,16 +101,16 @@ export default function ImmersiveStorytelling() {
         {/* HERO SECTION: "Eternally Yours" */}
         <section id="hero" className="min-h-screen relative flex items-center justify-center overflow-hidden">
           {/* Animated background with geometric shapes */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#2a1b5e] via-[#1f1246] to-black">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#5E239D] via-[#4a1c7d] to-black">
             {/* Geometric elements */}
-            <div className="absolute w-96 h-96 rounded-full border-2 border-[#8a71d8]/20 top-1/4 left-1/4 animate-float1 transform -translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute w-64 h-64 rounded-full border border-[#bf953f]/30 top-2/3 right-1/4 animate-float2 transform translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute w-80 h-80 border border-[#aa771c]/10 top-1/2 right-1/3 animate-float3 transform rotate-45 translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-96 h-96 rounded-full border-2 border-[#BFA76F]/20 top-1/4 left-1/4 animate-float1 transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-64 h-64 rounded-full border border-[#BFA76F]/30 top-2/3 right-1/4 animate-float2 transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-80 h-80 border border-[#BFA76F]/10 top-1/2 right-1/3 animate-float3 transform rotate-45 translate-x-1/2 -translate-y-1/2"></div>
             
             {/* Blurred orbs */}
-            <div className="absolute w-40 h-40 rounded-full bg-[#6246ea]/10 blur-xl top-1/3 left-2/3"></div>
-            <div className="absolute w-32 h-32 rounded-full bg-[#fcf6ba]/5 blur-xl bottom-1/3 right-2/3"></div>
-            <div className="absolute w-24 h-24 rounded-full bg-[#bf953f]/10 blur-xl top-2/3 right-1/2"></div>
+            <div className="absolute w-40 h-40 rounded-full bg-[#5E239D]/20 blur-xl top-1/3 left-2/3"></div>
+            <div className="absolute w-32 h-32 rounded-full bg-[#BFA76F]/10 blur-xl bottom-1/3 right-2/3"></div>
+            <div className="absolute w-24 h-24 rounded-full bg-[#BFA76F]/10 blur-xl top-2/3 right-1/2"></div>
           </div>
           
           {/* Overlay for better text contrast */}
@@ -120,7 +120,7 @@ export default function ImmersiveStorytelling() {
           <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
             {/* Main headline with 3D typography */}
             <motion.h1 
-              className="text-6xl md:text-8xl font-script mb-8 text-gold-gradient"
+              className="text-6xl md:text-8xl font-script mb-8 text-accent-color"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
@@ -148,7 +148,7 @@ export default function ImmersiveStorytelling() {
             >
               <Button 
                 size="lg" 
-                className="gold-gradient text-white hover:opacity-90 text-lg shadow-lg shadow-amber-900/20"
+                className="bg-primary text-white hover:bg-primary/90 text-lg shadow-md button-text"
                 asChild
               >
                 <Link href="/auth">Get Started</Link>
@@ -157,7 +157,7 @@ export default function ImmersiveStorytelling() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-[#bf953f] text-[#fcf6ba] hover:bg-[#bf953f]/10 text-lg"
+                className="border-accent text-accent hover:bg-accent/10 text-lg button-text"
                 onClick={() => scrollToSection('problem')}
               >
                 See How It Works
