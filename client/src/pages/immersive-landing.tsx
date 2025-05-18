@@ -1209,6 +1209,30 @@ export default function ImmersiveLanding() {
   // Navbar animation for transparency on scroll
   const [navbarBg, setNavbarBg] = useState('transparent');
   
+  // Enhanced scrolling functionality
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    
+    // Find the target section
+    const targetSection = document.getElementById(targetId);
+    
+    if (targetSection) {
+      console.log(`Scrolling to section: ${targetId}`);
+      
+      // Smoothly scroll to the target section
+      targetSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+      
+      // Update active section after scrolling
+      setTimeout(() => {
+        setActiveSection(targetId);
+      }, 500);
+    }
+  };
+  
+  // Update navbar background opacity on scroll
   useEffect(() => {
     const handleNavScroll = () => {
       if (window.scrollY > 100) {
@@ -1247,10 +1271,7 @@ export default function ImmersiveLanding() {
             <a
               key={link.label}
               href={link.href}
-              onClick={(e) => {
-                e.preventDefault();
-                smoothScrollTo(link.id);
-              }}
+              onClick={(e) => handleNavClick(e, link.id)}
               className={`
                 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200
                 ${activeSection === link.id

@@ -32,7 +32,8 @@ function App() {
           {(params) => <RsvpPage />}
         </Route>
         <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
-        <Route path="/" component={ImmersiveLanding} />
+        <Route path="/" component={VisualStorytelling} />
+        <Route path="/classic" component={ImmersiveLanding} />
         <Route path="/dashboard">
           {() => (
             <PrivateRoute>

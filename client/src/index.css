@@ -4,6 +4,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced storytelling styles for immersive landing page */
+@layer components {
+  /* Visual storytelling elements */
+  .section-fade {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+  
+  .section-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Section transitions */
+  .section-connector {
+    @apply absolute w-px h-32 bg-gradient-to-b from-white/30 to-transparent left-1/2 -translate-x-1/2;
+  }
+  
+  /* Visual flow indicators */
+  .flow-indicator {
+    @apply absolute w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center left-1/2 -translate-x-1/2;
+    animation: pulse 2s infinite ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+  }
+}
+
 @layer base {
   :root {
     /* Base colors from the image */
