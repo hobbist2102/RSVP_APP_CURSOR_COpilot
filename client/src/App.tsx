@@ -18,7 +18,7 @@ import EventSettings from "@/pages/event-settings";
 import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
 import EventSetupWizard from "@/pages/event-setup-wizard";
-import ImmersiveStorytelling from "@/pages/immersive-storytelling";
+import ImmersiveStorytelling from "@/pages/immersive-storytelling"; // Main landing page
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 import WhatsAppSetupPage from "@/pages/wizard/WhatsAppSetupPage";
