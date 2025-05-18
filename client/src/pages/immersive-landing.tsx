@@ -265,30 +265,52 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.HERO} 
         ref={heroRef}
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-primary"
+        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#5E239D] to-[#3A1562] scroll-section"
       >
-        {/* Background Elements */}
+        {/* Background Elements - Parallax Effect */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="bg-element-1 absolute w-[600px] h-[600px] rounded-full bg-gradient-to-r from-primary-300/10 to-primary-600/5 blur-3xl -top-64 -left-64"></div>
-          <div className="bg-element-2 absolute w-[800px] h-[800px] rounded-full bg-gradient-to-r from-primary-400/10 to-primary-700/5 blur-3xl -bottom-96 -right-96"></div>
+          {/* Floating particles */}
+          <div className="absolute inset-0">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div 
+                key={i} 
+                className="gold-particle absolute"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 8 + 2}px`,
+                  height: `${Math.random() * 8 + 2}px`,
+                  animationDelay: `${Math.random() * 5}s`
+                }}
+              ></div>
+            ))}
+          </div>
           
-          {/* Decorative mandala patterns */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
+          {/* Glowing orbs */}
+          <div className="parallax-layer" data-speed="0.2">
+            <div className="absolute w-[700px] h-[700px] rounded-full bg-gradient-to-r from-[#7f33d3]/10 to-[#5E239D]/5 blur-3xl -top-64 -left-64"></div>
+          </div>
+          <div className="parallax-layer" data-speed="0.3">
+            <div className="absolute w-[900px] h-[900px] rounded-full bg-gradient-to-r from-[#BFA76F]/10 to-[#e9d9a8]/5 blur-3xl -bottom-96 -right-96"></div>
+          </div>
+          
+          {/* Decorative patterns */}
+          <div className="parallax-layer absolute inset-0 opacity-5 pointer-events-none" data-speed="0.1">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/mandala-pattern.svg')] bg-repeat opacity-10"></div>
           </div>
         </div>
         
         {/* Hero content */}
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Main headline with 3D typography */}
-          <h1 className="hero-title mb-8">
-            <span className="block text-6xl md:text-8xl font-serif font-bold text-accent tracking-wider">
+          {/* Main headline with text gradient */}
+          <h1 className="mb-8">
+            <span className="block text-6xl md:text-8xl font-serif font-bold text-gradient tracking-wider">
               Eternally Yours
             </span>
           </h1>
           
           {/* Subtitle */}
-          <p className="hero-subtitle text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto">
+          <p className="text-base md:text-xl mb-12 text-white/80 max-w-3xl mx-auto leading-relaxed">
             The most elegant wedding management platform for Indian weddings. From guest management to itinerary planning, we make it seamless.
           </p>
           
@@ -296,7 +318,7 @@ export default function ImmersiveLanding() {
           <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="hero-button hero-button-primary rounded-md py-6 px-10 text-lg font-medium"
+              className="hero-button hero-button-primary rounded-full py-6 px-10 text-base font-medium bg-gradient-to-r from-[#5E239D] to-[#7f33d3] border-0 shadow-lg shadow-primary/20"
               asChild
             >
               <Link href="/auth">Get Started</Link>
@@ -305,7 +327,7 @@ export default function ImmersiveLanding() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="hero-button hero-button-secondary rounded-md py-6 px-10 text-lg font-medium"
+              className="hero-button hero-button-secondary rounded-full py-6 px-10 text-base font-medium backdrop-blur-md bg-white/5 border-[#BFA76F]/30"
               onClick={() => scrollToSection(SECTIONS.PROBLEM)}
             >
               See How It Works
