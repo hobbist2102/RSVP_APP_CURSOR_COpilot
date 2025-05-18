@@ -344,111 +344,97 @@ export default function ImmersiveLanding() {
         </div>
       </section>
       
-      {/* Problem Section - The Wedding Planning Chaos */}
+      {/* Problem Section - Behind the Beauty: The Wedding Planning Chaos */}
       <section 
         id={SECTIONS.PROBLEM} 
         ref={problemRef}
-        className="relative py-24 bg-gradient-to-b from-primary to-primary-900 text-white"
+        className="relative py-24 bg-[#C5A6ED] text-[#3A1562] scroll-section"
       >
         <div className="container mx-auto px-6">
-          <h2 className="problem-title text-4xl md:text-5xl font-serif font-bold mb-12 text-center text-accent">
-            Behind the Beauty: <span className="text-white">The Wedding Planning Chaos</span>
+          <h2 className="problem-title text-center mb-16">
+            <span className="text-[#9F79D4] font-light text-xl block">Behind the Beauty:</span>
+            <span className="text-4xl md:text-5xl font-serif font-bold text-[#3A1562]">The Wedding Planning Chaos</span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="relative h-[400px] md:h-[500px] overflow-hidden">
-              {/* Chaotic elements - papers, calendars, phones, lists */}
-              <div className="chaos-element absolute top-10 left-10 w-48 h-64 bg-white rounded-md shadow-lg transform rotate-[-10deg] z-10">
-                <div className="p-3">
-                  <div className="w-full h-4 bg-red-500 mb-2"></div>
-                  <div className="w-3/4 h-3 bg-gray-300 mb-2"></div>
-                  <div className="w-full h-3 bg-gray-300 mb-2"></div>
-                  <div className="w-5/6 h-3 bg-gray-300 mb-2"></div>
-                  <div className="flex gap-1 mt-4">
-                    <div className="w-8 h-8 rounded-sm bg-red-200"></div>
-                    <div className="w-8 h-8 rounded-sm bg-red-200"></div>
-                    <div className="w-8 h-8 rounded-sm bg-red-200"></div>
+            {/* Visual illustration - matches the reference screenshot */}
+            <div className="relative flex justify-center items-center">
+              <div className="relative max-w-md">
+                {/* Smartphone mockup */}
+                <div className="relative z-20 mx-auto">
+                  <div className="w-[180px] h-[320px] bg-gray-800 rounded-3xl p-3 shadow-xl">
+                    <div className="w-full h-full rounded-2xl bg-gray-700 overflow-hidden flex flex-col">
+                      <div className="h-10 bg-gray-800 flex items-center justify-between px-3">
+                        <div className="w-16 h-2 bg-gray-600 rounded-full"></div>
+                        <div className="w-4 h-2 bg-gray-600 rounded-full"></div>
+                      </div>
+                      <div className="flex-1 bg-gray-200 p-2">
+                        <div className="w-full h-8 bg-white rounded-md mb-2"></div>
+                        <div className="w-full h-8 bg-white rounded-md mb-2"></div>
+                        <div className="w-full h-40 bg-white rounded-md mb-2"></div>
+                        <div className="flex gap-2">
+                          <div className="w-1/2 h-24 bg-white rounded-md"></div>
+                          <div className="w-1/2 h-24 bg-white rounded-md"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="chaos-element absolute top-20 right-10 w-56 h-40 bg-white rounded-md shadow-lg transform rotate-[5deg] z-20">
-                <div className="p-3">
-                  <div className="w-full h-4 bg-blue-500 mb-2"></div>
-                  <div className="w-full h-20 bg-blue-100"></div>
-                  <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-blue-500"></div>
-                </div>
-              </div>
-              
-              <div className="chaos-element absolute bottom-20 left-20 w-40 h-60 bg-gray-800 rounded-md shadow-lg transform rotate-[8deg] z-30">
-                <div className="p-2">
-                  <div className="w-full h-2 bg-gray-600 rounded-full mt-1"></div>
-                  <div className="w-full h-32 bg-gray-700 mt-2 rounded-sm"></div>
-                  <div className="flex justify-center mt-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-600"></div>
+                
+                {/* Papers and spreadsheets */}
+                <div className="absolute top-4 -right-24 w-64 h-48 bg-white shadow-md rounded-md transform rotate-6 z-10 overflow-hidden">
+                  <div className="h-6 bg-yellow-200 w-full"></div>
+                  <div className="p-2">
+                    <div className="grid grid-cols-4 gap-1">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div key={i} className="h-6 bg-yellow-50 border border-yellow-100 rounded-sm"></div>
+                      ))}
+                    </div>
+                    <div className="mt-2 grid grid-cols-4 gap-1">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div key={i} className="h-6 bg-yellow-50 border border-yellow-100 rounded-sm"></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="chaos-element floating-paper absolute bottom-40 right-20 w-48 h-32 bg-amber-100 rounded-sm shadow-lg transform rotate-[-3deg] z-40">
-                <div className="p-2">
-                  <div className="w-full flex justify-between">
-                    <div className="w-20 h-3 bg-amber-300"></div>
-                    <div className="w-8 h-3 bg-amber-300"></div>
-                  </div>
-                  <div className="w-full flex mt-2 gap-1">
-                    <div className="w-4 h-4 rounded-sm bg-amber-300"></div>
-                    <div className="w-32 h-4 bg-amber-200"></div>
-                  </div>
-                  <div className="w-full flex mt-2 gap-1">
-                    <div className="w-4 h-4 rounded-sm bg-amber-300"></div>
-                    <div className="w-28 h-4 bg-amber-200"></div>
-                  </div>
-                  <div className="w-full flex mt-2 gap-1">
-                    <div className="w-4 h-4 rounded-sm bg-amber-300"></div>
-                    <div className="w-36 h-4 bg-amber-200"></div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="chaos-element floating-paper absolute top-40 left-40 w-36 h-36 bg-green-100 rounded-sm shadow-lg transform rotate-[10deg] z-15">
-                <div className="p-2">
-                  <div className="w-full h-4 bg-green-500 mb-2"></div>
-                  <div className="w-full flex flex-col gap-1">
-                    <div className="w-full h-3 bg-green-200"></div>
-                    <div className="w-full h-3 bg-green-200"></div>
-                    <div className="w-full h-3 bg-green-200"></div>
-                    <div className="w-full h-3 bg-green-200"></div>
-                    <div className="w-full h-3 bg-green-200"></div>
+                
+                <div className="absolute -top-8 -left-16 w-48 h-32 bg-white shadow-md rounded-md transform -rotate-3 z-15 overflow-hidden">
+                  <div className="h-5 bg-blue-400 w-full"></div>
+                  <div className="p-2">
+                    <div className="w-full h-3 bg-gray-200 rounded-full mb-2"></div>
+                    <div className="w-3/4 h-3 bg-gray-200 rounded-full mb-2"></div>
+                    <div className="w-full h-3 bg-gray-200 rounded-full mb-2"></div>
+                    <div className="w-1/2 h-3 bg-gray-200 rounded-full"></div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="text-white/90 space-y-6">
-              <p className="text-xl leading-relaxed">
+            {/* Content area - right side */}
+            <div className="text-[#3A1562] space-y-6">
+              <p className="text-lg leading-relaxed">
                 Planning an Indian wedding involves coordinating hundreds of moving parts, from extensive guest lists to multiple ceremonies spanning several days.
               </p>
               
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-300 flex-shrink-0 mt-1">!</div>
-                  <p>Managing RSVPs from hundreds of guests across different events becomes overwhelming</p>
+              <div className="space-y-5 mt-8">
+                <div className="flex items-start gap-4">
+                  <div className="w-5 h-5 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1.5"></div>
+                  <p className="text-sm">Managing RSVPs from hundreds of guests across different events becomes overwhelming</p>
                 </div>
                 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-300 flex-shrink-0 mt-1">!</div>
-                  <p>Coordinating transportation and accommodations leads to endless spreadsheets and phone calls</p>
+                <div className="flex items-start gap-4">
+                  <div className="w-5 h-5 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1.5"></div>
+                  <p className="text-sm">Coordinating transportation and accommodations leads to endless spreadsheets and phone calls</p>
                 </div>
                 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-300 flex-shrink-0 mt-1">!</div>
-                  <p>Communication breakdowns result in confused guests and last-minute emergencies</p>
+                <div className="flex items-start gap-4">
+                  <div className="w-5 h-5 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1.5"></div>
+                  <p className="text-sm">Communication breakdowns result in confused guests and last-minute emergencies</p>
                 </div>
                 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-300 flex-shrink-0 mt-1">!</div>
-                  <p>Traditional planning methods collapse under the complexity of multi-day celebrations</p>
+                <div className="flex items-start gap-4">
+                  <div className="w-5 h-5 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1.5"></div>
+                  <p className="text-sm">Traditional planning methods collapse under the complexity of multi-day celebrations</p>
                 </div>
               </div>
             </div>
@@ -460,11 +446,12 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.SOLUTION} 
         ref={solutionRef}
-        className="relative py-24 bg-gradient-to-b from-primary-900 to-background text-foreground"
+        className="relative py-24 bg-white text-[#3A1562] scroll-section"
       >
         <div className="container mx-auto px-6">
-          <h2 className="solution-title text-4xl md:text-5xl font-serif font-bold mb-16 text-center">
-            <span className="text-accent">Elegant Simplicity</span> in Every Detail
+          <h2 className="solution-title text-center mb-16">
+            <span className="text-[#BFA76F] font-light text-xl block">Elegant Simplicity</span>
+            <span className="text-4xl md:text-5xl font-serif font-bold text-[#3A1562]">in Every Detail</span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
