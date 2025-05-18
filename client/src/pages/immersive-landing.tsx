@@ -12,189 +12,214 @@ import { FloatingShapes } from '@/components/landing/cinematic/floating-shapes';
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
-// Hero Section Component
+// Typographic Hero Section Component
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  
+  // Split text into individual characters for animation
+  const splitText = (text: string) => {
+    return text.split('').map((char, i) => (
+      <span 
+        key={i} 
+        className="hero-char inline-block opacity-0 transform translate-y-8"
+        style={{ 
+          animationDelay: `${i * 0.04}s`,
+          animationFillMode: 'forwards'
+        }}
+      >
+        {char === ' ' ? '\u00A0' : char}
+      </span>
+    ));
+  };
+  
   useEffect(() => {
     if (!heroRef.current) return;
-
-    // Create master timeline for hero animations
-    const masterTl = gsap.timeline();
     
-    // Initial load animations
-    const loadTl = gsap.timeline({
-      defaults: { ease: 'power2.out' }
-    });
-    
-    // Dramatic entrance for the video - zoom from larger scale with slight rotation
-    loadTl.fromTo('.hero-video', 
-      { scale: 1.5, opacity: 0, rotation: 1 }, 
-      { scale: 1.1, opacity: 1, rotation: 0, duration: 2.5, ease: 'power3.out' }
-    );
-    
-    // Staggered animation for the particles
-    loadTl.fromTo('.hero-particles div', 
-      { opacity: 0, scale: 0 },
-      { opacity: 0.3, scale: 1, stagger: 0.1, duration: 1 },
-      "-=2"
-    );
-    
-    // Add to master timeline
-    masterTl.add(loadTl);
-    
-    // Setup scroll-based animations
-    
-    // Content fades out as user scrolls down
-    gsap.to('.hero-content', {
-      opacity: 0,
-      y: -100,
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top top',
-        end: '40% top',
-        scrub: 0.5,
-        immediateRender: false
-      }
-    });
-    
-    // Parallax effect with dramatic movement on the video
-    gsap.to('.hero-video', {
-      y: 150,
-      scale: 1.2,
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 0.3,
-        immediateRender: false
-      }
-    });
-    
-    // Scale down and fade overlay to reveal more video as you scroll
-    gsap.to('.hero-overlay', {
-      opacity: 0.2,
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top top',
-        end: '30% top',
-        scrub: true,
-        immediateRender: false
-      }
-    });
-    
-    // Particles move faster as you scroll
-    gsap.to('.hero-particles div', {
-      y: (i) => 50 * (i + 1),
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 0.2,
-        immediateRender: false
-      }
-    });
-    
-    return () => {
-      // Clean up
-      masterTl.kill();
-      ScrollTrigger.getAll().forEach(st => st.kill());
-    };
+    try {
+      // Set up initial animations
+      gsap.set(".hero-char", { opacity: 0, y: 30 });
+      gsap.set(".hero-subtitle", { opacity: 0, y: 20 });
+      gsap.set(".hero-cta", { opacity: 0, y: 30 });
+      gsap.set(".hero-shape", { opacity: 0, scale: 0 });
+      
+      // Create animation timeline
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" }});
+      
+      // Animate title characters
+      tl.to(".hero-char", {
+        opacity: 1,
+        y: 0,
+        stagger: 0.02,
+        duration: 0.8,
+        ease: "back.out(1.5)"
+      });
+      
+      // Animate subtitle
+      tl.to(".hero-subtitle", {
+        opacity: 1,
+        y: 0,
+        duration: 1
+      }, "-=0.4");
+      
+      // Animate CTA buttons
+      tl.to(".hero-cta", {
+        opacity: 1,
+        y: 0,
+        stagger: 0.2,
+        duration: 0.8
+      }, "-=0.6");
+      
+      // Animate shapes
+      tl.to(".hero-shape", {
+        opacity: 0.8,
+        scale: 1,
+        stagger: 0.1,
+        duration: 1.2,
+        ease: "elastic.out(1, 0.5)"
+      }, "-=1.2");
+      
+      // Add scroll animations
+      gsap.to(".hero-content", {
+        y: -80,
+        opacity: 0,
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: "top top",
+          end: "30% top",
+          scrub: 0.8
+        }
+      });
+      
+      // Parallax effect on the shapes
+      gsap.to(".hero-shape-container", {
+        y: 100,
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.5
+        }
+      });
+      
+      // Scale effect on background gradient
+      gsap.to(".hero-bg-gradient", {
+        backgroundPosition: "0% 100%",
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+      
+      return () => {
+        // Clean up animations
+        const triggers = ScrollTrigger.getAll();
+        triggers.forEach(trigger => trigger.kill());
+      };
+    } catch (error) {
+      console.error("Animation error:", error);
+    }
   }, []);
-
+  
   return (
     <div 
       ref={heroRef}
-      className="relative h-screen w-full overflow-hidden bg-black"
+      className="relative h-screen w-full overflow-hidden"
     >
-      {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        {/* Fallback background gradient in case video fails to load */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/80 via-indigo-900/80 to-black"></div>
+      {/* Gradient Background */}
+      <div className="hero-bg-gradient absolute inset-0 bg-gradient-to-b from-purple-900 via-indigo-900 to-black bg-[length:100%_200%] bg-[position:0%_0%]"></div>
+      
+      {/* Animated shapes in background */}
+      <div className="hero-shape-container absolute inset-0 overflow-hidden">
+        {/* Large circle */}
+        <div className="hero-shape absolute top-1/4 left-1/4 w-96 h-96 rounded-full border-2 border-purple-500/20 transform -translate-x-1/2 -translate-y-1/2"></div>
         
-        {/* Video with error handling */}
-        <video 
-          className="hero-video absolute inset-0 h-full w-full object-cover"
-          autoPlay 
-          muted 
-          loop 
-          playsInline
-          poster="/wedding-bg-poster.jpg"
-          onError={(e) => {
-            // If video fails, make sure the gradient background is visible
-            const target = e.target as HTMLVideoElement;
-            target.style.display = 'none';
-          }}
-        >
-          <source 
-            src="/wedding-ceremony.mp4" 
-            type="video/mp4" 
-          />
-        </video>
+        {/* Medium circle */}
+        <div className="hero-shape absolute top-2/3 right-1/4 w-64 h-64 rounded-full border border-indigo-400/30 transform translate-x-1/2 -translate-y-1/2"></div>
         
-        {/* Overlay gradient for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80"></div>
+        {/* Small circle */}
+        <div className="hero-shape absolute bottom-1/4 left-1/3 w-32 h-32 rounded-full border border-pink-500/20 transform -translate-x-1/2 translate-y-1/2"></div>
         
-        {/* Animated particles effect */}
-        <div className="hero-particles absolute inset-0 opacity-30">
-          <div className="absolute w-2 h-2 bg-white rounded-full animate-float1 top-1/4 left-1/4"></div>
-          <div className="absolute w-3 h-3 bg-white rounded-full animate-float2 top-1/3 left-1/2"></div>
-          <div className="absolute w-2 h-2 bg-white rounded-full animate-float3 top-1/2 left-3/4"></div>
-          <div className="absolute w-1 h-1 bg-white rounded-full animate-float4 top-2/3 left-1/4"></div>
-          <div className="absolute w-2 h-2 bg-white rounded-full animate-float5 top-3/4 left-1/2"></div>
-          <div className="absolute w-1.5 h-1.5 bg-white rounded-full animate-float1 top-1/6 left-2/3"></div>
-          <div className="absolute w-1 h-1 bg-white rounded-full animate-float3 top-2/5 left-1/5"></div>
-          <div className="absolute w-2 h-2 bg-white rounded-full animate-float4 top-3/5 left-4/5"></div>
-          <div className="absolute w-1.5 h-1.5 bg-white rounded-full animate-float2 top-5/6 left-2/5"></div>
-          <div className="absolute w-1 h-1 bg-white rounded-full animate-float5 top-1/3 left-3/4"></div>
-        </div>
+        {/* Large square rotated */}
+        <div className="hero-shape absolute top-1/2 right-1/3 w-80 h-80 border border-indigo-600/10 transform rotate-45 translate-x-1/2 -translate-y-1/2"></div>
+        
+        {/* Blurred glowing orbs */}
+        <div className="hero-shape absolute top-1/3 left-2/3 w-40 h-40 rounded-full bg-purple-800/10 blur-xl"></div>
+        <div className="hero-shape absolute bottom-1/3 right-2/3 w-32 h-32 rounded-full bg-indigo-600/10 blur-xl"></div>
+        <div className="hero-shape absolute top-2/3 right-1/2 w-24 h-24 rounded-full bg-pink-700/10 blur-xl"></div>
+        
+        {/* Floating particles */}
+        <div className="hero-shape absolute w-2 h-2 bg-white rounded-full animate-float1 top-1/4 left-1/4 opacity-30"></div>
+        <div className="hero-shape absolute w-3 h-3 bg-white rounded-full animate-float2 top-1/3 left-1/2 opacity-30"></div>
+        <div className="hero-shape absolute w-2 h-2 bg-white rounded-full animate-float3 top-1/2 left-3/4 opacity-30"></div>
+        <div className="hero-shape absolute w-1 h-1 bg-white rounded-full animate-float4 top-2/3 left-1/4 opacity-30"></div>
+        <div className="hero-shape absolute w-2 h-2 bg-white rounded-full animate-float5 top-3/4 left-1/2 opacity-30"></div>
       </div>
       
-      {/* Content */}
-      <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="text-center"
-        >
-          <h1 className="font-script text-6xl md:text-8xl mb-6 bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text">
-            Eternally Yours
+      {/* Subtle overlay gradient for better text contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70"></div>
+      
+      {/* Main content */}
+      <div className="hero-content relative z-10 h-full flex flex-col items-center justify-center px-6 md:px-8">
+        <div className="text-center max-w-5xl mx-auto">
+          {/* Animated title */}
+          <h1 
+            ref={titleRef}
+            className="font-script text-6xl md:text-8xl mb-8 leading-tight"
+          >
+            <span className="block bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text">
+              {splitText("Eternally Yours")}
+            </span>
           </h1>
-          <p className="text-white text-xl md:text-2xl max-w-3xl mx-auto mb-12">
+          
+          {/* Subtitle with fade in */}
+          <p 
+            ref={subtitleRef}
+            className="hero-subtitle text-white text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed"
+          >
             The most elegant wedding management platform for Indian weddings.
             From guest management to itinerary planning, we make it seamless.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-0"
-              asChild
-            >
-              <Link href="/auth">Get Started</Link>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg border-white text-white hover:bg-white/10"
-              asChild
-            >
-              <a href="#chaos">See How It Works</a>
-            </Button>
+          {/* CTA buttons with staggered animation */}
+          <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="hero-cta">
+              <Button 
+                size="lg" 
+                className="text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-0 shadow-lg shadow-purple-900/20"
+                asChild
+              >
+                <Link href="/auth">Get Started</Link>
+              </Button>
+            </div>
+            
+            <div className="hero-cta">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg border-white text-white hover:bg-white/10"
+                asChild
+              >
+                <a href="#chaos">See How It Works</a>
+              </Button>
+            </div>
           </div>
-        </motion.div>
+        </div>
         
-        {/* Scroll Indicator */}
+        {/* Scroll indicator */}
         <motion.div 
           className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 2, duration: 1 }}
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
           >
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
