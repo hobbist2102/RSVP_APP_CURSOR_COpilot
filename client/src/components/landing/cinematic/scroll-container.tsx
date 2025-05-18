@@ -25,8 +25,6 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
 
   // Initialize ScrollTrigger with proper configuration
   useEffect(() => {
-    console.log("ScrollContainer mounted, initializing GSAP...");
-    
     // Enable debugging if needed
     if (debug) {
       ScrollTrigger.defaults({ markers: true });
@@ -49,7 +47,6 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
     // Set a small delay to ensure DOM is fully rendered
     const timer = setTimeout(() => {
       setIsReady(true);
-      console.log("ScrollContainer ready, refreshing ScrollTrigger...");
       
       // Refresh ScrollTrigger after everything is loaded
       ScrollTrigger.refresh(true);
@@ -57,11 +54,9 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
     
     return () => {
       clearTimeout(timer);
-      console.log("ScrollContainer unmounting, cleaning up...");
       
       // Kill all ScrollTriggers when component unmounts
       ScrollTrigger.getAll().forEach(st => {
-        console.log("Killing ScrollTrigger:", st.vars);
         st.kill();
       });
       
@@ -73,8 +68,6 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
   // Initialize main scroll effect
   useGSAP(() => {
     if (!isReady || !containerRef.current) return;
-    
-    console.log("Setting up scroll animations...");
     
     try {
       // Initialize section styling with will-change for better performance
@@ -124,7 +117,11 @@ export const ScrollContainer: React.FC<ScrollContainerProps> = ({
         });
       };
     } catch (error) {
-      console.error("Error in scroll setup:", error);
+      // Silent fail to avoid console errors in production
+      if (debug) {
+        // Only show errors in debug mode
+        console.error("Error in scroll setup:", error);
+      }
     }
   }, { scope: containerRef, dependencies: [isReady] });
 

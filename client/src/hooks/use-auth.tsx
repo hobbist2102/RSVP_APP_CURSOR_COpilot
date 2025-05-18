@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log("Checking auth status...");
         const response = await fetch("/api/auth/user", {
           credentials: "include",
           headers: {
@@ -51,15 +50,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Auth check successful, user:", data.user);
           if (data.user) {
             setUser(data.user);
           }
-        } else {
-          console.log("Auth check failed, status:", response.status);
         }
       } catch (error) {
-        console.error("Auth check error:", error);
+        // Silent fail on auth check - user will need to log in
       } finally {
         setIsLoading(false);
       }
@@ -88,7 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         description: `Welcome back, ${data.user.name}!`,
       });
     } catch (error) {
-      console.error("Login error:", error);
+      // Let the error bubble up to the form for display
       throw error;
     } finally {
       setIsLoading(false);
@@ -110,7 +106,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         description: "You have been successfully logged out.",
       });
     } catch (error) {
-      console.error("Logout error:", error);
       toast({
         variant: "destructive",
         title: "Logout Failed",
