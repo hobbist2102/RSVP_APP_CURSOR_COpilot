@@ -19,6 +19,7 @@ import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
 import EventSetupWizard from "@/pages/event-setup-wizard";
 import ImmersiveLanding from "@/pages/immersive-landing";
+import VisualStorytelling from "@/pages/visual-storytelling";
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 
