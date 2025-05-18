@@ -19,7 +19,8 @@ import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
 import TransportAssignmentsPage from "@/pages/transport-assignments";
 import EventSetupWizard from "@/pages/event-setup-wizard";
-import ImmersiveStorytelling from "@/pages/immersive-storytelling"; // Main landing page
+import ImmersiveStorytelling from "@/pages/immersive-storytelling"; // Current landing page
+import ImmersiveLanding from "@/pages/immersive-landing"; // New cinematic landing page
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 import WhatsAppSetupPage from "@/pages/wizard/WhatsAppSetupPage";
@@ -34,7 +35,7 @@ function App() {
           {(params) => <RsvpPage />}
         </Route>
         <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
-        <Route path="/" component={ImmersiveStorytelling} />
+        <Route path="/" component={ImmersiveLanding} />
         <Route path="/dashboard">
           {() => (
             <PrivateRoute>
