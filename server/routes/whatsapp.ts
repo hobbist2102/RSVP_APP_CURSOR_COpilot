@@ -1,332 +1,532 @@
-/**
- * WhatsApp API routes
- */
-import { Router, Request, Response } from 'express';
-import { Express } from 'express';
-import { storage } from '../storage';
-import { WhatsAppService } from '../services/whatsapp';
-import { z } from 'zod';
-import { Guest, WeddingEvent } from '@shared/schema';
+import express, { Express, Request, Response, NextFunction } from 'express';
+import path from 'path';
+import fs from 'fs';
+import multer from 'multer';
+import { db } from '../db';
+import { events } from '@shared/schema';
+import { eq } from 'drizzle-orm';
+import { WhatsAppManager, WhatsAppProvider } from '../services/whatsapp';
 
-const router = Router();
-
-/**
- * Test endpoint to verify WhatsApp routes are configured correctly
- */
-router.get('/test', (req: Request, res: Response) => {
-  res.json({ 
-    success: true, 
-    message: 'WhatsApp API is working correctly',
-    timestamp: new Date().toISOString()
-  });
-});
-
-/**
- * Send a WhatsApp message to a guest
- */
-router.post('/send-message', async (req: Request, res: Response) => {
-  try {
-    // Validate request body
-    const schema = z.object({
-      guestId: z.number(),
-      eventId: z.number(),
-      templateName: z.string(),
-      parameters: z.record(z.string(), z.any()).optional().default({})
-    });
-    
-    const validationResult = schema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid request data', 
-        errors: validationResult.error.errors 
-      });
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
-    
-    const { guestId, eventId, templateName, parameters } = validationResult.data;
-    
-    // Get event information first
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Get guest with proper event context validation
-    const guest = await storage.getGuestWithEventContext(guestId, eventId);
-    if (!guest) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Guest not found or does not belong to this event' 
-      });
-    }
-    
-    // Create WhatsApp service
-    const whatsappService = WhatsAppService.fromEvent(event);
-    
-    // Check if WhatsApp is configured
-    if (!whatsappService.isConfigured()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'WhatsApp is not configured for this event',
-        details: 'Please configure WhatsApp credentials in event settings'
-      });
-    }
-    
-    // Send message
-    const result = await whatsappService.sendMessage(guest, templateName, parameters);
-    
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to send WhatsApp message',
-        error: result.error
-      });
-    }
-    
-    return res.json({
-      success: true,
-      message: 'WhatsApp message sent successfully',
-      messageId: result.id
-    });
-  } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error processing WhatsApp message request' 
-    });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-/**
- * Send WhatsApp messages to multiple guests
- */
-router.post('/send-bulk', async (req: Request, res: Response) => {
-  try {
-    // Validate request body
-    const schema = z.object({
-      eventId: z.number(),
-      guestIds: z.array(z.number()),
-      templateName: z.string(),
-      parameters: z.record(z.string(), z.any()).optional().default({})
-    });
-    
-    const validationResult = schema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid request data', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    const { eventId, guestIds, templateName, parameters } = validationResult.data;
-    
-    // Get event information
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Create WhatsApp service
-    const whatsappService = WhatsAppService.fromEvent(event);
-    
-    // Check if WhatsApp is configured
-    if (!whatsappService.isConfigured()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'WhatsApp is not configured for this event',
-        details: 'Please configure WhatsApp credentials in event settings'
-      });
-    }
-    
-    // Send messages to all guests with event context validation
-    const results = [];
-    for (const guestId of guestIds) {
-      const guest = await storage.getGuestWithEventContext(guestId, eventId);
-      
-      if (!guest) {
-        results.push({
-          guestId,
-          success: false,
-          message: 'Guest not found or does not belong to this event'
-        });
-        continue;
-      }
-      
-      const result = await whatsappService.sendMessage(guest, templateName, parameters);
-      
-      results.push({
-        guestId,
-        name: `${guest.firstName} ${guest.lastName}`,
-        success: result.success,
-        messageId: result.id,
-        error: result.error
-      });
-    }
-    
-    return res.json({
-      success: true,
-      results
-    });
-  } catch (error) {
-    console.error('Error sending bulk WhatsApp messages:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error processing bulk WhatsApp message request' 
-    });
-  }
-});
+const upload = multer({ storage });
 
 /**
- * Configure WhatsApp settings for an event
- */
-router.post('/configure', async (req: Request, res: Response) => {
-  try {
-    // Validate request body
-    const schema = z.object({
-      eventId: z.number(),
-      accessToken: z.string(),
-      businessPhoneId: z.string(),
-      businessNumber: z.string().optional(),
-      businessAccountId: z.string().optional()
-    });
-    
-    const validationResult = schema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid configuration data', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    const { 
-      eventId, 
-      accessToken, 
-      businessPhoneId, 
-      businessNumber, 
-      businessAccountId 
-    } = validationResult.data;
-    
-    // Get event information
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Update event with WhatsApp settings
-    const updatedEvent = await storage.updateEvent(eventId, {
-      whatsappAccessToken: accessToken,
-      whatsappBusinessPhoneId: businessPhoneId,
-      whatsappBusinessNumber: businessNumber || null,
-      whatsappBusinessAccountId: businessAccountId || null,
-      whatsappConfigured: true
-    });
-    
-    if (!updatedEvent) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to update event with WhatsApp settings' 
-      });
-    }
-    
-    // Create WhatsApp service with new credentials to test configuration
-    const whatsappService = WhatsAppService.fromEvent(updatedEvent);
-    
-    return res.json({
-      success: true,
-      message: 'WhatsApp configuration updated successfully',
-      configured: whatsappService.isConfigured()
-    });
-  } catch (error) {
-    console.error('Error configuring WhatsApp:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error updating WhatsApp configuration' 
-    });
-  }
-});
-
-/**
- * Get WhatsApp configuration status for an event
- */
-router.get('/status/:eventId', async (req: Request, res: Response) => {
-  try {
-    const eventId = parseInt(req.params.eventId);
-    
-    if (isNaN(eventId)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid event ID' 
-      });
-    }
-    
-    // Get event information
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Create WhatsApp service to check configuration
-    const whatsappService = WhatsAppService.fromEvent(event);
-    
-    return res.json({
-      success: true,
-      eventId: event.id,
-      configured: whatsappService.isConfigured(),
-      // Don't return sensitive credentials, just status
-      hasAccessToken: !!event.whatsappAccessToken,
-      hasBusinessPhoneId: !!event.whatsappBusinessPhoneId,
-      hasBusinessNumber: !!event.whatsappBusinessNumber,
-      hasBusinessAccountId: !!event.whatsappBusinessAccountId
-    });
-  } catch (error) {
-    console.error('Error checking WhatsApp status:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error checking WhatsApp configuration status' 
-    });
-  }
-});
-
-/**
- * Function to register WhatsApp routes with the Express app
- * @param app Express application
- * @param isAuthenticated Authentication middleware
- * @param isAdmin Admin authentication middleware
+ * Register WhatsApp routes with the Express application
  */
 export function registerWhatsAppRoutes(
-  app: any, // Using any for now to resolve type issue with Express.Application
-  isAuthenticated: (req: Request, res: Response, next: any) => void, 
-  isAdmin: (req: Request, res: Response, next: any) => void
-) {
-  // Test endpoint accessible without authentication for basic connectivity testing
-  app.get('/api/whatsapp/test', (req: Request, res: Response) => {
-    res.json({ 
-      success: true, 
-      message: 'WhatsApp API is working correctly',
-      timestamp: new Date().toISOString()
-    });
+  app: Express, 
+  isAuthenticated: (req: Request, res: Response, next: NextFunction) => void,
+  isAdmin: (req: Request, res: Response, next: NextFunction) => void
+): void {
+  const router = express.Router();
+  const whatsappManager = WhatsAppManager.getInstance();
+  
+  // Middleware to check WhatsApp service readiness
+  const checkWhatsAppReady = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      const service = await whatsappManager.getService(eventId);
+      if (!service.isClientReady()) {
+        return res.status(403).json({ message: 'WhatsApp service not ready. Please initiate authentication.' });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Error checking WhatsApp service readiness:', error);
+      res.status(500).json({ message: 'Failed to check WhatsApp service readiness' });
+    }
+  };
+  
+  // Get WhatsApp provider and connection status
+  router.get('/provider', isAuthenticated, (req: Request, res: Response) => {
+    try {
+      const provider = whatsappManager.getPreferredProvider();
+      res.json({ provider });
+    } catch (error) {
+      console.error('Error getting WhatsApp provider:', error);
+      res.status(500).json({ message: 'Failed to get WhatsApp provider' });
+    }
   });
   
-  // All other WhatsApp endpoints require authentication
-  app.use('/api/whatsapp', isAuthenticated, router);
+  // Set WhatsApp provider
+  router.post('/provider', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { provider } = req.body;
+      
+      if (!provider || !Object.values(WhatsAppProvider).includes(provider)) {
+        return res.status(400).json({ message: 'Invalid WhatsApp provider' });
+      }
+      
+      // If changing to Business API, ensure we have credentials
+      if (provider === WhatsAppProvider.BusinessAPI) {
+        const { apiKey, phoneNumberId } = req.body;
+        
+        if (!apiKey || !phoneNumberId) {
+          return res.status(400).json({ message: 'API key and phone number ID are required for WhatsApp Business API' });
+        }
+        
+        whatsappManager.setBusinessAPICredentials(apiKey, phoneNumberId);
+      }
+      
+      // Disconnect any existing services
+      await whatsappManager.disconnectAll();
+      
+      // Set the new provider
+      whatsappManager.setPreferredProvider(provider as WhatsAppProvider);
+      
+      res.json({ message: 'WhatsApp provider updated successfully', provider });
+    } catch (error) {
+      console.error('Error setting WhatsApp provider:', error);
+      res.status(500).json({ message: 'Failed to set WhatsApp provider' });
+    }
+  });
+  
+  // Initialize WhatsApp service for a specific event
+  router.post('/events/:eventId/initialize', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      // Update the event's WhatsApp configuration in the database
+      if (req.body.whatsappConfigured) {
+        const updateData: any = {
+          whatsappConfigured: req.body.whatsappConfigured
+        };
+        
+        // For Business API, update credentials
+        if (whatsappManager.getPreferredProvider() === WhatsAppProvider.BusinessAPI) {
+          if (req.body.whatsappAccessToken) {
+            updateData.whatsappAccessToken = req.body.whatsappAccessToken;
+          }
+          if (req.body.whatsappBusinessPhoneId) {
+            updateData.whatsappBusinessPhoneId = req.body.whatsappBusinessPhoneId;
+          }
+          if (req.body.whatsappBusinessNumber) {
+            updateData.whatsappBusinessNumber = req.body.whatsappBusinessNumber;
+          }
+          if (req.body.whatsappBusinessAccountId) {
+            updateData.whatsappBusinessAccountId = req.body.whatsappBusinessAccountId;
+          }
+        }
+        
+        // Update event in database
+        await db.update(events)
+          .set(updateData)
+          .where(eq(events.id, eventId));
+      }
+      
+      // Initialize the service
+      const service = await whatsappManager.getService(eventId);
+      
+      // If using Business API, check if credentials are set
+      if (whatsappManager.getPreferredProvider() === WhatsAppProvider.BusinessAPI) {
+        // Additional validation with Business API credentials could be added here
+        res.json({ message: 'WhatsApp Business API initialized successfully', status: 'ready' });
+      } else {
+        // For Web.js, we need to check for QR code
+        const qrCode = service.getQRCode?.() || null;
+        
+        if (service.isClientReady()) {
+          res.json({ message: 'WhatsApp Web.js service is ready', status: 'ready' });
+        } else if (qrCode) {
+          res.json({ message: 'Scan QR code to authenticate', status: 'qr_needed', qrCode });
+        } else {
+          res.json({ message: 'Initializing WhatsApp service...', status: 'initializing' });
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing WhatsApp service:', error);
+      res.status(500).json({ message: 'Failed to initialize WhatsApp service' });
+    }
+  });
+  
+  // Get QR code for WhatsApp Web authentication
+  router.get('/events/:eventId/qrcode', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      if (whatsappManager.getPreferredProvider() !== WhatsAppProvider.WebJS) {
+        return res.status(400).json({ message: 'QR code is only available with WhatsApp Web.js provider' });
+      }
+      
+      const service = await whatsappManager.getService(eventId);
+      const qrCode = service.getQRCode?.() || null;
+      
+      if (qrCode) {
+        res.json({ qrCode });
+      } else if (service.isClientReady()) {
+        res.json({ message: 'WhatsApp Web.js service is already authenticated', status: 'ready' });
+      } else {
+        res.json({ message: 'QR code not available yet', status: 'initializing' });
+      }
+    } catch (error) {
+      console.error('Error getting WhatsApp QR code:', error);
+      res.status(500).json({ message: 'Failed to get WhatsApp QR code' });
+    }
+  });
+  
+  // Send a message to a single recipient
+  router.post('/events/:eventId/send', isAuthenticated, checkWhatsAppReady, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      const { to, message } = req.body;
+      
+      if (!to || !message) {
+        return res.status(400).json({ message: 'Phone number and message are required' });
+      }
+      
+      const messageId = await whatsappManager.sendTextMessage(eventId, to, message);
+      
+      res.json({ message: 'Message sent successfully', messageId });
+    } catch (error) {
+      console.error('Error sending WhatsApp message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp message';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Send a media message to a single recipient
+  router.post('/events/:eventId/send-media', isAuthenticated, checkWhatsAppReady, upload.single('media'), async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      const { to, caption } = req.body;
+      
+      if (!to || !req.file) {
+        return res.status(400).json({ message: 'Phone number and media file are required' });
+      }
+      
+      const messageId = await whatsappManager.sendMediaMessage(eventId, to, req.file.path, caption);
+      
+      res.json({ message: 'Media message sent successfully', messageId });
+    } catch (error) {
+      console.error('Error sending WhatsApp media message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp media message';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Send a template message (Business API only)
+  router.post('/events/:eventId/send-template', isAuthenticated, checkWhatsAppReady, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      if (whatsappManager.getPreferredProvider() !== WhatsAppProvider.BusinessAPI) {
+        return res.status(400).json({ message: 'Template messages are only available with WhatsApp Business API' });
+      }
+      
+      const { to, templateName, languageCode, components } = req.body;
+      
+      if (!to || !templateName) {
+        return res.status(400).json({ message: 'Phone number and template name are required' });
+      }
+      
+      const messageId = await whatsappManager.sendTemplateMessage(
+        eventId,
+        to,
+        templateName,
+        languageCode || 'en_US',
+        components || []
+      );
+      
+      res.json({ message: 'Template message sent successfully', messageId });
+    } catch (error) {
+      console.error('Error sending WhatsApp template message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp template message';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Send a bulk message to all guests for an event
+  router.post('/events/:eventId/send-bulk', isAuthenticated, checkWhatsAppReady, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      const { message, filter } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+      
+      // Get all guests for the event with phone numbers
+      const guestQuery = db.select().from(guests).where(eq(guests.eventId, eventId));
+      
+      // Apply filters if provided
+      if (filter?.rsvpStatus) {
+        // Use additional where clause for filtering by RSVP status
+        const guestsWithFilter = await guestQuery
+          .where(eq(guests.rsvpStatus, filter.rsvpStatus));
+        
+        if (!guestsWithFilter || guestsWithFilter.length === 0) {
+          return res.status(404).json({ message: 'No guests found matching the filter criteria' });
+        }
+        
+        // Filter guests with phone numbers
+        const guestsWithPhones = guestsWithFilter.filter(guest => guest.phone);
+        
+        if (guestsWithPhones.length === 0) {
+          return res.status(404).json({ message: 'No guests with phone numbers found matching the filter criteria' });
+        }
+        
+        // Process the filtered guests
+        const results = await processGuestMessages(eventId, guestsWithPhones, message, whatsappManager);
+        
+        // Compile results
+        const successCount = results.filter(r => r.status === 'sent').length;
+        const failureCount = results.filter(r => r.status === 'failed').length;
+        
+        res.json({
+          message: `Sent ${successCount} messages, ${failureCount} failed`,
+          totalGuests: guestsWithPhones.length,
+          successCount,
+          failureCount,
+          results
+        });
+      } else {
+        // No filters, get all guests
+        const eventGuests = await guestQuery;
+        
+        if (!eventGuests || eventGuests.length === 0) {
+          return res.status(404).json({ message: 'No guests found for this event' });
+        }
+        
+        // Filter guests with phone numbers
+        const guestsWithPhones = eventGuests.filter(guest => guest.phone);
+        
+        if (guestsWithPhones.length === 0) {
+          return res.status(404).json({ message: 'No guests with phone numbers found' });
+        }
+        
+        // Process all guests with phone numbers
+        const results = await processGuestMessages(eventId, guestsWithPhones, message, whatsappManager);
+        
+        // Compile results
+        const successCount = results.filter(r => r.status === 'sent').length;
+        const failureCount = results.filter(r => r.status === 'failed').length;
+        
+        res.json({
+          message: `Sent ${successCount} messages, ${failureCount} failed`,
+          totalGuests: guestsWithPhones.length,
+          successCount,
+          failureCount,
+          results
+        });
+      }
+    } catch (error) {
+      console.error('Error sending bulk WhatsApp messages:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send bulk WhatsApp messages';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Check WhatsApp connection status
+  router.get('/events/:eventId/status', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      try {
+        const service = await whatsappManager.getService(eventId);
+        const isReady = service.isClientReady();
+        
+        if (isReady) {
+          res.json({ status: 'connected', provider: whatsappManager.getPreferredProvider() });
+        } else if (whatsappManager.getPreferredProvider() === WhatsAppProvider.WebJS) {
+          const qrCode = service.getQRCode?.() || null;
+          if (qrCode) {
+            res.json({ status: 'qr_needed', qrCode, provider: WhatsAppProvider.WebJS });
+          } else {
+            res.json({ status: 'initializing', provider: WhatsAppProvider.WebJS });
+          }
+        } else {
+          res.json({ status: 'not_connected', provider: whatsappManager.getPreferredProvider() });
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.json({ status: 'not_connected', error: errorMessage, provider: whatsappManager.getPreferredProvider() });
+      }
+    } catch (error) {
+      console.error('Error checking WhatsApp status:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check WhatsApp status';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Disconnect WhatsApp service
+  router.post('/events/:eventId/disconnect', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      await whatsappManager.disconnectService(eventId);
+      
+      res.json({ message: 'WhatsApp service disconnected successfully' });
+    } catch (error) {
+      console.error('Error disconnecting WhatsApp service:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to disconnect WhatsApp service';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Update event WhatsApp configuration
+  router.post('/events/:eventId/config', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: 'Invalid event ID' });
+      }
+      
+      const {
+        whatsappConfigured,
+        whatsappAccessToken,
+        whatsappBusinessPhoneId,
+        whatsappBusinessNumber,
+        whatsappBusinessAccountId,
+        whatsappProvider
+      } = req.body;
+      
+      // Validate event exists
+      const eventExists = await db.select({ id: events.id })
+        .from(events)
+        .where(eq(events.id, eventId))
+        .then(results => results.length > 0);
+        
+      if (!eventExists) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Build update object
+      const updateData: any = {};
+      if (whatsappConfigured !== undefined) updateData.whatsappConfigured = whatsappConfigured;
+      if (whatsappAccessToken) updateData.whatsappAccessToken = whatsappAccessToken;
+      if (whatsappBusinessPhoneId) updateData.whatsappBusinessPhoneId = whatsappBusinessPhoneId;
+      if (whatsappBusinessNumber) updateData.whatsappBusinessNumber = whatsappBusinessNumber;
+      if (whatsappBusinessAccountId) updateData.whatsappBusinessAccountId = whatsappBusinessAccountId;
+      
+      // Update event
+      await db.update(events)
+        .set(updateData)
+        .where(eq(events.id, eventId));
+      
+      // If provider is specified, update the manager
+      if (whatsappProvider && Object.values(WhatsAppProvider).includes(whatsappProvider as WhatsAppProvider)) {
+        // Disconnect existing services
+        await whatsappManager.disconnectService(eventId);
+        
+        // Set the provider
+        whatsappManager.setPreferredProvider(whatsappProvider as WhatsAppProvider);
+        
+        // If Business API, set the credentials
+        if (whatsappProvider === WhatsAppProvider.BusinessAPI && whatsappAccessToken && whatsappBusinessPhoneId) {
+          whatsappManager.setBusinessAPICredentials(whatsappAccessToken, whatsappBusinessPhoneId);
+        }
+      }
+      
+      res.json({ 
+        message: 'WhatsApp configuration updated successfully',
+        provider: whatsappManager.getPreferredProvider()
+      });
+    } catch (error) {
+      console.error('Error updating WhatsApp configuration:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update WhatsApp configuration';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+  
+  // Mount the router
+  app.use('/api/whatsapp', router);
 }
 
-// Also export the router as default for more flexible usage
-export default router;
+// Helper function to process guest messages in batches
+async function processGuestMessages(
+  eventId: number,
+  guests: any[],
+  messageTemplate: string,
+  whatsappManager: any
+) {
+  const results = [];
+  const batchSize = 5; // Process in batches of 5 to avoid rate limiting
+  
+  for (let i = 0; i < guests.length; i += batchSize) {
+    const batch = guests.slice(i, i + batchSize);
+    
+    const batchPromises = batch.map(async (guest) => {
+      try {
+        // Create personalized message by replacing placeholders
+        let personalizedMessage = messageTemplate;
+        personalizedMessage = personalizedMessage.replace(/{name}/g, guest.firstName || '');
+        personalizedMessage = personalizedMessage.replace(/{fullName}/g, `${guest.firstName || ''} ${guest.lastName || ''}`.trim());
+        
+        const messageId = await whatsappManager.sendTextMessage(eventId, guest.phone!, personalizedMessage);
+        
+        return {
+          guestId: guest.id,
+          name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
+          phone: guest.phone,
+          status: 'sent',
+          messageId
+        };
+      } catch (error) {
+        console.error(`Error sending to guest ${guest.id}:`, error);
+        
+        return {
+          guestId: guest.id,
+          name: `${guest.firstName || ''} ${guest.lastName || ''}`.trim(),
+          phone: guest.phone,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+    
+    // Add a small delay between batches to prevent rate limiting
+    if (i + batchSize < guests.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  
+  return results;
+}
