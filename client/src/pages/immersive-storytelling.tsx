@@ -148,7 +148,7 @@ export default function ImmersiveStorytelling() {
             >
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-lg shadow-lg shadow-purple-900/20"
+                className="gold-gradient text-white hover:opacity-90 text-lg shadow-lg shadow-amber-900/20"
                 asChild
               >
                 <Link href="/auth">Get Started</Link>
@@ -157,7 +157,7 @@ export default function ImmersiveStorytelling() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white/10 text-lg"
+                className="border-[#bf953f] text-[#fcf6ba] hover:bg-[#bf953f]/10 text-lg"
                 onClick={() => scrollToSection('problem')}
               >
                 See How It Works
