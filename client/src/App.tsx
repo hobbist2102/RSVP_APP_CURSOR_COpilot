@@ -21,6 +21,7 @@ import TransportAssignmentsPage from "@/pages/transport-assignments";
 import EventSetupWizard from "@/pages/event-setup-wizard";
 import ImmersiveStorytelling from "@/pages/immersive-storytelling"; // Current landing page
 import ImmersiveLanding from "@/pages/immersive-landing"; // New cinematic landing page
+import MessageSection from "@/pages/message-section"; // Multichannel engagement section
 import PrivateRoute from "@/components/auth/private-route";
 import OAuthCallbackSuccess from "@/components/auth/oauth-callback-success";
 import WhatsAppSetupPage from "@/pages/wizard/WhatsAppSetupPage";
@@ -36,6 +37,7 @@ function App() {
         </Route>
         <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
         <Route path="/" component={ImmersiveLanding} />
+        <Route path="/engagement" component={MessageSection} />
         <Route path="/dashboard">
           {() => (
             <PrivateRoute>
