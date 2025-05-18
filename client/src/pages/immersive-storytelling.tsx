@@ -63,11 +63,11 @@ export default function ImmersiveStorytelling() {
   }, [user]);
   
   return (
-    <div className="bg-black text-white overflow-x-hidden min-h-screen">
+    <div className="bg-gradient-to-b from-[#2a1b5e] to-black text-white overflow-x-hidden min-h-screen">
       {/* Fixed navigation */}
-      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-black/70 border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#2a1b5e]/80 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-script bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text">
+          <h1 className="text-2xl font-script text-gold-gradient">
             Eternally Yours
           </h1>
           
@@ -89,7 +89,7 @@ export default function ImmersiveStorytelling() {
           
           <Button
             size="sm"
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            className="gold-gradient hover:opacity-90"
             asChild
           >
             <Link href="/auth">Login</Link>
@@ -101,16 +101,16 @@ export default function ImmersiveStorytelling() {
         {/* HERO SECTION: "Eternally Yours" */}
         <section id="hero" className="min-h-screen relative flex items-center justify-center overflow-hidden">
           {/* Animated background with geometric shapes */}
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900 via-indigo-900 to-black">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#2a1b5e] via-[#1f1246] to-black">
             {/* Geometric elements */}
-            <div className="absolute w-96 h-96 rounded-full border-2 border-purple-500/20 top-1/4 left-1/4 animate-float1 transform -translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute w-64 h-64 rounded-full border border-indigo-400/30 top-2/3 right-1/4 animate-float2 transform translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute w-80 h-80 border border-indigo-600/10 top-1/2 right-1/3 animate-float3 transform rotate-45 translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-96 h-96 rounded-full border-2 border-[#8a71d8]/20 top-1/4 left-1/4 animate-float1 transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-64 h-64 rounded-full border border-[#bf953f]/30 top-2/3 right-1/4 animate-float2 transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute w-80 h-80 border border-[#aa771c]/10 top-1/2 right-1/3 animate-float3 transform rotate-45 translate-x-1/2 -translate-y-1/2"></div>
             
             {/* Blurred orbs */}
-            <div className="absolute w-40 h-40 rounded-full bg-purple-800/10 blur-xl top-1/3 left-2/3"></div>
-            <div className="absolute w-32 h-32 rounded-full bg-indigo-600/10 blur-xl bottom-1/3 right-2/3"></div>
-            <div className="absolute w-24 h-24 rounded-full bg-pink-700/10 blur-xl top-2/3 right-1/2"></div>
+            <div className="absolute w-40 h-40 rounded-full bg-[#6246ea]/10 blur-xl top-1/3 left-2/3"></div>
+            <div className="absolute w-32 h-32 rounded-full bg-[#fcf6ba]/5 blur-xl bottom-1/3 right-2/3"></div>
+            <div className="absolute w-24 h-24 rounded-full bg-[#bf953f]/10 blur-xl top-2/3 right-1/2"></div>
           </div>
           
           {/* Overlay for better text contrast */}
@@ -120,14 +120,12 @@ export default function ImmersiveStorytelling() {
           <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
             {/* Main headline with 3D typography */}
             <motion.h1 
-              className="text-6xl md:text-8xl font-script mb-8 bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text"
+              className="text-6xl md:text-8xl font-script mb-8 text-gold-gradient"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
             >
-              <span className="text-3d">
-                Eternally Yours
-              </span>
+              Eternally Yours
             </motion.h1>
             
             {/* Subtitle */}

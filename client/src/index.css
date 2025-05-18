@@ -26,11 +26,16 @@
   .text-gold-gradient {
     background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
   }
   
-  .rose-gold-gradient {
-    background: linear-gradient(to right, #f8c9bb, #f9ad94, #fbd07c, #f9ad94, #f8c9bb);
+  .purple-gold-gradient {
+    background: linear-gradient(135deg, #2a1b5e, #a161c9, #bf953f, #fcf6ba);
+  }
+  
+  .royal-purple-bg {
+    background-color: #2a1b5e;
   }
   
   .text-3d {
