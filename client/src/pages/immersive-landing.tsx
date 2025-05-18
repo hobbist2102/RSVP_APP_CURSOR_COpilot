@@ -1115,11 +1115,13 @@ export default function ImmersiveLanding() {
       // Find the current section
       const sections = document.querySelectorAll('section[id]');
       sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
+        const rect = section.getBoundingClientRect();
+        const sectionTop = rect.top + window.scrollY;
+        const sectionHeight = rect.height;
         
         if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-          setActiveSection(section.id);
+          const id = section.getAttribute('id');
+          if (id) setActiveSection(id);
         }
       });
     };
