@@ -17,6 +17,7 @@ import Settings from "@/pages/settings";
 import EventSettings from "@/pages/event-settings";
 import EmailTemplatesPage from "@/pages/email-templates-page";
 import TransportPage from "@/pages/transport";
+import TransportAssignmentsPage from "@/pages/transport-assignments";
 import EventSetupWizard from "@/pages/event-setup-wizard";
 import ImmersiveStorytelling from "@/pages/immersive-storytelling"; // Main landing page
 import PrivateRoute from "@/components/auth/private-route";
@@ -122,6 +123,13 @@ function App() {
           {() => (
             <PrivateRoute>
               <TransportPage />
+            </PrivateRoute>
+          )}
+        </Route>
+        <Route path="/transport-assignments">
+          {() => (
+            <PrivateRoute>
+              <TransportAssignmentsPage />
             </PrivateRoute>
           )}
         </Route>
