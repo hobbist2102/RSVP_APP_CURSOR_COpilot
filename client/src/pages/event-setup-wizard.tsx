@@ -46,14 +46,23 @@ export default function EventSetupWizard() {
   // Check if this is a direct access without an event ID
   const isDirectAccess = !eventId;
 
+  // Define the type for setup progress
+  interface WizardProgress {
+    currentStep: string;
+    steps: Record<string, {
+      isCompleted: boolean;
+      stepData: any;
+    }>;
+  }
+
   // Fetch the current event
-  const { data: currentEvent, isLoading } = useQuery({
+  const { data: currentEvent, isLoading } = useQuery<any>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId,
   });
 
   // Fetch the event setup progress
-  const { data: setupProgress, isLoading: isLoadingProgress } = useQuery({
+  const { data: setupProgress, isLoading: isLoadingProgress } = useQuery<WizardProgress>({
     queryKey: [`/api/wizard/${eventId}/progress`],
     enabled: !!eventId,
   });
@@ -82,21 +91,13 @@ export default function EventSetupWizard() {
       const completed: Record<string, boolean> = {};
       const data: Record<string, any> = {};
       
-      // Handle new API response format
-      if (setupProgress.steps && typeof setupProgress.steps === 'object' && !Array.isArray(setupProgress.steps)) {
+      // Handle progress data with type safety
+      if (setupProgress.steps && typeof setupProgress.steps === 'object') {
         // New format: setupProgress.steps is an object with step IDs as keys
-        Object.entries(setupProgress.steps).forEach(([stepId, stepInfo]: [string, any]) => {
+        Object.entries(setupProgress.steps).forEach(([stepId, stepInfo]) => {
           completed[stepId] = stepInfo.isCompleted;
           if (stepInfo.stepData) {
             data[stepId] = stepInfo.stepData;
-          }
-        });
-      } else if (setupProgress.steps && Array.isArray(setupProgress.steps)) {
-        // Old format: setupProgress.steps is an array of step objects
-        setupProgress.steps.forEach((step: any) => {
-          completed[step.stepId] = step.isCompleted;
-          if (step.stepData) {
-            data[step.stepId] = step.stepData;
           }
         });
       }
@@ -105,17 +106,33 @@ export default function EventSetupWizard() {
       setStepData(data);
       
       // Set current step if available
-      const wizardCurrentStep = (setupProgress as any).currentStep;
-      if (wizardCurrentStep && (!currentStep || currentStep === WIZARD_STEPS.BASIC_INFO)) {
-        setCurrentStep(wizardCurrentStep);
-        setActiveStep(wizardCurrentStep);
+      if (setupProgress.currentStep && (!currentStep || currentStep === WIZARD_STEPS.BASIC_INFO)) {
+        setCurrentStep(setupProgress.currentStep);
+        setActiveStep(setupProgress.currentStep);
       }
     }
   }, [setupProgress, currentStep, setCurrentStep, setActiveStep]);
 
+  // Save current step mutation
+  const saveCurrentStepMutation = useMutation({
+    mutationFn: async (stepId: string) => {
+      const response = await apiRequest("POST", `/api/wizard/${eventId}/current-step`, { 
+        currentStep: stepId 
+      });
+      return await response.json();
+    },
+    onError: (error: Error) => {
+      console.error("Failed to save current step:", error);
+    }
+  });
+
   // Handle step change
   const navigateToStep = (stepId: string) => {
     setActiveStep(stepId);
+    // Save the current step to the server if we have an event ID
+    if (eventId) {
+      saveCurrentStepMutation.mutate(stepId);
+    }
   };
 
   // Handle step completion
@@ -133,6 +150,14 @@ export default function EventSetupWizard() {
       description: `${steps.find(s => s.id === stepId)?.label} settings have been saved.`,
       variant: "default",
     });
+    
+    // Automatically navigate to the next step if this isn't the last step
+    const currentIndex = steps.findIndex(step => step.id === stepId);
+    if (currentIndex < steps.length - 1) {
+      const nextStep = steps[currentIndex + 1];
+      // Use setTimeout to give the user a moment to see the success toast
+      setTimeout(() => navigateToStep(nextStep.id), 800);
+    }
   };
 
   // Navigate to next/previous step
@@ -183,7 +208,7 @@ export default function EventSetupWizard() {
         return (
           <BasicInfoStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.BASIC_INFO, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -192,7 +217,7 @@ export default function EventSetupWizard() {
         return (
           <VenuesStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.VENUES, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -201,7 +226,7 @@ export default function EventSetupWizard() {
         return (
           <RsvpConfigStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.RSVP_CONFIG, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -210,7 +235,7 @@ export default function EventSetupWizard() {
         return (
           <HotelsStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.HOTELS, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -219,7 +244,7 @@ export default function EventSetupWizard() {
         return (
           <TransportStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.TRANSPORT, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -228,7 +253,7 @@ export default function EventSetupWizard() {
         return (
           <CommunicationStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.COMMUNICATION, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -237,7 +262,7 @@ export default function EventSetupWizard() {
         return (
           <DesignStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.DESIGN, data)}
             isCompleted={isCurrentStepCompleted}
           />
@@ -246,7 +271,7 @@ export default function EventSetupWizard() {
         return (
           <AiAssistantStep
             eventId={eventId}
-            currentEvent={currentEvent}
+            currentEvent={currentEvent as any}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.AI_ASSISTANT, data)}
             isCompleted={isCurrentStepCompleted}
           />

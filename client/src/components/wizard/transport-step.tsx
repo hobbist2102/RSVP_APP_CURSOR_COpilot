@@ -26,26 +26,35 @@ export default function TransportStep({
 }: TransportStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
 
-  // Simplified transport settings for demonstration
+  // Transport settings with family-centric grouping
   const defaultTransportSettings = {
     enableTransport: true,
+    // Enforce family-centric grouping to keep families together
     transportGroupingStrategy: "family",
+    // This ensures families are always kept together in the same vehicle
+    keepFamiliesTogether: true,
     autoAssignVehicles: true,
     allowGuestPreferences: true,
+    // Define family priority setting
+    familyPriorityMode: "strict", // "strict" ensures families are never split
     vehicles: [
       {
         name: "Airport Shuttle",
         type: "Bus",
         capacity: 45,
         count: 2,
-        description: "For airport transfers on arrival and departure days"
+        description: "For airport transfers on arrival and departure days",
+        // Setting this to true ensures larger families can be accommodated
+        canAccommodateLargeFamilies: true
       },
       {
         name: "VIP Cars",
         type: "Sedan",
         capacity: 4,
         count: 5,
-        description: "For family members and VIP guests"
+        description: "For family members and VIP guests",
+        // Setting this to false means these cars are only for smaller families
+        canAccommodateLargeFamilies: false
       }
     ]
   };
@@ -70,6 +79,16 @@ export default function TransportStep({
             <div className="grid grid-cols-4 items-center gap-4">
               <h3 className="font-medium text-sm">Grouping Strategy:</h3>
               <p className="col-span-3 capitalize">{defaultTransportSettings.transportGroupingStrategy}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Keep Families Together:</h3>
+              <p className="col-span-3">{defaultTransportSettings.keepFamiliesTogether ? "Yes" : "No"}</p>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <h3 className="font-medium text-sm">Family Priority Mode:</h3>
+              <p className="col-span-3 capitalize">{defaultTransportSettings.familyPriorityMode}</p>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
