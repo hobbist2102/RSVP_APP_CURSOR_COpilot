@@ -261,6 +261,45 @@ export default function ImmersiveLanding() {
   
   return (
     <div ref={pageRef} className="immersive-landing">
+      {/* Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-[#5E239D] font-serif text-2xl font-bold">Eternally Yours</span>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-8">
+            <button 
+              onClick={() => scrollToSection(SECTIONS.PROBLEM)}
+              className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
+            >
+              Features
+            </button>
+            <button 
+              onClick={() => scrollToSection(SECTIONS.SOLUTION)}
+              className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
+            >
+              Solutions
+            </button>
+            <button 
+              onClick={() => scrollToSection(SECTIONS.COMMUNICATION)}
+              className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
+            >
+              Communication
+            </button>
+            <Link href="/auth" className="bg-[#5E239D] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#5E239D]/90 transition-colors">
+              Get Started
+            </Link>
+          </div>
+          
+          <button className="md:hidden text-[#5E239D]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+      
       {/* Hero Section */}
       <section 
         id={SECTIONS.HERO} 
@@ -556,11 +595,11 @@ export default function ImmersiveLanding() {
       <section 
         id={SECTIONS.TRANSPORT} 
         ref={transportRef}
-        className="relative py-24 bg-gradient-to-b from-background via-background to-background"
+        className="relative py-24 bg-white"
       >
         <div className="container mx-auto px-6">
           <h2 className="text-4xl md:text-5xl font-serif font-bold mb-12 text-center">
-            <span className="text-accent">Moving Together</span>
+            <span className="text-[#5E239D]">Moving Together</span>
           </h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
