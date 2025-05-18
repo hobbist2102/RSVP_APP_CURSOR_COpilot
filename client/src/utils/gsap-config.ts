@@ -33,7 +33,7 @@ export const createScrollTrigger = (
       ...options
     });
   } catch (error) {
-    console.error("Error creating ScrollTrigger:", error);
+    // Silent failure in production
     return null;
   }
 };
@@ -64,7 +64,7 @@ export const createSectionTransition = (
     
     return tl;
   } catch (error) {
-    console.error("Error creating section transition:", error);
+    // Silent failure in production
     return null;
   }
 };

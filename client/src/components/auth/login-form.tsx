@@ -39,11 +39,8 @@ export default function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
-      console.log("Attempting login with:", { username: values.username });
       await login(values.username, values.password);
-      console.log("Login function completed successfully");
     } catch (error) {
-      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
