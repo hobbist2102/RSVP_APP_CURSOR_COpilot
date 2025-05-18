@@ -19,16 +19,17 @@ const Hero = () => {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   
-  // Split text into individual characters for animation
-  const splitText = (text: string) => {
+  // Split text into individual characters for 3D animation
+  const split3DText = (text: string) => {
     return text.split('').map((char, i) => (
       <span 
         key={i} 
-        className="hero-char inline-block opacity-0 transform translate-y-8"
+        className="text-3d-char inline-block"
         style={{ 
-          animationDelay: `${i * 0.04}s`,
-          animationFillMode: 'forwards'
-        }}
+          '--char-index': i,
+          animationDelay: `${i * 0.08}s`,
+          transformOrigin: 'center bottom'
+        } as React.CSSProperties}
       >
         {char === ' ' ? '\u00A0' : char}
       </span>
@@ -171,8 +172,8 @@ const Hero = () => {
             ref={titleRef}
             className="font-script text-6xl md:text-8xl mb-8 leading-tight"
           >
-            <span className="block bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text">
-              {splitText("Eternally Yours")}
+            <span className="block text-3d bg-gradient-to-r from-rose-300 via-purple-300 to-indigo-300 text-transparent bg-clip-text">
+              {split3DText("Eternally Yours")}
             </span>
           </h1>
           

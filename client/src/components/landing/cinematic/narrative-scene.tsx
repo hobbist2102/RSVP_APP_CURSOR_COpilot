@@ -41,34 +41,46 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
   const sceneId = title.toLowerCase().replace(/\s+/g, '-');
   
   useGSAP(() => {
-    if (sceneRef.current && contentRef.current) {
-      // Import ScrollTrigger dynamically
-      import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
-        gsap.registerPlugin(ScrollTrigger);
-        
-        // Create master timeline for the scene
-        const masterTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: sceneRef.current,
-            start: "top top",
-            end: `+=${pinnedDuration * 100}%`,
-            pin: true,
-            pinSpacing: true,
-            scrub: true,
-            anticipatePin: 1,
-            markers: false
-          }
-        });
-        
-        // Animate title with split text
-        const titleElement = sceneRef.current.querySelector('.scene-title');
-        const taglineElement = sceneRef.current.querySelector('.scene-tagline');
-        
-        if (titleElement) {
+    try {
+      if (!sceneRef.current || !contentRef.current) return;
+      
+      // Use ScrollTrigger directly (already registered in scroll-container.tsx)
+      // Create master timeline for the scene with protection against null refs
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: sceneRef.current,
+          start: "top top",
+          end: `+=${pinnedDuration * 100}%`,
+          pin: true,
+          pinSpacing: true,
+          scrub: 0.5, // smoother scrubbing for better performance
+          anticipatePin: 1,
+          markers: false,
+          onEnter: () => console.log(`Scene entered: ${sceneId}`),
+          onLeave: () => console.log(`Scene left: ${sceneId}`),
+        }
+      });
+      
+      // Safely get references and protect against null
+      const sceneElement = sceneRef.current;
+      if (!sceneElement) return;
+      
+      // Get references safely
+      const titleElement = sceneElement.querySelector('.scene-title');
+      const taglineElement = sceneElement.querySelector('.scene-tagline');
+      
+      // Animate title with split text
+      if (titleElement) {
+        const words = titleElement.querySelectorAll('.word');
+        if (words.length > 0) {
           // Reveal title word by word
-          gsap.set(titleElement.querySelectorAll('.word'), { autoAlpha: 0, y: 50 });
+          gsap.set(words, { 
+            autoAlpha: 0, 
+            y: 50,
+            willChange: 'opacity, transform' // Performance hint
+          });
           
-          masterTl.to(titleElement.querySelectorAll('.word'), {
+          timeline.to(words, {
             autoAlpha: 1,
             y: 0,
             stagger: 0.1,
@@ -76,18 +88,26 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
             ease: "power2.out"
           }, 0);
         }
+      }
+      
+      // Animate tagline
+      if (taglineElement) {
+        gsap.set(taglineElement, { 
+          autoAlpha: 0,
+          willChange: 'opacity' // Performance hint
+        });
         
-        if (taglineElement) {
-          gsap.set(taglineElement, { autoAlpha: 0 });
-          masterTl.to(taglineElement, {
-            autoAlpha: 1,
-            duration: 0.3,
-            ease: "power2.out"
-          }, 0.3);
-        }
-        
-        // Animate each layer with parallax effect based on its depth
-        const layerElements = sceneRef.current.querySelectorAll('.scene-layer');
+        timeline.to(taglineElement, {
+          autoAlpha: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        }, 0.3);
+      }
+      
+      // Animate each layer with parallax effect based on its depth
+      const layerElements = sceneElement.querySelectorAll('.scene-layer');
+      
+      if (layerElements.length > 0) {
         layerElements.forEach((layerEl) => {
           const depth = parseFloat(layerEl.getAttribute('data-depth') || '1');
           const position = layerEl.getAttribute('data-position') || 'center';
@@ -101,16 +121,17 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
             case 'bottom': yStart = 30; break;
           }
           
-          // Set initial position
+          // Set initial position with performance hints
           gsap.set(layerEl, { 
             x: xStart, 
             y: yStart, 
             autoAlpha: 0,
-            scale: 0.9
+            scale: 0.9,
+            willChange: 'transform, opacity' // Performance hint
           });
           
           // Animate to center
-          masterTl.to(layerEl, {
+          timeline.to(layerEl, {
             x: 0,
             y: 0,
             autoAlpha: 1,
@@ -119,17 +140,21 @@ export const NarrativeScene: React.FC<NarrativeSceneProps> = ({
             ease: "power2.out"
           }, 0.2 + (0.1 * depth));
           
-          // Add parallax movement based on depth
-          masterTl.to(layerEl, {
+          // Add parallax movement based on depth - simplified for better performance
+          // Use translateX/Y instead of x/y for better hardware acceleration
+          timeline.to(layerEl, {
             y: position === 'top' ? 30 : position === 'bottom' ? -30 : 0,
             x: position === 'left' ? 30 : position === 'right' ? -30 : 0,
             scale: 1 + (0.1 * depth),
-            ease: "none"
+            ease: "none",
+            force3D: true // Force 3D transforms for hardware acceleration
           }, 0.5);
         });
-      });
+      }
+    } catch (error) {
+      console.error("Error setting up narrative scene animations:", error);
     }
-  }, { scope: sceneRef });
+  }, { scope: sceneRef, dependencies: [sceneId, pinnedDuration] });
 
   // Split text into words for animation
   const renderTitle = () => {
