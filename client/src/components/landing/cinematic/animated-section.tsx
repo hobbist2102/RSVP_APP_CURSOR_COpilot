@@ -50,13 +50,12 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
     const scrollConfig = {
       trigger: sectionRef.current,
       start: startTrigger,
-      end: endTrigger,
-      scrub: true,
+      end: pinned ? `+=${window.innerHeight}` : endTrigger,
+      scrub: 0.5,
       markers: debug,
       pin: pinned,
       pinSpacing: true,
       toggleActions: "play none none reverse",
-      // Add some anticipation to make pinning smoother
       anticipatePin: 1
     };
     

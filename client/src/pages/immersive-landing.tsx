@@ -1135,35 +1135,76 @@ export default function ImmersiveLanding() {
   // Track active section for navigation highlights
   const [activeSection, setActiveSection] = useState('');
   
-  // Scroll event handler for changing active section
+  // Intersection Observer for better scroll performance
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
-      
-      // Find the current section
-      const sections = document.querySelectorAll('section[id]');
-      sections.forEach(section => {
-        const rect = section.getBoundingClientRect();
-        const sectionTop = rect.top + window.scrollY;
-        const sectionHeight = rect.height;
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-          const id = section.getAttribute('id');
-          if (id) setActiveSection(id);
-        }
-      });
-    };
+    // Use Intersection Observer API for better performance
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // Only update if the section is entering the viewport with significant visibility
+          if (entry.isIntersecting && entry.intersectionRatio > 0.2) {
+            const id = entry.target.getAttribute('id');
+            if (id) {
+              console.log('Section visible:', id);
+              setActiveSection(id);
+            }
+          }
+        });
+      },
+      {
+        rootMargin: "-20% 0px -20% 0px", // Section must be 20% in viewport
+        threshold: [0.2, 0.5] // Trigger when 20% or 50% visible
+      }
+    );
     
-    // Add scroll listener
-    window.addEventListener('scroll', handleScroll);
+    // Observe all sections with IDs
+    const sections = document.querySelectorAll('section[id]');
+    sections.forEach(section => {
+      observer.observe(section);
+    });
     
-    // Run once to set initial active section
-    handleScroll();
+    // Initial active section
+    if (sections.length > 0) {
+      const firstSection = sections[0];
+      const firstId = firstSection.getAttribute('id');
+      if (firstId) setActiveSection(firstId);
+    }
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      // Clean up observer
+      sections.forEach(section => {
+        observer.unobserve(section);
+      });
     };
   }, []);
+  
+  // Smooth scroll function using GSAP
+  const smoothScrollTo = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      try {
+        // Use GSAP for smooth scrolling with easing
+        gsap.to(window, {
+          duration: 1.2,
+          scrollTo: {
+            y: section,
+            offsetY: 70, // Account for fixed header
+            autoKill: true
+          },
+          ease: "power3.inOut", // Cinematic easing
+          onComplete: () => {
+            setActiveSection(id);
+          }
+        });
+      } catch (error) {
+        console.error("Error scrolling:", error);
+        
+        // Fallback to native scrolling
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveSection(id);
+      }
+    }
+  };
   
   // Navbar animation for transparency on scroll
   const [navbarBg, setNavbarBg] = useState('transparent');
@@ -1206,10 +1247,14 @@ export default function ImmersiveLanding() {
             <a
               key={link.label}
               href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                smoothScrollTo(link.id);
+              }}
               className={`
                 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200
-                ${activeSection === link.href.substring(1) 
-                  ? 'text-white bg-primary/80' 
+                ${activeSection === link.id
+                  ? 'text-white bg-gradient-to-r from-purple-600/80 to-indigo-600/80' 
                   : 'text-white/70 hover:text-white hover:bg-white/10'}
               `}
             >
