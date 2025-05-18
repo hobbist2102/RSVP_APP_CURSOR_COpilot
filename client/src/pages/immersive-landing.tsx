@@ -1120,14 +1120,16 @@ const Footer = () => {
 export default function ImmersiveLanding() {
   const { user, isLoading } = useAuth();
   
-  // Navigation links with scroll indicators
+  // Navigation links with scroll indicators - fixed with proper IDs that match section elements
   const navLinks = [
-    { label: 'Story', href: '#chaos' },
-    { label: 'Features', href: '#breakthrough' },
-    { label: 'AI', href: '#ai-concierge' },
-    { label: 'Rooms', href: '#room-assignment' },
-    { label: 'Transport', href: '#transport-planning' },
-    { label: 'Dashboard', href: '#command-center' }
+    { label: 'Story', href: '#chaos', id: 'chaos' },
+    { label: 'Features', href: '#breakthrough', id: 'breakthrough' },
+    { label: 'RSVP', href: '#two-stage-rsvp', id: 'two-stage-rsvp' },
+    { label: 'AI', href: '#ai-concierge', id: 'ai-concierge' },
+    { label: 'Rooms', href: '#room-assignment', id: 'room-assignment' },
+    { label: 'Transport', href: '#transport-planning', id: 'transport-planning' },
+    { label: 'Dashboard', href: '#command-center', id: 'command-center' },
+    { label: 'Testimonials', href: '#testimonials', id: 'testimonials' }
   ];
   
   // Track active section for navigation highlights
