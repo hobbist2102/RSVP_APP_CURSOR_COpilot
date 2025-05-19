@@ -363,7 +363,7 @@ export default function ImmersiveLanding() {
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           {/* Main headline with text gradient */}
           <h1 className="mb-8">
-            <span className="block text-6xl md:text-8xl font-['Great_Vibes'] text-gradient tracking-wider">
+            <span className="block text-6xl md:text-8xl font-['Great_Vibes'] text-gradient tracking-wider py-4">
               Eternally Yours
             </span>
           </h1>
