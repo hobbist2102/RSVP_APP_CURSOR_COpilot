@@ -340,9 +340,17 @@ export default function EventSetupWizard() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => setLocation(`/events/${eventId}`)}
+                  onClick={() => setLocation(`/dashboard`)}
                 >
-                  Back to Event
+                  Back to Dashboard
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-muted-foreground"
+                  onClick={() => setLocation(`/event-settings`)}
+                >
+                  Close Wizard
                 </Button>
               </div>
             </div>
@@ -388,6 +396,6 @@ export default function EventSetupWizard() {
           </div>
         </Card>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
