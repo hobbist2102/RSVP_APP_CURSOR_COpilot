@@ -67,7 +67,7 @@ export default function GuestList() {
   const { data: guests = [], isLoading: isLoadingGuests, refetch: refetchGuests } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/guests`],
     queryFn: async () => {
-      console.log(`GUEST LIST: Fetching guests for event ID: ${eventId}`);
+
       const res = await fetch(`/api/events/${eventId}/guests`, {
         credentials: 'include',
         headers: {
@@ -83,8 +83,6 @@ export default function GuestList() {
       }
       
       const data = await res.json();
-      console.log(`GUEST LIST: Fetched ${data.length} guests for event ID: ${eventId}`, 
-        data.map((g: any) => `${g.id}: ${g.firstName} ${g.lastName} (Event: ${g.eventId})`));
       return data;
     },
     enabled: !!eventId,
