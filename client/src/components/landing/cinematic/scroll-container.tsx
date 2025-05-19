@@ -1,14 +1,35 @@
-import React, { useRef, useEffect, useState, ReactNode, memo } from 'react';
+// Lazy import GSAP plugins to reduce initial bundle size and memory footprint
+import React, { useRef, useEffect, ReactNode, memo } from 'react';
 import { gsap } from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
-// Register plugins immediately to avoid initialization issues
-// Only register if window exists to avoid SSR issues
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-}
+// Forward declarations for lazy-loaded plugins
+let ScrollTrigger: any;
+let ScrollToPlugin: any;
+
+// Lazy loading GSAP plugins with optimized loading pattern
+const loadGsapPlugins = async () => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Dynamic imports with type checking
+    const ScrollTriggerModule = await import('gsap/ScrollTrigger');
+    const ScrollToPluginModule = await import('gsap/ScrollToPlugin');
+    
+    // Store references globally to avoid re-importing
+    ScrollTrigger = ScrollTriggerModule.ScrollTrigger;
+    ScrollToPlugin = ScrollToPluginModule.ScrollToPlugin;
+    
+    // Register only once
+    if (!gsap.plugins?.scrollTo) {
+      gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to load GSAP plugins:', error);
+    return false;
+  }
+};
 
 interface ScrollContainerProps {
   children: ReactNode;
@@ -16,151 +37,143 @@ interface ScrollContainerProps {
 }
 
 /**
- * Main container for the cinematic scrolling experience
- * This component initializes GSAP ScrollTrigger and manages the overall scroll experience
- * Using memo to prevent unnecessary re-renders
+ * Memory-optimized scroll container with minimal initialization
  */
 export const ScrollContainer: React.FC<ScrollContainerProps> = memo(({ 
   children, 
-  debug = false // Set to true to show scroll markers for debugging
+  debug = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isReady, setIsReady] = useState(false);
-  const gsapContextRef = useRef<gsap.Context | null>(null);
-  const handlerSetRef = useRef(new Set<HTMLAnchorElement>());
-
-  // Initialize ScrollTrigger with proper configuration
+  const isReadyRef = useRef(false);
+  const pluginsLoadedRef = useRef(false);
+  const cleanupFunctionsRef = useRef<Array<() => void>>([]);
+  
+  // Single initialization effect instead of multiple effects and useGSAP
   useEffect(() => {
-    // Skip initialization if window is not available (SSR)
     if (typeof window === 'undefined') return;
     
-    // Enable debugging if needed
-    if (debug) {
-      ScrollTrigger.defaults({ markers: true });
-    }
-    
-    // Basic ScrollTrigger configuration with optimized settings
-    ScrollTrigger.config({ 
-      limitCallbacks: true,
-      ignoreMobileResize: true,
-      autoRefreshEvents: "visibilitychange,DOMContentLoaded,load", // Removed resize to reduce refresh frequency
-      syncInterval: 250 // Increased sync interval for better performance
-    });
-    
-    // Set body overflow to ensure proper scrolling behavior
-    document.body.style.overflow = "auto";
-    document.body.style.height = "auto";
-
-    // Force immediate refresh with less aggressive settings
-    ScrollTrigger.refresh(false); // false = don't force recalculation of all positions
-    
-    // Set a small delay to ensure DOM is fully rendered
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 300); // Reduced delay for better initial load experience
-    
-    return () => {
-      clearTimeout(timer);
-      
-      // Properly clean up all ScrollTriggers
-      const triggers = ScrollTrigger.getAll();
-      if (triggers.length > 0) {
-        triggers.forEach(st => st.kill());
+    // Initialize scroll system
+    const initializeScroll = async () => {
+      // Load plugins if not already loaded
+      if (!pluginsLoadedRef.current) {
+        pluginsLoadedRef.current = await loadGsapPlugins();
+        if (!pluginsLoadedRef.current) return;
       }
-    };
-  }, [debug]);
-
-  // Initialize main scroll effect
-  useGSAP(() => {
-    if (!isReady || !containerRef.current || typeof window === 'undefined') return;
-    
-    try {
-      // Create GSAP context for proper cleanup
-      gsapContextRef.current = gsap.context(() => {
-        // Initialize section styling with minimal will-change
-        // Only set essential properties to avoid excessive GPU memory usage
-        gsap.set(".cinematic-section", { 
-          position: "relative",
-          zIndex: 1,
-          overflow: "hidden"
-          // Removed willChange to reduce GPU memory consumption
+      
+      // Enable debugging if needed
+      if (debug && ScrollTrigger) {
+        ScrollTrigger.defaults({ markers: debug });
+      }
+      
+      // Use more aggressive performance settings
+      if (ScrollTrigger) {
+        ScrollTrigger.config({ 
+          limitCallbacks: true,
+          ignoreMobileResize: true,
+          autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
+          syncInterval: 500 // Even larger sync interval for better performance
         });
+      }
+      
+      // Ensure ScrollTrigger starts with correct layout
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+      
+      if (ScrollTrigger) {
+        // Use non-force refresh (false) to prevent full recalculation
+        ScrollTrigger.refresh(false);
+      }
+      
+      isReadyRef.current = true;
+      
+      // Apply minimum needed styling to sections
+      if (containerRef.current) {
+        const sections = containerRef.current.querySelectorAll('.cinematic-section');
+        sections.forEach(section => {
+          (section as HTMLElement).style.position = "relative";
+          (section as HTMLElement).style.zIndex = "1";
+          (section as HTMLElement).style.overflow = "hidden";
+        });
+      }
+      
+      // Setup anchor handling - use event delegation instead of individual handlers
+      const handleAnchorClick = (e: Event) => {
+        // Only process anchor tags with hash links
+        const target = e.target as HTMLElement;
+        const anchor = target.closest('a[href^="#"]') as HTMLAnchorElement;
+        if (!anchor) return;
         
-        // Setup smooth scrolling to anchors with optimized handler
-        const handleAnchorClick = (e: Event) => {
-          e.preventDefault();
-          const anchor = e.currentTarget as HTMLAnchorElement;
-          const targetId = anchor.getAttribute('href');
-          
-          if (!targetId || targetId === '#') return;
-          
-          const targetElement = document.querySelector(targetId);
-          if (!targetElement) return;
-          
-          // Use simpler animation with fewer properties
-          gsap.to(window, {
-            duration: 0.8, // Shorter duration
-            scrollTo: {
-              y: targetElement,
-              offsetY: 0,
-              autoKill: true
-            },
-            ease: "power2.out", // Simpler ease function
-            onComplete: () => {
+        e.preventDefault();
+        const targetId = anchor.getAttribute('href');
+        
+        if (!targetId || targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (!targetElement) return;
+        
+        // Simplified animation with fewer properties
+        gsap.to(window, {
+          duration: 0.5, // Even shorter duration
+          scrollTo: {
+            y: targetElement,
+            offsetY: 0,
+            autoKill: true
+          },
+          ease: "power1.out", // Simplest ease function
+          overwrite: true, // Prevent animation stacking
+          onComplete: () => {
+            // Only update history if really needed
+            if (window.location.hash !== targetId) {
               history.pushState(null, '', targetId);
             }
-          });
-        };
-        
-        // Only attach event listeners to new anchors
-        // This prevents memory leaks from duplicate handlers
-        const anchors = document.querySelectorAll('a[href^="#"]');
-        anchors.forEach(anchor => {
-          if (!handlerSetRef.current.has(anchor as HTMLAnchorElement)) {
-            anchor.addEventListener('click', handleAnchorClick);
-            handlerSetRef.current.add(anchor as HTMLAnchorElement);
           }
         });
-      });
-      
-      // Return cleanup function for GSAP context
-      return () => {
-        if (gsapContextRef.current) {
-          gsapContextRef.current.revert();
-        }
       };
-    } catch (error) {
-      // Silent fail to avoid console errors in production
-      if (debug) {
-        console.error("Error in scroll setup:", error);
-      }
-    }
-  }, { scope: containerRef, dependencies: [isReady] });
-
-  // Proper anchor event cleanup on unmount
-  useEffect(() => {
-    return () => {
-      handlerSetRef.current.clear();
+      
+      // Single event listener using delegation - major memory reduction
+      document.addEventListener('click', handleAnchorClick);
+      
+      // Store cleanup function
+      cleanupFunctionsRef.current.push(() => {
+        document.removeEventListener('click', handleAnchorClick);
+      });
     };
-  }, []);
-
+    
+    // Start initialization
+    initializeScroll();
+    
+    // Comprehensive cleanup
+    return () => {
+      // Execute all stored cleanup functions
+      cleanupFunctionsRef.current.forEach(cleanup => cleanup());
+      cleanupFunctionsRef.current = [];
+      
+      // Kill ScrollTrigger instances
+      if (ScrollTrigger) {
+        const triggers = ScrollTrigger.getAll();
+        triggers.forEach((st: any) => st.kill());
+      }
+      
+      isReadyRef.current = false;
+    };
+  }, [debug]);
+  
   return (
     <div 
       ref={containerRef} 
-      className="cinematic-scroll-container w-full overflow-hidden relative"
+      className="cinematic-scroll-container w-full overflow-x-hidden relative"
       style={{ 
         perspective: "1000px",
         perspectiveOrigin: "center center"
-        // Removed willChange to reduce GPU memory consumption
       }}
     >
       {children}
       
-      {/* Debug info */}
+      {/* Lightweight debug info with minimal DOM nodes */}
       {debug && (
         <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 z-50 text-xs rounded">
-          <div>Scroll: {typeof window !== 'undefined' ? Math.round(window.scrollY) : 0}px</div>
-          <div>Triggers: {ScrollTrigger.getAll().length}</div>
+          Scroll: {typeof window !== 'undefined' ? Math.round(window.scrollY) : 0}px
+          {ScrollTrigger && <div>Triggers: {ScrollTrigger.getAll().length}</div>}
         </div>
       )}
     </div>
