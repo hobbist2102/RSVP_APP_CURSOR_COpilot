@@ -1,5 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react';
-import { gsap } from 'gsap';
+import React, { useRef, useEffect } from 'react';
 
 interface FloatingShapesProps {
   count?: number;
@@ -9,197 +8,176 @@ interface FloatingShapesProps {
   opacity?: number;
 }
 
+// Shape definitions - stored outside component to avoid recreating on each render
+const shapeDefinitions = [
+  // Circle
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+    ctx.fill();
+  },
+  // Square
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.fillRect(0, 0, size, size);
+  },
+  // Triangle
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.beginPath();
+    ctx.moveTo(size/2, 0);
+    ctx.lineTo(size, size);
+    ctx.lineTo(0, size);
+    ctx.closePath();
+    ctx.fill();
+  },
+  // Plus
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.fillRect(size * 0.35, 0, size * 0.3, size);
+    ctx.fillRect(0, size * 0.35, size, size * 0.3);
+  },
+  // Hexagon
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.beginPath();
+    ctx.moveTo(size/2, 0);
+    ctx.lineTo(size, size/4);
+    ctx.lineTo(size, size*3/4);
+    ctx.lineTo(size/2, size);
+    ctx.lineTo(0, size*3/4);
+    ctx.lineTo(0, size/4);
+    ctx.closePath();
+    ctx.fill();
+  },
+  // Ring
+  (ctx: CanvasRenderingContext2D, size: number) => {
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, size/2 - size/10, 0, Math.PI * 2);
+    ctx.lineWidth = size/5;
+    ctx.stroke();
+  }
+];
+
+// Convert hexadecimal color to RGBA
+const hexToRgba = (hex: string, alpha: number): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const FloatingShapes: React.FC<FloatingShapesProps> = ({
-  count = 6, // Reduced count for better performance
+  count = 5, // Even fewer elements for better performance
   color = '#ffffff',
   size = 20,
-  speed = 30, // Longer animation cycle = less CPU usage
+  speed = 30, 
   opacity = 0.15
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  // Generate different shape SVGs - memoized to prevent re-creation
-  const getRandomShape = (index: number) => {
-    const shapeTypes = ['circle', 'square', 'triangle', 'plus', 'hexagon', 'ring'];
-    const type = shapeTypes[index % shapeTypes.length];
-    
-    switch (type) {
-      case 'circle':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${index % 3} ${speed + index % 5}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="50" fill={color} />
-            </svg>
-          </div>
-        );
-      case 'square':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${(index + 1) % 3} ${speed + (index + 1) % 6}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <rect width="100" height="100" fill={color} />
-            </svg>
-          </div>
-        );
-      case 'triangle':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${(index + 2) % 3} ${speed + (index + 2) % 4}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <polygon points="50,0 100,100 0,100" fill={color} />
-            </svg>
-          </div>
-        );
-      case 'plus':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${(index + 3) % 3} ${speed + (index + 3) % 5}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <rect x="35" y="0" width="30" height="100" fill={color} />
-              <rect x="0" y="35" width="100" height="30" fill={color} />
-            </svg>
-          </div>
-        );
-      case 'hexagon':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${(index + 4) % 3} ${speed + (index + 1) % 7}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <polygon points="50,0 100,25 100,75 50,100 0,75 0,25" fill={color} />
-            </svg>
-          </div>
-        );
-      case 'ring':
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${(index + 5) % 3} ${speed + (index + 2) % 6}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" stroke={color} strokeWidth="10" fill="none" />
-            </svg>
-          </div>
-        );
-      default:
-        return (
-          <div 
-            className="floating-shape" 
-            key={index}
-            style={{
-              position: 'absolute',
-              animation: `float-${index % 3} ${speed + index % 5}s infinite ease-in-out`,
-            }}
-          >
-            <svg width={size} height={size} viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="50" fill={color} />
-            </svg>
-          </div>
-        );
-    }
-  };
-
-  // Create CSS animations for shapes - use CSS instead of GSAP for better performance
+  // Create and manage canvas-based animations instead of DOM elements
   useEffect(() => {
-    // Create and inject CSS animation keyframes
-    const styleSheet = document.createElement("style");
-    styleSheet.id = "floating-shapes-keyframes";
-    styleSheet.textContent = `
-      @keyframes float-0 {
-        0% { transform: translate(10%, 10%) rotate(0deg); opacity: ${opacity * 0.5}; }
-        33% { transform: translate(25%, 30%) rotate(30deg); opacity: ${opacity}; }
-        66% { transform: translate(60%, 50%) rotate(60deg); opacity: ${opacity * 0.7}; }
-        100% { transform: translate(10%, 10%) rotate(0deg); opacity: ${opacity * 0.5}; }
-      }
-      @keyframes float-1 {
-        0% { transform: translate(70%, 70%) rotate(60deg); opacity: ${opacity * 0.6}; }
-        33% { transform: translate(40%, 80%) rotate(30deg); opacity: ${opacity}; }
-        66% { transform: translate(10%, 40%) rotate(10deg); opacity: ${opacity * 0.8}; }
-        100% { transform: translate(70%, 70%) rotate(60deg); opacity: ${opacity * 0.6}; }
-      }
-      @keyframes float-2 {
-        0% { transform: translate(50%, 30%) rotate(-20deg); opacity: ${opacity * 0.7}; }
-        33% { transform: translate(75%, 10%) rotate(10deg); opacity: ${opacity}; }
-        66% { transform: translate(30%, 50%) rotate(40deg); opacity: ${opacity * 0.6}; }
-        100% { transform: translate(50%, 30%) rotate(-20deg); opacity: ${opacity * 0.7}; }
-      }
-    `;
+    if (!canvasRef.current) return;
     
-    // Remove any previous animation styles
-    const oldStyle = document.getElementById("floating-shapes-keyframes");
-    if (oldStyle) {
-      oldStyle.remove();
-    }
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
-    // Add the new animations
-    document.head.appendChild(styleSheet);
-    
-    // Initial placement of shapes to prevent layout shift
-    if (containerRef.current) {
-      const shapes = containerRef.current.querySelectorAll('.floating-shape');
-      shapes.forEach((shape, i) => {
-        const xPos = 10 + (i * 15) % 80;
-        const yPos = 10 + (i * 20) % 80;
-        (shape as HTMLElement).style.left = `${xPos}%`;
-        (shape as HTMLElement).style.top = `${yPos}%`;
-      });
-    }
-    
-    // Cleanup function
-    return () => {
-      // Remove the keyframes style
-      if (styleSheet.parentNode) {
-        styleSheet.parentNode.removeChild(styleSheet);
-      }
+    // Set canvas to fill container
+    const resizeCanvas = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
     };
-  }, [opacity, count]);
-
-  // Create multiple shapes - memoized to prevent recreation on re-render
-  const shapes = useMemo(() => {
-    return Array.from({ length: count }).map((_, index) => getRandomShape(index));
-  }, [count, size, color]);
-
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Generate shape properties once
+    const shapes = Array.from({ length: count }).map((_, i) => {
+      return {
+        type: i % shapeDefinitions.length,
+        x: canvas.width * (0.1 + (i * 0.15) % 0.8),
+        y: canvas.height * (0.1 + (i * 0.2) % 0.8),
+        size: size * (0.8 + Math.random() * 0.4),
+        xSpeed: 0.2 + Math.random() * 0.3,
+        ySpeed: 0.2 + Math.random() * 0.3,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 0.5,
+        baseOpacity: opacity * (0.5 + Math.random() * 0.5),
+        opacityPhase: Math.random() * Math.PI * 2,
+        opacitySpeed: 0.001 + Math.random() * 0.002
+      };
+    });
+    
+    let animationFrameId: number;
+    let lastTime = 0;
+    const targetFps = 20; // Lower fps for better performance
+    const frameInterval = 1000 / targetFps;
+    
+    // Animation loop with frame limiting
+    const render = (time: number) => {
+      animationFrameId = requestAnimationFrame(render);
+      
+      const delta = time - lastTime;
+      if (delta < frameInterval) return;
+      
+      lastTime = time - (delta % frameInterval);
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw shapes
+      shapes.forEach(shape => {
+        // Update position with gentle movements
+        shape.x += Math.sin(time * 0.0001 * shape.xSpeed) * 0.5;
+        shape.y += Math.cos(time * 0.0001 * shape.ySpeed) * 0.5;
+        
+        // Contain within bounds with buffer
+        const buffer = shape.size;
+        if (shape.x < -buffer) shape.x = canvas.width + buffer;
+        if (shape.x > canvas.width + buffer) shape.x = -buffer;
+        if (shape.y < -buffer) shape.y = canvas.height + buffer;
+        if (shape.y > canvas.height + buffer) shape.y = -buffer;
+        
+        // Update rotation
+        shape.rotation += shape.rotationSpeed;
+        
+        // Calculate dynamic opacity
+        const currentOpacity = shape.baseOpacity * 
+          (0.5 + 0.5 * Math.sin(time * 0.001 * shape.opacitySpeed + shape.opacityPhase));
+        
+        // Save context state
+        ctx.save();
+        
+        // Position and rotate
+        ctx.translate(shape.x, shape.y);
+        ctx.rotate(shape.rotation * Math.PI / 180);
+        
+        // Set style properties
+        ctx.fillStyle = hexToRgba(color, currentOpacity);
+        ctx.strokeStyle = hexToRgba(color, currentOpacity);
+        
+        // Draw the shape centered at origin
+        ctx.translate(-shape.size/2, -shape.size/2);
+        shapeDefinitions[shape.type](ctx, shape.size);
+        
+        // Restore context state
+        ctx.restore();
+      });
+    };
+    
+    // Start animation
+    animationFrameId = requestAnimationFrame(render);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [count, color, size, opacity]);
+  
   return (
-    <div 
-      ref={containerRef} 
-      className="absolute inset-0 overflow-hidden pointer-events-none"
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
       aria-hidden="true"
-    >
-      {shapes}
-    </div>
+    />
   );
 };

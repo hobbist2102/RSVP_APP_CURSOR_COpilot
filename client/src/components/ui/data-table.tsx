@@ -77,15 +77,15 @@ const MemoizedTableRow = memo(function MemoizedTableRow<T>({
   );
 });
 
-// Virtualized table body component - heavily optimized for reduced memory usage
+// Virtualized table body component - extreme memory optimization
 const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
   data,
   columns,
   keyField,
   onRowClick,
   containerHeight,
-  itemHeight = 48, // Default height for a row
-  overscan = 3, // Reduced overscan for better memory efficiency
+  itemHeight = 48,
+  overscan = 2, // Further reduced overscan for minimal memory footprint
 }: {
   data: T[];
   columns: Column<T>[];
@@ -95,58 +95,86 @@ const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
   itemHeight?: number;
   overscan?: number;
 }) {
+  // Use refs instead of state to avoid re-renders
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const scrollTopRef = useRef(0);
+  const startIndexRef = useRef(0);
+  const endIndexRef = useRef(0);
+  const placeholderHeightRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const visibleRowsRef = useRef<HTMLDivElement>(null);
   
-  // Throttled scroll handler to reduce state updates (better performance)
-  const handleScroll = useCallback(() => {
+  // Force update function without useState
+  const [, forceUpdate] = useState({});
+  const triggerRender = useCallback(() => forceUpdate({}), []);
+  
+  // Update scroll calculation without state changes
+  const updateVisibleRange = useCallback(() => {
     if (!containerRef.current) return;
     
-    // Use requestAnimationFrame to limit updates to the browser's refresh rate
-    requestAnimationFrame(() => {
-      if (containerRef.current) {
-        setScrollTop(containerRef.current.scrollTop);
-      }
-    });
-  }, []);
+    // Store scroll position in ref
+    scrollTopRef.current = containerRef.current.scrollTop;
+    
+    // Calculate indices without creating temporary objects
+    const totalItems = data.length;
+    startIndexRef.current = Math.max(0, Math.floor(scrollTopRef.current / itemHeight) - overscan);
+    
+    const visibleCount = Math.ceil(containerHeight / itemHeight) + overscan * 2;
+    endIndexRef.current = Math.min(totalItems - 1, startIndexRef.current + visibleCount);
+    
+    // Update placeholder height
+    placeholderHeightRef.current = startIndexRef.current * itemHeight;
+    
+    // Apply transform directly to DOM for better performance
+    if (visibleRowsRef.current) {
+      visibleRowsRef.current.style.transform = `translateY(${placeholderHeightRef.current}px)`;
+    }
+    
+    // Force a single render after calculations
+    triggerRender();
+  }, [data.length, itemHeight, containerHeight, overscan]);
   
+  // Optimized scroll handler with frame throttling
+  const handleScroll = useCallback(() => {
+    // Cancel any pending frame
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    
+    // Schedule new calculation
+    rafRef.current = requestAnimationFrame(() => {
+      updateVisibleRange();
+      rafRef.current = null;
+    });
+  }, [updateVisibleRange]);
+  
+  // Set up scroll listener with proper cleanup
   useEffect(() => {
+    // Initial calculation
+    updateVisibleRange();
+    
     const container = containerRef.current;
     if (container) {
-      // Use passive event listener to improve scrolling performance
+      // Use passive listener for better performance
       container.addEventListener('scroll', handleScroll, { passive: true });
+      
+      // Complete cleanup
       return () => {
         container.removeEventListener('scroll', handleScroll);
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
       };
     }
-  }, [handleScroll]);
+  }, [handleScroll, updateVisibleRange]);
   
-  // Memoize calculations that depend on scrollTop to reduce recalculations
-  const { startIndex, endIndex, placeholderHeight } = React.useMemo(() => {
-    // Calculate visible items more efficiently
-    const totalItems = data.length;
-    const startIdx = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
-    
-    // Calculate end index directly based on visible area
-    const visibleCount = Math.ceil(containerHeight / itemHeight) + overscan;
-    const endIdx = Math.min(totalItems - 1, startIdx + visibleCount);
-    
-    // Calculate placeholder heights once
-    const topPlaceholderHeight = startIdx * itemHeight;
-    
-    return { 
-      startIndex: startIdx, 
-      endIndex: endIdx,
-      placeholderHeight: topPlaceholderHeight
-    };
-  }, [scrollTop, data.length, containerHeight, itemHeight, overscan]);
+  // Recalculate on data or container size changes
+  useEffect(() => {
+    updateVisibleRange();
+  }, [data.length, containerHeight, itemHeight, updateVisibleRange]);
   
-  // Get only the visible rows - memoized to prevent unnecessary array creation
-  const visibleData = React.useMemo(() => {
-    return data.slice(startIndex, endIndex + 1);
-  }, [data, startIndex, endIndex]);
-  
-  // Empty state display
+  // Empty state handling
   if (data.length === 0) {
     return (
       <div ref={containerRef} style={{ height: containerHeight, overflow: 'auto' }}>
@@ -159,33 +187,41 @@ const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
     );
   }
   
-  // Calculate the total height of all rows for proper scrollbar sizing
+  // Get visible rows without creating new arrays when possible
+  const visibleRows = data.slice(startIndexRef.current, endIndexRef.current + 1);
+  
+  // Calculate total content height
   const totalHeight = data.length * itemHeight;
   
+  // Render virtualized content
   return (
     <div 
       ref={containerRef} 
       style={{ 
         height: containerHeight, 
         overflow: 'auto',
-        position: 'relative'
+        position: 'relative',
+        willChange: 'scroll-position', // Performance hint
+        overscrollBehavior: 'contain' // Prevent scroll chain for better performance
       }}
-      data-virtualized="true" // Add data attribute for easier debugging
+      data-virtualized="true"
     >
-      {/* Container to match the full scrollable height */}
-      <div style={{ height: totalHeight, position: 'relative', willChange: 'transform' }}>
-        {/* Only render the visible portion of the table */}
+      {/* Total height container */}
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        {/* Only the visible rows */}
         <div
+          ref={visibleRowsRef}
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            transform: `translateY(${placeholderHeight}px)`,
-            willChange: 'transform' // Hint to browser to optimize for transforms
+            transform: `translateY(${placeholderHeightRef.current}px)`,
+            willChange: 'transform',
+            contain: 'content' // Additional performance boost
           }}
         >
-          {visibleData.map((row) => (
+          {visibleRows.map((row) => (
             <MemoizedTableRow
               key={String(row[keyField])}
               row={row}
