@@ -9,6 +9,10 @@
   font-family: 'Inter', sans-serif;
 }
 
+.font-great-vibes {
+  font-family: 'Great Vibes', cursive;
+}
+
 /* Text gradient - for special headings */
 .text-gradient {
   background: linear-gradient(90deg, #BFA76F 0%, #e9d9a8 50%, #BFA76F 100%);
