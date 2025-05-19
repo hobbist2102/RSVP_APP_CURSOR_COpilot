@@ -1,29 +1,29 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { SplitText } from 'gsap/SplitText';
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 
 // Import custom styles for immersive landing page
-import '@/styles/immersive-landing.css';
+import "@/styles/immersive-landing.css";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 // Define section IDs for navigation
 const SECTIONS = {
-  HERO: 'hero',
-  PROBLEM: 'problem',
-  SOLUTION: 'solution',
-  GUEST_MANAGEMENT: 'guest-management',
-  TRANSPORT: 'transport',
-  ACCOMMODATION: 'accommodation',
-  COMMUNICATION: 'communication',
-  AI_ASSISTANT: 'ai-assistant',
-  TESTIMONIALS: 'testimonials',
-  CTA: 'cta'
+  HERO: "hero",
+  PROBLEM: "problem",
+  SOLUTION: "solution",
+  GUEST_MANAGEMENT: "guest-management",
+  TRANSPORT: "transport",
+  ACCOMMODATION: "accommodation",
+  COMMUNICATION: "communication",
+  AI_ASSISTANT: "ai-assistant",
+  TESTIMONIALS: "testimonials",
+  CTA: "cta",
 };
 
 export default function ImmersiveLanding() {
@@ -41,7 +41,7 @@ export default function ImmersiveLanding() {
     if (section) {
       window.scrollTo({
         top: section.offsetTop,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -49,90 +49,90 @@ export default function ImmersiveLanding() {
   // Setup animations
   useEffect(() => {
     // Only run on client
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Clear any existing ScrollTriggers
-    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
 
     const ctx = gsap.context(() => {
       // Hero animations
       if (heroRef.current) {
         // Hero title animation
-        gsap.from('.hero-title .char', {
+        gsap.from(".hero-title .char", {
           opacity: 0,
           y: 100,
           rotateX: -90,
           stagger: 0.03,
           duration: 1.2,
-          ease: 'power4.out',
-          delay: 0.5
+          ease: "power4.out",
+          delay: 0.5,
         });
 
         // Hero subtitle animation
-        gsap.from('.hero-subtitle', {
+        gsap.from(".hero-subtitle", {
           opacity: 0,
           y: 30,
           duration: 1,
-          delay: 1.5
+          delay: 1.5,
         });
 
         // Hero buttons animation
-        gsap.from('.hero-buttons', {
+        gsap.from(".hero-buttons", {
           opacity: 0,
           y: 20,
           duration: 0.8,
-          delay: 1.8
+          delay: 1.8,
         });
 
         // Background elements parallax
-        gsap.to('.bg-element-1', {
-          y: '-20%',
+        gsap.to(".bg-element-1", {
+          y: "-20%",
           scrollTrigger: {
             trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.5
-          }
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.5,
+          },
         });
 
-        gsap.to('.bg-element-2', {
-          y: '-35%',
+        gsap.to(".bg-element-2", {
+          y: "-35%",
           scrollTrigger: {
             trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.8
-          }
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.8,
+          },
         });
       }
 
       // Problem section animations
       if (problemRef.current) {
         // Floating papers animation
-        gsap.to('.floating-paper', {
-          y: '-20px',
+        gsap.to(".floating-paper", {
+          y: "-20px",
           rotation: 5,
           duration: 2,
           repeat: -1,
           yoyo: true,
-          ease: 'power1.inOut',
-          stagger: 0.2
+          ease: "power1.inOut",
+          stagger: 0.2,
         });
 
         // Section title reveal
-        gsap.from('.problem-title', {
+        gsap.from(".problem-title", {
           opacity: 0,
           y: 50,
           duration: 0.8,
           scrollTrigger: {
             trigger: problemRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
-          }
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
         });
 
         // Chaotic elements
-        const chaosElements = document.querySelectorAll('.chaos-element');
+        const chaosElements = document.querySelectorAll(".chaos-element");
         chaosElements.forEach((element, index) => {
           gsap.from(element, {
             scale: 0,
@@ -142,9 +142,9 @@ export default function ImmersiveLanding() {
             delay: 0.1 * index,
             scrollTrigger: {
               trigger: problemRef.current,
-              start: 'top 70%',
-              toggleActions: 'play none none reverse'
-            }
+              start: "top 70%",
+              toggleActions: "play none none reverse",
+            },
           });
         });
       }
@@ -152,19 +152,19 @@ export default function ImmersiveLanding() {
       // Solution section animations
       if (solutionRef.current) {
         // Section title reveal
-        gsap.from('.solution-title', {
+        gsap.from(".solution-title", {
           opacity: 0,
           y: 50,
           duration: 0.8,
           scrollTrigger: {
             trigger: solutionRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
-          }
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
         });
 
         // Organized elements
-        const solutionElements = document.querySelectorAll('.solution-element');
+        const solutionElements = document.querySelectorAll(".solution-element");
         solutionElements.forEach((element, index) => {
           gsap.from(element, {
             x: index % 2 === 0 ? -100 : 100,
@@ -173,9 +173,9 @@ export default function ImmersiveLanding() {
             delay: 0.15 * index,
             scrollTrigger: {
               trigger: solutionRef.current,
-              start: 'top 70%',
-              toggleActions: 'play none none reverse'
-            }
+              start: "top 70%",
+              toggleActions: "play none none reverse",
+            },
           });
         });
       }
@@ -183,78 +183,79 @@ export default function ImmersiveLanding() {
       // Transport section animations
       if (transportRef.current) {
         // Vehicles animation
-        gsap.fromTo('.vehicle-element', 
+        gsap.fromTo(
+          ".vehicle-element",
           { x: -200, opacity: 0 },
-          { 
-            x: 0, 
-            opacity: 1, 
+          {
+            x: 0,
+            opacity: 1,
             stagger: 0.2,
             duration: 0.8,
             scrollTrigger: {
               trigger: transportRef.current,
-              start: 'top 70%',
-              toggleActions: 'play none none reverse'
-            }
-          }
+              start: "top 70%",
+              toggleActions: "play none none reverse",
+            },
+          },
         );
 
         // Route animation
-        gsap.from('.route-path', {
+        gsap.from(".route-path", {
           strokeDashoffset: 1000,
           duration: 2,
           scrollTrigger: {
             trigger: transportRef.current,
-            start: 'top 60%',
-            toggleActions: 'play none none reverse'
-          }
+            start: "top 60%",
+            toggleActions: "play none none reverse",
+          },
         });
       }
 
       // Communication section animations
       if (communicationRef.current) {
         // Message bubbles animation
-        gsap.from('.message-bubble', {
+        gsap.from(".message-bubble", {
           scale: 0,
           opacity: 0,
           duration: 0.5,
           stagger: 0.15,
           scrollTrigger: {
             trigger: communicationRef.current,
-            start: 'top 70%',
-            toggleActions: 'play none none reverse'
-          }
+            start: "top 70%",
+            toggleActions: "play none none reverse",
+          },
         });
       }
 
       // CTA section animations
       if (ctaRef.current) {
         // Gold particles
-        gsap.to('.gold-particle', {
+        gsap.to(".gold-particle", {
           y: -20,
-          x: 'random(-20, 20)',
-          rotation: 'random(-15, 15)',
-          opacity: 'random(0.4, 1)',
-          duration: 'random(1, 3)',
+          x: "random(-20, 20)",
+          rotation: "random(-15, 15)",
+          opacity: "random(0.4, 1)",
+          duration: "random(1, 3)",
           repeat: -1,
           yoyo: true,
-          ease: 'sine.inOut',
-          stagger: 0.1
+          ease: "sine.inOut",
+          stagger: 0.1,
         });
 
         // CTA button pulse
-        gsap.to('.cta-button', {
+        gsap.to(".cta-button", {
           scale: 1.05,
           duration: 1.5,
           repeat: -1,
           yoyo: true,
-          ease: 'sine.inOut'
+          ease: "sine.inOut",
         });
       }
     }, pageRef);
 
     // Cleanup function
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
       ctx.revert();
     };
   }, []);
@@ -265,44 +266,60 @@ export default function ImmersiveLanding() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className="text-[#5E239D] font-serif text-2xl font-bold">Eternally Yours</span>
+            <span className="text-[#5E239D] font-serif text-2xl font-bold">
+              Eternally Yours
+            </span>
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            <button 
+            <button
               onClick={() => scrollToSection(SECTIONS.PROBLEM)}
               className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
             >
               Features
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection(SECTIONS.SOLUTION)}
               className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
             >
               Solutions
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection(SECTIONS.COMMUNICATION)}
               className="text-[#5E239D] hover:text-[#5E239D]/80 text-sm font-medium"
             >
               Communication
             </button>
-            <Link href="/auth" className="bg-[#5E239D] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#5E239D]/90 transition-colors">
+            <Link
+              href="/auth"
+              className="bg-[#5E239D] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#5E239D]/90 transition-colors"
+            >
               Get Started
             </Link>
           </div>
 
           <button className="md:hidden text-[#5E239D]">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             </svg>
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section 
-        id={SECTIONS.HERO} 
+      <section
+        id={SECTIONS.HERO}
         ref={heroRef}
         className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#5E239D] scroll-section"
       >
@@ -311,15 +328,15 @@ export default function ImmersiveLanding() {
           {/* Floating particles */}
           <div className="absolute inset-0">
             {Array.from({ length: 100 }).map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="gold-particle absolute"
                 style={{
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
                   width: `${Math.random() * 4 + 1}px`,
                   height: `${Math.random() * 4 + 1}px`,
-                  animationDelay: `${Math.random() * 5}s`
+                  animationDelay: `${Math.random() * 5}s`,
                 }}
               ></div>
             ))}
@@ -334,7 +351,10 @@ export default function ImmersiveLanding() {
           </div>
 
           {/* Decorative patterns */}
-          <div className="parallax-layer absolute inset-0 opacity-5 pointer-events-none" data-speed="0.1">
+          <div
+            className="parallax-layer absolute inset-0 opacity-5 pointer-events-none"
+            data-speed="0.1"
+          >
             <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/mandala-pattern.svg')] bg-repeat opacity-10"></div>
           </div>
         </div>
@@ -350,22 +370,24 @@ export default function ImmersiveLanding() {
 
           {/* Subtitle */}
           <p className="text-base md:text-xl mb-12 text-white/80 max-w-3xl mx-auto leading-relaxed">
-            The most elegant wedding management platform for Indian weddings. From guest management to itinerary planning, we make it seamless.
+            The most elegant wedding management platform for Indian weddings.
+            From the first RSVP to the final farewell, your big fat Indian
+            wedding without breaking a sweat....or a spreadsheet.
           </p>
 
           {/* Call to action buttons */}
           <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="hero-button hero-button-primary rounded-full py-6 px-10 text-base font-medium bg-gradient-to-r from-[#5E239D] to-[#7f33d3] border-0 shadow-lg shadow-primary/20"
               asChild
             >
               <Link href="/auth">Get Started</Link>
             </Button>
 
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="hero-button hero-button-secondary rounded-full py-6 px-10 text-base font-medium backdrop-blur-md bg-white/5 border-[#BFA76F]/30"
               onClick={() => scrollToSection(SECTIONS.PROBLEM)}
             >
@@ -379,20 +401,26 @@ export default function ImmersiveLanding() {
           <div className="relative w-8 h-12 border border-[#BFA76F]/30 rounded-full flex items-center justify-center overflow-hidden backdrop-blur-sm bg-white/5">
             <span className="absolute w-3 h-3 bg-gradient-to-b from-[#BFA76F] to-[#e9d9a8] rounded-full animate-bounce delay-300 duration-1000"></span>
           </div>
-          <span className="text-xs font-light text-[#BFA76F]/70 mt-2 tracking-wider uppercase">Scroll to explore</span>
+          <span className="text-xs font-light text-[#BFA76F]/70 mt-2 tracking-wider uppercase">
+            Scroll to explore
+          </span>
         </div>
       </section>
 
       {/* Problem Section - The Wedding Planning Chaos */}
-      <section 
-        id={SECTIONS.PROBLEM} 
+      <section
+        id={SECTIONS.PROBLEM}
         ref={problemRef}
         className="relative py-24 bg-white text-[#5E239D] scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="problem-title text-center mb-10">
-            <span className="text-[#BFA76F] font-light text-base block">Behind the Beauty:</span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">The Wedding Planning Chaos</span>
+            <span className="text-[#BFA76F] font-light text-base block">
+              Behind the Beauty:
+            </span>
+            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
+              The Wedding Planning Chaos
+            </span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -434,28 +462,42 @@ export default function ImmersiveLanding() {
             {/* Content area - right side - exactly matching reference */}
             <div className="text-[#5E239D] space-y-6">
               <p className="text-sm leading-relaxed">
-                Planning an Indian wedding involves coordinating hundreds of moving parts, from extensive guest lists to multiple ceremonies spanning several days.
+                Planning an Indian wedding involves coordinating hundreds of
+                moving parts, from extensive guest lists to multiple ceremonies
+                spanning several days.
               </p>
 
               <div className="space-y-5 mt-8">
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
-                  <p className="text-xs">Managing RSVPs from hundreds of guests across different events becomes overwhelming</p>
+                  <p className="text-xs">
+                    Managing RSVPs from hundreds of guests across different
+                    events becomes overwhelming
+                  </p>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
-                  <p className="text-xs">Coordinating transportation and accommodations leads to endless spreadsheets and phone calls</p>
+                  <p className="text-xs">
+                    Coordinating transportation and accommodations leads to
+                    endless spreadsheets and phone calls
+                  </p>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
-                  <p className="text-xs">Communication breakdowns result in confused guests and last-minute emergencies</p>
+                  <p className="text-xs">
+                    Communication breakdowns result in confused guests and
+                    last-minute emergencies
+                  </p>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
-                  <p className="text-xs">Traditional planning methods collapse under the complexity of multi-day celebrations</p>
+                  <p className="text-xs">
+                    Traditional planning methods collapse under the complexity
+                    of multi-day celebrations
+                  </p>
                 </div>
               </div>
             </div>
@@ -464,42 +506,64 @@ export default function ImmersiveLanding() {
       </section>
 
       {/* Solution Section - Elegant Simplicity */}
-      <section 
-        id={SECTIONS.SOLUTION} 
+      <section
+        id={SECTIONS.SOLUTION}
         ref={solutionRef}
         className="relative py-24 bg-white text-[#5E239D] scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="solution-title text-center mb-10">
-            <span className="text-[#BFA76F] font-light text-base block">Elegant Simplicity</span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">in Every Detail</span>
+            <span className="text-[#BFA76F] font-light text-base block">
+              Elegant Simplicity
+            </span>
+            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
+              in Every Detail
+            </span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
               <p className="text-xs leading-relaxed">
-                Our platform transforms the chaotic planning process into a seamless, elegant experience with purpose-built tools for Indian weddings.
+                Our platform transforms the chaotic planning process into a
+                seamless, elegant experience with purpose-built tools for Indian
+                weddings.
               </p>
 
               <div className="space-y-4 mt-8">
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">Centralized Management</h3>
-                  <p className="text-xs text-[#3A1562]/80">Every aspect of your wedding in one elegant dashboard</p>
+                  <h3 className="font-medium text-xs mb-1">
+                    Centralized Management
+                  </h3>
+                  <p className="text-xs text-[#3A1562]/80">
+                    Every aspect of your wedding in one elegant dashboard
+                  </p>
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">Family-Centered Design</h3>
-                  <p className="text-xs text-[#3A1562]/80">Keep families together in travel, seating, and communication</p>
+                  <h3 className="font-medium text-xs mb-1">
+                    Family-Centered Design
+                  </h3>
+                  <p className="text-xs text-[#3A1562]/80">
+                    Keep families together in travel, seating, and communication
+                  </p>
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">Multi-Day Event Support</h3>
-                  <p className="text-xs text-[#3A1562]/80">Seamlessly manage all your ceremonies and celebrations</p>
+                  <h3 className="font-medium text-xs mb-1">
+                    Multi-Day Event Support
+                  </h3>
+                  <p className="text-xs text-[#3A1562]/80">
+                    Seamlessly manage all your ceremonies and celebrations
+                  </p>
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">Integrated Communication</h3>
-                  <p className="text-xs text-[#3A1562]/80">Email and WhatsApp integration for seamless guest updates</p>
+                  <h3 className="font-medium text-xs mb-1">
+                    Integrated Communication
+                  </h3>
+                  <p className="text-xs text-[#3A1562]/80">
+                    Email and WhatsApp integration for seamless guest updates
+                  </p>
                 </div>
               </div>
             </div>
@@ -511,7 +575,9 @@ export default function ImmersiveLanding() {
 
                 <div className="h-full overflow-hidden">
                   <div className="h-14 w-full bg-primary flex items-center justify-between px-4">
-                    <div className="text-white font-medium">Eternally Yours</div>
+                    <div className="text-white font-medium">
+                      Eternally Yours
+                    </div>
                     <div className="w-6 h-6 rounded-full bg-white/20"></div>
                   </div>
 
@@ -592,8 +658,8 @@ export default function ImmersiveLanding() {
       </section>
 
       {/* Transport Section */}
-      <section 
-        id={SECTIONS.TRANSPORT} 
+      <section
+        id={SECTIONS.TRANSPORT}
         ref={transportRef}
         className="relative py-24 bg-white"
       >
@@ -605,109 +671,303 @@ export default function ImmersiveLanding() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative h-[400px]">
               {/* SVG Map with Routes */}
-              <svg className="w-full h-full" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                className="w-full h-full"
+                viewBox="0 0 800 600"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 {/* Map Background */}
                 <rect width="800" height="600" fill="#f8f9fa" rx="8" />
 
                 {/* Roads */}
-                <path className="route-path" d="M100,300 C200,200 300,400 400,300 S600,200 700,300" stroke="#d1d5db" strokeWidth="20" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
-                <path className="route-path" d="M200,100 C250,200 350,250 400,300" stroke="#d1d5db" strokeWidth="15" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
-                <path className="route-path" d="M600,100 C550,200 450,250 400,300" stroke="#d1d5db" strokeWidth="15" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
-                <path className="route-path" d="M400,300 L400,500" stroke="#d1d5db" strokeWidth="20" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
+                <path
+                  className="route-path"
+                  d="M100,300 C200,200 300,400 400,300 S600,200 700,300"
+                  stroke="#d1d5db"
+                  strokeWidth="20"
+                  strokeLinecap="round"
+                  strokeDasharray="1000"
+                  strokeDashoffset="0"
+                />
+                <path
+                  className="route-path"
+                  d="M200,100 C250,200 350,250 400,300"
+                  stroke="#d1d5db"
+                  strokeWidth="15"
+                  strokeLinecap="round"
+                  strokeDasharray="1000"
+                  strokeDashoffset="0"
+                />
+                <path
+                  className="route-path"
+                  d="M600,100 C550,200 450,250 400,300"
+                  stroke="#d1d5db"
+                  strokeWidth="15"
+                  strokeLinecap="round"
+                  strokeDasharray="1000"
+                  strokeDashoffset="0"
+                />
+                <path
+                  className="route-path"
+                  d="M400,300 L400,500"
+                  stroke="#d1d5db"
+                  strokeWidth="20"
+                  strokeLinecap="round"
+                  strokeDasharray="1000"
+                  strokeDashoffset="0"
+                />
 
                 {/* Primary Route */}
-                <path className="route-path" d="M100,300 C200,200 300,400 400,300 S600,200 700,300" stroke="#5E239D" strokeWidth="10" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
+                <path
+                  className="route-path"
+                  d="M100,300 C200,200 300,400 400,300 S600,200 700,300"
+                  stroke="#5E239D"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray="1000"
+                  strokeDashoffset="0"
+                />
 
                 {/* Airport */}
-                <circle cx="100" cy="300" r="30" fill="#e0f2fe" stroke="#7dd3fc" strokeWidth="4" />
-                <path d="M85,300 L115,300 M100,285 L100,315 M80,280 L120,320" stroke="#0284c7" strokeWidth="3" />
+                <circle
+                  cx="100"
+                  cy="300"
+                  r="30"
+                  fill="#e0f2fe"
+                  stroke="#7dd3fc"
+                  strokeWidth="4"
+                />
+                <path
+                  d="M85,300 L115,300 M100,285 L100,315 M80,280 L120,320"
+                  stroke="#0284c7"
+                  strokeWidth="3"
+                />
 
                 {/* Hotel */}
-                <rect x="370" y="270" width="60" height="60" rx="4" fill="#f0fdf4" stroke="#86efac" strokeWidth="4" />
-                <path d="M385,300 L415,300 M400,285 L400,315" stroke="#16a34a" strokeWidth="3" />
+                <rect
+                  x="370"
+                  y="270"
+                  width="60"
+                  height="60"
+                  rx="4"
+                  fill="#f0fdf4"
+                  stroke="#86efac"
+                  strokeWidth="4"
+                />
+                <path
+                  d="M385,300 L415,300 M400,285 L400,315"
+                  stroke="#16a34a"
+                  strokeWidth="3"
+                />
 
                 {/* Venue */}
-                <circle cx="700" cy="300" r="30" fill="#fef3c7" stroke="#fcd34d" strokeWidth="4" />
-                <path d="M685,300 L715,300 M700,285 L700,315 M685,285 L715,315 M685,315 L715,285" stroke="#f59e0b" strokeWidth="3" />
+                <circle
+                  cx="700"
+                  cy="300"
+                  r="30"
+                  fill="#fef3c7"
+                  stroke="#fcd34d"
+                  strokeWidth="4"
+                />
+                <path
+                  d="M685,300 L715,300 M700,285 L700,315 M685,285 L715,315 M685,315 L715,285"
+                  stroke="#f59e0b"
+                  strokeWidth="3"
+                />
 
                 {/* Vehicles */}
                 <g className="vehicle-element" transform="translate(200, 250)">
-                  <rect x="0" y="0" width="40" height="20" rx="5" fill="#5E239D" />
+                  <rect
+                    x="0"
+                    y="0"
+                    width="40"
+                    height="20"
+                    rx="5"
+                    fill="#5E239D"
+                  />
                   <circle cx="10" cy="20" r="5" fill="#1e293b" />
                   <circle cx="30" cy="20" r="5" fill="#1e293b" />
                 </g>
 
                 <g className="vehicle-element" transform="translate(350, 350)">
-                  <rect x="0" y="0" width="50" height="25" rx="5" fill="#BFA76F" />
+                  <rect
+                    x="0"
+                    y="0"
+                    width="50"
+                    height="25"
+                    rx="5"
+                    fill="#BFA76F"
+                  />
                   <circle cx="15" cy="25" r="6" fill="#1e293b" />
                   <circle cx="35" cy="25" r="6" fill="#1e293b" />
                 </g>
 
                 <g className="vehicle-element" transform="translate(500, 250)">
-                  <rect x="0" y="0" width="60" height="30" rx="5" fill="#5E239D" />
+                  <rect
+                    x="0"
+                    y="0"
+                    width="60"
+                    height="30"
+                    rx="5"
+                    fill="#5E239D"
+                  />
                   <circle cx="15" cy="30" r="7" fill="#1e293b" />
-                  <circle cx="45" cy="30" r="7" fill="#1e293b" />                </g>
+                  <circle cx="45" cy="30" r="7" fill="#1e293b" />{" "}
+                </g>
 
                 {/* Labels */}
-                <text x="100" y="360" textAnchor="middle" fill="#0284c7" fontSize="16" fontWeight="500">Airport</text>
-                <text x="400" y="360" textAnchor="middle" fill="#16a34a" fontSize="16" fontWeight="500">Hotel</text>
-                <text x="700" y="360" textAnchor="middle" fill="#f59e0b" fontSize="16" fontWeight="500">Venue</text>
+                <text
+                  x="100"
+                  y="360"
+                  textAnchor="middle"
+                  fill="#0284c7"
+                  fontSize="16"
+                  fontWeight="500"
+                >
+                  Airport
+                </text>
+                <text
+                  x="400"
+                  y="360"
+                  textAnchor="middle"
+                  fill="#16a34a"
+                  fontSize="16"
+                  fontWeight="500"
+                >
+                  Hotel
+                </text>
+                <text
+                  x="700"
+                  y="360"
+                  textAnchor="middle"
+                  fill="#f59e0b"
+                  fontSize="16"
+                  fontWeight="500"
+                >
+                  Venue
+                </text>
               </svg>
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-3xl font-serif font-semibold mb-4 text-foreground">Family-Centric Transportation</h3>
+              <h3 className="text-3xl font-serif font-semibold mb-4 text-foreground">
+                Family-Centric Transportation
+              </h3>
 
               <p className="text-lg text-foreground/80">
-                Our revolutionary transport management system ensures that families travel together comfortably, with intelligent allocation based on arrival times and group sizes.
+                Our revolutionary transport management system ensures that
+                families travel together comfortably, with intelligent
+                allocation based on arrival times and group sizes.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                        />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-medium mb-2">Smart Fleet Management</h4>
-                    <p className="text-foreground/70 text-sm flex-grow">Define your available fleet with vehicle types and capacities</p>
+                    <h4 className="text-lg font-medium mb-2">
+                      Smart Fleet Management
+                    </h4>
+                    <p className="text-foreground/70 text-sm flex-grow">
+                      Define your available fleet with vehicle types and
+                      capacities
+                    </p>
                   </div>
                 </Card>
 
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-medium mb-2">Family Grouping</h4>
-                    <p className="text-foreground/70 text-sm flex-grow">Automatically keep families together in the same vehicle</p>
+                    <h4 className="text-lg font-medium mb-2">
+                      Family Grouping
+                    </h4>
+                    <p className="text-foreground/70 text-sm flex-grow">
+                      Automatically keep families together in the same vehicle
+                    </p>
                   </div>
                 </Card>
 
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-medium mb-2">Arrival Optimization</h4>
-                    <p className="text-foreground/70 text-sm flex-grow">Group travelers by arrival time to optimize vehicle usage</p>
+                    <h4 className="text-lg font-medium mb-2">
+                      Arrival Optimization
+                    </h4>
+                    <p className="text-foreground/70 text-sm flex-grow">
+                      Group travelers by arrival time to optimize vehicle usage
+                    </p>
                   </div>
                 </Card>
 
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-medium mb-2">Guest Notifications</h4>
-                    <p className="text-foreground/70 text-sm flex-grow">Automated updates about pickup times and locations</p>
+                    <h4 className="text-lg font-medium mb-2">
+                      Guest Notifications
+                    </h4>
+                    <p className="text-foreground/70 text-sm flex-grow">
+                      Automated updates about pickup times and locations
+                    </p>
                   </div>
                 </Card>
               </div>
@@ -724,19 +984,21 @@ export default function ImmersiveLanding() {
       </section>
 
       {/* Communication Section */}
-      <section 
-        id={SECTIONS.COMMUNICATION} 
+      <section
+        id={SECTIONS.COMMUNICATION}
         ref={communicationRef}
         className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
-            <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">Multichannel Guest Engagement</span>
+            <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">
+              Multichannel Guest Engagement
+            </span>
           </h2>
 
           <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
-            Keep your guests informed and engaged through personalized WhatsApp messages
-            and email communications.
+            Keep your guests informed and engaged through personalized WhatsApp
+            messages and email communications.
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -744,49 +1006,110 @@ export default function ImmersiveLanding() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-lg mb-1">WhatsApp Integration</h4>
-                    <p className="text-foreground/70">Send updates, collect RSVPs, and answer questions through WhatsApp</p>
+                    <h4 className="font-medium text-lg mb-1">
+                      WhatsApp Integration
+                    </h4>
+                    <p className="text-foreground/70">
+                      Send updates, collect RSVPs, and answer questions through
+                      WhatsApp
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-lg mb-1">Beautiful Email Templates</h4>
-                    <p className="text-foreground/70">Send elegant, branded emails for invitations and updates</p>
+                    <h4 className="font-medium text-lg mb-1">
+                      Beautiful Email Templates
+                    </h4>
+                    <p className="text-foreground/70">
+                      Send elegant, branded emails for invitations and updates
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-lg mb-1">Automated Reminders</h4>
-                    <p className="text-foreground/70">Schedule timely reminders for transportation and events</p>
+                    <h4 className="font-medium text-lg mb-1">
+                      Automated Reminders
+                    </h4>
+                    <p className="text-foreground/70">
+                      Schedule timely reminders for transportation and events
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-lg mb-1">Dynamic Follow-Ups</h4>
-                    <p className="text-foreground/70">Personalized follow-up based on guest responses</p>
+                    <h4 className="font-medium text-lg mb-1">
+                      Dynamic Follow-Ups
+                    </h4>
+                    <p className="text-foreground/70">
+                      Personalized follow-up based on guest responses
+                    </p>
                   </div>
                 </div>
               </div>
@@ -796,59 +1119,102 @@ export default function ImmersiveLanding() {
               <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
                 <div className="flex items-center gap-3 pb-4 border-b">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
                     </svg>
                   </div>
                   <div>
                     <h5 className="font-medium">Sharma & Patel Wedding</h5>
-                    <p className="text-xs text-foreground/70">WhatsApp Communication</p>
+                    <p className="text-xs text-foreground/70">
+                      WhatsApp Communication
+                    </p>
                   </div>
                 </div>
 
                 <div className="py-4 space-y-4">
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">Namaste Priya! We're excited to welcome you to Raj & Anita's wedding celebration. Your RSVP has been confirmed for all 3 days of ceremonies.</p>
+                      <p className="text-sm">
+                        Namaste Priya! We're excited to welcome you to Raj &
+                        Anita's wedding celebration. Your RSVP has been
+                        confirmed for all 3 days of ceremonies.
+                      </p>
                     </div>
                   </div>
 
                   <div className="message-bubble flex justify-end">
                     <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">Thank you! I'm looking forward to it. Will there be transportation from the hotel to the venue?</p>
+                      <p className="text-sm">
+                        Thank you! I'm looking forward to it. Will there be
+                        transportation from the hotel to the venue?
+                      </p>
                     </div>
                   </div>
 
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">Yes! We've arranged transportation for you. A car will pick you up from JW Marriott at 5:30 PM on Friday. We've made sure you'll be with your family members.</p>
+                      <p className="text-sm">
+                        Yes! We've arranged transportation for you. A car will
+                        pick you up from JW Marriott at 5:30 PM on Friday. We've
+                        made sure you'll be with your family members.
+                      </p>
                     </div>
                   </div>
 
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] space-y-2">
-                      <p className="text-sm">Here are the transportation details:</p>
+                      <p className="text-sm">
+                        Here are the transportation details:
+                      </p>
                       <div className="bg-white rounded-md p-2 text-sm">
                         <p className="font-medium">🚗 Your Transport Details</p>
                         <p className="text-xs mt-1">Date: June 17, 2025</p>
                         <p className="text-xs">Pickup: JW Marriott, 5:30 PM</p>
-                        <p className="text-xs">Vehicle: White Innova (Sharma Family)</p>
+                        <p className="text-xs">
+                          Vehicle: White Innova (Sharma Family)
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="message-bubble flex justify-end">
                     <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">Perfect! Thank you for organizing this so well.</p>
+                      <p className="text-sm">
+                        Perfect! Thank you for organizing this so well.
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t flex gap-2">
-                  <div className="bg-gray-100 rounded-full flex-grow p-2 text-sm text-gray-400">Type a message...</div>
+                  <div className="bg-gray-100 rounded-full flex-grow p-2 text-sm text-gray-400">
+                    Type a message...
+                  </div>
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -859,25 +1225,27 @@ export default function ImmersiveLanding() {
       </section>
 
       {/* CTA Section */}
-      <section 
-        id={SECTIONS.CTA} 
+      <section
+        id={SECTIONS.CTA}
         ref={ctaRef}
         className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6 text-center relative z-10">
           {/* Gold particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {Array(75).fill(0).map((_, i) => (
-              <div 
-                key={i}
-                className="gold-particle absolute w-1.5 h-1.5 rounded-full bg-[#BFA76F]"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  opacity: 0.4 + Math.random() * 0.6
-                }}
-              ></div>
-            ))}
+            {Array(75)
+              .fill(0)
+              .map((_, i) => (
+                <div
+                  key={i}
+                  className="gold-particle absolute w-1.5 h-1.5 rounded-full bg-[#BFA76F]"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    opacity: 0.4 + Math.random() * 0.6,
+                  }}
+                ></div>
+              ))}
           </div>
 
           <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white">
@@ -885,11 +1253,13 @@ export default function ImmersiveLanding() {
           </h2>
 
           <p className="text-lg text-white max-w-3xl mx-auto mb-12">
-            Transform your wedding planning experience today. Our platform brings elegance to every detail, letting you focus on what truly matters.
+            Transform your wedding planning experience today. Our platform
+            brings elegance to every detail, letting you focus on what truly
+            matters.
           </p>
 
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="hero-button hero-button-primary rounded-full py-6 px-10 text-lg font-medium bg-gradient-to-r from-[#5E239D] to-[#7f33d3] border-0 shadow-lg shadow-primary/20"
             asChild
           >
