@@ -1003,110 +1003,223 @@ export default function ImmersiveLanding() {
             Chatbots.
           </p>
 
-          {/* First display WhatsApp window centered */}
-          <div className="mx-auto max-w-md mb-12">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center gap-3 pb-4 border-b">
-                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                  </svg>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="order-2 lg:order-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-lg mb-1">
+                      WhatsApp & AI Chatbots
+                    </h4>
+                    <p className="text-foreground/70">
+                      Send updates, collect RSVPs, and answer questions through
+                      WhatsApp and AI Chatbots.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h5 className="font-medium">Sharma & Patel Wedding</h5>
-                  <p className="text-xs text-foreground/70">
-                    WhatsApp Communication
-                  </p>
-                </div>
-              </div>
 
-              {/* Empty chat area to match screenshot */}
-              <div className="min-h-[300px] bg-white" style={{minHeight: "300px"}}>
-                {/* Empty space for now to match the screenshot */}
-              </div>
-
-              <div className="pt-3 border-t flex gap-2">
-                <div className="bg-gray-100 rounded-full flex-grow p-2 text-sm text-gray-400">
-                  Type a message...
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-lg mb-1">
+                      Beautiful Email Templates
+                    </h4>
+                    <p className="text-foreground/70">
+                      Send elegant, branded emails for invitations and updates
+                    </p>
+                  </div>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    />
-                  </svg>
+
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white flex-shrink-0">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-lg mb-1">
+                      Automated Reminders
+                    </h4>
+                    <p className="text-foreground/70">
+                      Schedule timely reminders for transportation and events
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-white flex-shrink-0">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-lg mb-1">
+                      Dynamic Follow-Ups
+                    </h4>
+                    <p className="text-foreground/70">
+                      Personalized follow-up based on guest responses
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Feature cards in 2x2 grid below */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl p-4 shadow-sm flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-lg mb-1">WhatsApp & AI Chatbots</h4>
-                <p className="text-foreground/70">Send updates, collect RSVPs, and answer questions through WhatsApp and AI Chatbots.</p>
-              </div>
-            </div>
+            <div className="order-1 lg:order-2">
+              <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
+                <div className="flex items-center gap-3 pb-4 border-b">
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 className="font-medium">Sharma & Patel Wedding</h5>
+                    <p className="text-xs text-foreground/70">
+                      WhatsApp Communication
+                    </p>
+                  </div>
+                </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-sm flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-lg mb-1">Beautiful Email Templates</h4>
-                <p className="text-foreground/70">Send elegant, branded emails for invitations and updates</p>
-              </div>
-            </div>
+                <div className="py-4 space-y-4">
+                  <div className="message-bubble flex justify-start">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
+                      <p className="text-sm">
+                        Namaste Priya! We're excited to welcome you to Raj &
+                        Anita's wedding celebration. Your RSVP has been
+                        confirmed for all 3 days of ceremonies.
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-sm flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-lg mb-1">Automated Reminders</h4>
-                <p className="text-foreground/70">Schedule timely reminders for transportation and events</p>
-              </div>
-            </div>
+                  <div className="message-bubble flex justify-end">
+                    <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
+                      <p className="text-sm">
+                        Thank you! I'm looking forward to it. Will there be
+                        transportation from the hotel to the venue?
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-sm flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-white flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-lg mb-1">Dynamic Follow-Ups</h4>
-                <p className="text-foreground/70">Personalized follow-up based on guest responses</p>
+                  <div className="message-bubble flex justify-start">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
+                      <p className="text-sm">
+                        Yes! We've arranged transportation for you. A car will
+                        pick you up from JW Marriott at 5:30 PM on Friday. We've
+                        made sure you'll be with your family members.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="message-bubble flex justify-start">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] space-y-2">
+                      <p className="text-sm">
+                        Here are the transportation details:
+                      </p>
+                      <div className="bg-white rounded-md p-2 text-sm">
+                        <p className="font-medium">🚗 Your Transport Details</p>
+                        <p className="text-xs mt-1">Date: June 17, 2025</p>
+                        <p className="text-xs">Pickup: JW Marriott, 5:30 PM</p>
+                        <p className="text-xs">
+                          Vehicle: White Innova (Sharma Family)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="message-bubble flex justify-end">
+                    <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
+                      <p className="text-sm">
+                        Perfect! Thank you for organizing this so well.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t flex gap-2">
+                  <div className="bg-gray-100 rounded-full flex-grow p-2 text-sm text-gray-400">
+                    Type a message...
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

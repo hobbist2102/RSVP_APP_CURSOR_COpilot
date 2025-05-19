@@ -99,14 +99,6 @@
   z-index: 1;
 }
 
-/* WhatsApp message styles */
-.message-bubble .bg-gray-200,
-.message-bubble .bg-green-100 {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
 /* 3D effect for cards */
 .card-3d {
   transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
