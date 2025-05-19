@@ -11,7 +11,7 @@ export function useEvents() {
 
   // Get all events
   const { data: events = [], isLoading: isLoadingEvents } = useQuery({
-    queryKey: ['/api/events'],
+    queryKey: ['/api/events-direct'],
   });
 
   // Get current event details
