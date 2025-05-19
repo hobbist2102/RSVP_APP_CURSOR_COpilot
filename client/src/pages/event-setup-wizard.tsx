@@ -46,8 +46,9 @@ export default function EventSetupWizard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  // Check if this is a direct access without an event ID
+  // Check if this is a direct access without an event ID or a new event creation
   const isDirectAccess = !eventId;
+  const isNewEventCreation = eventId === 'new';
 
   // Define the type for setup progress
   interface WizardProgress {
@@ -70,14 +71,57 @@ export default function EventSetupWizard() {
     enabled: !!eventId,
   });
 
+  // Create new event mutation
+  const createEventMutation = useMutation({
+    mutationFn: async (eventData: any) => {
+      const response = await apiRequest("POST", `/api/events`, eventData);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      // Redirect to the wizard with the newly created event ID
+      setLocation(`/event-setup-wizard/${data.id}`);
+      toast({
+        title: "Event created successfully",
+        description: "Your new event has been created. You can now configure all its settings.",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to create event:", error);
+      toast({
+        title: "Failed to create event",
+        description: "There was an error creating your event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Save step data mutation
   const saveStepMutation = useMutation({
     mutationFn: async (data: { stepId: string; stepData: any }) => {
+      // If this is a new event creation and we're on the first step
+      if (isNewEventCreation && data.stepId === WIZARD_STEPS.BASIC_INFO) {
+        // Create the event with the basic info data
+        return createEventMutation.mutate({
+          title: data.stepData.title,
+          coupleNames: data.stepData.coupleNames,
+          brideName: data.stepData.brideName,
+          groomName: data.stepData.groomName,
+          startDate: data.stepData.startDate,
+          endDate: data.stepData.endDate,
+          location: data.stepData.location,
+          description: data.stepData.description || null
+        });
+      }
+      
+      // Otherwise, save the step data as usual
       const response = await apiRequest("POST", `/api/wizard/${eventId}/steps/${data.stepId}`, data.stepData);
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/wizard/${eventId}/progress`] });
+      if (!isNewEventCreation) {
+        queryClient.invalidateQueries({ queryKey: [`/api/wizard/${eventId}/progress`] });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -307,7 +351,7 @@ export default function EventSetupWizard() {
       </div>
       
       {/* Show Event Selector when accessed from sidebar without an event ID */}
-      {isDirectAccess ? (
+      {isDirectAccess && !isNewEventCreation ? (
         <EventSelector onSelectEvent={(selectedEventId) => setLocation(`/event-setup-wizard/${selectedEventId}`)} />
       ) : (
         /* Show wizard interface when accessed with an event ID */
