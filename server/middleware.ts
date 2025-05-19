@@ -34,9 +34,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
 // RSVP link handler middleware - place this before any other routes
 export const rsvpLinkHandler = (req: Request, res: Response, next: NextFunction) => {
-  // Check if this is an RSVP link path, handle both formats of the URL:
-  // 1. /guest-rsvp/TOKEN
-  // 2. /guest-rsvp/guest-rsvp/TOKEN (duplicate path issue)
+  // Check if this is an RSVP link path
+  // Only handle /guest-rsvp/TOKEN format (removing support for duplicate paths)
   if (req.path.startsWith('/guest-rsvp/')) {
     log(`RSVP link handler processing: ${req.path}`);
     console.log(`[RSVP Debug] Request path: ${req.path}, Query:`, req.query);
@@ -48,16 +47,9 @@ export const rsvpLinkHandler = (req: Request, res: Response, next: NextFunction)
         if (fs.existsSync(indexPath)) {
           log(`Serving index.html for RSVP path: ${req.path}`);
           
-          // Extract the token from the URL, handling both URL formats
-          let token;
-          if (req.path.startsWith('/guest-rsvp/guest-rsvp/')) {
-            // This is the duplicate path issue we need to fix
-            token = req.path.replace('/guest-rsvp/guest-rsvp/', '');
-            log(`Detected duplicated path segment, extracted token: ${token}`);
-          } else {
-            // Standard path format
-            token = req.path.replace('/guest-rsvp/', '');
-          }
+          // Extract the token from the URL, simplified to handle only the standard format
+          // This prevents the duplicate path issue entirely
+          const token = req.path.replace('/guest-rsvp/', '');
           
           // Read the index.html file
           const htmlContent = fs.readFileSync(indexPath, 'utf8');

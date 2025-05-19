@@ -704,6 +704,14 @@ export class MemStorage implements IStorage {
       (user) => user.email === email
     );
   }
+  
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
+    const user = this.usersMap.get(userId);
+    if (user) {
+      user.password = hashedPassword;
+      this.usersMap.set(userId, user);
+    }
+  }
 
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userIdCounter++;

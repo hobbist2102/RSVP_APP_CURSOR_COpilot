@@ -9,6 +9,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 import bcrypt from "bcryptjs";
+import { isAuthenticated, isAdmin } from './middleware';
 // Import session type extensions
 import './types';
 import { 
@@ -84,7 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: true, // Changed to true to ensure session is saved after each request
     saveUninitialized: true, // Changed to true to create session unconditionally
     cookie: { 
-      secure: false, // False for development, should be conditional in production
+      // Set secure mode based on environment
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       sameSite: 'lax',
@@ -151,21 +153,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Authentication middleware
-  const isAuthenticated = (req: Request, res: Response, next: any) => {
+  // Add logging wrapper for the authentication middleware
+  const loggedIsAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    console.log('Checking user authentication, session ID:', req.sessionID);
+    console.log('Session object:', req.session);
+    
     if (req.isAuthenticated()) {
       console.log('User is authenticated:', req.user);
-      return next();
+    } else {
+      console.log('User is not authenticated');
     }
-    console.log('Authentication failed - session:', req.sessionID);
-    res.status(401).json({ message: 'Please log in again' });
-  };
-  
-  const isAdmin = (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated() && req.user && (req.user as any).role === 'admin') {
-      return next();
-    }
-    res.status(403).json({ message: 'Forbidden' });
+    
+    isAuthenticated(req, res, next);
   };
   
   // Auth routes
@@ -395,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // API route for current event, used by event selector
-  app.get('/api/current-event', isAuthenticated, async (req, res) => {
+  app.get('/api/current-event', loggedIsAuthenticated, async (req, res) => {
     try {
       console.log('GET /api/current-event - Session ID:', req.sessionID);
       
