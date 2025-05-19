@@ -624,8 +624,7 @@ export default function EventWizard({
       whatsappBusinessNumber: wizardData.communication?.whatsappBusinessNumber || null,
     };
     
-    // Log the form data to verify what we're sending
-    console.log("Event form data to submit:", formData);
+    // Form data is ready for submission
     
     // Submit the form
     createEventMutation.mutate(formData);
