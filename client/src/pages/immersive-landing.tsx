@@ -416,10 +416,10 @@ export default function ImmersiveLanding() {
         <div className="container mx-auto px-6">
           <h2 className="problem-title text-center mb-10">
             <span className="text-[#BFA76F] font-light text-base block">
-              Behind the Beauty:
+              Behind the Scenes:
             </span>
             <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
-              The Wedding Planning Chaos
+              A Symphony or a Storm?
             </span>
           </h2>
 
@@ -462,9 +462,9 @@ export default function ImmersiveLanding() {
             {/* Content area - right side - exactly matching reference */}
             <div className="text-[#5E239D] space-y-6">
               <p className="text-sm leading-relaxed">
-                Planning an Indian wedding involves coordinating hundreds of
-                moving parts, from extensive guest lists to multiple ceremonies
-                spanning several days.
+                Indian Weddings are Breathtaking - Literally Behind Every
+                Stunning Sangeet, lies multiple spreadsheets of guests
+                information, calls, confusions and dozens of WhatsApp Groups.
               </p>
 
               <div className="space-y-5 mt-8">
@@ -479,24 +479,21 @@ export default function ImmersiveLanding() {
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">
-                    Coordinating transportation and accommodations leads to
-                    endless spreadsheets and phone calls
+                    Logistics planning leads to endless spreadsheets, phone
+                    calls and sleepless nights
                   </p>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
-                  <p className="text-xs">
-                    Communication breakdowns result in confused guests and
-                    last-minute emergencies
-                  </p>
+                  <p className="text-xs">Transport Drama and Hotel Mix-ups</p>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">
-                    Traditional planning methods collapse under the complexity
-                    of multi-day celebrations
+                    Missed Messages, Lost itineraries, and confused aunties - We
+                    feel you!
                   </p>
                 </div>
               </div>
@@ -524,18 +521,19 @@ export default function ImmersiveLanding() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
               <p className="text-xs leading-relaxed">
-                Our platform transforms the chaotic planning process into a
-                seamless, elegant experience with purpose-built tools for Indian
-                weddings.
+                Designed ground up by Wedding planners, our all-in-one platform
+                removes the noise, so that you can plan with clarity and
+                celebrate with your heart.
               </p>
 
               <div className="space-y-4 mt-8">
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">
-                    Centralized Management
+                    One Dashboard, Total Control
                   </h3>
                   <p className="text-xs text-[#3A1562]/80">
-                    Every aspect of your wedding in one elegant dashboard
+                    Manage Guests, logistics, travel, accomodation,
+                    communication & more all in one place.
                   </p>
                 </div>
 
@@ -550,10 +548,10 @@ export default function ImmersiveLanding() {
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">
-                    Multi-Day Event Support
+                    From Save the Date to Departure
                   </h3>
                   <p className="text-xs text-[#3A1562]/80">
-                    Seamlessly manage all your ceremonies and celebrations
+                    Seamlessly manage the entire wedding lifecycle.
                   </p>
                 </div>
 
@@ -563,6 +561,7 @@ export default function ImmersiveLanding() {
                   </h3>
                   <p className="text-xs text-[#3A1562]/80">
                     Email and WhatsApp integration for seamless guest updates
+                    and communication.
                   </p>
                 </div>
               </div>
@@ -963,10 +962,12 @@ export default function ImmersiveLanding() {
                       </svg>
                     </div>
                     <h4 className="text-lg font-medium mb-2">
-                      Guest Notifications
+                      Effortless Notifications
                     </h4>
                     <p className="text-foreground/70 text-sm flex-grow">
-                      Automated updates about pickup times and locations
+                      Automated updates about pickup times and locations for
+                      Guests, Delayed flight notifications for planners and
+                      more.
                     </p>
                   </div>
                 </Card>
@@ -998,7 +999,8 @@ export default function ImmersiveLanding() {
 
           <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
             Keep your guests informed and engaged through personalized WhatsApp
-            messages and email communications.
+            messages and email communications. Automate Responses with AI
+            Chatbots.
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
