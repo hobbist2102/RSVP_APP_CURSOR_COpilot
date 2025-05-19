@@ -57,12 +57,9 @@ export const StickyNav: React.FC = () => {
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 py-4 px-6 flex justify-between items-center"
       style={{ backgroundColor }}
-      className="backdrop-blur-sm"
     >
-      <Link href="/" className="flex items-center">
-        <span className="text-white font-[Great_Vibes] text-3xl hover:text-white/90 transition-colors">
-          Eternally Yours
-        </span>
+      <Link href="/" className="text-white font-script text-2xl">
+        Eternally Yours
       </Link>
 
       <nav className="hidden md:flex space-x-1">
