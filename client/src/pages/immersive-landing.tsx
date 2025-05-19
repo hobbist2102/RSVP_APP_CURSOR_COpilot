@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
+import BubbleAnimation from "@/components/landing/cinematic/bubble-animation";
 
 // Import custom styles for immersive landing page
 import "@/styles/immersive-landing.css";
@@ -80,16 +81,49 @@ export default function ImmersiveLanding() {
     }
   };
 
-  // Track mouse position for particle effects with throttling to reduce CPU usage
+  // Track mouse position for bubble effects with throttling to reduce CPU usage
   useEffect(() => {
-    // Create throttled mouse move handler to reduce event frequency
+    // Set up a shared mouse state object that will be used by the canvas animations
+    const sharedMouseState = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      active: false
+    };
+    
+    // Expose to window for canvas components to access (will be cleaned up on unmount)
+    (window as any).__particleMouseState = sharedMouseState;
+    
+    // Create throttled mouse move handler with minimal processing
     const throttledHandleMouseMove = throttle((e: MouseEvent) => {
+      // Only update the shared state object - no state changes or DOM updates here
+      sharedMouseState.x = e.clientX;
+      sharedMouseState.y = e.clientY;
+      sharedMouseState.active = true;
+      
+      // Only update React state when needed for components that require it
       setMousePosition({ x: e.clientX, y: e.clientY });
-    }, 50); // Only update every 50ms instead of on every mouse movement
-
-    window.addEventListener("mousemove", throttledHandleMouseMove);
+    }, 100); // Increased throttle to 100ms for better performance
+    
+    // Mouse leave handler
+    const handleMouseLeave = () => {
+      sharedMouseState.active = false;
+    };
+    
+    // Use passive listeners for better performance
+    window.addEventListener("mousemove", throttledHandleMouseMove, { passive: true });
+    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
+    
     return () => {
+      // Clean up all event listeners and shared state
       window.removeEventListener("mousemove", throttledHandleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      delete (window as any).__particleMouseState;
+      
+      // Ensure throttle timers are cleared
+      const cancelThrottle = throttledHandleMouseMove as ThrottledFunction;
+      if (cancelThrottle.cancel) {
+        cancelThrottle.cancel();
+      }
     };
   }, []);
 
@@ -337,178 +371,46 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate connected particles network - extremely optimized for minimal memory footprint
-  const particles = useMemo(() => {
-    const nodeCount = 15; // Further reduced node count for better performance
-    const starCount = 40;  // Further reduced star count based on heap analysis
+  // Using our new memory-optimized bubble animation component
+  // This replaces the previous particle system with our bubble effect
+  const backgroundEffects = useMemo(() => {
+    // Only create animation on client side
+    if (typeof window === 'undefined') return null;
     
-    // Canvas-based rendering approach for particles instead of DOM elements
-    // This dramatically reduces memory usage and improves rendering performance
-    const canvasElement = document.createElement('canvas');
-    canvasElement.width = window.innerWidth;
-    canvasElement.height = window.innerHeight;
-    canvasElement.style.position = 'fixed';
-    canvasElement.style.top = '0';
-    canvasElement.style.left = '0';
-    canvasElement.style.pointerEvents = 'none';
-    canvasElement.style.zIndex = '40';
-    
-    // Create fixed node positions for better memory usage
-    // Using a typed array instead of objects for better memory efficiency
-    const nodePositions = new Float32Array(nodeCount * 4); // x, y, size, phase
-    
-    // Generate deterministic node positions in a visually pleasing pattern
-    // Distribute nodes in a way that looks organic but uses less memory
-    for (let i = 0; i < nodeCount; i++) {
-      const idx = i * 4;
-      // Use golden ratio distribution for more natural-looking spacing
-      const phi = (1 + Math.sqrt(5)) / 2;
-      const theta = i * phi * Math.PI;
-      
-      // Create a radial distribution that concentrates particles in the visible area
-      const radius = Math.sqrt(i / nodeCount) * 0.8;
-      
-      // Position in normalized space (0-1)
-      nodePositions[idx] = 0.5 + radius * Math.cos(theta); // x
-      nodePositions[idx + 1] = 0.5 + radius * Math.sin(theta); // y
-      nodePositions[idx + 2] = 1.5 + Math.sin(i * 0.4) * 0.5; // size (larger particles)
-      nodePositions[idx + 3] = i / nodeCount; // phase offset for animation
-    }
-    
-    // Draw initial canvas - actual animation will be handled by requestAnimationFrame
-    if (typeof window !== 'undefined') {
-      const ctx = canvasElement.getContext('2d');
-      if (ctx) {
-        // Set up animation loop
-        let animationFrameId: number;
-        let lastTimestamp = 0;
-        
-        const drawParticles = (timestamp: number) => {
-          // Only update at most 30 times per second to save CPU
-          if (timestamp - lastTimestamp < 33) {
-            animationFrameId = requestAnimationFrame(drawParticles);
-            return;
-          }
-          
-          lastTimestamp = timestamp;
-          
-          // Clear canvas
-          ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-          
-          // Update particle positions and draw
-          const time = timestamp * 0.0005; // Slow down time factor
-          
-          // Draw connections first (underneath particles)
-          ctx.strokeStyle = '#d4b976';
-          ctx.globalAlpha = 0.08;
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          
-          // Only draw a minimal number of connections (maximum 12)
-          const maxConnections = Math.min(12, nodeCount);
-          for (let i = 0; i < maxConnections; i++) {
-            const idx1 = i * 4;
-            const x1 = nodePositions[idx1] * canvasElement.width;
-            const y1 = nodePositions[idx1 + 1] * canvasElement.height;
-            
-            // Connect to next node in sequence
-            const nextIdx = ((i + 1) % nodeCount) * 4;
-            const x2 = nodePositions[nextIdx] * canvasElement.width;
-            const y2 = nodePositions[nextIdx + 1] * canvasElement.height;
-            
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-          }
-          ctx.stroke();
-          
-          // Draw particles
-          for (let i = 0; i < nodeCount; i++) {
-            const idx = i * 4;
-            
-            // Get base position
-            let x = nodePositions[idx] * canvasElement.width;
-            let y = nodePositions[idx + 1] * canvasElement.height;
-            const size = nodePositions[idx + 2];
-            const phase = nodePositions[idx + 3];
-            
-            // Add subtle movement based on time and phase
-            x += Math.sin(time + phase * 10) * 5;
-            y += Math.cos(time * 0.7 + phase * 10) * 5;
-            
-            // Draw particle
-            ctx.globalAlpha = 0.4 + Math.sin(time + phase * 5) * 0.1;
-            ctx.fillStyle = '#e9d9a8';
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          
-          // Draw stars (simpler background elements)
-          ctx.fillStyle = '#ffffff';
-          
-          for (let i = 0; i < starCount; i++) {
-            const phase = i / starCount;
-            // Use deterministic but scattered positions
-            const x = ((i * 17) % 100) * 0.01 * canvasElement.width;
-            const y = ((i * 23) % 100) * 0.01 * canvasElement.height;
-            
-            // Twinkle effect
-            const twinkle = (Math.sin(time * 2 + phase * 20) * 0.5 + 0.5) * 0.3;
-            ctx.globalAlpha = 0.1 + twinkle;
-            
-            // Vary star size slightly
-            const starSize = 0.8 + phase * 0.5;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, starSize, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          
-          animationFrameId = requestAnimationFrame(drawParticles);
-        };
-        
-        // Start animation
-        animationFrameId = requestAnimationFrame(drawParticles);
-        
-        // Handle resize to maintain full-screen canvas
-        const handleResize = () => {
-          canvasElement.width = window.innerWidth;
-          canvasElement.height = window.innerHeight;
-        };
-        
-        window.addEventListener('resize', handleResize, { passive: true });
-        
-        // Cleanup function to cancel animation and remove listeners
-        const cleanup = () => {
-          cancelAnimationFrame(animationFrameId);
-          window.removeEventListener('resize', handleResize);
-        };
-        
-        // Store cleanup in ref for component unmount
-        if (typeof document !== 'undefined') {
-          // Append to an element in the component
-          const parentElement = document.getElementById('particles-container');
-          if (parentElement && !parentElement.contains(canvasElement)) {
-            parentElement.appendChild(canvasElement);
-            
-            // Store cleanup function
-            (parentElement as any).__cleanupCanvas = cleanup;
-          }
-        }
-      }
-    }
-    
-    // Return an empty array since we're using canvas instead of React elements
-    // This drastically reduces the number of React nodes and improves memory usage
-    return [
+    return (
       <div 
-        id="particles-container" 
-        key="particles-container"
-        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 40 }}
+        id="background-effects-container" 
+        key="background-effects-container"
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          pointerEvents: 'none', 
+          zIndex: 40 
+        }}
         aria-hidden="true"
-      />
-    ];
-  }, []); // Only create particles once for better performance
+      >
+        {/* 
+          Memory-optimized bubble animation inspired by rpj.bembi.dev
+          - Uses canvas rendering instead of DOM elements
+          - Utilizes typed arrays for particle data
+          - Implements frame rate limiting (30fps)
+          - Uses passive event listeners
+          - Creates beautiful bubble effect with less memory
+        */}
+        <BubbleAnimation 
+          count={15}                // Reduced number of elements
+          color="#e9d9a8"           // Warm gold color matching wedding theme
+          maxSize={60}              // Larger maximum size for better visibility
+          minSize={5}               // Minimum bubble size
+          speed={0.8}               // Gentle movement speed
+          opacity={0.35}            // Semi-transparent bubbles
+        />
+      </div>
+    );
+  }, []); // Only create animation once for better performance
 
   // Add mouse movement effect with throttling for performance
   useEffect(() => {
@@ -560,14 +462,8 @@ export default function ImmersiveLanding() {
 
   return (
     <div ref={pageRef} className="immersive-landing">
-      {/* Global Particles Container - Higher z-index to ensure visibility on all sections */}
-      <div
-        ref={particlesRef}
-        className="particles-container"
-        style={{ zIndex: 9999 }}
-      >
-        {particles}
-      </div>
+      {/* Optimized background animation with bubble effect */}
+      {backgroundEffects}
 
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
