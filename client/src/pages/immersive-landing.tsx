@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import ParticleCanvas from "@/components/particles/ParticleCanvas";
 
 // Import custom styles for immersive landing page
 import "@/styles/immersive-landing.css";
@@ -34,9 +35,6 @@ export default function ImmersiveLanding() {
   const transportRef = useRef<HTMLDivElement>(null);
   const communicationRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  
-  // Canvas for particle animation
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Mouse position for subtle parallax effect
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -156,142 +154,14 @@ export default function ImmersiveLanding() {
       }
     }, pageRef);
     
-    // Initialize canvas-based particles
-    initializeCanvas();
-    
     // Cleanup function
     return () => {
       ctx.revert();
-      
-      // Cleanup canvas animation
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        const animationId = (canvas as any).__animationId;
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-        }
-      }
       
       // Kill all ScrollTriggers
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, []);
-  
-  // Initialize canvas-based particles animation - much more memory efficient than DOM elements
-  const initializeCanvas = () => {
-    if (typeof window === "undefined") return;
-    
-    // Create canvas element
-    const canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '10';
-    canvas.style.opacity = '0.7';
-    
-    // Store in ref for cleanup
-    canvasRef.current = canvas;
-    
-    // Get context
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Particle settings - reduced count for memory efficiency
-    const particleCount = 15;
-    const particles = [];
-    
-    // Create particles with initial positions
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: 1 + Math.random() * 2,
-        speed: 0.2 + Math.random() * 0.3,
-        angle: Math.random() * Math.PI * 2,
-        opacity: 0.3 + Math.random() * 0.3
-      });
-    }
-    
-    // Animation function - optimized for minimal CPU usage
-    let lastFrameTime = 0;
-    const animate = (timestamp: number) => {
-      // Limit to 30fps for performance
-      if (timestamp - lastFrameTime < 33) {
-        const animationId = requestAnimationFrame(animate);
-        (canvas as any).__animationId = animationId;
-        return;
-      }
-      
-      lastFrameTime = timestamp;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Update and draw particles
-      ctx.fillStyle = 'rgba(212, 185, 118, 0.5)';
-      
-      for (let i = 0; i < particleCount; i++) {
-        const p = particles[i];
-        
-        // Update position with very subtle movement
-        p.x += Math.cos(p.angle) * p.speed;
-        p.y += Math.sin(p.angle) * p.speed;
-        
-        // Bounce off edges
-        if (p.x < 0 || p.x > canvas.width) p.angle = Math.PI - p.angle;
-        if (p.y < 0 || p.y > canvas.height) p.angle = -p.angle;
-        
-        // Draw particle
-        ctx.globalAlpha = p.opacity;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      // Draw connections (limited number)
-      ctx.strokeStyle = 'rgba(212, 185, 118, 0.15)';
-      ctx.lineWidth = 0.5;
-      
-      const maxConnections = 10; // Limited for performance
-      for (let i = 0; i < maxConnections; i++) {
-        const p1 = particles[i];
-        const p2 = particles[(i + 1) % particleCount];
-        
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-      }
-      
-      // Continue animation loop
-      const animationId = requestAnimationFrame(animate);
-      (canvas as any).__animationId = animationId;
-    };
-    
-    // Start animation
-    const animationId = requestAnimationFrame(animate);
-    (canvas as any).__animationId = animationId;
-    
-    // Add to DOM
-    const container = document.getElementById('particles-container');
-    if (container) {
-      container.appendChild(canvas);
-    }
-    
-    // Handle window resize
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    
-    window.addEventListener('resize', handleResize, { passive: true });
-    (canvas as any).__cleanup = () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  };
   
   // Apply subtle parallax effect based on mouse position
   const getParallaxStyle = (factor: number) => {
@@ -302,8 +172,13 @@ export default function ImmersiveLanding() {
 
   return (
     <div ref={pageRef} className="immersive-landing">
-      {/* Particles container */}
-      <div id="particles-container" />
+      {/* Optimized Canvas-based Particles */}
+      <ParticleCanvas 
+        count={15} 
+        color="#d4b976" 
+        maxSpeed={0.3} 
+        maxSize={2} 
+      />
       
       {/* Hero Section */}
       <section ref={heroRef} className="hero-section">
