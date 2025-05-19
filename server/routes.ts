@@ -8,6 +8,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
+import bcrypt from "bcryptjs";
 // Import session type extensions
 import './types';
 import { 
@@ -104,9 +105,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return done(null, false, { message: 'Incorrect username.' });
       }
-      if (user.password !== password) { // In production, use proper password hashing
+      
+      // Handle both hashed passwords and plain text passwords (for backward compatibility)
+      let passwordMatch = false;
+      
+      if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+        // Password is already hashed, use bcrypt comparison
+        passwordMatch = await bcrypt.compare(password, user.password);
+      } else {
+        // Legacy plain-text password - direct comparison with automatic upgrade
+        passwordMatch = user.password === password;
+        
+        if (passwordMatch) {
+          // Upgrade the plain-text password to a hashed one
+          try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await storage.updateUserPassword(user.id, hashedPassword);
+            console.log(`Upgraded password for user ${user.id} to hashed format`);
+          } catch (hashError) {
+            console.error(`Failed to upgrade password for user ${user.id}:`, hashError);
+          }
+        }
+      }
+      
+      if (!passwordMatch) {
         return done(null, false, { message: 'Incorrect password.' });
       }
+      
       return done(null, user);
     } catch (error) {
       return done(error);
