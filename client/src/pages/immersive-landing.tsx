@@ -35,7 +35,7 @@ export default function ImmersiveLanding() {
   const transportRef = useRef<HTMLDivElement>(null);
   const communicationRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  
+
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
@@ -45,15 +45,15 @@ export default function ImmersiveLanding() {
       });
     }
   };
-  
+
   // Setup animations
   useEffect(() => {
     // Only run on client
     if (typeof window === 'undefined') return;
-    
+
     // Clear any existing ScrollTriggers
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    
+
     const ctx = gsap.context(() => {
       // Hero animations
       if (heroRef.current) {
@@ -67,7 +67,7 @@ export default function ImmersiveLanding() {
           ease: 'power4.out',
           delay: 0.5
         });
-        
+
         // Hero subtitle animation
         gsap.from('.hero-subtitle', {
           opacity: 0,
@@ -75,7 +75,7 @@ export default function ImmersiveLanding() {
           duration: 1,
           delay: 1.5
         });
-        
+
         // Hero buttons animation
         gsap.from('.hero-buttons', {
           opacity: 0,
@@ -83,7 +83,7 @@ export default function ImmersiveLanding() {
           duration: 0.8,
           delay: 1.8
         });
-        
+
         // Background elements parallax
         gsap.to('.bg-element-1', {
           y: '-20%',
@@ -94,7 +94,7 @@ export default function ImmersiveLanding() {
             scrub: 0.5
           }
         });
-        
+
         gsap.to('.bg-element-2', {
           y: '-35%',
           scrollTrigger: {
@@ -105,7 +105,7 @@ export default function ImmersiveLanding() {
           }
         });
       }
-      
+
       // Problem section animations
       if (problemRef.current) {
         // Floating papers animation
@@ -118,7 +118,7 @@ export default function ImmersiveLanding() {
           ease: 'power1.inOut',
           stagger: 0.2
         });
-        
+
         // Section title reveal
         gsap.from('.problem-title', {
           opacity: 0,
@@ -130,7 +130,7 @@ export default function ImmersiveLanding() {
             toggleActions: 'play none none reverse'
           }
         });
-        
+
         // Chaotic elements
         const chaosElements = document.querySelectorAll('.chaos-element');
         chaosElements.forEach((element, index) => {
@@ -148,7 +148,7 @@ export default function ImmersiveLanding() {
           });
         });
       }
-      
+
       // Solution section animations
       if (solutionRef.current) {
         // Section title reveal
@@ -162,7 +162,7 @@ export default function ImmersiveLanding() {
             toggleActions: 'play none none reverse'
           }
         });
-        
+
         // Organized elements
         const solutionElements = document.querySelectorAll('.solution-element');
         solutionElements.forEach((element, index) => {
@@ -179,7 +179,7 @@ export default function ImmersiveLanding() {
           });
         });
       }
-      
+
       // Transport section animations
       if (transportRef.current) {
         // Vehicles animation
@@ -197,7 +197,7 @@ export default function ImmersiveLanding() {
             }
           }
         );
-        
+
         // Route animation
         gsap.from('.route-path', {
           strokeDashoffset: 1000,
@@ -209,7 +209,7 @@ export default function ImmersiveLanding() {
           }
         });
       }
-      
+
       // Communication section animations
       if (communicationRef.current) {
         // Message bubbles animation
@@ -225,7 +225,7 @@ export default function ImmersiveLanding() {
           }
         });
       }
-      
+
       // CTA section animations
       if (ctaRef.current) {
         // Gold particles
@@ -240,7 +240,7 @@ export default function ImmersiveLanding() {
           ease: 'sine.inOut',
           stagger: 0.1
         });
-        
+
         // CTA button pulse
         gsap.to('.cta-button', {
           scale: 1.05,
@@ -251,14 +251,14 @@ export default function ImmersiveLanding() {
         });
       }
     }, pageRef);
-    
+
     // Cleanup function
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
       ctx.revert();
     };
   }, []);
-  
+
   return (
     <div ref={pageRef} className="immersive-landing">
       {/* Navigation Bar */}
@@ -267,7 +267,7 @@ export default function ImmersiveLanding() {
           <div className="flex items-center gap-1">
             <span className="text-[#5E239D] font-serif text-2xl font-bold">Eternally Yours</span>
           </div>
-          
+
           <div className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection(SECTIONS.PROBLEM)}
@@ -291,7 +291,7 @@ export default function ImmersiveLanding() {
               Get Started
             </Link>
           </div>
-          
+
           <button className="md:hidden text-[#5E239D]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
@@ -299,7 +299,7 @@ export default function ImmersiveLanding() {
           </button>
         </div>
       </nav>
-      
+
       {/* Hero Section */}
       <section 
         id={SECTIONS.HERO} 
@@ -324,7 +324,7 @@ export default function ImmersiveLanding() {
               ></div>
             ))}
           </div>
-          
+
           {/* Glowing orbs */}
           <div className="parallax-layer" data-speed="0.2">
             <div className="absolute w-[700px] h-[700px] rounded-full bg-gradient-to-r from-[#7f33d3]/10 to-[#5E239D]/5 blur-3xl -top-64 -left-64"></div>
@@ -332,13 +332,13 @@ export default function ImmersiveLanding() {
           <div className="parallax-layer" data-speed="0.3">
             <div className="absolute w-[900px] h-[900px] rounded-full bg-gradient-to-r from-[#BFA76F]/10 to-[#e9d9a8]/5 blur-3xl -bottom-96 -right-96"></div>
           </div>
-          
+
           {/* Decorative patterns */}
           <div className="parallax-layer absolute inset-0 opacity-5 pointer-events-none" data-speed="0.1">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/mandala-pattern.svg')] bg-repeat opacity-10"></div>
           </div>
         </div>
-        
+
         {/* Hero content */}
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           {/* Main headline with text gradient */}
@@ -347,12 +347,12 @@ export default function ImmersiveLanding() {
               Eternally Yours
             </span>
           </h1>
-          
+
           {/* Subtitle */}
           <p className="text-base md:text-xl mb-12 text-white/80 max-w-3xl mx-auto leading-relaxed">
             The most elegant wedding management platform for Indian weddings. From guest management to itinerary planning, we make it seamless.
           </p>
-          
+
           {/* Call to action buttons */}
           <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -362,7 +362,7 @@ export default function ImmersiveLanding() {
             >
               <Link href="/auth">Get Started</Link>
             </Button>
-            
+
             <Button 
               size="lg" 
               variant="outline" 
@@ -373,7 +373,7 @@ export default function ImmersiveLanding() {
             </Button>
           </div>
         </div>
-        
+
         {/* Elegant floating scroll indicator with gold accent */}
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           <div className="relative w-8 h-12 border border-[#BFA76F]/30 rounded-full flex items-center justify-center overflow-hidden backdrop-blur-sm bg-white/5">
@@ -382,19 +382,19 @@ export default function ImmersiveLanding() {
           <span className="text-xs font-light text-[#BFA76F]/70 mt-2 tracking-wider uppercase">Scroll to explore</span>
         </div>
       </section>
-      
+
       {/* Problem Section - The Wedding Planning Chaos */}
       <section 
         id={SECTIONS.PROBLEM} 
         ref={problemRef}
-        className="relative py-24 bg-[#C5A6ED] text-[#5E239D] scroll-section"
+        className="relative py-24 bg-white text-[#5E239D] scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="problem-title text-center mb-10">
             <span className="text-[#BFA76F] font-light text-base block">Behind the Beauty:</span>
             <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">The Wedding Planning Chaos</span>
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             {/* Visual illustration exactly matching reference screenshot */}
             <div className="relative flex justify-center items-center">
@@ -405,7 +405,7 @@ export default function ImmersiveLanding() {
                   <div className="w-[160px] h-[280px] bg-gray-800 rounded-3xl p-2 z-20">
                     <div className="w-full h-full bg-white rounded-2xl overflow-hidden"></div>
                   </div>
-                  
+
                   {/* Blue paper note - left */}
                   <div className="absolute -left-20 top-8 w-36 h-44 bg-[#89CFF0] rounded-sm transform -rotate-6 z-10">
                     <div className="p-2">
@@ -416,7 +416,7 @@ export default function ImmersiveLanding() {
                       <div className="w-24 h-2 bg-white/40 rounded-full mb-2"></div>
                     </div>
                   </div>
-                  
+
                   {/* Yellow paper note - right */}
                   <div className="absolute -right-20 top-2 w-40 h-48 bg-[#FDFD96] rounded-sm transform rotate-6 z-10">
                     <div className="p-2">
@@ -430,29 +430,29 @@ export default function ImmersiveLanding() {
                 </div>
               </div>
             </div>
-            
+
             {/* Content area - right side - exactly matching reference */}
             <div className="text-[#5E239D] space-y-6">
               <p className="text-sm leading-relaxed">
                 Planning an Indian wedding involves coordinating hundreds of moving parts, from extensive guest lists to multiple ceremonies spanning several days.
               </p>
-              
+
               <div className="space-y-5 mt-8">
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">Managing RSVPs from hundreds of guests across different events becomes overwhelming</p>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">Coordinating transportation and accommodations leads to endless spreadsheets and phone calls</p>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">Communication breakdowns result in confused guests and last-minute emergencies</p>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
                   <p className="text-xs">Traditional planning methods collapse under the complexity of multi-day celebrations</p>
@@ -462,7 +462,7 @@ export default function ImmersiveLanding() {
           </div>
         </div>
       </section>
-      
+
       {/* Solution Section - Elegant Simplicity */}
       <section 
         id={SECTIONS.SOLUTION} 
@@ -474,47 +474,47 @@ export default function ImmersiveLanding() {
             <span className="text-[#BFA76F] font-light text-base block">Elegant Simplicity</span>
             <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">in Every Detail</span>
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
               <p className="text-xs leading-relaxed">
                 Our platform transforms the chaotic planning process into a seamless, elegant experience with purpose-built tools for Indian weddings.
               </p>
-              
+
               <div className="space-y-4 mt-8">
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">Centralized Management</h3>
                   <p className="text-xs text-[#3A1562]/80">Every aspect of your wedding in one elegant dashboard</p>
                 </div>
-                
+
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">Family-Centered Design</h3>
                   <p className="text-xs text-[#3A1562]/80">Keep families together in travel, seating, and communication</p>
                 </div>
-                
+
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">Multi-Day Event Support</h3>
                   <p className="text-xs text-[#3A1562]/80">Seamlessly manage all your ceremonies and celebrations</p>
                 </div>
-                
+
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
                   <h3 className="font-medium text-xs mb-1">Integrated Communication</h3>
                   <p className="text-xs text-[#3A1562]/80">Email and WhatsApp integration for seamless guest updates</p>
                 </div>
               </div>
             </div>
-            
+
             <div className="relative order-1 md:order-2">
               <div className="solution-element relative mx-auto w-[320px] h-[600px] bg-background rounded-[36px] border-8 border-gray-800 shadow-xl overflow-hidden">
                 <div className="absolute top-0 w-full h-6 bg-gray-800 rounded-t-lg"></div>
                 <div className="absolute bottom-0 w-full h-6 bg-gray-800 rounded-b-lg"></div>
-                
+
                 <div className="h-full overflow-hidden">
                   <div className="h-14 w-full bg-primary flex items-center justify-between px-4">
                     <div className="text-white font-medium">Eternally Yours</div>
                     <div className="w-6 h-6 rounded-full bg-white/20"></div>
                   </div>
-                  
+
                   <div className="p-3 bg-gray-100 h-[calc(100%-3.5rem)]">
                     <div className="bg-white rounded-lg shadow-sm p-4 mb-3">
                       <div className="flex justify-between items-center mb-2">
@@ -531,7 +531,7 @@ export default function ImmersiveLanding() {
                         <div className="w-20 h-6 bg-accent/10 rounded-full"></div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <div className="bg-white rounded-lg shadow-sm p-3">
                         <div className="w-8 h-8 rounded-full bg-green-100 mb-2 flex items-center justify-center">
@@ -540,7 +540,7 @@ export default function ImmersiveLanding() {
                         <div className="w-full h-3 bg-gray-200 rounded mb-1"></div>
                         <div className="w-2/3 h-3 bg-gray-200 rounded"></div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg shadow-sm p-3">
                         <div className="w-8 h-8 rounded-full bg-blue-100 mb-2 flex items-center justify-center">
                           <div className="w-4 h-4 rounded-full bg-blue-500"></div>
@@ -549,7 +549,7 @@ export default function ImmersiveLanding() {
                         <div className="w-2/3 h-3 bg-gray-200 rounded"></div>
                       </div>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg shadow-sm p-3 mb-3">
                       <div className="flex justify-between items-center mb-3">
                         <div className="w-24 h-4 bg-gray-200 rounded"></div>
@@ -577,7 +577,7 @@ export default function ImmersiveLanding() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg shadow-sm p-3">
                       <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-md mb-2"></div>
                       <div className="w-full h-3 bg-gray-200 rounded mb-1"></div>
@@ -590,7 +590,7 @@ export default function ImmersiveLanding() {
           </div>
         </div>
       </section>
-      
+
       {/* Transport Section */}
       <section 
         id={SECTIONS.TRANSPORT} 
@@ -601,68 +601,67 @@ export default function ImmersiveLanding() {
           <h2 className="text-4xl md:text-5xl font-serif font-bold mb-12 text-center">
             <span className="text-[#5E239D]">Moving Together</span>
           </h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative h-[400px]">
               {/* SVG Map with Routes */}
               <svg className="w-full h-full" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Map Background */}
                 <rect width="800" height="600" fill="#f8f9fa" rx="8" />
-                
+
                 {/* Roads */}
                 <path className="route-path" d="M100,300 C200,200 300,400 400,300 S600,200 700,300" stroke="#d1d5db" strokeWidth="20" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
                 <path className="route-path" d="M200,100 C250,200 350,250 400,300" stroke="#d1d5db" strokeWidth="15" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
                 <path className="route-path" d="M600,100 C550,200 450,250 400,300" stroke="#d1d5db" strokeWidth="15" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
                 <path className="route-path" d="M400,300 L400,500" stroke="#d1d5db" strokeWidth="20" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
-                
+
                 {/* Primary Route */}
                 <path className="route-path" d="M100,300 C200,200 300,400 400,300 S600,200 700,300" stroke="#5E239D" strokeWidth="10" strokeLinecap="round" strokeDasharray="1000" strokeDashoffset="0" />
-                
+
                 {/* Airport */}
                 <circle cx="100" cy="300" r="30" fill="#e0f2fe" stroke="#7dd3fc" strokeWidth="4" />
                 <path d="M85,300 L115,300 M100,285 L100,315 M80,280 L120,320" stroke="#0284c7" strokeWidth="3" />
-                
+
                 {/* Hotel */}
                 <rect x="370" y="270" width="60" height="60" rx="4" fill="#f0fdf4" stroke="#86efac" strokeWidth="4" />
                 <path d="M385,300 L415,300 M400,285 L400,315" stroke="#16a34a" strokeWidth="3" />
-                
+
                 {/* Venue */}
                 <circle cx="700" cy="300" r="30" fill="#fef3c7" stroke="#fcd34d" strokeWidth="4" />
                 <path d="M685,300 L715,300 M700,285 L700,315 M685,285 L715,315 M685,315 L715,285" stroke="#f59e0b" strokeWidth="3" />
-                
+
                 {/* Vehicles */}
                 <g className="vehicle-element" transform="translate(200, 250)">
                   <rect x="0" y="0" width="40" height="20" rx="5" fill="#5E239D" />
                   <circle cx="10" cy="20" r="5" fill="#1e293b" />
                   <circle cx="30" cy="20" r="5" fill="#1e293b" />
                 </g>
-                
+
                 <g className="vehicle-element" transform="translate(350, 350)">
                   <rect x="0" y="0" width="50" height="25" rx="5" fill="#BFA76F" />
                   <circle cx="15" cy="25" r="6" fill="#1e293b" />
                   <circle cx="35" cy="25" r="6" fill="#1e293b" />
                 </g>
-                
+
                 <g className="vehicle-element" transform="translate(500, 250)">
                   <rect x="0" y="0" width="60" height="30" rx="5" fill="#5E239D" />
                   <circle cx="15" cy="30" r="7" fill="#1e293b" />
-                  <circle cx="45" cy="30" r="7" fill="#1e293b" />
-                </g>
-                
+                  <circle cx="45" cy="30" r="7" fill="#1e293b" />                </g>
+
                 {/* Labels */}
                 <text x="100" y="360" textAnchor="middle" fill="#0284c7" fontSize="16" fontWeight="500">Airport</text>
                 <text x="400" y="360" textAnchor="middle" fill="#16a34a" fontSize="16" fontWeight="500">Hotel</text>
                 <text x="700" y="360" textAnchor="middle" fill="#f59e0b" fontSize="16" fontWeight="500">Venue</text>
               </svg>
             </div>
-            
+
             <div className="space-y-6">
               <h3 className="text-3xl font-serif font-semibold mb-4 text-foreground">Family-Centric Transportation</h3>
-              
+
               <p className="text-lg text-foreground/80">
                 Our revolutionary transport management system ensures that families travel together comfortably, with intelligent allocation based on arrival times and group sizes.
               </p>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
@@ -675,7 +674,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70 text-sm flex-grow">Define your available fleet with vehicle types and capacities</p>
                   </div>
                 </Card>
-                
+
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-3">
@@ -687,7 +686,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70 text-sm flex-grow">Automatically keep families together in the same vehicle</p>
                   </div>
                 </Card>
-                
+
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
@@ -699,7 +698,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70 text-sm flex-grow">Group travelers by arrival time to optimize vehicle usage</p>
                   </div>
                 </Card>
-                
+
                 <Card className="p-4 border border-border/50 bg-card">
                   <div className="flex flex-col h-full">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-3">
@@ -712,7 +711,7 @@ export default function ImmersiveLanding() {
                   </div>
                 </Card>
               </div>
-              
+
               <Button
                 className="mt-8"
                 onClick={() => scrollToSection(SECTIONS.COMMUNICATION)}
@@ -723,23 +722,23 @@ export default function ImmersiveLanding() {
           </div>
         </div>
       </section>
-      
+
       {/* Communication Section */}
       <section 
         id={SECTIONS.COMMUNICATION} 
         ref={communicationRef}
-        className="relative py-24 bg-[#C5A6ED]"
+        className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
             <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">Multichannel Guest Engagement</span>
           </h2>
-          
+
           <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
             Keep your guests informed and engaged through personalized WhatsApp messages
             and email communications.
           </p>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div className="order-2 lg:order-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -754,7 +753,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70">Send updates, collect RSVPs, and answer questions through WhatsApp</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -766,7 +765,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70">Send elegant, branded emails for invitations and updates</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white flex-shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -778,7 +777,7 @@ export default function ImmersiveLanding() {
                     <p className="text-foreground/70">Schedule timely reminders for transportation and events</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-white flex-shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -792,7 +791,7 @@ export default function ImmersiveLanding() {
                 </div>
               </div>
             </div>
-            
+
             <div className="order-1 lg:order-2">
               <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
                 <div className="flex items-center gap-3 pb-4 border-b">
@@ -806,26 +805,26 @@ export default function ImmersiveLanding() {
                     <p className="text-xs text-foreground/70">WhatsApp Communication</p>
                   </div>
                 </div>
-                
+
                 <div className="py-4 space-y-4">
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
                       <p className="text-sm">Namaste Priya! We're excited to welcome you to Raj & Anita's wedding celebration. Your RSVP has been confirmed for all 3 days of ceremonies.</p>
                     </div>
                   </div>
-                  
+
                   <div className="message-bubble flex justify-end">
                     <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
                       <p className="text-sm">Thank you! I'm looking forward to it. Will there be transportation from the hotel to the venue?</p>
                     </div>
                   </div>
-                  
+
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
                       <p className="text-sm">Yes! We've arranged transportation for you. A car will pick you up from JW Marriott at 5:30 PM on Friday. We've made sure you'll be with your family members.</p>
                     </div>
                   </div>
-                  
+
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] space-y-2">
                       <p className="text-sm">Here are the transportation details:</p>
@@ -837,14 +836,14 @@ export default function ImmersiveLanding() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="message-bubble flex justify-end">
                     <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
                       <p className="text-sm">Perfect! Thank you for organizing this so well.</p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="pt-3 border-t flex gap-2">
                   <div className="bg-gray-100 rounded-full flex-grow p-2 text-sm text-gray-400">Type a message...</div>
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
@@ -858,12 +857,12 @@ export default function ImmersiveLanding() {
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section 
         id={SECTIONS.CTA} 
         ref={ctaRef}
-        className="relative py-24 bg-[#C5A6ED]"
+        className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6 text-center relative z-10">
           {/* Gold particles */}
@@ -880,15 +879,15 @@ export default function ImmersiveLanding() {
               ></div>
             ))}
           </div>
-          
+
           <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-[#5E239D]">
             Begin Your <span className="text-[#5E239D]">Journey</span>
           </h2>
-          
+
           <p className="text-lg text-[#5E239D] max-w-3xl mx-auto mb-12">
             Transform your wedding planning experience today. Our platform brings elegance to every detail, letting you focus on what truly matters.
           </p>
-          
+
           <Button 
             size="lg" 
             className="cta-button bg-[#5E239D] hover:bg-[#5E239D]/90 text-white text-xl py-6 px-10 rounded-md"
@@ -896,7 +895,7 @@ export default function ImmersiveLanding() {
           >
             <Link href="/auth">Get Started Now</Link>
           </Button>
-          
+
           <p className="text-[#5E239D]/70 mt-6">
             No credit card required • Free 14-day trial • Cancel anytime
           </p>
