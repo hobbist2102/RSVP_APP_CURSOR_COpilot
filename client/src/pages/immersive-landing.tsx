@@ -15,15 +15,33 @@ if (typeof window !== "undefined") {
 }
 
 // Memoized utility function for performance optimization
-const throttle = (func: Function, limit: number) => {
+// Enhanced throttle function with cancel capability for better memory cleanup
+interface ThrottledFunction {
+  (this: any, ...args: any[]): void;
+  cancel?: () => void;
+}
+
+const throttle = (func: Function, limit: number): ThrottledFunction => {
   let inThrottle: boolean;
-  return function (this: any, ...args: any[]) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  
+  const throttledFn: ThrottledFunction = function (this: any, ...args: any[]) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
+      timeoutId = setTimeout(() => (inThrottle = false), limit);
     }
   };
+  
+  // Add cancel method to the throttled function for cleanup
+  throttledFn.cancel = function() {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+  
+  return throttledFn;
 }
 
 // Define section IDs for navigation
@@ -504,7 +522,10 @@ export default function ImmersiveLanding() {
       // Ensure proper cleanup to prevent memory leaks
       window.removeEventListener("mousemove", handleMouseMoveThrottled);
       // Clean throttled function to release closure references
-      handleMouseMoveThrottled.cancel && handleMouseMoveThrottled.cancel();
+      const cancelableFunction = handleMouseMoveThrottled as ThrottledFunction;
+      if (cancelableFunction.cancel) {
+        cancelableFunction.cancel();
+      }
     };
   }, []);
 
