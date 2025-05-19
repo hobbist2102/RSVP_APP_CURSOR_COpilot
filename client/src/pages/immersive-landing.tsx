@@ -284,31 +284,44 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate a large number of particles for the background
+  // Generate luxury gold particles for the background
   const renderParticles = () => {
-    const particleCount = 3000; // 30x more than original for luxury dust effect
+    const particleCount = 3000; // Increased particle count for luxury effect
     return Array.from({ length: particleCount }).map((_, i) => {
-      // Create extremely fine particles for luxury gold dust effect
-      const baseSize = 0.6 + Math.random() * 0.8; // Even smaller: 0.6-1.4px for ultra-fine dust
-      const sizeFactor = Math.random() < 0.05 ? 2 : 1; // 5% chance of slightly larger particles
-      const size = baseSize * sizeFactor;
+      // Create rich gold particles matching "Eternally Yours" styling
+      
+      // Particle type distribution for a luxury gold dust effect
+      const particleType = Math.random();
+      
+      let size, opacity, customShadow;
+      if (particleType < 0.7) { // 70% - fine gold dust
+        size = 0.8 + Math.random() * 0.6;
+        opacity = 0.5 + Math.random() * 0.3;
+        customShadow = "0 0 3px 1px rgba(212, 185, 118, 0.4)";
+      } else if (particleType < 0.9) { // 20% - medium gold flecks
+        size = 1.2 + Math.random() * 0.8;
+        opacity = 0.6 + Math.random() * 0.3;
+        customShadow = "0 0 4px 2px rgba(212, 185, 118, 0.5)";
+      } else { // 10% - larger gold highlights
+        size = 1.8 + Math.random() * 1.2;
+        opacity = 0.7 + Math.random() * 0.3;
+        customShadow = "0 0 5px 2px rgba(212, 185, 118, 0.6)";
+      }
 
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
-      const delay = Math.random() * 20; // More varied delays
-      const duration = 8 + Math.random() * 14; // More varied durations
-
-      // More refined opacity distribution for realistic gold dust
-      let opacity;
-      if (size < 0.8) {
-        opacity = 0.3 + Math.random() * 0.2; // Smaller particles more subtle
-      } else if (size < 1.2) {
-        opacity = 0.4 + Math.random() * 0.3; // Medium particles medium opacity
-      } else {
-        opacity = 0.5 + Math.random() * 0.4; // Larger particles more visible
-      }
-
-      const mouseInfluence = Math.random() * 15 + 5; // Varied mouse influence
+      const delay = Math.random() * 15; // Varied delays
+      const duration = 10 + Math.random() * 15; // Slower, more elegant movement
+      
+      // Gold colors that match the "Eternally Yours" text in the hero section
+      const goldColors = [
+        "radial-gradient(circle, #fcf9ea 0%, #f1e7c2 50%, #d4b976 100%)",
+        "radial-gradient(circle, #faf6e4 0%, #e9d9a8 50%, #c7ae75 100%)",
+        "radial-gradient(circle, #fffcf0 0%, #f5ebd0 50%, #d8bc7d 100%)"
+      ];
+      
+      const selectedColor = goldColors[Math.floor(Math.random() * goldColors.length)];
+      const mouseInfluence = 5 + (size * 3); // Larger particles move more with mouse
 
       return (
         <div
@@ -319,8 +332,11 @@ export default function ImmersiveLanding() {
             left: `${initialX}%`,
             width: `${size}px`,
             height: `${size}px`,
+            background: selectedColor,
+            boxShadow: customShadow,
             animationDelay: `${delay}s`,
             animationDuration: `${duration}s`,
+            filter: "brightness(1.1)",
             transform:
               mousePosition.x > 0
                 ? `translate(${(mousePosition.x / window.innerWidth - 0.5) * mouseInfluence}px, ${(mousePosition.y / window.innerHeight - 0.5) * mouseInfluence}px)`

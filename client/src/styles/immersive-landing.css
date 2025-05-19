@@ -90,17 +90,18 @@
 /* Gold particles effect */
 .gold-particle {
   position: fixed;
-  width: 1px;
-  height: 1px;
+  width: 1.5px;
+  height: 1.5px;
   border-radius: 50%;
-  background: radial-gradient(circle, #f9f3df 0%, #e9d9a8 50%, #BFA76F 100%);
-  box-shadow: 0 0 3px 1px rgba(191, 167, 111, 0.5);
+  background: radial-gradient(circle, #faf6e4 0%, #f1e7c2 40%, #d4b976 100%);
+  box-shadow: 0 0 4px 2px rgba(212, 185, 118, 0.6);
   opacity: 0.85;
   z-index: 1000;
   transition: transform 0.2s ease-out;
   will-change: transform, opacity;
   animation: floatParticle 12s ease-in-out infinite;
   pointer-events: none;
+  filter: brightness(1.2);
 }
 
 @keyframes floatParticle {
