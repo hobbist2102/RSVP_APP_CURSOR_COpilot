@@ -284,68 +284,115 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate luxury gold particles for the background
+  // Generate connected particles network
   const renderParticles = () => {
-    const particleCount = 3000; // Increased particle count for luxury effect
-    return Array.from({ length: particleCount }).map((_, i) => {
-      // Create rich gold particles matching "Eternally Yours" styling
-      
-      // Particle type distribution for a luxury gold dust effect
-      const particleType = Math.random();
-      
-      let size, opacity, customShadow;
-      if (particleType < 0.7) { // 70% - fine gold dust
-        size = 0.8 + Math.random() * 0.6;
-        opacity = 0.5 + Math.random() * 0.3;
-        customShadow = "0 0 3px 1px rgba(212, 185, 118, 0.4)";
-      } else if (particleType < 0.9) { // 20% - medium gold flecks
-        size = 1.2 + Math.random() * 0.8;
-        opacity = 0.6 + Math.random() * 0.3;
-        customShadow = "0 0 4px 2px rgba(212, 185, 118, 0.5)";
-      } else { // 10% - larger gold highlights
-        size = 1.8 + Math.random() * 1.2;
-        opacity = 0.7 + Math.random() * 0.3;
-        customShadow = "0 0 5px 2px rgba(212, 185, 118, 0.6)";
-      }
-
+    const nodeCount = 120; // Fewer nodes for the network
+    const starCount = 1000; // Background stars like in the screenshot
+    
+    // First, create the network nodes (particles)
+    const nodes = Array.from({ length: nodeCount }).map((_, i) => {
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
-      const delay = Math.random() * 15; // Varied delays
-      const duration = 10 + Math.random() * 15; // Slower, more elegant movement
+      const delay = Math.random() * 25;
+      const duration = 15 + Math.random() * 15;
       
-      // Gold colors that match the "Eternally Yours" text in the hero section
-      const goldColors = [
-        "radial-gradient(circle, #fcf9ea 0%, #f1e7c2 50%, #d4b976 100%)",
-        "radial-gradient(circle, #faf6e4 0%, #e9d9a8 50%, #c7ae75 100%)",
-        "radial-gradient(circle, #fffcf0 0%, #f5ebd0 50%, #d8bc7d 100%)"
-      ];
+      return {
+        id: i,
+        x: initialX,
+        y: initialY,
+        size: 0.8 + Math.random() * 0.4,
+        delay,
+        duration,
+        opacity: 0.3 + Math.random() * 0.2
+      };
+    });
+    
+    // Create nodes (particles)
+    const nodeElements = nodes.map(node => (
+      <div
+        key={`node-${node.id}`}
+        className="gold-particle"
+        style={{
+          top: `${node.y}%`,
+          left: `${node.x}%`,
+          width: `${node.size}px`,
+          height: `${node.size}px`,
+          animationDelay: `${node.delay}s`,
+          animationDuration: `${node.duration}s`,
+          opacity: node.opacity,
+          transform: mousePosition.x > 0
+            ? `translate(${(mousePosition.x / window.innerWidth - 0.5) * 10}px, ${(mousePosition.y / window.innerHeight - 0.5) * 10}px)`
+            : "none",
+        }}
+      />
+    ));
+    
+    // Create background stars (like in screenshot)
+    const starElements = Array.from({ length: starCount }).map((_, i) => {
+      const initialX = Math.random() * 100;
+      const initialY = Math.random() * 100;
+      const delay = Math.random() * 4;
+      const size = 0.5 + Math.random() * 0.3;
       
-      const selectedColor = goldColors[Math.floor(Math.random() * goldColors.length)];
-      const mouseInfluence = 5 + (size * 3); // Larger particles move more with mouse
-
       return (
         <div
-          key={i}
-          className="gold-particle"
+          key={`star-${i}`}
+          className="gold-star"
           style={{
             top: `${initialY}%`,
             left: `${initialX}%`,
             width: `${size}px`,
             height: `${size}px`,
-            background: selectedColor,
-            boxShadow: customShadow,
             animationDelay: `${delay}s`,
-            animationDuration: `${duration}s`,
-            filter: "brightness(1.1)",
-            transform:
-              mousePosition.x > 0
-                ? `translate(${(mousePosition.x / window.innerWidth - 0.5) * mouseInfluence}px, ${(mousePosition.y / window.innerHeight - 0.5) * mouseInfluence}px)`
-                : "none",
-            opacity: opacity,
           }}
-        ></div>
+        />
       );
     });
+    
+    // Create SVG connections between nearby nodes
+    const connections: JSX.Element[] = [];
+    const connectionDistance = 15; // Maximum distance for connection (in % of viewport)
+    
+    nodes.forEach((node, i) => {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const targetNode = nodes[j];
+        const dx = Math.abs(node.x - targetNode.x);
+        const dy = Math.abs(node.y - targetNode.y);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < connectionDistance) {
+          // Calculate opacity based on distance (farther = more transparent)
+          const lineOpacity = 0.15 * (1 - distance / connectionDistance);
+          
+          connections.push(
+            <svg
+              key={`connection-${i}-${j}`}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 40,
+                pointerEvents: 'none',
+                opacity: lineOpacity,
+              }}
+            >
+              <line
+                x1={`${node.x}%`}
+                y1={`${node.y}%`}
+                x2={`${targetNode.x}%`}
+                y2={`${targetNode.y}%`}
+                stroke="#d4b976"
+                strokeWidth="0.3"
+              />
+            </svg>
+          );
+        }
+      }
+    });
+    
+    return [...starElements, ...connections, ...nodeElements];
   };
 
   return (
