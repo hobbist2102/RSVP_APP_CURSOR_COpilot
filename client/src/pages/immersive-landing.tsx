@@ -406,9 +406,9 @@ export default function ImmersiveLanding() {
         */}
         <NightSky 
           starCount={150}           // Moderate star count for performance
-          shootingStarCount={3}     // Occasional shooting stars
+          shootingStarCount={8}     // Increased number of shooting stars
           color={goldColor}         // Gold color matching wedding theme
-          moonGlow={true}           // Enable subtle moon glow effect
+          moonGlow={false}          // Disabled moon glow effect as requested
         />
       </div>
     );
