@@ -776,8 +776,7 @@ export default function ImmersiveLanding() {
                 />
 
                 {/* Vehicles */}
-                <g className="vehicle-element" transform="translate(200, 25// This file updates the communication section text colors.
-50)">
+                <g className="vehicle-element" transform="translate(200, 250)">
                   <rect
                     x="0"
                     y="0"
@@ -993,14 +992,15 @@ export default function ImmersiveLanding() {
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
-            <span className="text-white font-serif text-3xl md:text-4xl font-bold">
+            <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">
               Multichannel Guest Engagement
             </span>
           </h2>
 
-          <p className="text-white/80 text-center max-w-2xl mx-auto mb-12">
+          <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
             Keep your guests informed and engaged through personalized WhatsApp
-            messages and email communications. Automate Responses with AI Chatbots.
+            messages and email communications. Automate Responses with AI
+            Chatbots.
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
