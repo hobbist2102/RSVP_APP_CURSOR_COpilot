@@ -266,7 +266,7 @@ export default function ImmersiveLanding() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className="text-[#5E239D] font-serif text-2xl font-bold">
+            <span className="text-[#5E239D] font-['Great_Vibes'] text-3xl">
               Eternally Yours
             </span>
           </div>
@@ -363,7 +363,7 @@ export default function ImmersiveLanding() {
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           {/* Main headline with text gradient */}
           <h1 className="mb-8">
-            <span className="block text-6xl md:text-8xl font-serif font-bold text-gradient tracking-wider">
+            <span className="block text-6xl md:text-8xl font-['Great_Vibes'] text-gradient tracking-wider">
               Eternally Yours
             </span>
           </h1>
