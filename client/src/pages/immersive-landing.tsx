@@ -1144,7 +1144,7 @@ export default function ImmersiveLanding() {
                   </div>
                 </div>
 
-                <div className="py-4 space-y-4">
+                <div className="py-4 space-y-4 min-h-[300px]">
                   <div className="message-bubble flex justify-start">
                     <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
                       <p className="text-sm">
