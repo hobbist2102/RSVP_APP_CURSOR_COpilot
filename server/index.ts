@@ -59,9 +59,10 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    
+    console.error(`Server error: ${err.message || 'Unknown error'}`, err);
     res.status(status).json({ message });
-    throw err;
+    // Removed the 'throw err' line to prevent server crashes
   });
 
   // importantly only setup vite in development and after
