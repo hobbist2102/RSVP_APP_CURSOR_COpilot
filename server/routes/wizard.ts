@@ -181,8 +181,8 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
               coupleNames: stepData.coupleNames,
               brideName: stepData.brideName,
               groomName: stepData.groomName,
-              startDate: new Date(stepData.startDate),
-              endDate: new Date(stepData.endDate),
+              startDate: stepData.startDate,
+              endDate: stepData.endDate,
               location: stepData.location,
               description: stepData.description || null,
               updatedAt: new Date()
@@ -195,21 +195,98 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
         break;
       case 'rsvp_config':
         updateValues.rsvpComplete = true;
+        
+        // Update RSVP settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              allowPlusOnes: stepData.allowPlusOnes,
+              allowChildrenDetails: stepData.allowChildrenDetails,
+              rsvpDeadline: stepData.rsvpDeadline || null,
+              trackDietaryRestrictions: stepData.trackDietaryRestrictions,
+              trackSide: stepData.trackSide,
+              rsvpQuestions: stepData.rsvpQuestions || null,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       case 'hotels':
         updateValues.accommodationComplete = true;
+        
+        // Update accommodation settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              accommodationMode: stepData.accommodationMode,
+              accommodationSpecialDeals: stepData.accommodationSpecialDeals,
+              accommodationInstructions: stepData.accommodationInstructions,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       case 'transport':
         updateValues.transportComplete = true;
+        
+        // Update transport settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              transportMode: stepData.transportMode,
+              transportInstructions: stepData.transportInstructions,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       case 'communication':
         updateValues.communicationComplete = true;
+        
+        // Update communication settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              emailProvider: stepData.emailProvider,
+              sendRsvpReminders: stepData.sendRsvpReminders,
+              sendRsvpConfirmations: stepData.sendRsvpConfirmations,
+              sendTravelUpdates: stepData.sendTravelUpdates,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
+        break;
+      case 'whatsapp':
+        // Update WhatsApp settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              whatsappBusinessNumber: stepData.whatsappBusinessNumber,
+              whatsappEnabled: stepData.whatsappEnabled,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       case 'ai_assistant':
         // Not in original schema, we'll just update currentStep
         break;
       case 'design':
         updateValues.stylingComplete = true;
+        
+        // Update design settings in the event record
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              primaryColor: stepData.primaryColor,
+              secondaryColor: stepData.secondaryColor,
+              fontFamily: stepData.fontFamily,
+              designTemplate: stepData.designTemplate,
+              customCss: stepData.customCss,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       default:
         return res.status(400).json({ error: 'Invalid step ID' });
