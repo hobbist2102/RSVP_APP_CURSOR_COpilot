@@ -349,7 +349,7 @@ export default function EventSetupWizard() {
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-playfair font-bold text-neutral">
-            {isNewEventCreation ? "Create New Event" : "Event Setup Wizard"}
+            Event Setup Wizard
           </h2>
           <p className="text-sm text-gray-500">
             {isNewEventCreation 
@@ -378,9 +378,9 @@ export default function EventSetupWizard() {
         /* Show wizard interface when accessed with an event ID */
         <Card className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Left sidebar with steps - only show for existing events */}
+            {/* Left sidebar with steps - always show steps list regardless of new or existing event */}
             <div className="md:col-span-1 space-y-6">
-              {!isNewEventCreation && (
+              {/* Always show steps sidebar for consistency */}
                 <Steps
                   steps={steps.map(step => ({
                     id: step.id,
@@ -391,7 +391,6 @@ export default function EventSetupWizard() {
                   onStepClick={navigateToStep}
                   orientation="vertical"
                 />
-              )}
               
               <div className="space-y-2 pt-6">
                 {areAllStepsCompleted && (
