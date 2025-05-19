@@ -54,9 +54,9 @@ export default function ImmersiveLanding() {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -232,11 +232,12 @@ export default function ImmersiveLanding() {
           scale: 1,
           opacity: 1,
         });
-        
+
         // Add animation effect when scrolling to the section
-        gsap.fromTo(".message-bubble", 
+        gsap.fromTo(
+          ".message-bubble",
           { scale: 0.9, opacity: 0.7 },
-          { 
+          {
             scale: 1,
             opacity: 1,
             duration: 0.5,
@@ -246,7 +247,7 @@ export default function ImmersiveLanding() {
               start: "top 70%",
               toggleActions: "play none none none",
             },
-          }
+          },
         );
       }
 
@@ -291,12 +292,12 @@ export default function ImmersiveLanding() {
       const baseSize = 0.6 + Math.random() * 0.8; // Even smaller: 0.6-1.4px for ultra-fine dust
       const sizeFactor = Math.random() < 0.05 ? 2 : 1; // 5% chance of slightly larger particles
       const size = baseSize * sizeFactor;
-      
+
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
       const delay = Math.random() * 20; // More varied delays
       const duration = 8 + Math.random() * 14; // More varied durations
-      
+
       // More refined opacity distribution for realistic gold dust
       let opacity;
       if (size < 0.8) {
@@ -306,9 +307,9 @@ export default function ImmersiveLanding() {
       } else {
         opacity = 0.5 + Math.random() * 0.4; // Larger particles more visible
       }
-      
+
       const mouseInfluence = Math.random() * 15 + 5; // Varied mouse influence
-      
+
       return (
         <div
           key={i}
@@ -320,9 +321,10 @@ export default function ImmersiveLanding() {
             height: `${size}px`,
             animationDelay: `${delay}s`,
             animationDuration: `${duration}s`,
-            transform: mousePosition.x > 0 ? 
-              `translate(${(mousePosition.x / window.innerWidth - 0.5) * mouseInfluence}px, ${(mousePosition.y / window.innerHeight - 0.5) * mouseInfluence}px)` : 
-              'none',
+            transform:
+              mousePosition.x > 0
+                ? `translate(${(mousePosition.x / window.innerWidth - 0.5) * mouseInfluence}px, ${(mousePosition.y / window.innerHeight - 0.5) * mouseInfluence}px)`
+                : "none",
             opacity: opacity,
           }}
         ></div>
@@ -332,11 +334,11 @@ export default function ImmersiveLanding() {
 
   return (
     <div ref={pageRef} className="immersive-landing">
-      {/* Global Particles Container */}
-      <div ref={particlesRef} className="particles-container">
+      {/* Global Particles Container - Higher z-index to ensure visibility on all sections */}
+      <div ref={particlesRef} className="particles-container" style={{ zIndex: 9999 }}>
         {renderParticles()}
       </div>
-      
+
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -400,7 +402,6 @@ export default function ImmersiveLanding() {
       >
         {/* Background Elements - Parallax Effect */}
         <div className="absolute inset-0 overflow-hidden">
-
           {/* Glowing orbs */}
           <div className="parallax-layer" data-speed="0.2">
             <div className="absolute w-[700px] h-[700px] rounded-full bg-gradient-to-r from-[#7f33d3]/10 to-[#5E239D]/5 blur-3xl -top-64 -left-64"></div>
@@ -580,9 +581,9 @@ export default function ImmersiveLanding() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
               <p className="text-base md:text-lg leading-relaxed">
-                Designed from the ground up by wedding planners, our all-in-one platform
-                removes the noise, so that you can plan with clarity and
-                celebrate with your heart.
+                Designed from the ground up by wedding planners, our all-in-one
+                platform removes the noise, so that you can plan with clarity
+                and celebrate with your heart.
               </p>
 
               <div className="space-y-4 mt-8">
@@ -1247,9 +1248,15 @@ export default function ImmersiveLanding() {
                         Here are the transportation details:
                       </p>
                       <div className="bg-white rounded-md p-2 text-sm border border-gray-300">
-                        <p className="font-medium text-gray-900">🚗 Your Transport Details</p>
-                        <p className="text-xs mt-1 text-gray-900">Date: June 17, 2025</p>
-                        <p className="text-xs text-gray-900">Pickup: JW Marriott, 5:30 PM</p>
+                        <p className="font-medium text-gray-900">
+                          🚗 Your Transport Details
+                        </p>
+                        <p className="text-xs mt-1 text-gray-900">
+                          Date: June 17, 2025
+                        </p>
+                        <p className="text-xs text-gray-900">
+                          Pickup: JW Marriott, 5:30 PM
+                        </p>
                         <p className="text-xs text-gray-900">
                           Vehicle: White Innova (Sharma Family)
                         </p>
@@ -1336,7 +1343,7 @@ export default function ImmersiveLanding() {
           </Button>
 
           <p className="text-white/70 mt-6">
-            No credit card required • Free 14-day trial • Cancel anytime
+            Plan your wedding with Grace and Ease. Not Google Sheets!
           </p>
         </div>
       </section>
