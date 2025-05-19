@@ -455,18 +455,7 @@ export default function Events() {
         
         <Button 
           onClick={() => {
-            setCurrentEvent(null);
-            eventForm.reset({
-              title: "",
-              coupleNames: "",
-              brideName: "",
-              groomName: "",
-              startDate: "",
-              endDate: "",
-              location: "",
-              description: "",
-            });
-            setShowAddEventDialog(true);
+            setLocation('/event-setup-wizard/new');
           }}
           className="gold-gradient"
         >
