@@ -77,18 +77,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Setup enhanced session configuration for better persistence
-  // Using the default in-memory store for simplicity and reliability
+  // Configure session management with proper settings for persistence
   app.use(session({
-    secret: 'wedding-rsvp-secret-enhanced-v2',
-    resave: true, // Force save session on every request
-    saveUninitialized: true, // Save uninitialized sessions
+    secret: 'wedding-rsvp-secret-key',
+    resave: false, // Only save session when data changes
+    saveUninitialized: false, // Don't save empty sessions
     rolling: true, // Reset expiration with each request
-    name: 'wedding_session_v2', // Distinct name to avoid conflicts with old cookies
+    name: 'wedding_session', // Session cookie name
     cookie: { 
-      secure: false, // Don't require HTTPS
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days for very long persistence
-      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Only require HTTPS in production
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true, 
       sameSite: 'lax',
       path: '/'
     }
@@ -150,21 +149,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
   
   passport.serializeUser((user: any, done) => {
+    console.log('Serializing user:', user.id);
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('Deserializing user ID:', id);
       const user = await storage.getUser(id);
-      // Create a safe version of the user without the password
-      if (user) {
-        const { password, ...safeUser } = user;
-        done(null, safeUser);
-      } else {
-        done(null, null);
+      
+      if (!user) {
+        console.log('User not found during deserialization');
+        return done(null, null);
       }
+      
+      // Create a safe version of the user without the password
+      const { password, ...safeUser } = user;
+      console.log('Successfully deserialized user:', safeUser.id);
+      return done(null, safeUser);
     } catch (error) {
-      done(error, null);
+      console.error('Error deserializing user:', error);
+      return done(error, null);
     }
   });
   
@@ -238,36 +243,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', (req, res, next) => {
     passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
       if (err) {
+        console.error('Authentication error:', err);
         return next(err);
       }
+      
       if (!user) {
+        console.log('Login failed - Invalid credentials');
         return res.status(401).json({ message: info?.message || 'Invalid credentials' });
       }
       
+      console.log('Authentication successful, calling req.login');
+      
       req.login(user, (loginErr: Error | null) => {
         if (loginErr) {
+          console.error('Login error:', loginErr);
           return next(loginErr);
         }
         
-        // Log the session after login to debug
-        console.log('Login successful, session:', req.session);
-        console.log('User after login:', req.user);
+        // Enhanced logging to diagnose session issues
+        console.log('Login successful, session ID:', req.sessionID);
+        console.log('User after login:', JSON.stringify({
+          id: (user as any).id,
+          username: (user as any).username,
+          role: (user as any).role,
+          name: (user as any).name
+        }));
         
-        // Store user ID and role directly in the session for easier access
-        req.session.userId = (user as any).id;
-        req.session.userRole = (user as any).role;
-        
-        // Save the session before responding
+        // Create a safe user object without the password
+        const safeUser = { ...user } as any;
+        if (safeUser.password) {
+          delete safeUser.password;
+        }
+          
+        // Force immediate session save and wait for completion
         req.session.save((saveErr) => {
           if (saveErr) {
+            console.error('Session save error:', saveErr);
             return next(saveErr);
           }
-          // Create a safe user object without the password
-          const safeUser = { ...req.user } as any;
-          if (safeUser.password) {
-            delete safeUser.password;
-          }
           
+          console.log('Session saved successfully. Session ID:', req.sessionID);
           return res.json({ user: safeUser });
         });
       });
@@ -330,32 +345,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Wedding Event routes
+  // Standard events route
   app.get('/api/events', isAuthenticated, async (req, res) => {
     try {
-      console.log('GET /api/events - Session data:', req.session);
-      
       // Get all events first, regardless of user
       const allEvents = await storage.getAllEvents();
       console.log(`Retrieved all events (${allEvents.length}): `, allEvents.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
       
-      // Get user info from session directly (more reliable than req.user)
-      const userId = req.session.userId || (req.user as any)?.id;
-      const userRole = req.session.userRole || (req.user as any)?.role;
+      // Get user info from the authenticated request
+      const userId = (req.user as any).id;
+      const userRole = (req.user as any).role;
       const isAdmin = userRole === 'admin';
       
-      console.log(`Session-based user ID: ${userId}, Role: ${userRole}, isAdmin: ${isAdmin}`);
-      
-      if (!userId) {
-        console.log('No user ID found in session or req.user, returning 401');
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-      
-      // SPECIAL CASE FOR ABHISHEK (USER ID 2 from DB)
-      // Hard-code admin access for Abhishek to ensure visibility of all events
-      if (userId === 2) {
-        console.log(`Abhishek (admin) with ID ${userId} is accessing events - showing ALL events`);
-        return res.json(allEvents);
-      }
+      console.log(`Request from user ID: ${userId}, Role: ${userRole}, isAdmin: ${isAdmin}`);
       
       if (isAdmin) {
         // Admin users see all events
