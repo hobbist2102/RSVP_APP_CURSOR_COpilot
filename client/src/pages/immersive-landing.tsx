@@ -512,33 +512,49 @@ export default function ImmersiveLanding() {
 
   // Add mouse movement effect with throttling for performance
   useEffect(() => {
-    // More aggressive throttling to reduce CPU usage
-    const handleMouseMoveThrottled = throttle((e: MouseEvent) => {
-      const particlesContainer = particlesRef.current;
-      if (particlesContainer) {
-        // Use requestAnimationFrame to optimize style updates
-        requestAnimationFrame(() => {
-          // Calculate movement with reduced factor for less processing
-          const xPercent = (e.clientX / window.innerWidth - 0.5) * 3; // Reduced movement
-          const yPercent = (e.clientY / window.innerHeight - 0.5) * 3; // Reduced movement
-          
-          // Use transform3d for hardware acceleration and reduced memory usage
-          particlesContainer.style.transform = `translate3d(${xPercent}px, ${yPercent}px, 0)`;
-        });
+    // Based on heap snapshot analysis, we're moving mouse tracking to a shared object pattern
+    // instead of using DOM manipulation which creates many object references
+    if (typeof window === 'undefined') return;
+    
+    // Create a shared mouse position object that can be accessed by canvas renderer
+    // This significantly reduces memory by avoiding separate state, transforms, and style recalculations
+    const sharedMouseState = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      active: false
+    };
+    
+    // Make it accessible to the canvas renderer
+    (window as any).__particleMouseState = sharedMouseState;
+    
+    // Only update raw coordinates without any calculations or DOM manipulations
+    // This eliminates style recalculation, layout, and paint operations
+    const handleMouseMove = (e: MouseEvent) => {
+      sharedMouseState.x = e.clientX;
+      sharedMouseState.y = e.clientY;
+      sharedMouseState.active = true;
+      
+      // Find canvas element and tell it to use this state
+      const canvas = document.querySelector('#particles-container canvas');
+      if (canvas) {
+        (canvas as any).__mouseState = sharedMouseState;
       }
-    }, 100); // Increased throttle to 100ms for greater CPU savings
-
-    // Use passive flag to improve performance by telling browser we won't call preventDefault()
-    window.addEventListener("mousemove", handleMouseMoveThrottled, { passive: true });
+    };
+    
+    // Track when mouse leaves window
+    const handleMouseLeave = () => {
+      sharedMouseState.active = false;
+    };
+    
+    // Use passive flags and minimal event listeners
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
     
     return () => {
-      // Ensure proper cleanup to prevent memory leaks
-      window.removeEventListener("mousemove", handleMouseMoveThrottled);
-      // Clean throttled function to release closure references
-      const cancelableFunction = handleMouseMoveThrottled as ThrottledFunction;
-      if (cancelableFunction.cancel) {
-        cancelableFunction.cancel();
-      }
+      // Comprehensive cleanup of all references
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      delete (window as any).__particleMouseState;
     };
   }, []);
 
