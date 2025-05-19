@@ -17,6 +17,13 @@ declare global {
 }
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // Add special case for Abhishek (user ID 2) to ensure admin always sees everything
+  if (req.session?.passport?.user === 2) {
+    console.log("Admin user (Abhishek) detected via session, allowing access");
+    return next();
+  }
+  
+  // Standard authentication check
   if (req.isAuthenticated()) {
     next();
   } else {
