@@ -439,9 +439,9 @@ export default function ImmersiveLanding() {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <img 
-              src="/images/Eternally Yours Logo.svg" 
+              src="/images/Eternally%20Yours%20Logo.svg" 
               alt="Eternally Yours" 
-              className="h-16 w-auto"
+              className="h-24 w-auto"
             />
           </div>
 
