@@ -310,15 +310,15 @@ export default function ImmersiveLanding() {
         <div className="absolute inset-0 overflow-hidden">
           {/* Floating particles */}
           <div className="absolute inset-0">
-            {Array.from({ length: 20 }).map((_, i) => (
+            {Array.from({ length: 100 }).map((_, i) => (
               <div 
                 key={i} 
                 className="gold-particle absolute"
                 style={{
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
-                  width: `${Math.random() * 8 + 2}px`,
-                  height: `${Math.random() * 8 + 2}px`,
+                  width: `${Math.random() * 4 + 1}px`,
+                  height: `${Math.random() * 4 + 1}px`,
                   animationDelay: `${Math.random() * 5}s`
                 }}
               ></div>
