@@ -109,10 +109,11 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
             <Button 
               onClick={() => setLocation('/event-setup-wizard/new')}
               variant="default"
+              size="lg"
               className="flex items-center gap-2"
             >
-              <PlusCircle className="h-4 w-4" />
-              Create New Event
+              <PlusCircle className="h-5 w-5" />
+              Create Your First Event
             </Button>
           </div>
         )}
