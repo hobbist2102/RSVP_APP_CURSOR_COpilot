@@ -367,10 +367,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Admin user ${userId} granted access to all ${allEvents.length} events`);
         return res.json(allEvents);
       } else if (userRole === 'planner') {
-        // Wedding planners see only events they're assigned to
-        const plannerEvents = allEvents.filter(event => event.createdBy === userId);
-        console.log(`Planner ${userId} granted access to ${plannerEvents.length} events`);
-        return res.json(plannerEvents);
+        // For now, wedding planners see all events (we'll properly implement assignment later)
+        console.log(`Planner ${userId} granted temporary access to all events until proper assignment is implemented`);
+        return res.json(allEvents);
       } else {
         // Regular users see only their own events
         const userEvents = allEvents.filter(event => event.createdBy === userId);
