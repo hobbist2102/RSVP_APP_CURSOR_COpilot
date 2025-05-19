@@ -105,11 +105,11 @@ export interface IStorage {
   updateTravelInfo(id: number, travelInfo: Partial<InsertTravelInfo>): Promise<TravelInfo | undefined>;
   
   // Global Room Type operations
-  getGlobalRoomType(id: number): Promise<GlobalRoomType | undefined>;
-  getGlobalRoomTypesByHotelName(hotelName: string): Promise<GlobalRoomType[]>;
-  getAllGlobalRoomTypes(): Promise<GlobalRoomType[]>;
-  createGlobalRoomType(roomType: InsertGlobalRoomType): Promise<GlobalRoomType>;
-  updateGlobalRoomType(id: number, roomType: Partial<InsertGlobalRoomType>): Promise<GlobalRoomType | undefined>;
+  getGlobalRoomType(id: number): Promise<typeof globalRoomTypes.$inferSelect | undefined>;
+  getGlobalRoomTypesByHotelName(hotelName: string): Promise<typeof globalRoomTypes.$inferSelect[]>;
+  getAllGlobalRoomTypes(): Promise<typeof globalRoomTypes.$inferSelect[]>;
+  createGlobalRoomType(roomType: InsertGlobalRoomType): Promise<typeof globalRoomTypes.$inferSelect>;
+  updateGlobalRoomType(id: number, roomType: Partial<InsertGlobalRoomType>): Promise<typeof globalRoomTypes.$inferSelect | undefined>;
   deleteGlobalRoomType(id: number): Promise<boolean>;
   
   // Accommodation operations

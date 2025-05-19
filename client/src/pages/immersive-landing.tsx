@@ -9,11 +9,13 @@ import { SplitText } from "gsap/SplitText";
 // Import custom styles for immersive landing page
 import "@/styles/immersive-landing.css";
 
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, SplitText);
+// Register GSAP plugins only once
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+}
 
-// Utility function for performance optimization
-function throttle(func: Function, limit: number) {
+// Memoized utility function for performance optimization
+const throttle = (func: Function, limit: number) => {
   let inThrottle: boolean;
   return function (this: any, ...args: any[]) {
     if (!inThrottle) {

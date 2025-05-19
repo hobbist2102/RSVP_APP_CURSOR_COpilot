@@ -16,24 +16,49 @@ app.use(rsvpLinkHandler);
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
+  
+  // Only capture responses in development mode to reduce memory usage
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  
+  if (process.env.NODE_ENV === 'development') {
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      // Only keep a reference to small responses or just the response shape for large ones
+      if (bodyJson && typeof bodyJson === 'object') {
+        const isLarge = JSON.stringify(bodyJson).length > 500;
+        if (isLarge) {
+          // For large responses, just log the structure with field names
+          capturedJsonResponse = Object.keys(bodyJson).reduce((acc: Record<string, string>, key) => {
+            const value = bodyJson[key];
+            acc[key] = Array.isArray(value) ? `Array(${value.length})` : typeof value;
+            return acc;
+          }, {});
+        } else {
+          capturedJsonResponse = bodyJson;
+        }
+      } else {
+        capturedJsonResponse = bodyJson;
+      }
+      
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+  }
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+      
+      if (capturedJsonResponse && process.env.NODE_ENV === 'development') {
+        try {
+          // Use a more memory-efficient approach to stringify the response
+          logLine += ` :: ${JSON.stringify(capturedJsonResponse).slice(0, 75)}`;
+          if (JSON.stringify(capturedJsonResponse).length > 75) {
+            logLine += "…";
+          }
+        } catch (e) {
+          logLine += " :: [Large response object]";
+        }
       }
 
       log(logLine);
