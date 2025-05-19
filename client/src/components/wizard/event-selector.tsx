@@ -17,9 +17,17 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Fetch all events
-  const { data: events, isLoading } = useQuery({
+  // Fetch all events with error handling
+  const { data: events, isLoading, isError } = useQuery({
     queryKey: ['/api/events'],
+    retry: 1, // Only retry once to avoid excessive retries
+    onError: () => {
+      toast({
+        title: "Couldn't retrieve events",
+        description: "There was an issue loading your events. You can create your first event to get started.",
+        variant: "destructive",
+      });
+    }
   });
   
   // Set current event mutation
@@ -50,9 +58,11 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Select an Event</CardTitle>
+        <CardTitle>{events && Array.isArray(events) && events.length > 0 ? "Select an Event" : "No Events Found"}</CardTitle>
         <CardDescription>
-          Choose an event to configure with the Event Setup Wizard
+          {events && Array.isArray(events) && events.length > 0 
+            ? "Choose an event to configure with the Event Setup Wizard" 
+            : "You haven't created any events yet. Get started by creating your first event."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -61,6 +71,19 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
             <Skeleton className="h-20 w-full rounded-md" />
             <Skeleton className="h-20 w-full rounded-md" />
             <Skeleton className="h-20 w-full rounded-md" />
+          </div>
+        ) : isError ? (
+          <div className="py-8 text-center">
+            <p className="text-muted-foreground mb-4">Unable to load events. Create your first event to get started.</p>
+            <Button 
+              onClick={() => setLocation('/event-setup-wizard/new')}
+              variant="default"
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              <PlusCircle className="h-5 w-5" />
+              Create Your First Event
+            </Button>
           </div>
         ) : events && Array.isArray(events) && events.length > 0 ? (
           <div className="space-y-4">
