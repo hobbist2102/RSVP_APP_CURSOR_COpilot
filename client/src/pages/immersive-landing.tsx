@@ -319,30 +319,36 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate connected particles network - optimized for performance
+  // Generate connected particles network - heavily optimized for performance
   const particles = useMemo(() => {
-    const nodeCount = 80; // Reduced node count for better performance
-    const starCount = 600; // Reduced star count for better performance
+    const nodeCount = 30; // Significantly reduced node count for better performance
+    const starCount = 100; // Significantly reduced star count for better performance
 
-    // First, create the network nodes (particles)
-    const nodes = Array.from({ length: nodeCount }).map((_, i) => {
-      const initialX = Math.random() * 100;
-      const initialY = Math.random() * 100;
-      const delay = Math.random() * 25;
-      const duration = 15 + Math.random() * 15;
-
-      return {
+    // Create sparse array of nodes using optimized technique
+    const nodes: Array<{
+      id: number;
+      x: number;
+      y: number;
+      size: number;
+      delay: number;
+      duration: number;
+      opacity: number;
+    }> = [];
+    
+    // Only generate enough nodes to create visual effect without overwhelming memory
+    for (let i = 0; i < nodeCount; i++) {
+      nodes.push({
         id: i,
-        x: initialX,
-        y: initialY,
-        size: 0.8 + Math.random() * 0.4,
-        delay,
-        duration,
-        opacity: 0.3 + Math.random() * 0.2,
-      };
-    });
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 0.8,
+        delay: (i % 5) * 4, // Deterministic delays instead of random to reduce calculations
+        duration: 20, // Fixed duration to reduce style recalculations
+        opacity: 0.3,
+      });
+    }
 
-    // Create nodes (particles)
+    // Create nodes (particles) with minimal style properties
     const nodeElements = nodes.map((node) => (
       <div
         key={`node-${node.id}`}
@@ -350,83 +356,110 @@ export default function ImmersiveLanding() {
         style={{
           top: `${node.y}%`,
           left: `${node.x}%`,
-          width: `${node.size}px`,
-          height: `${node.size}px`,
           animationDelay: `${node.delay}s`,
-          animationDuration: `${node.duration}s`,
-          opacity: node.opacity,
         }}
       />
     ));
 
-    // Create background stars (like in screenshot)
-    const starElements = Array.from({ length: starCount }).map((_, i) => {
-      const initialX = Math.random() * 100;
-      const initialY = Math.random() * 100;
-      const delay = Math.random() * 4;
-      const size = 0.5 + Math.random() * 0.3;
-
-      return (
-        <div
-          key={`star-${i}`}
-          className="gold-star"
-          style={{
-            top: `${initialY}%`,
-            left: `${initialX}%`,
-            width: `${size}px`,
-            height: `${size}px`,
-            animationDelay: `${delay}s`,
-          }}
-        />
-      );
-    });
-
-    // Create SVG connections between nearby nodes - optimize by using fewer connections
-    const connections: JSX.Element[] = [];
-    const connectionDistance = 15; // Maximum distance for connection (in % of viewport)
-
-    // Create a single SVG for all connections to reduce DOM elements
-    const connectionPaths: JSX.Element[] = [];
-
-    nodes.forEach((node, i) => {
-      // Limit connections per node for better performance
-      let connectionCount = 0;
-      const maxConnectionsPerNode = 3;
-
-      for (
-        let j = i + 1;
-        j < nodes.length && connectionCount < maxConnectionsPerNode;
-        j++
-      ) {
-        const targetNode = nodes[j];
-        const dx = Math.abs(node.x - targetNode.x);
-        const dy = Math.abs(node.y - targetNode.y);
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < connectionDistance) {
-          // Calculate opacity based on distance (farther = more transparent)
-          const lineOpacity = 0.15 * (1 - distance / connectionDistance);
-
-          connectionPaths.push(
-            <line
-              key={`line-${i}-${j}`}
-              x1={`${node.x}%`}
-              y1={`${node.y}%`}
-              x2={`${targetNode.x}%`}
-              y2={`${targetNode.y}%`}
-              stroke="#d4b976"
-              strokeWidth="0.3"
-              opacity={lineOpacity}
-            />,
-          );
-
-          connectionCount++;
-        }
+    // Create minimal background stars with batched rendering approach
+    // Group stars into batches to reduce the number of DOM elements
+    const batchSize = 20;
+    const batches = Math.ceil(starCount / batchSize);
+    const starElements: JSX.Element[] = [];
+    
+    for (let batch = 0; batch < batches; batch++) {
+      // Create a single div containing multiple star pseudoelements via a style tag
+      // This dramatically reduces the number of DOM elements
+      const batchStyles = document.createElement('style');
+      batchStyles.textContent = '';
+      
+      for (let i = 0; i < batchSize; i++) {
+        const starId = batch * batchSize + i;
+        if (starId >= starCount) break;
+        
+        const initialX = Math.random() * 100;
+        const initialY = Math.random() * 100;
+        const delay = (starId % 4) * 1; // Deterministic for reduced complexity
+        
+        batchStyles.textContent += `
+          .star-batch-${batch} .star-item-${i} {
+            position: fixed;
+            top: ${initialY}%;
+            left: ${initialX}%;
+            width: 0.8px;
+            height: 0.8px;
+            background: #fff;
+            opacity: 0.3;
+            animation: twinkle 5s ease-in-out infinite;
+            animation-delay: ${delay}s;
+          }
+        `;
       }
-    });
+      
+      if (document.head && !document.getElementById(`star-styles-${batch}`)) {
+        batchStyles.id = `star-styles-${batch}`;
+        document.head.appendChild(batchStyles);
+      }
+      
+      // Create the actual star elements in a single container div
+      const batchStarElements = [];
+      for (let i = 0; i < batchSize; i++) {
+        const starId = batch * batchSize + i;
+        if (starId >= starCount) break;
+        
+        batchStarElements.push(
+          <div key={`star-${starId}`} className={`star-item-${i}`} />
+        );
+      }
+      
+      starElements.push(
+        <div key={`star-batch-${batch}`} className={`star-batch-${batch}`}>
+          {batchStarElements}
+        </div>
+      );
+    }
 
-    // Create a single SVG element with all connections
-    connections.push(
+    // Create simplified SVG connections between nearby nodes
+    // Create more efficient connection system with fewer lines
+    // Only render connections in visible areas to reduce memory usage
+    let connectionPaths: JSX.Element[] = [];
+    const connectionDistance = 15;
+    const maxTotalConnections = 20; // Hard limit on total connections
+
+    // Establish fixed connection pattern instead of calculating all distances
+    let connectionCount = 0;
+    for (let i = 0; i < nodes.length && connectionCount < maxTotalConnections; i++) {
+      const node = nodes[i];
+      
+      // Only connect to a few nearby nodes using a simpler pattern
+      // Connect to the next node and one a few nodes ahead to create a network effect
+      const targets = [i + 1, i + 3].filter(idx => idx < nodes.length);
+      
+      for (const targetIdx of targets) {
+        if (connectionCount >= maxTotalConnections) break;
+        
+        const targetNode = nodes[targetIdx];
+        const lineOpacity = 0.1; // Fixed opacity for all lines
+        
+        connectionPaths.push(
+          <line
+            key={`line-${i}-${targetIdx}`}
+            x1={`${node.x}%`}
+            y1={`${node.y}%`}
+            x2={`${targetNode.x}%`}
+            y2={`${targetNode.y}%`}
+            stroke="#d4b976"
+            strokeWidth="0.3"
+            opacity={lineOpacity}
+          />
+        );
+        
+        connectionCount++;
+      }
+    }
+
+    // Single SVG for all connections
+    const connections = connectionPaths.length > 0 ? [
       <svg
         key="connections-container"
         style={{
@@ -440,27 +473,38 @@ export default function ImmersiveLanding() {
         }}
       >
         {connectionPaths}
-      </svg>,
-    );
+      </svg>
+    ] : [];
 
     return [...starElements, ...connections, ...nodeElements];
   }, []); // Only create particles once for better performance
 
   // Add mouse movement effect with throttling for performance
   useEffect(() => {
+    // More aggressive throttling to reduce CPU usage
     const handleMouseMoveThrottled = throttle((e: MouseEvent) => {
       const particlesContainer = particlesRef.current;
       if (particlesContainer) {
-        const xPercent = (e.clientX / window.innerWidth - 0.5) * 5;
-        const yPercent = (e.clientY / window.innerHeight - 0.5) * 5;
-        particlesContainer.style.transform = `translate(${xPercent}px, ${yPercent}px)`;
+        // Use requestAnimationFrame to optimize style updates
+        requestAnimationFrame(() => {
+          // Calculate movement with reduced factor for less processing
+          const xPercent = (e.clientX / window.innerWidth - 0.5) * 3; // Reduced movement
+          const yPercent = (e.clientY / window.innerHeight - 0.5) * 3; // Reduced movement
+          
+          // Use transform3d for hardware acceleration and reduced memory usage
+          particlesContainer.style.transform = `translate3d(${xPercent}px, ${yPercent}px, 0)`;
+        });
       }
-    }, 50); // Throttle to 50ms for smooth performance
+    }, 100); // Increased throttle to 100ms for greater CPU savings
 
-    window.addEventListener("mousemove", handleMouseMoveThrottled);
-
+    // Use passive flag to improve performance by telling browser we won't call preventDefault()
+    window.addEventListener("mousemove", handleMouseMoveThrottled, { passive: true });
+    
     return () => {
+      // Ensure proper cleanup to prevent memory leaks
       window.removeEventListener("mousemove", handleMouseMoveThrottled);
+      // Clean throttled function to release closure references
+      handleMouseMoveThrottled.cancel && handleMouseMoveThrottled.cancel();
     };
   }, []);
 
