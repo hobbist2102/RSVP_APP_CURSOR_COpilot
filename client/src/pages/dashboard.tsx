@@ -146,6 +146,14 @@ export default function Dashboard() {
             <Plus className="mr-2 h-4 w-4" />
             Add Guest
           </Button>
+          <Button 
+            variant="outline"
+            className="border-primary text-primary"
+            onClick={() => setLocation("/events")}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Event
+          </Button>
         </div>
       </div>
 
