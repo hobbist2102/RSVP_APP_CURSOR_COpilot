@@ -359,7 +359,7 @@ export default function EventSetupWizard() {
         </div>
       </div>
       
-      {/* Show Event Selector when accessed from sidebar without an event ID */}
+      {/* Show Event Selector when accessed directly without an event ID */}
       {isDirectAccess && !isNewEventCreation ? (
         <EventSelector onSelectEvent={(selectedEventId) => {
           // Set a loading state
@@ -381,16 +381,25 @@ export default function EventSetupWizard() {
             {/* Left sidebar with steps - always show steps list regardless of new or existing event */}
             <div className="md:col-span-1 space-y-6">
               {/* Always show steps sidebar for consistency */}
-                <Steps
-                  steps={steps.map(step => ({
-                    id: step.id,
-                    label: step.label,
-                    isCompleted: completedSteps[step.id] || false,
-                    isActive: activeStep === step.id
-                  }))}
-                  onStepClick={navigateToStep}
-                  orientation="vertical"
-                />
+              <Steps
+                steps={steps.map(step => ({
+                  id: step.id,
+                  label: step.label,
+                  isCompleted: isNewEventCreation ? (step.id === WIZARD_STEPS.BASIC_INFO && activeStep === WIZARD_STEPS.BASIC_INFO) : completedSteps[step.id] || false,
+                  isActive: activeStep === step.id
+                }))}
+                onStepClick={(stepId) => {
+                  // For new events, only the basic info step is active
+                  if (isNewEventCreation) {
+                    if (stepId === WIZARD_STEPS.BASIC_INFO) {
+                      navigateToStep(stepId);
+                    }
+                  } else {
+                    navigateToStep(stepId);
+                  }
+                }}
+                orientation="vertical"
+              />
               
               <div className="space-y-2 pt-6">
                 {areAllStepsCompleted && (
