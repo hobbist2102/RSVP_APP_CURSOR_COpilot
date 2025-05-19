@@ -1,0 +1,110 @@
+2025-05-19T14:54:38Z info: Deployment: 5d0dc263-c512-47b2-9a75-40f171c1d401
+2025-05-19T14:54:38Z info: Build: cd26552c-2199-4346-825e-024419a28bdc
+2025-05-19T14:54:38Z info: Connecting to builder
+2025-05-19T14:54:43Z info: Builder connected
+2025-05-19T14:54:44Z info: Installing packages
+2025-05-19T14:54:45Z info: Starting Build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+
+vite v5.4.19 building for production...
+
+transforming...
+
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+
+/patterns/mandala-pattern.svg referenced in /patterns/mandala-pattern.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+✓ 3588 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/index.html                                      2.76 kB │ gzip:   1.12 kB
+
+../dist/public/assets/subDays-ss7WiRtj.js                      0.19 kB │ gzip:   0.16 kB
+
+../dist/public/assets/chevron-left-Dzo-bzNy.js                 0.30 kB │ gzip:   0.25 kB
+../dist/public/assets/circle-Df3Iaxxy.js                       0.30 kB │ gzip:   0.24 kB
+
+../dist/public/assets/circle-check-big-BxMB-FR7.js             0.36 kB │ gzip:   0.28 kB
+
+../dist/public/assets/info-Bj92RW0W.js                         0.37 kB │ gzip:   0.28 kB
+
+../dist/public/assets/triangle-alert-BpUO7vcO.js               0.43 kB │ gzip:   0.31 kB
+../dist/public/assets/user-plus-B-DjiXnO.js                    0.48 kB │ gzip:   0.33 kB
+
+../dist/public/assets/textarea-DwtvtrAa.js                     0.48 kB │ gzip:   0.32 kB
+
+▲ [WARNING] Duplicate member "getAccommodation" in class body [duplicate-class-member]
+
+    server/storage.ts:2282:8:
+      2282 │   async getAccommodation(id: number): Promise<Accommodation | un...
+           ╵         ~~~~~~~~~~~~~~~~
+
+  The original member "getAccommodation" is here:
+
+    server/storage.ts:2042:8:
+      2042 │   async getAccommodation(id: number): Promise<Accommodation | un...
+           ╵         ~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate member "getAccommodationsByEvent" in class body [duplicate-class-member]
+
+    server/storage.ts:2287:8:
+      2287 │   async getAccommodationsByEvent(eventId: number): Promise<Accom...
+           ╵         ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The original member "getAccommodationsByEvent" is here:
+
+    server/storage.ts:2047:8:
+      2047 │   async getAccommodationsByEvent(eventId: number): Promise<Accom...
+           ╵         ~~~~~~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate member "createAccommodation" in class body [duplicate-class-member]
+
+    server/storage.ts:2309:8:
+      2309 │   async createAccommodation(accommodation: InsertAccommodation):...
+           ╵         ~~~~~~~~~~~~~~~~~~~
+
+  The original member "createAccommodation" is here:
+
+    server/storage.ts:2051:8:
+      2051 │   async createAccommodation(accommodation: InsertAccommodation):...
+           ╵         ~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] Duplicate member "updateAccommodation" in class body [duplicate-class-member]
+
+    server/storage.ts:2314:8:
+      2314 │   async updateAccommodation(id: number, accommodation: Partial<I...
+           ╵         ~~~~~~~~~~~~~~~~~~~
+
+  The original member "updateAccommodation" is here:
+
+    server/storage.ts:2056:8:
+      2056 │   async updateAccommodation(id: number, accommodation: Partial<I...
+           ╵         ~~~~~~~~~~~~~~~~~~~
+
+4 warnings
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.0
+npm notice To update run: npm install -g npm@11.4.0
+npm notice
+
+2025-05-19T14:55:08Z info: Pushing pid1 binary layer...
+2025-05-19T14:55:10Z info: Created pid1 binary layer
+2025-05-19T14:55:10Z info: Pushing Repl layer...
+2025-05-19T14:55:10Z info: Pushing hosting layer...
+2025-05-19T14:55:10Z info: Retrieved cached nix layer
+2025-05-19T14:55:10Z info: Created hosting layer
+2025-05-19T14:55:12Z info: Connecting to builder
+2025-05-19T14:55:20Z info: Builder connected
+2025-05-19T14:55:21Z info: Installing packages
