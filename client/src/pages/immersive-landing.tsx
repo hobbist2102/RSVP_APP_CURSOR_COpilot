@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
-import BubbleAnimation from "@/components/landing/cinematic/bubble-animation";
+import NightSky from "@/components/landing/cinematic/night-sky";
 
 // Import custom styles for immersive landing page
 import "@/styles/immersive-landing.css";
@@ -371,11 +371,14 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Using our new memory-optimized bubble animation component
-  // This replaces the previous particle system with our bubble effect
+  // Using our new memory-optimized night sky animation component
+  // This replaces the previous bubble effect with an elegant gold particle night sky
   const backgroundEffects = useMemo(() => {
     // Only create animation on client side
     if (typeof window === 'undefined') return null;
+    
+    // Gold color matching "eternally yours" in Hero Section
+    const goldColor = "#e9d9a8";
     
     return (
       <div 
@@ -393,20 +396,19 @@ export default function ImmersiveLanding() {
         aria-hidden="true"
       >
         {/* 
-          Memory-optimized bubble animation inspired by rpj.bembi.dev
-          - Uses canvas rendering instead of DOM elements
-          - Utilizes typed arrays for particle data
-          - Implements frame rate limiting (30fps)
-          - Uses passive event listeners
-          - Creates beautiful bubble effect with less memory
+          Memory-optimized night sky animation
+          - Uses canvas rendering for optimal performance
+          - Implements typed arrays for memory efficiency
+          - Frame rate limiting (30fps max)
+          - Uses passive event listeners with cleanup
+          - Features shooting stars and gentle twinkling
+          - Gold particles matching the wedding theme
         */}
-        <BubbleAnimation 
-          count={15}                // Reduced number of elements
-          color="#e9d9a8"           // Warm gold color matching wedding theme
-          maxSize={60}              // Larger maximum size for better visibility
-          minSize={5}               // Minimum bubble size
-          speed={0.8}               // Gentle movement speed
-          opacity={0.35}            // Semi-transparent bubbles
+        <NightSky 
+          starCount={150}           // Moderate star count for performance
+          shootingStarCount={3}     // Occasional shooting stars
+          color={goldColor}         // Gold color matching wedding theme
+          moonGlow={true}           // Enable subtle moon glow effect
         />
       </div>
     );
