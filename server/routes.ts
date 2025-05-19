@@ -85,9 +85,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const PostgreSqlStore = pgSession(session);
   
   // Create a PostgreSQL connection pool for session storage
+  // Use a more resilient configuration for production environments
   const sessionPool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 5 // Limit connections for session management
+    max: 5, // Limit connections for session management
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 10000 // Return an error after 10 seconds if connection not established
   });
   
   // Configure session management with PostgreSQL store
