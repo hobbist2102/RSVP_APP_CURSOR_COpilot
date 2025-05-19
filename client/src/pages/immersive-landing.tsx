@@ -184,106 +184,130 @@ export default function ImmersiveLanding() {
         // No need for individual element scrollTriggers
       }
 
-      // Solution section animations
+      // Solution section animations - optimized for better performance
       if (solutionRef.current) {
-        // Section title reveal
-        gsap.from(".solution-title", {
-          opacity: 0,
-          y: 50,
-          duration: 0.8,
+        // Create a unified timeline for all solution section animations
+        const solutionTimeline = gsap.timeline({
           scrollTrigger: {
             trigger: solutionRef.current,
             start: "top 80%",
             toggleActions: "play none none reverse",
-          },
+          }
         });
+        
+        // Section title reveal - added to timeline
+        solutionTimeline.from(".solution-title", {
+          opacity: 0,
+          y: 30, // Reduced movement
+          duration: 0.7, // Shorter duration
+        }, 0);
 
-        // Organized elements
+        // Organized elements - using timeline instead of individual animations
         const solutionElements = document.querySelectorAll(".solution-element");
-        solutionElements.forEach((element, index) => {
-          gsap.from(element, {
-            x: index % 2 === 0 ? -100 : 100,
+        const maxElements = Math.min(solutionElements.length, 10); // Limit max elements
+        
+        for (let i = 0; i < maxElements; i++) {
+          const element = solutionElements[i];
+          solutionTimeline.from(element, {
+            x: i % 2 === 0 ? -50 : 50, // Reduced movement distance
             opacity: 0,
-            duration: 0.7,
-            delay: 0.15 * index,
-            scrollTrigger: {
-              trigger: solutionRef.current,
-              start: "top 70%",
-              toggleActions: "play none none reverse",
-            },
-          });
-        });
+            duration: 0.6, // Faster animation
+            ease: "power2.out", // Simpler ease function
+          }, 0.2 + (i * 0.08)); // Smaller, consistent stagger
+        }
       }
 
-      // Transport section animations
+      // Transport section animations - optimized for better performance
       if (transportRef.current) {
-        // Vehicles animation
-        gsap.fromTo(
+        // Create a single timeline for all transport animations
+        const transportTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: transportRef.current,
+            start: "top 70%",
+            toggleActions: "play none none reverse",
+          }
+        });
+        
+        // Vehicles animation - combined into timeline
+        transportTimeline.fromTo(
           ".vehicle-element",
-          { x: -200, opacity: 0 },
+          { 
+            x: -100, // Reduced movement distance
+            opacity: 0 
+          },
           {
             x: 0,
             opacity: 1,
-            stagger: 0.2,
-            duration: 0.8,
-            scrollTrigger: {
-              trigger: transportRef.current,
-              start: "top 70%",
-              toggleActions: "play none none reverse",
-            },
+            stagger: 0.15, // Reduced stagger time
+            duration: 0.6, // Faster animation
+            ease: "power2.out", // Simpler ease function
           },
+          0 // Start at beginning of timeline
         );
 
-        // Route animation
-        gsap.from(".route-path", {
-          strokeDashoffset: 1000,
-          duration: 2,
-          scrollTrigger: {
-            trigger: transportRef.current,
-            start: "top 60%",
-            toggleActions: "play none none reverse",
-          },
-        });
+        // Route animation - added to same timeline
+        transportTimeline.from(".route-path", {
+          strokeDashoffset: 500, // Reduced animation distance
+          duration: 1.5, // Shorter duration
+          ease: "power1.inOut", // Simpler ease function
+        }, 0.3); // Start slightly after vehicles
       }
 
-      // Communication section animations
+      // Communication section animations - optimized for better performance
       if (communicationRef.current) {
-        // Make message bubbles visible immediately by default
-        gsap.set(".message-bubble", {
-          scale: 1,
-          opacity: 1,
+        // Create a single timeline for all communication animations
+        const commTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: communicationRef.current,
+            start: "top 75%", // Start animation earlier
+            toggleActions: "play none none none",
+            once: true, // Only play once to save resources
+          }
         });
-
-        // Add animation effect when scrolling to the section
-        gsap.fromTo(
+        
+        // Add simple animation with minimal property changes
+        // Avoid setting default values before animation to reduce initial DOM updates
+        commTimeline.fromTo(
           ".message-bubble",
-          { scale: 0.9, opacity: 0.7 },
+          { 
+            scale: 0.95, // Less scale change
+            opacity: 0.8 // Less opacity change 
+          },
           {
             scale: 1,
             opacity: 1,
-            duration: 0.5,
-            stagger: 0.15,
-            scrollTrigger: {
-              trigger: communicationRef.current,
-              start: "top 70%",
-              toggleActions: "play none none none",
-            },
-          },
+            duration: 0.4, // Shorter duration
+            stagger: 0.08, // Less stagger time
+            ease: "power1.out", // Simpler ease function
+          }
         );
       }
 
-      // CTA section animations
+      // CTA section animations - optimized for better performance
       if (ctaRef.current) {
-        // Remove GSAP particle animation for performance reasons
-        // The CSS animations applied to particles are more performant
-
-        // CTA button pulse
-        gsap.to(".cta-button", {
-          scale: 1.05,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
+        // Use CSS animations for pulsing effects instead of GSAP
+        // GSAP animations with continuous repeats can be CPU intensive
+        
+        // Instead of continuous GSAP animation, add a single timeline with limited animation
+        const ctaTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: "top 80%",
+            once: true, // Only play once to save resources
+          }
+        });
+        
+        // Simple fade-in animation
+        ctaTimeline.from(".cta-content", {
+          opacity: 0,
+          y: 20,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+        
+        // Add class for CSS animation instead of GSAP animation for button pulse
+        document.querySelectorAll(".cta-button").forEach(button => {
+          button.classList.add("pulse-animation");
         });
       }
     }, pageRef);

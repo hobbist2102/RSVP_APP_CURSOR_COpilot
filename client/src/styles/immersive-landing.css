@@ -75,6 +75,26 @@
   transform: translateY(-2px);
 }
 
+/* CSS pulse animation for CTA buttons - more efficient than GSAP */
+.pulse-animation {
+  animation: pulse-effect 2s infinite ease-in-out;
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@keyframes pulse-effect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Parallax scrolling containers */
 .parallax-container {
   overflow: hidden;
