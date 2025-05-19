@@ -358,10 +358,11 @@ The API follows RESTful principles with resource-based URLs and standard HTTP me
 ## Security Architecture
 
 1. **Authentication**
-   - JWT-based authentication
-   - HTTP-only cookies for session management
-   - OAuth 2.0 for third-party authentication
-   - Role-based access control
+   - Express session-based authentication with persistence
+   - HTTP-only cookies with secure settings for session management
+   - OAuth 2.0 for third-party authentication and email integration
+   - Comprehensive role-based access control (admin, planner, couple)
+   - Resource-level authorization based on role and ownership
 
 2. **Data Protection**
    - Event-level isolation (multi-tenancy)

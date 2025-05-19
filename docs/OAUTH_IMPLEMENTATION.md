@@ -93,7 +93,7 @@ When working with the OAuth implementation:
 
 ## Recent Improvements
 
-As of April 15, 2025, the following improvements have been made:
+As of May 19, 2025, the following improvements have been made:
 
 1. Enhanced the OAuth configuration UI with clear instructions
 2. Added step-by-step guidance for both Gmail and Outlook
@@ -101,6 +101,9 @@ As of April 15, 2025, the following improvements have been made:
 4. Updated button styling for better visibility
 5. Implemented comprehensive error handling and logging
 6. Added event-specific credential storage with environment variable fallback
+7. Fixed session persistence issues affecting OAuth authentication flow
+8. Implemented proper role-based access control for OAuth configuration
+9. Enhanced error reporting when OAuth tokens expire or are invalid
 
 ## Pending Improvements
 
@@ -110,3 +113,4 @@ The following improvements are planned:
 2. Enhanced error handling for token expiration and refresh
 3. More comprehensive documentation with screenshots and examples
 4. Performance optimization for token refresh operations
+5. Integration with event assignment system for wedding planners
