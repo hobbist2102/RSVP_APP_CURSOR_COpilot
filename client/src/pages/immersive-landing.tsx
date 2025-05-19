@@ -285,13 +285,14 @@ export default function ImmersiveLanding() {
 
   // Generate a large number of particles for the background
   const renderParticles = () => {
-    const particleCount = 1000; // 10x more than before
+    const particleCount = 2000; // 20x more than original
     return Array.from({ length: particleCount }).map((_, i) => {
-      const size = Math.random() * 4 + 1;
+      // Create smaller, more refined particles for luxury feel
+      const size = Math.random() * 1.5 + 0.5; // 0.5-2px size range for finer particles
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
-      const delay = Math.random() * 10;
-      const duration = 5 + Math.random() * 10;
+      const delay = Math.random() * 15;
+      const duration = 10 + Math.random() * 20; // Slower, more elegant movement
       
       return (
         <div
@@ -305,9 +306,9 @@ export default function ImmersiveLanding() {
             animationDelay: `${delay}s`,
             animationDuration: `${duration}s`,
             transform: mousePosition.x > 0 ? 
-              `translate(${(mousePosition.x / window.innerWidth - 0.5) * 20}px, ${(mousePosition.y / window.innerHeight - 0.5) * 20}px)` : 
+              `translate(${(mousePosition.x / window.innerWidth - 0.5) * 10}px, ${(mousePosition.y / window.innerHeight - 0.5) * 10}px)` : 
               'none',
-            opacity: size > 3 ? 0.8 : 0.5,
+            opacity: Math.random() * 0.4 + 0.3, // 0.3-0.7 opacity range for subtle effect
           }}
         ></div>
       );
