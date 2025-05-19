@@ -178,8 +178,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Username already exists' });
       }
       
-      // Create new user
-      const user = await storage.createUser(userData);
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const secureUserData = {
+        ...userData,
+        password: hashedPassword
+      };
+      
+      // Create new user with hashed password
+      const user = await storage.createUser(secureUserData);
       
       // Log the user in automatically
       req.login(user, (err) => {
@@ -198,7 +205,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           console.log('Session after registration (saved):', req.session);
-          res.status(201).json({ user });
+          
+          // Create a safe user object without the password
+          const { password, ...safeUser } = user;
+          res.status(201).json({ user: safeUser });
         });
       });
     } catch (error) {
