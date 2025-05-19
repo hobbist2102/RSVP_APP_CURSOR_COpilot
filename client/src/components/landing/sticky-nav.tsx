@@ -59,7 +59,9 @@ export const StickyNav: React.FC = () => {
       style={{ backgroundColor }}
     >
       <Link href="/" className="flex items-center">
-        <img src="/images/eternally-yours-logo.png" alt="Eternally Yours" className="h-8 w-auto" />
+        <span className="text-[#5E239D] font-[Great_Vibes] text-2xl">
+          Eternally Yours
+        </span>
       </Link>
 
       <nav className="hidden md:flex space-x-1">
