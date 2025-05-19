@@ -1441,6 +1441,11 @@ export default function ImmersiveLanding() {
             Made with ❤️ by CultureBot Experiences and Entertainment. All Rights
             Reserved @2025.
           </p>
+          <p className="text-white/60 text-center text-sm mt-2">
+            <a href="mailto:info@culturebot.in" className="hover:text-white/80 transition-colors">
+              info@culturebot.in
+            </a>
+          </p>
         </div>
       </footer>
     </div>
