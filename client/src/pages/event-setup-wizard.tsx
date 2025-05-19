@@ -20,6 +20,7 @@ import { WIZARD_STEPS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Spinner } from "@/components/ui/spinner";
+import DashboardLayout from "@/components/layout/dashboard-layout";
 
 // Define the wizard steps
 const steps = [
@@ -295,10 +296,14 @@ export default function EventSetupWizard() {
   const areAllStepsCompleted = steps.every(step => completedSteps[step.id]);
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center gap-2">
-        <Wand2 className="h-6 w-6 text-primary" strokeWidth={1.5} />
-        <h1 className="text-2xl font-bold">Event Setup Wizard</h1>
+    <DashboardLayout>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-playfair font-bold text-neutral">Event Setup Wizard</h2>
+          <p className="text-sm text-gray-500">
+            Configure all aspects of your event in one place
+          </p>
+        </div>
       </div>
       
       {/* Show Event Selector when accessed from sidebar without an event ID */}
