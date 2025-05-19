@@ -78,22 +78,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Session setup
+  // Session setup with enhanced persistence
   const sessionStore = MemoryStore(session);
   app.use(session({
-    secret: 'wedding-rsvp-secret',
-    resave: true, // Changed to true to ensure session is saved after each request
-    saveUninitialized: true, // Changed to true to create session unconditionally
+    secret: 'wedding-rsvp-secret-enhanced',
+    resave: true, // Ensures session is saved on every request
+    saveUninitialized: true, // Creates session unconditionally
+    rolling: true, // Reset expiration with each request
     cookie: { 
-      // Set secure mode based on environment
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      // Never use secure in development to avoid issues with HTTP
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
       httpOnly: true,
       sameSite: 'lax',
       path: '/'
     },
     store: new sessionStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000, // prune expired entries every 24h
+      stale: false // Don't serve stale sessions
     })
   }));
   
