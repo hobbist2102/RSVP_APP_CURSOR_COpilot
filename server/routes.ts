@@ -345,12 +345,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Wedding Event routes
-  // Direct access route for all events (no authentication required)
+  // Special route for events with role-based access control
   app.get('/api/events-direct', async (req, res) => {
     try {
+      // Check the user's login status
+      if (!req.isAuthenticated()) {
+        console.log('Unauthenticated access to events-direct route');
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Get user info
+      const userId = (req.user as any).id;
+      const userRole = (req.user as any).role;
+      
+      // Get all events from database
       const allEvents = await storage.getAllEvents();
-      console.log('Direct access to all events provided');
-      return res.json(allEvents);
+      
+      // Apply proper access control based on role
+      if (userRole === 'admin' || userId === 2) {
+        // Admin users (including Abhishek) see all events
+        console.log(`Admin user ${userId} granted access to all ${allEvents.length} events`);
+        return res.json(allEvents);
+      } else if (userRole === 'planner') {
+        // Wedding planners see only events they're assigned to
+        const plannerEvents = allEvents.filter(event => event.createdBy === userId);
+        console.log(`Planner ${userId} granted access to ${plannerEvents.length} events`);
+        return res.json(plannerEvents);
+      } else {
+        // Regular users see only their own events
+        const userEvents = allEvents.filter(event => event.createdBy === userId);
+        console.log(`Regular user ${userId} granted access to ${userEvents.length} events`);
+        return res.json(userEvents);
+      }
     } catch (error) {
       console.error('Error in direct events access:', error);
       return res.status(500).json({ message: 'Server error' });
