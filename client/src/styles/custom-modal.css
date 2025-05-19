@@ -1,0 +1,23 @@
+/* Modal background override */
+[data-radix-dialog-content] {
+  background-color: white !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Override the event wizard dialog content */
+[role="dialog"] [data-radix-dialog-content] {
+  background-color: white !important;
+}
+
+/* Gold gradient buttons should remain purple */
+.gold-gradient {
+  background: #5E239D !important;
+  background-image: none !important;
+  color: white !important;
+}
+
+/* Back button - keep outline style */
+button[type="button"][variant="outline"] {
+  border-color: #5E239D !important;
+  color: #5E239D !important;
+}
