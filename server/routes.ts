@@ -147,7 +147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      // Create a safe version of the user without the password
+      if (user) {
+        const { password, ...safeUser } = user;
+        done(null, safeUser);
+      } else {
+        done(null, null);
+      }
     } catch (error) {
       done(error, null);
     }
@@ -243,7 +249,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (saveErr) {
             return next(saveErr);
           }
-          return res.json({ user: req.user });
+          // Create a safe user object without the password
+          const safeUser = { ...req.user } as any;
+          if (safeUser.password) {
+            delete safeUser.password;
+          }
+          
+          return res.json({ user: safeUser });
         });
       });
     })(req, res, next);
