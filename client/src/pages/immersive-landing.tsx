@@ -529,19 +529,19 @@ export default function ImmersiveLanding() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
-              <p className="text-xs leading-relaxed">
-                Designed ground up by Wedding planners, our all-in-one platform
+              <p className="text-base md:text-lg leading-relaxed">
+                Designed from the ground up by wedding planners, our all-in-one platform
                 removes the noise, so that you can plan with clarity and
                 celebrate with your heart.
               </p>
 
               <div className="space-y-4 mt-8">
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">
+                  <h3 className="font-medium text-lg mb-2">
                     One Dashboard, Total Control
                   </h3>
-                  <p className="text-xs text-[#3A1562]/80">
-                    Manage Guests, logistics, travel, accomodation,
+                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
+                    Manage guests, logistics, travel, accommodation,
                     communication & more all in one place.
                   </p>
                 </div>
@@ -1001,14 +1001,17 @@ export default function ImmersiveLanding() {
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
+            <span className="text-[#BFA76F] font-light text-base block">
+              Guest Communications
+            </span>
             <span className="text-white font-serif text-3xl md:text-4xl font-bold">
               Multichannel Guest Engagement
             </span>
           </h2>
 
-          <p className="text-white text-center max-w-2xl mx-auto mb-12">
+          <p className="text-white/80 text-center max-w-2xl mx-auto mb-12 text-base md:text-lg leading-relaxed">
             Keep your guests informed and engaged through personalized WhatsApp
-            messages and email communications. Automate Responses with AI
+            messages and email communications. Automate responses with AI
             Chatbots.
           </p>
 
