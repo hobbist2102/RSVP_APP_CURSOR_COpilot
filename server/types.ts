@@ -3,6 +3,11 @@ import { SessionData } from 'express-session';
 // Extend the Session interface to include our custom fields
 declare module 'express-session' {
   interface SessionData {
+    // User authentication data
+    userId?: number;
+    userRole?: string;
+    
+    // Current event data
     currentEvent?: {
       id: number;
       title: string;
