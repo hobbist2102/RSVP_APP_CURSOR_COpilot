@@ -62,15 +62,16 @@ export default function ImmersiveLanding() {
     }
   };
 
-  // Track mouse position for particle effects
+  // Track mouse position for particle effects with throttling to reduce CPU usage
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    // Create throttled mouse move handler to reduce event frequency
+    const throttledHandleMouseMove = throttle((e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
-    };
+    }, 50); // Only update every 50ms instead of on every mouse movement
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", throttledHandleMouseMove);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousemove", throttledHandleMouseMove);
     };
   }, []);
 
