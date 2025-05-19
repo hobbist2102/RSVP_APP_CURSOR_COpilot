@@ -19,7 +19,7 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
   
   // Fetch all events
   const { data: events, isLoading } = useQuery({
-    queryKey: ['/api/events-direct'],
+    queryKey: ['/api/events'],
   });
   
   // Set current event mutation
@@ -62,7 +62,7 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
             <Skeleton className="h-20 w-full rounded-md" />
             <Skeleton className="h-20 w-full rounded-md" />
           </div>
-        ) : events && events.length > 0 ? (
+        ) : events && Array.isArray(events) && events.length > 0 ? (
           <div className="space-y-4">
             {events.map((event: any) => (
               <div 
