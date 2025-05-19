@@ -441,7 +441,7 @@ export default function ImmersiveLanding() {
             <img 
               src="/images/Eternally Yours Logo.png" 
               alt="Eternally Yours Logo" 
-              className="h-12" 
+              className="h-10" 
             />
           </div>
 
