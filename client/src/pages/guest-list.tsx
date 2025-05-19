@@ -636,6 +636,10 @@ export default function GuestList() {
           onRowClick={handleViewGuest}
           searchable={true}
           searchPlaceholder="Search guests..."
+          virtualized={guests.length > 100}
+          virtualizedHeight={500}
+          virtualizedItemHeight={100}
+          virtualizedOverscan={5}
         />
       </div>
 
