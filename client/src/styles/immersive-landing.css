@@ -159,6 +159,10 @@
   pointer-events: none;
   z-index: 9999;
   overflow: visible;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint style;
 }
 
 /* 3D effect for cards */

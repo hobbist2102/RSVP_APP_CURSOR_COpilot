@@ -265,18 +265,8 @@ export default function ImmersiveLanding() {
 
       // CTA section animations
       if (ctaRef.current) {
-        // Gold particles
-        gsap.to(".gold-particle", {
-          y: -20,
-          x: "random(-20, 20)",
-          rotation: "random(-15, 15)",
-          opacity: "random(0.4, 1)",
-          duration: "random(1, 3)",
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-          stagger: 0.1,
-        });
+        // Remove GSAP particle animation for performance reasons
+        // The CSS animations applied to particles are more performant
 
         // CTA button pulse
         gsap.to(".cta-button", {
