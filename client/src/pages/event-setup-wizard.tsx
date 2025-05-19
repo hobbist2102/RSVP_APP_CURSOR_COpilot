@@ -272,71 +272,144 @@ export default function EventSetupWizard() {
         return (
           <VenuesStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.VENUES, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.VENUES]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.VENUES]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.VENUES, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.RSVP_CONFIG:
         return (
           <RsvpConfigStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.RSVP_CONFIG, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.RSVP_CONFIG]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.RSVP_CONFIG]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.RSVP_CONFIG, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.HOTELS:
         return (
           <HotelsStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.HOTELS, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.HOTELS]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.HOTELS]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.HOTELS, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.TRANSPORT:
         return (
           <TransportSetupStep
             eventId={eventId}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.TRANSPORT, data)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.TRANSPORT]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.TRANSPORT]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.TRANSPORT, data);
+              }
+            }}
             onBack={goToPreviousStep}
-            isCompleted={isCurrentStepCompleted}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.WHATSAPP:
         return (
           <WhatsAppSetupStep
             eventId={eventId}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.WHATSAPP, data)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.WHATSAPP, data);
+              }
+            }}
             onBack={goToPreviousStep}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.COMMUNICATION:
         return (
           <CommunicationStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.COMMUNICATION, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.COMMUNICATION]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.COMMUNICATION]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.COMMUNICATION, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.DESIGN:
         return (
           <DesignStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.DESIGN, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.DESIGN]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.DESIGN]: data }));
+                goToNextStep();
+              } else {
+                handleStepComplete(WIZARD_STEPS.DESIGN, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.AI_ASSISTANT:
         return (
           <AiAssistantStep
             eventId={eventId}
-            currentEvent={currentEvent as any}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.AI_ASSISTANT, data)}
-            isCompleted={isCurrentStepCompleted}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // Skip until event is created in the first step
+                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.AI_ASSISTANT]: true }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.AI_ASSISTANT]: data }));
+                finishWizard();
+              } else {
+                handleStepComplete(WIZARD_STEPS.AI_ASSISTANT, data);
+              }
+            }}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       default:
