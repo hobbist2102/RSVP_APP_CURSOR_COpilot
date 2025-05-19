@@ -321,19 +321,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Wedding Event routes
   app.get('/api/events', isAuthenticated, async (req, res) => {
     try {
+      // Enhanced debugging to troubleshoot event access
+      console.log('GET /api/events - User:', req.user);
+      
       // Check if the user is an admin
       const isAdmin = (req.user as any).role === 'admin';
       const userId = (req.user as any).id;
+      
+      console.log(`User ID: ${userId}, Role: ${(req.user as any).role}, isAdmin: ${isAdmin}`);
       
       if (isAdmin) {
         // Admin users can see all events
         const events = await storage.getAllEvents();
         console.log(`Admin user ${userId} retrieved all events (${events.length})`);
+        console.log('Events returned:', events.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
         res.json(events);
       } else {
         // Regular users can only see events they created
         const events = await storage.getEventsByUser(userId);
         console.log(`User ${userId} retrieved their own events (${events.length})`);
+        console.log('Events returned:', events.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
         res.json(events);
       }
     } catch (error) {
