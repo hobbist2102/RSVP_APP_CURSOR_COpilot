@@ -30,13 +30,21 @@ export const getQueryFn: <T>(options: {
   });
 };
 
-// Export the query client with the consolidated configuration
+// Export the query client with memory-optimized configuration
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Use the getQueryFn from api-utils to ensure consistency
       queryFn: getQueryFn({ on401: "throw" }),
-      ...defaultQueryOptions
+      ...defaultQueryOptions,
+      
+      // Optimize memory usage with better caching
+      gcTime: 5 * 60 * 1000, // 5 minutes instead of default 5 minutes
+      staleTime: 2 * 60 * 1000, // 2 minutes - reduce refetching
+      refetchOnWindowFocus: false, // Prevent unnecessary refetches
+      refetchOnReconnect: 'always', // Only refetch on actual reconnects
+      retry: 1, // Reduce retry attempts to save resources
+      cacheTime: 10 * 60 * 1000, // 10 minutes - help with memory usage
     },
     mutations: {
       retry: false,
