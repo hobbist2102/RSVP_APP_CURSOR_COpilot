@@ -361,7 +361,19 @@ export default function EventSetupWizard() {
       
       {/* Show Event Selector when accessed from sidebar without an event ID */}
       {isDirectAccess && !isNewEventCreation ? (
-        <EventSelector onSelectEvent={(selectedEventId) => setLocation(`/event-setup-wizard/${selectedEventId}`)} />
+        <EventSelector onSelectEvent={(selectedEventId) => {
+          // Set a loading state
+          toast({
+            title: "Loading event...",
+            description: "Preparing the setup wizard for your event.",
+            variant: "default",
+          });
+          
+          // First go to the events page, then navigate to the event
+          setTimeout(() => {
+            setLocation(`/event-setup-wizard/${selectedEventId}`);
+          }, 500);
+        }} />
       ) : (
         /* Show wizard interface when accessed with an event ID */
         <Card className="p-6">
