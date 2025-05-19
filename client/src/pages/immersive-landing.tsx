@@ -740,7 +740,9 @@ export default function ImmersiveLanding() {
             and email communications.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="order-2 lg:order-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-white shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -791,7 +793,7 @@ export default function ImmersiveLanding() {
               </div>
             </div>
             
-            <div className="relative order-1 lg:order-2">
+            <div className="order-1 lg:order-2">
               <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
                 <div className="flex items-center gap-3 pb-4 border-b">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
