@@ -13,7 +13,8 @@ import { isAuthenticated, isAdmin } from './middleware';
 import './types';
 // Import PostgreSQL session store
 import pgSession from 'connect-pg-simple';
-import { pgClient } from './db';
+// Import pg for PostgreSQL connection compatible with connect-pg-simple
+import { Pool } from 'pg';
 import { 
   insertUserSchema, 
   insertGuestSchema, 
@@ -80,14 +81,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Configure session management with improved MemoryStore for development
-  // In production, this should be replaced with a database-backed store
-  const MemoryStore = session.MemoryStore;
+  // Configure PostgreSQL session store for production-ready session management
+  const PostgreSqlStore = pgSession(session);
   
-  // Configure session management with memory store that auto-prunes old sessions
+  // Create a PostgreSQL connection pool for session storage
+  const sessionPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 5 // Limit connections for session management
+  });
+  
+  // Configure session management with PostgreSQL store
   app.use(session({
-    store: new MemoryStore({
-      checkPeriod: 86400000 // Prune expired sessions every 24h
+    store: new PostgreSqlStore({
+      pool: sessionPool,
+      tableName: 'session', // Table name for sessions
+      createTableIfMissing: true // Auto-create the session table if missing
     }),
     secret: 'wedding-rsvp-secret-key',
     resave: false, // Don't save session if unmodified
