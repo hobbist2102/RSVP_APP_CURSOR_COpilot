@@ -454,7 +454,6 @@ export default function EventWizard({
       };
       
       setWizardData(updatedWizardData as any);
-      console.log("Updated wizard data with existing event:", existingEvent);
       
       // Immediately reset the form with the current step data from the updated wizard data
       const stepKey = steps[currentStep].title.toLowerCase().replace(/[&\\s]+/g, '');
@@ -482,7 +481,6 @@ export default function EventWizard({
       
       if (currentStepData && Object.keys(currentStepData).length > 0) {
         form.reset(currentStepData);
-        console.log(`Initialized form for step ${currentStep} with values:`, currentStepData);
       }
     }
   }, [existingEvent, currentStep, form, steps]);
@@ -494,7 +492,6 @@ export default function EventWizard({
       const currentValues = getStepData(currentStep);
       if (currentValues && Object.keys(currentValues).length > 0) {
         form.reset(currentValues);
-        console.log(`Resetting form for step ${currentStep} after step change with values:`, currentValues);
       }
     }
   }, [currentStep, wizardData, form, existingEvent]);
