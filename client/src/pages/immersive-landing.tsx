@@ -547,28 +547,28 @@ export default function ImmersiveLanding() {
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">
+                  <h3 className="font-medium text-lg mb-2">
                     Family-Centered Design
                   </h3>
-                  <p className="text-xs text-[#3A1562]/80">
+                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
                     Keep families together in travel, seating, and communication
                   </p>
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">
+                  <h3 className="font-medium text-lg mb-2">
                     From Save the Date to Departure
                   </h3>
-                  <p className="text-xs text-[#3A1562]/80">
+                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
                     Seamlessly manage the entire wedding lifecycle.
                   </p>
                 </div>
 
                 <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
-                  <h3 className="font-medium text-xs mb-1">
+                  <h3 className="font-medium text-lg mb-2">
                     Integrated Communication
                   </h3>
-                  <p className="text-xs text-[#3A1562]/80">
+                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
                     Email and WhatsApp integration for seamless guest updates
                     and communication.
                   </p>
@@ -672,8 +672,13 @@ export default function ImmersiveLanding() {
         className="relative py-24 bg-white"
       >
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold mb-12 text-center">
-            <span className="text-[#5E239D]">Moving Together</span>
+          <h2 className="text-center mb-10">
+            <span className="text-[#BFA76F] font-light text-base block">
+              Travel Solutions
+            </span>
+            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
+              Moving Together
+            </span>
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -859,11 +864,11 @@ export default function ImmersiveLanding() {
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-3xl font-serif font-semibold mb-4 text-foreground">
+              <h3 className="text-2xl md:text-3xl font-serif font-semibold mb-4 text-[#5E239D]">
                 Family-Centric Transportation
               </h3>
 
-              <p className="text-lg text-foreground/80">
+              <p className="text-base md:text-lg leading-relaxed text-[#5E239D]/80">
                 Our revolutionary transport management system ensures that
                 families travel together comfortably, with intelligent
                 allocation based on arrival times and group sizes.
