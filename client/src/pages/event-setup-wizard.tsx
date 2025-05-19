@@ -232,12 +232,17 @@ export default function EventSetupWizard() {
       variant: "default",
     });
     
-    // Redirect to event settings
-    setLocation(`/events/${eventId}/settings`);
+    // Redirect to event settings (only for existing events)
+    if (!isNewEventCreation && eventId) {
+      setLocation(`/events/${eventId}/settings`);
+    } else {
+      // For new events, just go back to events list
+      setLocation('/events');
+    }
   };
 
-  // If loading, show a simple loading state
-  if (isLoading || isLoadingProgress) {
+  // If loading and not creating a new event, show a simple loading state
+  if ((isLoading || isLoadingProgress) && !isNewEventCreation) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
@@ -254,10 +259,10 @@ export default function EventSetupWizard() {
       case WIZARD_STEPS.BASIC_INFO:
         return (
           <BasicInfoStep
-            eventId={eventId}
-            currentEvent={currentEvent as any}
+            eventId={isNewEventCreation ? 'new' : eventId}
+            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
             onComplete={(data) => handleStepComplete(WIZARD_STEPS.BASIC_INFO, data)}
-            isCompleted={isCurrentStepCompleted}
+            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.VENUES:
@@ -343,9 +348,13 @@ export default function EventSetupWizard() {
     <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">Event Setup Wizard</h2>
+          <h2 className="text-3xl font-playfair font-bold text-neutral">
+            {isNewEventCreation ? "Create New Event" : "Event Setup Wizard"}
+          </h2>
           <p className="text-sm text-gray-500">
-            Configure all aspects of your event in one place
+            {isNewEventCreation 
+              ? "Create your event and configure all settings in one place" 
+              : `Configure all aspects of ${currentEvent?.title || "your event"} in one place`}
           </p>
         </div>
       </div>
@@ -357,18 +366,20 @@ export default function EventSetupWizard() {
         /* Show wizard interface when accessed with an event ID */
         <Card className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Left sidebar with steps */}
+            {/* Left sidebar with steps - only show for existing events */}
             <div className="md:col-span-1 space-y-6">
-              <Steps
-                steps={steps.map(step => ({
-                  id: step.id,
-                  label: step.label,
-                  isCompleted: completedSteps[step.id] || false,
-                  isActive: activeStep === step.id
-                }))}
-                onStepClick={navigateToStep}
-                orientation="vertical"
-              />
+              {!isNewEventCreation && (
+                <Steps
+                  steps={steps.map(step => ({
+                    id: step.id,
+                    label: step.label,
+                    isCompleted: completedSteps[step.id] || false,
+                    isActive: activeStep === step.id
+                  }))}
+                  onStepClick={navigateToStep}
+                  orientation="vertical"
+                />
+              )}
               
               <div className="space-y-2 pt-6">
                 {areAllStepsCompleted && (
@@ -386,16 +397,18 @@ export default function EventSetupWizard() {
                   className="w-full"
                   onClick={() => setLocation(`/dashboard`)}
                 >
-                  Back to Dashboard
+                  {isNewEventCreation ? "Cancel Creation" : "Back to Dashboard"}
                 </Button>
                 
-                <Button 
-                  variant="ghost" 
-                  className="w-full text-muted-foreground"
-                  onClick={() => setLocation(`/event-settings`)}
-                >
-                  Close Wizard
-                </Button>
+                {!isNewEventCreation && (
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-muted-foreground"
+                    onClick={() => setLocation(`/events/${eventId}/settings`)}
+                  >
+                    Close Wizard
+                  </Button>
+                )}
               </div>
             </div>
             
