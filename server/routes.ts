@@ -85,6 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: true, // Ensures session is saved on every request
     saveUninitialized: true, // Creates session unconditionally
     rolling: true, // Reset expiration with each request
+    name: 'wedding.sid', // Custom session name to avoid conflicts
     cookie: { 
       // Never use secure in development to avoid issues with HTTP
       secure: false,
@@ -99,9 +100,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   }));
   
-  // Passport setup
+  // Passport setup with enhanced session handling
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Add debug middleware to monitor session persistence
+  app.use((req, res, next) => {
+    // Debug middleware to track session and authentication state
+    if (req.path.startsWith('/api/')) {
+      console.log(`Request to ${req.path}, authenticated: ${req.isAuthenticated()}`);
+      if (req.isAuthenticated()) {
+        console.log(`User in request: ${JSON.stringify(req.user)}`);
+      }
+    }
+    next();
+  });
   
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
@@ -321,27 +334,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Wedding Event routes
   app.get('/api/events', isAuthenticated, async (req, res) => {
     try {
-      // Enhanced debugging to troubleshoot event access
-      console.log('GET /api/events - User:', req.user);
+      // Get all events first, regardless of user
+      const allEvents = await storage.getAllEvents();
+      console.log(`Retrieved all events (${allEvents.length}): `, allEvents.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
       
-      // Check if the user is an admin
-      const isAdmin = (req.user as any).role === 'admin';
+      // Get user info
       const userId = (req.user as any).id;
+      const userRole = (req.user as any).role;
+      const userIsAdmin = userRole === 'admin';
       
-      console.log(`User ID: ${userId}, Role: ${(req.user as any).role}, isAdmin: ${isAdmin}`);
+      console.log(`User ID: ${userId}, Role: ${userRole}, isAdmin: ${userIsAdmin}`);
       
-      if (isAdmin) {
-        // Admin users can see all events
-        const events = await storage.getAllEvents();
-        console.log(`Admin user ${userId} retrieved all events (${events.length})`);
-        console.log('Events returned:', events.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
-        res.json(events);
+      if (userRole === 'admin') {
+        // Admin users see all events
+        console.log(`Admin user ${userId} will receive all events (${allEvents.length})`);
+        res.json(allEvents);
       } else {
-        // Regular users can only see events they created
-        const events = await storage.getEventsByUser(userId);
-        console.log(`User ${userId} retrieved their own events (${events.length})`);
-        console.log('Events returned:', events.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
-        res.json(events);
+        // Regular users only see their own events
+        const userEvents = allEvents.filter(event => event.createdBy === userId);
+        console.log(`Regular user ${userId} will receive their own events (${userEvents.length})`);
+        res.json(userEvents);
       }
     } catch (error) {
       console.error('Error fetching events:', error);
