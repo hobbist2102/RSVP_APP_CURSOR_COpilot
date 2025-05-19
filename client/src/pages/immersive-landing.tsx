@@ -1025,11 +1025,11 @@ export default function ImmersiveLanding() {
                   </div>
                   <div>
                     <h4 className="font-medium text-lg mb-1">
-                      WhatsApp Integration
+                      WhatsApp & AI Chatbots
                     </h4>
                     <p className="text-foreground/70">
                       Send updates, collect RSVPs, and answer questions through
-                      WhatsApp
+                      WhatsApp and AI Chatbots.
                     </p>
                   </div>
                 </div>
