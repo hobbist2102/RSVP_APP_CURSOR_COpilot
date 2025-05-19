@@ -880,23 +880,23 @@ export default function ImmersiveLanding() {
             ))}
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-[#5E239D]">
-            Begin Your <span className="text-[#5E239D]">Journey</span>
+          <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white">
+            Begin Your <span className="text-white">Journey</span>
           </h2>
 
-          <p className="text-lg text-[#5E239D] max-w-3xl mx-auto mb-12">
+          <p className="text-lg text-white max-w-3xl mx-auto mb-12">
             Transform your wedding planning experience today. Our platform brings elegance to every detail, letting you focus on what truly matters.
           </p>
 
           <Button 
             size="lg" 
-            className="cta-button bg-[#5E239D] hover:bg-[#5E239D]/90 text-white text-xl py-6 px-10 rounded-md"
+            className="hero-button hero-button-primary rounded-full py-6 px-10 text-lg font-medium bg-gradient-to-r from-[#5E239D] to-[#7f33d3] border-0 shadow-lg shadow-primary/20"
             asChild
           >
             <Link href="/auth">Get Started Now</Link>
           </Button>
 
-          <p className="text-[#5E239D]/70 mt-6">
+          <p className="text-white/70 mt-6">
             No credit card required • Free 14-day trial • Cancel anytime
           </p>
         </div>
