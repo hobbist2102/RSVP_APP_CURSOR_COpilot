@@ -213,18 +213,27 @@ export default function ImmersiveLanding() {
 
       // Communication section animations
       if (communicationRef.current) {
-        // Message bubbles animation
-        gsap.from(".message-bubble", {
-          scale: 0,
-          opacity: 0,
-          duration: 0.5,
-          stagger: 0.15,
-          scrollTrigger: {
-            trigger: communicationRef.current,
-            start: "top 70%",
-            toggleActions: "play none none reverse",
-          },
+        // Make message bubbles visible immediately by default
+        gsap.set(".message-bubble", {
+          scale: 1,
+          opacity: 1,
         });
+        
+        // Add animation effect when scrolling to the section
+        gsap.fromTo(".message-bubble", 
+          { scale: 0.9, opacity: 0.7 },
+          { 
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.15,
+            scrollTrigger: {
+              trigger: communicationRef.current,
+              start: "top 70%",
+              toggleActions: "play none none none",
+            },
+          }
+        );
       }
 
       // CTA section animations
