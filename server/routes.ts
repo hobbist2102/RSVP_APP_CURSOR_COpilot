@@ -11,6 +11,9 @@ import bcrypt from "bcryptjs";
 import { isAuthenticated, isAdmin } from './middleware';
 // Import session type extensions
 import './types';
+// Import PostgreSQL session store
+import pgSession from 'connect-pg-simple';
+import { pgClient } from './db';
 import { 
   insertUserSchema, 
   insertGuestSchema, 
@@ -77,18 +80,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Configure session management with SameSite=None for cross-origin compatibility
+  // Configure session management with improved MemoryStore for development
+  // In production, this should be replaced with a database-backed store
+  const MemoryStore = session.MemoryStore;
+  
+  // Configure session management with memory store that auto-prunes old sessions
   app.use(session({
+    store: new MemoryStore({
+      checkPeriod: 86400000 // Prune expired sessions every 24h
+    }),
     secret: 'wedding-rsvp-secret-key',
-    resave: true, // Force session save on every response to ensure persistence
-    saveUninitialized: true, // Save new sessions to ensure consistency
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something stored
     rolling: true, // Reset expiration with each request
     name: 'wedding_session_fixed', // New session name to avoid conflicts
     cookie: { 
-      secure: false, // Allow non-HTTPS in all environments for testing
+      secure: process.env.NODE_ENV === 'production', // Secure in production only
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true, 
-      sameSite: 'none', // Allow cross-origin requests (critical for session to work across domains)
+      sameSite: 'lax', // More compatible setting that works better across environments
       path: '/'
     }
   }));
