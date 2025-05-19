@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, ChevronRight, PlusCircle, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventSelectorProps {
   onSelectEvent: (eventId: number) => void;
@@ -13,11 +15,37 @@ interface EventSelectorProps {
 
 export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
   const [_, setLocation] = useLocation();
+  const { toast } = useToast();
   
   // Fetch all events
   const { data: events, isLoading } = useQuery({
-    queryKey: ['/api/events'],
+    queryKey: ['/api/events-direct'],
   });
+  
+  // Set current event mutation
+  const setCurrentEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      const response = await apiRequest("POST", `/api/current-event`, { eventId });
+      return await response.json();
+    },
+    onSuccess: (data, eventId) => {
+      // After setting the current event, call the onSelectEvent prop
+      onSelectEvent(eventId);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to select event",
+        description: "There was an error selecting this event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handler for when user selects an event
+  const handleSelectEvent = (eventId: number) => {
+    // First set this as the current event in the session
+    setCurrentEventMutation.mutate(eventId);
+  };
 
   return (
     <Card>
@@ -54,7 +82,7 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
                 </div>
                 
                 <Button 
-                  onClick={() => onSelectEvent(event.id)}
+                  onClick={() => handleSelectEvent(event.id)}
                   className="flex items-center gap-2"
                 >
                   <Settings className="h-4 w-4" />
