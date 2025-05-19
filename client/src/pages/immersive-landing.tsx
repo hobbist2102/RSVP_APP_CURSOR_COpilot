@@ -1146,8 +1146,8 @@ export default function ImmersiveLanding() {
 
                 <div className="py-4 space-y-4">
                   <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-xl p-3 max-w-[80%] shadow-sm border border-gray-300">
-                      <p className="text-sm text-gray-800">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] shadow-sm">
+                      <p className="text-sm text-gray-800 font-medium">
                         Namaste Priya! We're excited to welcome you to Raj &
                         Anita's wedding celebration. Your RSVP has been
                         confirmed for all 3 days of ceremonies.
@@ -1156,8 +1156,8 @@ export default function ImmersiveLanding() {
                   </div>
 
                   <div className="message-bubble flex justify-end">
-                    <div className="bg-green-200 rounded-xl p-3 max-w-[80%] shadow-sm border border-green-300">
-                      <p className="text-sm text-gray-800">
+                    <div className="bg-green-200 rounded-lg p-3 max-w-[80%] shadow-sm">
+                      <p className="text-sm text-gray-800 font-medium">
                         Thank you! I'm looking forward to it. Will there be
                         transportation from the hotel to the venue?
                       </p>
@@ -1165,8 +1165,8 @@ export default function ImmersiveLanding() {
                   </div>
 
                   <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-xl p-3 max-w-[80%] shadow-sm border border-gray-300">
-                      <p className="text-sm text-gray-800">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] shadow-sm">
+                      <p className="text-sm text-gray-800 font-medium">
                         Yes! We've arranged transportation for you. A car will
                         pick you up from JW Marriott at 5:30 PM on Friday. We've
                         made sure you'll be with your family members.
@@ -1175,15 +1175,15 @@ export default function ImmersiveLanding() {
                   </div>
 
                   <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-xl p-3 max-w-[80%] shadow-sm border border-gray-300">
-                      <p className="text-sm text-gray-800">
+                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] space-y-2 shadow-sm">
+                      <p className="text-sm text-gray-800 font-medium">
                         Here are the transportation details:
                       </p>
-                      <div className="bg-white rounded-md p-2 text-sm border border-gray-300 mt-2">
-                        <p className="text-sm text-gray-800">🚗 Your Transport Details</p>
-                        <p className="text-sm text-gray-800 mt-1">Date: June 17, 2025</p>
-                        <p className="text-sm text-gray-800">Pickup: JW Marriott, 5:30 PM</p>
-                        <p className="text-sm text-gray-800">
+                      <div className="bg-white rounded-md p-2 text-sm border border-gray-300">
+                        <p className="font-medium text-gray-900">🚗 Your Transport Details</p>
+                        <p className="text-xs mt-1 text-gray-800">Date: June 17, 2025</p>
+                        <p className="text-xs text-gray-800">Pickup: JW Marriott, 5:30 PM</p>
+                        <p className="text-xs text-gray-800">
                           Vehicle: White Innova (Sharma Family)
                         </p>
                       </div>
@@ -1191,8 +1191,8 @@ export default function ImmersiveLanding() {
                   </div>
 
                   <div className="message-bubble flex justify-end">
-                    <div className="bg-green-200 rounded-xl p-3 max-w-[80%] shadow-sm border border-green-300">
-                      <p className="text-sm text-gray-800">
+                    <div className="bg-green-200 rounded-lg p-3 max-w-[80%] shadow-sm">
+                      <p className="text-sm text-gray-800 font-medium">
                         Perfect! Thank you for organizing this so well.
                       </p>
                     </div>
