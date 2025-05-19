@@ -7,7 +7,6 @@ export function extractRsvpToken(): string | null {
   // Check window.rsvpToken first (set by server or index.html script)
   const windowToken = (window as any).rsvpToken;
   if (windowToken) {
-    console.log('Using RSVP token from window object:', windowToken);
     // Clear the token after using it to avoid reuse
     setTimeout(() => {
       (window as any).rsvpToken = undefined;
@@ -22,12 +21,10 @@ export function extractRsvpToken(): string | null {
     let token = pathMatch[1];
     if (token.startsWith('guest-rsvp/')) {
       token = token.replace('guest-rsvp/', '');
-      console.log('Corrected duplicated path segment in token path');
     }
     
     // Ensure the token isn't empty
     if (token && token.length > 0) {
-      console.log('Extracted RSVP token from URL path:', token);
       return token;
     }
   }
@@ -36,7 +33,6 @@ export function extractRsvpToken(): string | null {
   const params = new URLSearchParams(window.location.search);
   const queryToken = params.get('token');
   if (queryToken) {
-    console.log('Using RSVP token from query parameter:', queryToken);
     return queryToken;
   }
   
@@ -44,7 +40,6 @@ export function extractRsvpToken(): string | null {
   // This is a fallback in case all other methods fail
   const localToken = localStorage.getItem('rsvp_token');
   if (localToken) {
-    console.log('Using RSVP token from localStorage:', localToken);
     // Clear after use
     setTimeout(() => {
       localStorage.removeItem('rsvp_token');
@@ -52,6 +47,5 @@ export function extractRsvpToken(): string | null {
     return localToken;
   }
   
-  console.log('Could not extract an RSVP token from any source');
   return null;
 }

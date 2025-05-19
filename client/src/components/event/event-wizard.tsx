@@ -566,9 +566,7 @@ export default function EventWizard({
   };
 
   const submitForm = () => {
-    // Log the wizard data to check what's available
-    console.log("Wizard data collected:", wizardData);
-    
+    // Process the collected form data from all wizard steps
     // Prepare data for submission
     const formData: EventApiData = {
       // Basic info fields - required fields

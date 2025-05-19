@@ -69,29 +69,18 @@ export function useCurrentEvent() {
   
   // Helper function to set the current event both locally and on server
   const setCurrentEvent = async (event: CurrentEvent) => {
-    console.log(`EVENT SWITCH: Switching to event ID: ${event.id} (${event.title})`);
-    
     try {
       // First, update the server-side session
-      console.log('EVENT SWITCH: Saving to server session...');
       const updatedEvent = await setCurrentEventMutation.mutateAsync(event.id);
-      console.log('EVENT SWITCH: Successfully saved event to server session:', event.id);
       
       // After successful server update, clear the client cache
-      console.log('EVENT SWITCH: Before clearing - Query cache keys:', 
-        queryClient.getQueryCache().getAll().map(query => query.queryKey));
-        
       // Clear all query cache to ensure no stale data remains
       queryClient.clear();
-      console.log('EVENT SWITCH: After clearing - Query cache is now empty');
       
       // Set the updated event from server in the cache
       queryClient.setQueryData(['/api/current-event'], updatedEvent);
-      console.log('EVENT SWITCH: Set current event in cache:', updatedEvent.id);
       
       // Invalidate and prefetch key queries for the new event context
-      console.log('EVENT SWITCH: Starting query invalidations for event:', event.id);
-      
       // Make sure these query keys match exactly what's used in components
       await Promise.all([
         // Invalidate general event queries
@@ -109,17 +98,15 @@ export function useCurrentEvent() {
         queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/statistics`] })
       ]);
       
-      console.log('EVENT SWITCH: All relevant queries invalidated for new event context');
-      
       // Force a refetch of the current event to ensure it's up to date
       await refetchCurrentEvent();
       
-      console.log('EVENT SWITCH: Forcing refetch of all active queries');
+      // Force refetch of all active queries
       await queryClient.refetchQueries({ type: 'active' });
       
       return updatedEvent;
     } catch (error) {
-      console.error('EVENT SWITCH: Error during event switch:', error);
+      console.error('Error during event switch:', error);
       throw error;
     }
   };
