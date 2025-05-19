@@ -105,9 +105,10 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
           </div>
         ) : (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground mb-4">No events found. Create an event to get started.</p>
+            <p className="text-muted-foreground mb-4">No events found. Create a new event to get started.</p>
             <Button 
-              onClick={() => setLocation('/events')}
+              onClick={() => setLocation('/event-setup-wizard/new')}
+              variant="default"
               className="flex items-center gap-2"
             >
               <PlusCircle className="h-4 w-4" />
