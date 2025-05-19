@@ -1370,22 +1370,6 @@ export default function ImmersiveLanding() {
         className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6 text-center relative z-10">
-          {/* Gold particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {Array(75)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className="gold-particle absolute w-1.5 h-1.5 rounded-full bg-[#BFA76F]"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    opacity: 0.4 + Math.random() * 0.6,
-                  }}
-                ></div>
-              ))}
-          </div>
 
           <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white">
             Begin Your <span className="text-white">Journey</span>
