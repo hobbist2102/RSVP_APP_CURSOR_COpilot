@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,18 @@ import "@/styles/immersive-landing.css";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, SplitText);
+
+// Utility function for performance optimization
+function throttle(func: Function, limit: number) {
+  let inThrottle: boolean;
+  return function(this: any, ...args: any[]) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
 
 // Define section IDs for navigation
 const SECTIONS = {
@@ -284,10 +296,10 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate connected particles network
-  const renderParticles = () => {
-    const nodeCount = 120; // Fewer nodes for the network
-    const starCount = 1000; // Background stars like in the screenshot
+  // Generate connected particles network - optimized for performance
+  const particles = useMemo(() => {
+    const nodeCount = 80; // Reduced node count for better performance
+    const starCount = 600; // Reduced star count for better performance
     
     // First, create the network nodes (particles)
     const nodes = Array.from({ length: nodeCount }).map((_, i) => {
@@ -320,9 +332,6 @@ export default function ImmersiveLanding() {
           animationDelay: `${node.delay}s`,
           animationDuration: `${node.duration}s`,
           opacity: node.opacity,
-          transform: mousePosition.x > 0
-            ? `translate(${(mousePosition.x / window.innerWidth - 0.5) * 10}px, ${(mousePosition.y / window.innerHeight - 0.5) * 10}px)`
-            : "none",
         }}
       />
     ));
@@ -349,12 +358,19 @@ export default function ImmersiveLanding() {
       );
     });
     
-    // Create SVG connections between nearby nodes
+    // Create SVG connections between nearby nodes - optimize by using fewer connections
     const connections: JSX.Element[] = [];
     const connectionDistance = 15; // Maximum distance for connection (in % of viewport)
     
+    // Create a single SVG for all connections to reduce DOM elements
+    const connectionPaths: JSX.Element[] = [];
+    
     nodes.forEach((node, i) => {
-      for (let j = i + 1; j < nodes.length; j++) {
+      // Limit connections per node for better performance
+      let connectionCount = 0;
+      const maxConnectionsPerNode = 3;
+      
+      for (let j = i + 1; j < nodes.length && connectionCount < maxConnectionsPerNode; j++) {
         const targetNode = nodes[j];
         const dx = Math.abs(node.x - targetNode.x);
         const dy = Math.abs(node.y - targetNode.y);
@@ -364,42 +380,68 @@ export default function ImmersiveLanding() {
           // Calculate opacity based on distance (farther = more transparent)
           const lineOpacity = 0.15 * (1 - distance / connectionDistance);
           
-          connections.push(
-            <svg
-              key={`connection-${i}-${j}`}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                zIndex: 40,
-                pointerEvents: 'none',
-                opacity: lineOpacity,
-              }}
-            >
-              <line
-                x1={`${node.x}%`}
-                y1={`${node.y}%`}
-                x2={`${targetNode.x}%`}
-                y2={`${targetNode.y}%`}
-                stroke="#d4b976"
-                strokeWidth="0.3"
-              />
-            </svg>
+          connectionPaths.push(
+            <line
+              key={`line-${i}-${j}`}
+              x1={`${node.x}%`}
+              y1={`${node.y}%`}
+              x2={`${targetNode.x}%`}
+              y2={`${targetNode.y}%`}
+              stroke="#d4b976"
+              strokeWidth="0.3"
+              opacity={lineOpacity}
+            />
           );
+          
+          connectionCount++;
         }
       }
     });
     
+    // Create a single SVG element with all connections
+    connections.push(
+      <svg
+        key="connections-container"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 40,
+          pointerEvents: 'none',
+        }}
+      >
+        {connectionPaths}
+      </svg>
+    );
+    
     return [...starElements, ...connections, ...nodeElements];
-  };
+  }, []); // Only create particles once for better performance
+  
+  // Add mouse movement effect with throttling for performance
+  useEffect(() => {
+    const handleMouseMoveThrottled = throttle((e: MouseEvent) => {
+      const particlesContainer = particlesRef.current;
+      if (particlesContainer) {
+        const xPercent = (e.clientX / window.innerWidth - 0.5) * 5;
+        const yPercent = (e.clientY / window.innerHeight - 0.5) * 5;
+        particlesContainer.style.transform = `translate(${xPercent}px, ${yPercent}px)`;
+      }
+    }, 50); // Throttle to 50ms for smooth performance
+    
+    window.addEventListener('mousemove', handleMouseMoveThrottled);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMoveThrottled);
+    };
+  }, []);
 
   return (
     <div ref={pageRef} className="immersive-landing">
       {/* Global Particles Container - Higher z-index to ensure visibility on all sections */}
       <div ref={particlesRef} className="particles-container" style={{ zIndex: 9999 }}>
-        {renderParticles()}
+        {particles}
       </div>
 
       {/* Navigation Bar */}

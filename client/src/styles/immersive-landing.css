@@ -87,7 +87,7 @@
   will-change: transform;
 }
 
-/* Gold particles effect - subtle connected network */
+/* Gold particles effect - subtle connected network - optimized for performance */
 .gold-particle {
   position: fixed;
   width: 0.8px;
@@ -101,9 +101,12 @@
   will-change: transform, opacity;
   animation: floatParticle 18s ease-in-out infinite;
   pointer-events: none;
+  contain: layout style paint; /* Performance optimization to reduce paint area */
+  backface-visibility: hidden; /* Reduce GPU memory consumption */
+  transform: translateZ(0); /* Force GPU acceleration for smoother animations */
 }
 
-/* Stars effect - like in the screenshot */
+/* Stars effect - like in the screenshot - optimized for performance */
 .gold-star {
   position: fixed;
   width: 0.8px;
@@ -114,6 +117,9 @@
   will-change: opacity;
   animation: twinkle 4s ease-in-out infinite;
   pointer-events: none;
+  contain: layout style paint; /* Performance optimization to reduce paint area */
+  backface-visibility: hidden; /* Reduce GPU memory consumption */
+  transform: translateZ(0); /* Force GPU acceleration for smoother animations */
 }
 
 @keyframes floatParticle {
