@@ -35,6 +35,8 @@ export default function ImmersiveLanding() {
   const transportRef = useRef<HTMLDivElement>(null);
   const communicationRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const particlesRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
@@ -45,6 +47,18 @@ export default function ImmersiveLanding() {
       });
     }
   };
+
+  // Track mouse position for particle effects
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   // Setup animations
   useEffect(() => {
@@ -269,8 +283,44 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
+  // Generate a large number of particles for the background
+  const renderParticles = () => {
+    const particleCount = 1000; // 10x more than before
+    return Array.from({ length: particleCount }).map((_, i) => {
+      const size = Math.random() * 4 + 1;
+      const initialX = Math.random() * 100;
+      const initialY = Math.random() * 100;
+      const delay = Math.random() * 10;
+      const duration = 5 + Math.random() * 10;
+      
+      return (
+        <div
+          key={i}
+          className="gold-particle"
+          style={{
+            top: `${initialY}%`,
+            left: `${initialX}%`,
+            width: `${size}px`,
+            height: `${size}px`,
+            animationDelay: `${delay}s`,
+            animationDuration: `${duration}s`,
+            transform: mousePosition.x > 0 ? 
+              `translate(${(mousePosition.x / window.innerWidth - 0.5) * 20}px, ${(mousePosition.y / window.innerHeight - 0.5) * 20}px)` : 
+              'none',
+            opacity: size > 3 ? 0.8 : 0.5,
+          }}
+        ></div>
+      );
+    });
+  };
+
   return (
     <div ref={pageRef} className="immersive-landing">
+      {/* Global Particles Container */}
+      <div ref={particlesRef} className="particles-container">
+        {renderParticles()}
+      </div>
+      
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -334,22 +384,6 @@ export default function ImmersiveLanding() {
       >
         {/* Background Elements - Parallax Effect */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Floating particles */}
-          <div className="absolute inset-0">
-            {Array.from({ length: 100 }).map((_, i) => (
-              <div
-                key={i}
-                className="gold-particle absolute"
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  width: `${Math.random() * 4 + 1}px`,
-                  height: `${Math.random() * 4 + 1}px`,
-                  animationDelay: `${Math.random() * 5}s`,
-                }}
-              ></div>
-            ))}
-          </div>
 
           {/* Glowing orbs */}
           <div className="parallax-layer" data-speed="0.2">
