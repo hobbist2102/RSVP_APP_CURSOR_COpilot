@@ -105,9 +105,15 @@ Enhanced error handling ensures that any attempt to access data across event bou
 
 ## Future Enhancements
 
-1. **Audit Logging**: Implement comprehensive audit logging for all cross-event access attempts
-2. **Authentication Integration**: Enhance the system to use event-specific authentication tokens
-3. **Row-Level Security**: Consider implementing database-level row security policies
+1. **Event Assignment System**: Implement a proper event assignment system for wedding planners
+   - Create an `event_assignments` table to link planners to specific events
+   - Update access control logic to check event assignments for planners
+   - Add UI for admins to assign planners to events
+   - Current workaround: Wedding planners can see all events (added May 19, 2025)
+
+2. **Audit Logging**: Implement comprehensive audit logging for all cross-event access attempts
+3. **Authentication Integration**: Enhance the system to use event-specific authentication tokens
+4. **Row-Level Security**: Consider implementing database-level row security policies
 
 ## Conclusion
 
