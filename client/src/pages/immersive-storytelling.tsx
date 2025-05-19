@@ -68,7 +68,7 @@ export default function ImmersiveStorytelling() {
       <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-primary/90 border-b border-accent/20">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <img 
-            src="/images/logo.svg" 
+            src="/images/Eternally Yours Logo.png" 
             alt="Eternally Yours Logo" 
             className="h-10" 
           />
