@@ -1424,6 +1424,15 @@ export default function ImmersiveLanding() {
           </p>
         </div>
       </section>
+
+      {/* Footer Section */}
+      <footer className="bg-black py-6">
+        <div className="container mx-auto px-6">
+          <p className="text-white/80 text-center text-sm">
+            Made with Love by CultureBot Experiences and Entertainment
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
