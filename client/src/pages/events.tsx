@@ -340,6 +340,8 @@ export default function Events() {
   };
   
   // Redirect to Event Setup Wizard
+  const [, setLocation] = useLocation();
+  
   const handleEditEvent = (event: any) => {
     // Redirect to the wizard instead of opening the edit dialog
     setLocation(`/event-setup-wizard/${event.id}`);
