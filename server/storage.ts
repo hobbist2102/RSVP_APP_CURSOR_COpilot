@@ -1,4 +1,5 @@
-import type { Json } from "drizzle-orm";
+// Using jsonb type directly from schema instead of importing Json type
+import { jsonb } from "drizzle-orm/pg-core";
 
 // Email configuration interface for OAuth integration
 export interface EmailConfig {
