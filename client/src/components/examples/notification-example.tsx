@@ -44,7 +44,7 @@ export default function NotificationExample() {
       description: "This is a custom notification with longer duration and action.",
       duration: 8000,
       action: (
-        <Button variant="outline" size="sm" onClick={() => console.log("Action clicked")}>
+        <Button variant="outline" size="sm" onClick={() => {}}>
           Action
         </Button>
       )

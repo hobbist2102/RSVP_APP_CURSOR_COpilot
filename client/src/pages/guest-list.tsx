@@ -123,7 +123,6 @@ export default function GuestList() {
   const updateGuestMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       try {
-        console.log(`Submitting update for guest ${id} with data:`, data);
         // Pass the event context as a parameter
         const response = await apiRequest(
           "PUT", 
@@ -152,8 +151,6 @@ export default function GuestList() {
       }
     },
     onSuccess: (data) => {
-      console.log("Guest updated successfully:", data);
-      
       // Invalidate and immediately refetch the guests query
       queryClient.invalidateQueries({ 
         queryKey: [`/api/events/${eventId}/guests`],
