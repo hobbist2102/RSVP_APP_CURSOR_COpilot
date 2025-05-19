@@ -7,7 +7,6 @@ import { format } from "date-fns";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import MemoryStore from "memorystore";
 import bcrypt from "bcryptjs";
 import { isAuthenticated, isAdmin } from './middleware';
 // Import session type extensions
@@ -78,26 +77,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Session setup with enhanced persistence
-  const sessionStore = MemoryStore(session);
+  // Setup enhanced session configuration for better persistence
+  // Using the default in-memory store for simplicity and reliability
   app.use(session({
-    secret: 'wedding-rsvp-secret-enhanced',
-    resave: true, // Ensures session is saved on every request
-    saveUninitialized: true, // Creates session unconditionally
+    secret: 'wedding-rsvp-secret-enhanced-v2',
+    resave: true, // Force save session on every request
+    saveUninitialized: true, // Save uninitialized sessions
     rolling: true, // Reset expiration with each request
-    name: 'wedding.sid', // Custom session name to avoid conflicts
+    name: 'wedding_session_v2', // Distinct name to avoid conflicts with old cookies
     cookie: { 
-      // Never use secure in development to avoid issues with HTTP
-      secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Extended to 7 days for better persistence
+      secure: false, // Don't require HTTPS
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days for very long persistence
       httpOnly: true,
       sameSite: 'lax',
       path: '/'
-    },
-    store: new sessionStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-      stale: false // Don't serve stale sessions
-    })
+    }
   }));
   
   // Passport setup with enhanced session handling
