@@ -1144,10 +1144,10 @@ export default function ImmersiveLanding() {
                   </div>
                 </div>
 
-                <div className="conversation py-4 space-y-4" style={{ minHeight: '300px', height: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                  <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">
+                <div className="py-4 space-y-4 min-h-[300px] overflow-y-auto">
+                  <div className="message-bubble flex justify-start mb-3">
+                    <div style={{background: "#e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", maxWidth: "80%"}}>
+                      <p style={{fontSize: "0.875rem", margin: 0}}>
                         Namaste Priya! We're excited to welcome you to Raj &
                         Anita's wedding celebration. Your RSVP has been
                         confirmed for all 3 days of ceremonies.
@@ -1155,18 +1155,18 @@ export default function ImmersiveLanding() {
                     </div>
                   </div>
 
-                  <div className="message-bubble flex justify-end">
-                    <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">
+                  <div className="message-bubble flex justify-end mb-3">
+                    <div style={{background: "#dcfce7", borderRadius: "0.5rem", padding: "0.75rem", maxWidth: "80%"}}>
+                      <p style={{fontSize: "0.875rem", margin: 0}}>
                         Thank you! I'm looking forward to it. Will there be
                         transportation from the hotel to the venue?
                       </p>
                     </div>
                   </div>
 
-                  <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">
+                  <div className="message-bubble flex justify-start mb-3">
+                    <div style={{background: "#e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", maxWidth: "80%"}}>
+                      <p style={{fontSize: "0.875rem", margin: 0}}>
                         Yes! We've arranged transportation for you. A car will
                         pick you up from JW Marriott at 5:30 PM on Friday. We've
                         made sure you'll be with your family members.
@@ -1174,25 +1174,25 @@ export default function ImmersiveLanding() {
                     </div>
                   </div>
 
-                  <div className="message-bubble flex justify-start">
-                    <div className="bg-gray-200 rounded-lg p-3 max-w-[80%] space-y-2">
-                      <p className="text-sm">
+                  <div className="message-bubble flex justify-start mb-3">
+                    <div style={{background: "#e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", maxWidth: "80%"}}>
+                      <p style={{fontSize: "0.875rem", margin: 0, marginBottom: "0.5rem"}}>
                         Here are the transportation details:
                       </p>
-                      <div className="bg-white rounded-md p-2 text-sm">
-                        <p className="font-medium">🚗 Your Transport Details</p>
-                        <p className="text-xs mt-1">Date: June 17, 2025</p>
-                        <p className="text-xs">Pickup: JW Marriott, 5:30 PM</p>
-                        <p className="text-xs">
+                      <div style={{background: "white", borderRadius: "0.375rem", padding: "0.5rem", fontSize: "0.875rem"}}>
+                        <p style={{fontWeight: "500", margin: 0}}>🚗 Your Transport Details</p>
+                        <p style={{fontSize: "0.75rem", marginTop: "0.25rem", margin: 0}}>Date: June 17, 2025</p>
+                        <p style={{fontSize: "0.75rem", margin: 0}}>Pickup: JW Marriott, 5:30 PM</p>
+                        <p style={{fontSize: "0.75rem", margin: 0}}>
                           Vehicle: White Innova (Sharma Family)
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="message-bubble flex justify-end">
-                    <div className="bg-green-100 rounded-lg p-3 max-w-[80%]">
-                      <p className="text-sm">
+                  <div className="message-bubble flex justify-end mb-3">
+                    <div style={{background: "#dcfce7", borderRadius: "0.5rem", padding: "0.75rem", maxWidth: "80%"}}>
+                      <p style={{fontSize: "0.875rem", margin: 0}}>
                         Perfect! Thank you for organizing this so well.
                       </p>
                     </div>
