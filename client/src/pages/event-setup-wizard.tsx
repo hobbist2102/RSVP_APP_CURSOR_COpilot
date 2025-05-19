@@ -232,13 +232,8 @@ export default function EventSetupWizard() {
       variant: "default",
     });
     
-    // Redirect to event settings (only for existing events)
-    if (!isNewEventCreation && eventId) {
-      setLocation(`/events/${eventId}/settings`);
-    } else {
-      // For new events, just go back to events list
-      setLocation('/events');
-    }
+    // For both new and existing events, redirect to the events list
+    setLocation('/events');
   };
 
   // If loading and not creating a new event, show a simple loading state
@@ -259,9 +254,17 @@ export default function EventSetupWizard() {
       case WIZARD_STEPS.BASIC_INFO:
         return (
           <BasicInfoStep
-            eventId={isNewEventCreation ? 'new' : eventId}
+            eventId={eventId}
             currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
-            onComplete={(data) => handleStepComplete(WIZARD_STEPS.BASIC_INFO, data)}
+            onComplete={(data) => {
+              if (isNewEventCreation) {
+                // For new events, we create the event first
+                createEventMutation.mutate(data);
+              } else {
+                // For existing events, we update it
+                handleStepComplete(WIZARD_STEPS.BASIC_INFO, data);
+              }
+            }}
             isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
