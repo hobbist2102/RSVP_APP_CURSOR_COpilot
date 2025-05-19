@@ -387,7 +387,7 @@ export default function EventWizard({
   
   const form = useForm({
     resolver: zodResolver(currentSchema),
-    defaultValues: getStepData(currentStep) || {},
+    defaultValues: getStepData(currentStep) as any,
   });
   
   // Initialize form with either existing event data or default values
@@ -453,7 +453,7 @@ export default function EventWizard({
         },
       };
       
-      setWizardData(updatedWizardData);
+      setWizardData(updatedWizardData as any);
       console.log("Updated wizard data with existing event:", existingEvent);
       
       // Immediately reset the form with the current step data from the updated wizard data
@@ -499,20 +499,22 @@ export default function EventWizard({
     }
   }, [currentStep, wizardData, form, existingEvent]);
   
-  // Helper function to get data for the current step
-  function getStepData(stepIndex: number): BasicInfoData | EventStructureData | GuestManagementData | TravelAccommodationData | CommunicationData | Record<string, never> {
+  // Helper function to get data for the current step with proper type casting
+  function getStepData(stepIndex: number): Record<string, any> {
     const stepKey = steps[stepIndex].title.toLowerCase().replace(/[&\\s]+/g, '');
+    
+    // Handle each step with appropriate typing
     switch(stepKey) {
       case 'basiceventdetails':
-        return wizardData.basicInfo || {} as BasicInfoData;
+        return (wizardData.basicInfo || {}) as BasicInfoData;
       case 'eventstructure':
-        return wizardData.eventStructure || {} as EventStructureData;
+        return (wizardData.eventStructure || {}) as EventStructureData;
       case 'guestmanagement':
-        return wizardData.guestManagement || {} as GuestManagementData;
+        return (wizardData.guestManagement || {}) as GuestManagementData;
       case 'travel&accommodation':
-        return wizardData.travelAccommodation || {} as TravelAccommodationData;
+        return (wizardData.travelAccommodation || {}) as TravelAccommodationData;
       case 'communicationsettings':
-        return wizardData.communication || {} as CommunicationData;
+        return (wizardData.communication || {}) as CommunicationData;
       default:
         return {};
     }
@@ -543,7 +545,7 @@ export default function EventWizard({
         break;
     }
     
-    setWizardData(updatedData);
+    setWizardData(updatedData as any);
     
     // Move to next step
     if (currentStep < steps.length - 1) {
