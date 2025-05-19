@@ -285,14 +285,29 @@ export default function ImmersiveLanding() {
 
   // Generate a large number of particles for the background
   const renderParticles = () => {
-    const particleCount = 2000; // 20x more than original
+    const particleCount = 3000; // 30x more than original for luxury dust effect
     return Array.from({ length: particleCount }).map((_, i) => {
-      // Create smaller, more refined particles for luxury feel
-      const size = Math.random() * 1.5 + 0.5; // 0.5-2px size range for finer particles
+      // Create extremely fine particles for luxury gold dust effect
+      const baseSize = 0.6 + Math.random() * 0.8; // Even smaller: 0.6-1.4px for ultra-fine dust
+      const sizeFactor = Math.random() < 0.05 ? 2 : 1; // 5% chance of slightly larger particles
+      const size = baseSize * sizeFactor;
+      
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
-      const delay = Math.random() * 15;
-      const duration = 10 + Math.random() * 20; // Slower, more elegant movement
+      const delay = Math.random() * 20; // More varied delays
+      const duration = 8 + Math.random() * 14; // More varied durations
+      
+      // More refined opacity distribution for realistic gold dust
+      let opacity;
+      if (size < 0.8) {
+        opacity = 0.3 + Math.random() * 0.2; // Smaller particles more subtle
+      } else if (size < 1.2) {
+        opacity = 0.4 + Math.random() * 0.3; // Medium particles medium opacity
+      } else {
+        opacity = 0.5 + Math.random() * 0.4; // Larger particles more visible
+      }
+      
+      const mouseInfluence = Math.random() * 15 + 5; // Varied mouse influence
       
       return (
         <div
@@ -306,9 +321,9 @@ export default function ImmersiveLanding() {
             animationDelay: `${delay}s`,
             animationDuration: `${duration}s`,
             transform: mousePosition.x > 0 ? 
-              `translate(${(mousePosition.x / window.innerWidth - 0.5) * 10}px, ${(mousePosition.y / window.innerHeight - 0.5) * 10}px)` : 
+              `translate(${(mousePosition.x / window.innerWidth - 0.5) * mouseInfluence}px, ${(mousePosition.y / window.innerHeight - 0.5) * mouseInfluence}px)` : 
               'none',
-            opacity: Math.random() * 0.4 + 0.3, // 0.3-0.7 opacity range for subtle effect
+            opacity: opacity,
           }}
         ></div>
       );

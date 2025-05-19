@@ -90,43 +90,40 @@
 /* Gold particles effect */
 .gold-particle {
   position: absolute;
-  width: 2px;
-  height: 2px;
+  width: 1px;
+  height: 1px;
   border-radius: 50%;
-  background: radial-gradient(circle, #e9d9a8 0%, #BFA76F 100%);
-  box-shadow: 0 0 4px 1px rgba(191, 167, 111, 0.3);
-  opacity: 0.7;
-  z-index: 10;
-  transition: transform 0.3s ease-out;
+  background: radial-gradient(circle, #f5efd1 0%, #d4b976 100%);
+  box-shadow: 0 0 2px 1px rgba(212, 185, 118, 0.4);
+  opacity: 0.8;
+  z-index: 50;
+  transition: transform 0.2s ease-out;
   will-change: transform, opacity;
-  animation: floatParticle 15s linear infinite;
+  animation: floatParticle 12s ease-in-out infinite;
   pointer-events: none;
+  backdrop-filter: blur(0.2px);
 }
 
 @keyframes floatParticle {
   0% {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 0.3;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.2;
   }
-  20% {
-    transform: translateY(-15px) rotate(90deg) scale(1.1);
-    opacity: 0.7;
+  25% {
+    transform: translateY(-8px) translateX(5px) scale(1.05);
+    opacity: 0.5;
   }
-  40% {
-    transform: translateY(-30px) rotate(180deg) scale(1.2);
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(-20px) rotate(270deg) scale(1.15);
-    opacity: 0.9;
-  }
-  80% {
-    transform: translateY(-10px) rotate(320deg) scale(1.05);
+  50% {
+    transform: translateY(-12px) translateX(8px) scale(1.1);
     opacity: 0.6;
   }
+  75% {
+    transform: translateY(-5px) translateX(2px) scale(1.05);
+    opacity: 0.4;
+  }
   100% {
-    transform: translateY(0) rotate(360deg) scale(1);
-    opacity: 0.3;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.2;
   }
 }
 
