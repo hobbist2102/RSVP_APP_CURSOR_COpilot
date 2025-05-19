@@ -868,10 +868,10 @@ export default function ImmersiveLanding() {
         <div className="container mx-auto px-6 text-center relative z-10">
           {/* Gold particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {Array(15).fill(0).map((_, i) => (
+            {Array(75).fill(0).map((_, i) => (
               <div 
                 key={i}
-                className="gold-particle absolute w-3 h-3 rounded-full bg-[#BFA76F]"
+                className="gold-particle absolute w-1.5 h-1.5 rounded-full bg-[#BFA76F]"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
