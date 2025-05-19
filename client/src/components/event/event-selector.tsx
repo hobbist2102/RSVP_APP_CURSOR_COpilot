@@ -33,7 +33,7 @@ export function EventSelector() {
   useEffect(() => {
     // Only set an event if we have events and no current selection
     if (events.length > 0 && !selectedEventId && !currentEvent) {
-      console.log("No event currently selected, checking for recently used events...");
+      // Check for recently used events
       
       // Check if the URL has an event query parameter
       const searchParams = new URLSearchParams(window.location.search);
@@ -41,7 +41,7 @@ export function EventSelector() {
       
       // If we have a URL parameter, use that event
       if (urlEventId && events.find(e => String(e.id) === urlEventId)) {
-        console.log(`Using event ID from URL: ${urlEventId}`);
+        // Using event ID from URL
         const selectedEvent = events.find(e => String(e.id) === urlEventId);
         setSelectedEventId(urlEventId);
         if (selectedEvent) {
@@ -50,7 +50,7 @@ export function EventSelector() {
       } 
       // Otherwise, try to use preferred event ID 4 ("Rocky Rani")
       else if (events.find(e => e.id === 4)) {
-        console.log("Using preferred event: Rocky Rani (ID: 4)");
+        // Using preferred event: Rocky Rani (ID: 4)
         const rockyRaniEvent = events.find(e => e.id === 4);
         setSelectedEventId("4");
         if (rockyRaniEvent) {
@@ -59,14 +59,14 @@ export function EventSelector() {
       }
       // Otherwise use first available
       else {
-        console.log(`No preference found, using first event: ${events[0].title} (ID: ${events[0].id})`);
+        // Falling back to the first available event
         const firstEventId = String(events[0].id);
         setSelectedEventId(firstEventId);
         setCurrentEvent(events[0]);
       }
     } else if (currentEvent && !selectedEventId) {
       // If we have a current event but no selected ID, sync them
-      console.log(`Syncing selectedEventId with current event: ${currentEvent.title} (ID: ${currentEvent.id})`);
+      // Syncing selectedEventId with current event
       setSelectedEventId(String(currentEvent.id));
     }
   }, [events, selectedEventId, setCurrentEvent, currentEvent]);
@@ -80,7 +80,7 @@ export function EventSelector() {
       const selectedEvent = events.find(event => String(event.id) === value);
       
       if (selectedEvent) {
-        console.log(`Event selector: Switching to event ID: ${selectedEvent.id} (${selectedEvent.title})`);
+        // Switching to selected event
         
         // Show loading toast
         toast({
@@ -114,7 +114,7 @@ export function EventSelector() {
         }
       }
     } catch (error) {
-      console.error("Error changing event:", error);
+      // Handle error when changing events
       
       // Reset the selected event ID to match the current event
       if (currentEvent) {

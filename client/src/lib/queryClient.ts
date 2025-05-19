@@ -21,12 +21,12 @@ export async function apiRequest(
 /**
  * @deprecated Use getQueryFn from api-utils.ts instead
  */
-export const getQueryFn: <T>(options: {
+export const getQueryFn: <TQueryFnData = unknown>(options: {
   on401: "returnNull" | "throw";
-}) => QueryFunction<T> = (options) => {
-  // Delegate to the getQueryFn in api-utils.ts
-  return apiUtilsGetQueryFn<T>({ 
-    unauthorized: options.on401 
+}) => QueryFunction<TQueryFnData> = (options) => {
+  // Delegate to the getQueryFn in api-utils.ts with corrected parameter naming
+  return apiUtilsGetQueryFn<TQueryFnData>({ 
+    on401: options.on401 
   });
 };
 
@@ -43,8 +43,8 @@ export const queryClient = new QueryClient({
       staleTime: 2 * 60 * 1000, // 2 minutes - reduce refetching
       refetchOnWindowFocus: false, // Prevent unnecessary refetches
       refetchOnReconnect: 'always', // Only refetch on actual reconnects
-      retry: 1, // Reduce retry attempts to save resources
-      cacheTime: 10 * 60 * 1000, // 10 minutes - help with memory usage
+      retry: 1 // Reduce retry attempts to save resources
+      // Note: cacheTime was renamed to gcTime in React Query v5
     },
     mutations: {
       retry: false,
