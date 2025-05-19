@@ -337,164 +337,177 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Generate connected particles network - heavily optimized for performance
+  // Generate connected particles network - extremely optimized for minimal memory footprint
   const particles = useMemo(() => {
-    const nodeCount = 30; // Significantly reduced node count for better performance
-    const starCount = 100; // Significantly reduced star count for better performance
-
-    // Create sparse array of nodes using optimized technique
-    const nodes: Array<{
-      id: number;
-      x: number;
-      y: number;
-      size: number;
-      delay: number;
-      duration: number;
-      opacity: number;
-    }> = [];
+    const nodeCount = 15; // Further reduced node count for better performance
+    const starCount = 40;  // Further reduced star count based on heap analysis
     
-    // Only generate enough nodes to create visual effect without overwhelming memory
+    // Canvas-based rendering approach for particles instead of DOM elements
+    // This dramatically reduces memory usage and improves rendering performance
+    const canvasElement = document.createElement('canvas');
+    canvasElement.width = window.innerWidth;
+    canvasElement.height = window.innerHeight;
+    canvasElement.style.position = 'fixed';
+    canvasElement.style.top = '0';
+    canvasElement.style.left = '0';
+    canvasElement.style.pointerEvents = 'none';
+    canvasElement.style.zIndex = '40';
+    
+    // Create fixed node positions for better memory usage
+    // Using a typed array instead of objects for better memory efficiency
+    const nodePositions = new Float32Array(nodeCount * 4); // x, y, size, phase
+    
+    // Generate deterministic node positions in a visually pleasing pattern
+    // Distribute nodes in a way that looks organic but uses less memory
     for (let i = 0; i < nodeCount; i++) {
-      nodes.push({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: 0.8,
-        delay: (i % 5) * 4, // Deterministic delays instead of random to reduce calculations
-        duration: 20, // Fixed duration to reduce style recalculations
-        opacity: 0.3,
-      });
+      const idx = i * 4;
+      // Use golden ratio distribution for more natural-looking spacing
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const theta = i * phi * Math.PI;
+      
+      // Create a radial distribution that concentrates particles in the visible area
+      const radius = Math.sqrt(i / nodeCount) * 0.8;
+      
+      // Position in normalized space (0-1)
+      nodePositions[idx] = 0.5 + radius * Math.cos(theta); // x
+      nodePositions[idx + 1] = 0.5 + radius * Math.sin(theta); // y
+      nodePositions[idx + 2] = 1.5 + Math.sin(i * 0.4) * 0.5; // size (larger particles)
+      nodePositions[idx + 3] = i / nodeCount; // phase offset for animation
     }
-
-    // Create nodes (particles) with minimal style properties
-    const nodeElements = nodes.map((node) => (
-      <div
-        key={`node-${node.id}`}
-        className="gold-particle"
-        style={{
-          top: `${node.y}%`,
-          left: `${node.x}%`,
-          animationDelay: `${node.delay}s`,
-        }}
-      />
-    ));
-
-    // Create minimal background stars with batched rendering approach
-    // Group stars into batches to reduce the number of DOM elements
-    const batchSize = 20;
-    const batches = Math.ceil(starCount / batchSize);
-    const starElements: JSX.Element[] = [];
     
-    for (let batch = 0; batch < batches; batch++) {
-      // Create a single div containing multiple star pseudoelements via a style tag
-      // This dramatically reduces the number of DOM elements
-      const batchStyles = document.createElement('style');
-      batchStyles.textContent = '';
-      
-      for (let i = 0; i < batchSize; i++) {
-        const starId = batch * batchSize + i;
-        if (starId >= starCount) break;
+    // Draw initial canvas - actual animation will be handled by requestAnimationFrame
+    if (typeof window !== 'undefined') {
+      const ctx = canvasElement.getContext('2d');
+      if (ctx) {
+        // Set up animation loop
+        let animationFrameId: number;
+        let lastTimestamp = 0;
         
-        const initialX = Math.random() * 100;
-        const initialY = Math.random() * 100;
-        const delay = (starId % 4) * 1; // Deterministic for reduced complexity
-        
-        batchStyles.textContent += `
-          .star-batch-${batch} .star-item-${i} {
-            position: fixed;
-            top: ${initialY}%;
-            left: ${initialX}%;
-            width: 0.8px;
-            height: 0.8px;
-            background: #fff;
-            opacity: 0.3;
-            animation: twinkle 5s ease-in-out infinite;
-            animation-delay: ${delay}s;
+        const drawParticles = (timestamp: number) => {
+          // Only update at most 30 times per second to save CPU
+          if (timestamp - lastTimestamp < 33) {
+            animationFrameId = requestAnimationFrame(drawParticles);
+            return;
           }
-        `;
-      }
-      
-      if (document.head && !document.getElementById(`star-styles-${batch}`)) {
-        batchStyles.id = `star-styles-${batch}`;
-        document.head.appendChild(batchStyles);
-      }
-      
-      // Create the actual star elements in a single container div
-      const batchStarElements = [];
-      for (let i = 0; i < batchSize; i++) {
-        const starId = batch * batchSize + i;
-        if (starId >= starCount) break;
+          
+          lastTimestamp = timestamp;
+          
+          // Clear canvas
+          ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+          
+          // Update particle positions and draw
+          const time = timestamp * 0.0005; // Slow down time factor
+          
+          // Draw connections first (underneath particles)
+          ctx.strokeStyle = '#d4b976';
+          ctx.globalAlpha = 0.08;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          
+          // Only draw a minimal number of connections (maximum 12)
+          const maxConnections = Math.min(12, nodeCount);
+          for (let i = 0; i < maxConnections; i++) {
+            const idx1 = i * 4;
+            const x1 = nodePositions[idx1] * canvasElement.width;
+            const y1 = nodePositions[idx1 + 1] * canvasElement.height;
+            
+            // Connect to next node in sequence
+            const nextIdx = ((i + 1) % nodeCount) * 4;
+            const x2 = nodePositions[nextIdx] * canvasElement.width;
+            const y2 = nodePositions[nextIdx + 1] * canvasElement.height;
+            
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+          }
+          ctx.stroke();
+          
+          // Draw particles
+          for (let i = 0; i < nodeCount; i++) {
+            const idx = i * 4;
+            
+            // Get base position
+            let x = nodePositions[idx] * canvasElement.width;
+            let y = nodePositions[idx + 1] * canvasElement.height;
+            const size = nodePositions[idx + 2];
+            const phase = nodePositions[idx + 3];
+            
+            // Add subtle movement based on time and phase
+            x += Math.sin(time + phase * 10) * 5;
+            y += Math.cos(time * 0.7 + phase * 10) * 5;
+            
+            // Draw particle
+            ctx.globalAlpha = 0.4 + Math.sin(time + phase * 5) * 0.1;
+            ctx.fillStyle = '#e9d9a8';
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          
+          // Draw stars (simpler background elements)
+          ctx.fillStyle = '#ffffff';
+          
+          for (let i = 0; i < starCount; i++) {
+            const phase = i / starCount;
+            // Use deterministic but scattered positions
+            const x = ((i * 17) % 100) * 0.01 * canvasElement.width;
+            const y = ((i * 23) % 100) * 0.01 * canvasElement.height;
+            
+            // Twinkle effect
+            const twinkle = (Math.sin(time * 2 + phase * 20) * 0.5 + 0.5) * 0.3;
+            ctx.globalAlpha = 0.1 + twinkle;
+            
+            // Vary star size slightly
+            const starSize = 0.8 + phase * 0.5;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, starSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          
+          animationFrameId = requestAnimationFrame(drawParticles);
+        };
         
-        batchStarElements.push(
-          <div key={`star-${starId}`} className={`star-item-${i}`} />
-        );
+        // Start animation
+        animationFrameId = requestAnimationFrame(drawParticles);
+        
+        // Handle resize to maintain full-screen canvas
+        const handleResize = () => {
+          canvasElement.width = window.innerWidth;
+          canvasElement.height = window.innerHeight;
+        };
+        
+        window.addEventListener('resize', handleResize, { passive: true });
+        
+        // Cleanup function to cancel animation and remove listeners
+        const cleanup = () => {
+          cancelAnimationFrame(animationFrameId);
+          window.removeEventListener('resize', handleResize);
+        };
+        
+        // Store cleanup in ref for component unmount
+        if (typeof document !== 'undefined') {
+          // Append to an element in the component
+          const parentElement = document.getElementById('particles-container');
+          if (parentElement && !parentElement.contains(canvasElement)) {
+            parentElement.appendChild(canvasElement);
+            
+            // Store cleanup function
+            (parentElement as any).__cleanupCanvas = cleanup;
+          }
+        }
       }
-      
-      starElements.push(
-        <div key={`star-batch-${batch}`} className={`star-batch-${batch}`}>
-          {batchStarElements}
-        </div>
-      );
     }
-
-    // Create simplified SVG connections between nearby nodes
-    // Create more efficient connection system with fewer lines
-    // Only render connections in visible areas to reduce memory usage
-    let connectionPaths: JSX.Element[] = [];
-    const connectionDistance = 15;
-    const maxTotalConnections = 20; // Hard limit on total connections
-
-    // Establish fixed connection pattern instead of calculating all distances
-    let connectionCount = 0;
-    for (let i = 0; i < nodes.length && connectionCount < maxTotalConnections; i++) {
-      const node = nodes[i];
-      
-      // Only connect to a few nearby nodes using a simpler pattern
-      // Connect to the next node and one a few nodes ahead to create a network effect
-      const targets = [i + 1, i + 3].filter(idx => idx < nodes.length);
-      
-      for (const targetIdx of targets) {
-        if (connectionCount >= maxTotalConnections) break;
-        
-        const targetNode = nodes[targetIdx];
-        const lineOpacity = 0.1; // Fixed opacity for all lines
-        
-        connectionPaths.push(
-          <line
-            key={`line-${i}-${targetIdx}`}
-            x1={`${node.x}%`}
-            y1={`${node.y}%`}
-            x2={`${targetNode.x}%`}
-            y2={`${targetNode.y}%`}
-            stroke="#d4b976"
-            strokeWidth="0.3"
-            opacity={lineOpacity}
-          />
-        );
-        
-        connectionCount++;
-      }
-    }
-
-    // Single SVG for all connections
-    const connections = connectionPaths.length > 0 ? [
-      <svg
-        key="connections-container"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 40,
-          pointerEvents: "none",
-        }}
-      >
-        {connectionPaths}
-      </svg>
-    ] : [];
-
-    return [...starElements, ...connections, ...nodeElements];
+    
+    // Return an empty array since we're using canvas instead of React elements
+    // This drastically reduces the number of React nodes and improves memory usage
+    return [
+      <div 
+        id="particles-container" 
+        key="particles-container"
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 40 }}
+        aria-hidden="true"
+      />
+    ];
   }, []); // Only create particles once for better performance
 
   // Add mouse movement effect with throttling for performance
