@@ -77,18 +77,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Configure session management with proper settings for persistence
+  // Configure session management with SameSite=None for cross-origin compatibility
   app.use(session({
     secret: 'wedding-rsvp-secret-key',
-    resave: false, // Only save session when data changes
-    saveUninitialized: false, // Don't save empty sessions
+    resave: true, // Force session save on every response to ensure persistence
+    saveUninitialized: true, // Save new sessions to ensure consistency
     rolling: true, // Reset expiration with each request
-    name: 'wedding_session', // Session cookie name
+    name: 'wedding_session_fixed', // New session name to avoid conflicts
     cookie: { 
-      secure: process.env.NODE_ENV === 'production', // Only require HTTPS in production
+      secure: false, // Allow non-HTTPS in all environments for testing
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true, 
-      sameSite: 'lax',
+      sameSite: 'none', // Allow cross-origin requests (critical for session to work across domains)
       path: '/'
     }
   }));
