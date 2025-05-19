@@ -15,11 +15,11 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 // Utility function for performance optimization
 function throttle(func: Function, limit: number) {
   let inThrottle: boolean;
-  return function(this: any, ...args: any[]) {
+  return function (this: any, ...args: any[]) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   };
 }
@@ -290,14 +290,14 @@ export default function ImmersiveLanding() {
   const particles = useMemo(() => {
     const nodeCount = 80; // Reduced node count for better performance
     const starCount = 600; // Reduced star count for better performance
-    
+
     // First, create the network nodes (particles)
     const nodes = Array.from({ length: nodeCount }).map((_, i) => {
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
       const delay = Math.random() * 25;
       const duration = 15 + Math.random() * 15;
-      
+
       return {
         id: i,
         x: initialX,
@@ -305,12 +305,12 @@ export default function ImmersiveLanding() {
         size: 0.8 + Math.random() * 0.4,
         delay,
         duration,
-        opacity: 0.3 + Math.random() * 0.2
+        opacity: 0.3 + Math.random() * 0.2,
       };
     });
-    
+
     // Create nodes (particles)
-    const nodeElements = nodes.map(node => (
+    const nodeElements = nodes.map((node) => (
       <div
         key={`node-${node.id}`}
         className="gold-particle"
@@ -325,14 +325,14 @@ export default function ImmersiveLanding() {
         }}
       />
     ));
-    
+
     // Create background stars (like in screenshot)
     const starElements = Array.from({ length: starCount }).map((_, i) => {
       const initialX = Math.random() * 100;
       const initialY = Math.random() * 100;
       const delay = Math.random() * 4;
       const size = 0.5 + Math.random() * 0.3;
-      
+
       return (
         <div
           key={`star-${i}`}
@@ -347,29 +347,33 @@ export default function ImmersiveLanding() {
         />
       );
     });
-    
+
     // Create SVG connections between nearby nodes - optimize by using fewer connections
     const connections: JSX.Element[] = [];
     const connectionDistance = 15; // Maximum distance for connection (in % of viewport)
-    
+
     // Create a single SVG for all connections to reduce DOM elements
     const connectionPaths: JSX.Element[] = [];
-    
+
     nodes.forEach((node, i) => {
       // Limit connections per node for better performance
       let connectionCount = 0;
       const maxConnectionsPerNode = 3;
-      
-      for (let j = i + 1; j < nodes.length && connectionCount < maxConnectionsPerNode; j++) {
+
+      for (
+        let j = i + 1;
+        j < nodes.length && connectionCount < maxConnectionsPerNode;
+        j++
+      ) {
         const targetNode = nodes[j];
         const dx = Math.abs(node.x - targetNode.x);
         const dy = Math.abs(node.y - targetNode.y);
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance < connectionDistance) {
           // Calculate opacity based on distance (farther = more transparent)
           const lineOpacity = 0.15 * (1 - distance / connectionDistance);
-          
+
           connectionPaths.push(
             <line
               key={`line-${i}-${j}`}
@@ -380,35 +384,35 @@ export default function ImmersiveLanding() {
               stroke="#d4b976"
               strokeWidth="0.3"
               opacity={lineOpacity}
-            />
+            />,
           );
-          
+
           connectionCount++;
         }
       }
     });
-    
+
     // Create a single SVG element with all connections
     connections.push(
       <svg
         key="connections-container"
         style={{
-          position: 'fixed',
+          position: "fixed",
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          width: "100%",
+          height: "100%",
           zIndex: 40,
-          pointerEvents: 'none',
+          pointerEvents: "none",
         }}
       >
         {connectionPaths}
-      </svg>
+      </svg>,
     );
-    
+
     return [...starElements, ...connections, ...nodeElements];
   }, []); // Only create particles once for better performance
-  
+
   // Add mouse movement effect with throttling for performance
   useEffect(() => {
     const handleMouseMoveThrottled = throttle((e: MouseEvent) => {
@@ -419,18 +423,22 @@ export default function ImmersiveLanding() {
         particlesContainer.style.transform = `translate(${xPercent}px, ${yPercent}px)`;
       }
     }, 50); // Throttle to 50ms for smooth performance
-    
-    window.addEventListener('mousemove', handleMouseMoveThrottled);
-    
+
+    window.addEventListener("mousemove", handleMouseMoveThrottled);
+
     return () => {
-      window.removeEventListener('mousemove', handleMouseMoveThrottled);
+      window.removeEventListener("mousemove", handleMouseMoveThrottled);
     };
   }, []);
 
   return (
     <div ref={pageRef} className="immersive-landing">
       {/* Global Particles Container - Higher z-index to ensure visibility on all sections */}
-      <div ref={particlesRef} className="particles-container" style={{ zIndex: 9999 }}>
+      <div
+        ref={particlesRef}
+        className="particles-container"
+        style={{ zIndex: 9999 }}
+      >
         {particles}
       </div>
 
@@ -438,7 +446,9 @@ export default function ImmersiveLanding() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <h1 className="font-great-vibes text-black text-3xl">Eternally Yours</h1>
+            <h1 className="font-great-vibes text-black text-3xl">
+              Eternally Yours
+            </h1>
           </div>
 
           <div className="hidden md:flex items-center gap-8">
@@ -1400,7 +1410,6 @@ export default function ImmersiveLanding() {
         className="relative py-24 bg-[#5E239D]"
       >
         <div className="container mx-auto px-6 text-center relative z-10">
-
           <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white">
             Begin Your <span className="text-white">Journey</span>
           </h2>
@@ -1429,7 +1438,8 @@ export default function ImmersiveLanding() {
       <footer className="bg-black py-6">
         <div className="container mx-auto px-6">
           <p className="text-white/80 text-center text-sm">
-            Made with ❤️ by CultureBot Experiences and Entertainment
+            Made with ❤️ by CultureBot Experiences and Entertainment. All Rights
+            Reserved @2025.
           </p>
         </div>
       </footer>
