@@ -241,7 +241,7 @@ export default function EventWizard({
       startDate: existingEvent.startDate,
       endDate: existingEvent.endDate,
       location: existingEvent.location,
-      description: existingEvent.description,
+      description: existingEvent.description || undefined,
     } : undefined,
     eventStructure: existingEvent ? {
       includeSangeet: true,
@@ -252,8 +252,8 @@ export default function EventWizard({
       customCeremonies: [],
     } : undefined,
     guestManagement: existingEvent ? {
-      allowPlusOnes: existingEvent.allowPlusOnes,
-      allowChildrenDetails: existingEvent.allowChildrenDetails,
+      allowPlusOnes: existingEvent.allowPlusOnes === null ? true : !!existingEvent.allowPlusOnes,
+      allowChildrenDetails: existingEvent.allowChildrenDetails === null ? true : !!existingEvent.allowChildrenDetails,
       trackRelationship: true,
       trackSide: true,
       rsvpDeadline: existingEvent.rsvpDeadline,
@@ -282,13 +282,13 @@ export default function EventWizard({
       airlineDiscountCodes: existingEvent.airlineDiscountCodes,
     } : undefined,
     communication: existingEvent ? {
-      emailFrom: existingEvent.emailFrom,
-      emailReplyTo: existingEvent.emailReplyTo,
-      sendRsvpReminders: true,
-      sendRsvpConfirmations: true,
-      sendTravelUpdates: true,
+      emailFrom: existingEvent.emailFrom || undefined,
+      emailReplyTo: existingEvent.emailReplyTo || undefined,
+      sendRsvpReminders: existingEvent.sendRsvpReminders !== undefined ? existingEvent.sendRsvpReminders : true,
+      sendRsvpConfirmations: existingEvent.sendRsvpConfirmations !== undefined ? existingEvent.sendRsvpConfirmations : true,
+      sendTravelUpdates: existingEvent.sendTravelUpdates !== undefined ? existingEvent.sendTravelUpdates : true,
       enableWhatsapp: !!existingEvent.whatsappBusinessNumber,
-      whatsappBusinessNumber: existingEvent.whatsappBusinessNumber,
+      whatsappBusinessNumber: existingEvent.whatsappBusinessNumber || undefined,
     } : undefined,
   });
   
@@ -402,7 +402,7 @@ export default function EventWizard({
           startDate: existingEvent.startDate,
           endDate: existingEvent.endDate,
           location: existingEvent.location,
-          description: existingEvent.description,
+          description: existingEvent.description || undefined,
         },
         eventStructure: {
           includeSangeet: true,
@@ -413,8 +413,8 @@ export default function EventWizard({
           customCeremonies: [],
         },
         guestManagement: {
-          allowPlusOnes: existingEvent.allowPlusOnes,
-          allowChildrenDetails: existingEvent.allowChildrenDetails,
+          allowPlusOnes: existingEvent.allowPlusOnes === null ? true : !!existingEvent.allowPlusOnes,
+          allowChildrenDetails: existingEvent.allowChildrenDetails === null ? true : !!existingEvent.allowChildrenDetails,
           trackRelationship: true,
           trackSide: true,
           rsvpDeadline: existingEvent.rsvpDeadline,
