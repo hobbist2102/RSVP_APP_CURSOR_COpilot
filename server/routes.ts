@@ -295,8 +295,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/users', isAdmin, async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
+      
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const secureUserData = {
+        ...userData,
+        password: hashedPassword
+      };
+      
+      const user = await storage.createUser(secureUserData);
+      
+      // Don't return the password in the response
+      const { password, ...safeUserData } = user;
+      res.status(201).json(safeUserData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
