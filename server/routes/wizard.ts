@@ -172,6 +172,23 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
     switch (stepId) {
       case 'basic_info':
         updateValues.basicInfoComplete = true;
+        
+        // Update the actual event data in the database
+        if (stepData && typeof stepData === 'object') {
+          await db.update(weddingEvents)
+            .set({
+              title: stepData.title,
+              coupleNames: stepData.coupleNames,
+              brideName: stepData.brideName,
+              groomName: stepData.groomName,
+              startDate: new Date(stepData.startDate),
+              endDate: new Date(stepData.endDate),
+              location: stepData.location,
+              description: stepData.description || null,
+              updatedAt: new Date()
+            })
+            .where(eq(weddingEvents.id, eventId));
+        }
         break;
       case 'venues':
         updateValues.venuesComplete = true;
