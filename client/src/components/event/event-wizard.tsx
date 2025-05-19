@@ -629,7 +629,7 @@ export default function EventWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-playfair">
             {existingEvent ? "Edit Event" : "Create New Event"}
@@ -1817,13 +1817,14 @@ export default function EventWizard({
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 0}
+                className="dialog-back-btn"
               >
                 Back
               </Button>
               
               <Button
                 type="submit"
-                className="gold-gradient"
+                className="bg-primary text-white hover:bg-primary/90"
                 disabled={createEventMutation.isPending}
               >
                 {createEventMutation.isPending ? "Saving..." : currentStep === steps.length - 1 ? "Create Event" : "Next"}
