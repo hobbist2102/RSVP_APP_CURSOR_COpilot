@@ -1,4 +1,5 @@
-import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
+import pkg from 'whatsapp-web.js';
+const { Client, LocalAuth, MessageMedia } = pkg;
 import { IWhatsAppService } from './whatsapp-interface';
 import qrcode from 'qrcode-terminal';
 import fs from 'fs';
