@@ -11,6 +11,25 @@ export const WIZARD_STEPS = {
   AI_ASSISTANT: "ai_assistant",
 };
 
+// Ceremony types for Indian weddings
+export const CEREMONY_TYPES = [
+  "Main Wedding Ceremony",
+  "Sangeet",
+  "Mehndi",
+  "Haldi",
+  "Engagement",
+  "Reception",
+  "Baraat",
+  "Vidaai",
+  "Puja",
+  "Cocktail Party",
+  "Grihapravesh",
+  "Tilak",
+  "Welcome Dinner",
+  "Farewell Brunch",
+  "Other"
+];
+
 // Attire codes for venues
 export const ATTIRE_CODES = [
   "Indian Traditional",

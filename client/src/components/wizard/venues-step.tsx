@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/card";
 import { WeddingEvent } from "@shared/schema";
 import { Plus, Trash2, MapPin, Check, Calendar } from "lucide-react";
-import { ATTIRE_CODES } from "@/lib/constants";
+import { ATTIRE_CODES, CEREMONY_TYPES } from "@/lib/constants";
 
 // Define schema for a venue
 const venueSchema = z.object({
@@ -46,6 +46,9 @@ const venueSchema = z.object({
   endTime: z.string(),
   description: z.string().optional(),
   attireCode: z.string().optional(),
+  ceremonyType: z.string().min(1, {
+    message: "Please select a ceremony type.",
+  }),
 });
 
 // Define schema for venues collection
@@ -88,6 +91,7 @@ export default function VenuesStep({
       endTime: "",
       description: "",
       attireCode: "",
+      ceremonyType: "",
     },
   });
 
@@ -156,11 +160,14 @@ export default function VenuesStep({
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{venue.date}, {venue.startTime} - {venue.endTime}</span>
                     </div>
-                    {venue.attireCode && (
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="text-xs bg-primary/10 text-primary py-1 px-2 rounded-full">
+                        {venue.ceremonyType}
+                      </span>
+                      {venue.attireCode && (
                         <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                     {venue.description && (
                       <p className="text-muted-foreground mt-2">{venue.description}</p>
                     )}
@@ -264,6 +271,34 @@ export default function VenuesStep({
                     )}
                   />
                 </div>
+                
+                <FormField
+                  control={venueForm.control}
+                  name="ceremonyType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ceremony Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ceremony type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CEREMONY_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        The type of ceremony that will take place at this venue
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={venueForm.control}
@@ -384,11 +419,14 @@ export default function VenuesStep({
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>{venue.date}, {venue.startTime} - {venue.endTime}</span>
                       </div>
-                      {venue.attireCode && (
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <span className="text-xs bg-primary/10 text-primary py-1 px-2 rounded-full">
+                          {venue.ceremonyType}
+                        </span>
+                        {venue.attireCode && (
                           <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       {venue.description && (
                         <p className="text-muted-foreground mt-2">{venue.description}</p>
                       )}
