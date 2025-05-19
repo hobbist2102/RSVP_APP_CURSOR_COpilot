@@ -438,7 +438,7 @@ export default function ImmersiveLanding() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <h1 className="font-great-vibes text-[#5E239D] text-3xl">Eternally Yours</h1>
+            <h1 className="font-great-vibes text-black text-3xl">Eternally Yours</h1>
           </div>
 
           <div className="hidden md:flex items-center gap-8">
