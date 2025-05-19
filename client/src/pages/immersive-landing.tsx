@@ -75,7 +75,7 @@ export default function ImmersiveLanding() {
     };
   }, []);
 
-  // Setup animations
+  // Setup animations - optimized for better performance
   useEffect(() => {
     // Only run on client
     if (typeof window === "undefined") return;
@@ -83,99 +83,105 @@ export default function ImmersiveLanding() {
     // Clear any existing ScrollTriggers
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
 
+    // Create a single master timeline for better performance
+    const masterTimeline = gsap.timeline();
+    
     const ctx = gsap.context(() => {
-      // Hero animations
+      // Hero animations - combined into a single timeline
       if (heroRef.current) {
-        // Hero title animation
-        gsap.from(".hero-title .char", {
-          opacity: 0,
-          y: 100,
-          rotateX: -90,
-          stagger: 0.03,
-          duration: 1.2,
-          ease: "power4.out",
-          delay: 0.5,
-        });
+        // Hero animations in sequence - more efficient than separate animations
+        masterTimeline
+          // Hero title animation with optimized values
+          .from(".hero-title .char", {
+            opacity: 0,
+            y: 50, // Reduced movement distance
+            stagger: 0.02, // Less stagger time
+            duration: 0.8, // Shorter duration
+            ease: "power3.out", // Simpler ease function
+          }, 0.5) // Delay as position parameter for better performance
+          
+          // Hero subtitle animation
+          .from(".hero-subtitle", {
+            opacity: 0,
+            y: 20, // Reduced movement
+            duration: 0.7,
+            ease: "power2.out" // Simpler ease function
+          }, 1.3) // Start after title animation
+          
+          // Hero buttons animation
+          .from(".hero-buttons", {
+            opacity: 0,
+            y: 15, // Reduced movement
+            duration: 0.6,
+            ease: "power2.out" // Simpler ease function
+          }, 1.6); // Start after subtitle animation
 
-        // Hero subtitle animation
-        gsap.from(".hero-subtitle", {
-          opacity: 0,
-          y: 30,
-          duration: 1,
-          delay: 1.5,
-        });
-
-        // Hero buttons animation
-        gsap.from(".hero-buttons", {
-          opacity: 0,
-          y: 20,
-          duration: 0.8,
-          delay: 1.8,
-        });
-
-        // Background elements parallax
-        gsap.to(".bg-element-1", {
-          y: "-20%",
+        // Optimized background parallax - using a single scrollTrigger for better performance
+        const parallaxTimeline = gsap.timeline({
           scrollTrigger: {
             trigger: heroRef.current,
             start: "top top",
             end: "bottom top",
-            scrub: 0.5,
-          },
+            scrub: true, // Simplified scrubbing
+            invalidateOnRefresh: false, // Prevent unnecessary recalculations
+          }
         });
-
-        gsap.to(".bg-element-2", {
-          y: "-35%",
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.8,
-          },
-        });
+          
+        // Combine multiple animations into one timeline for better performance
+        parallaxTimeline
+          .to(".bg-element-1", { y: "-15%" }, 0) // Reduced movement amount
+          .to(".bg-element-2", { y: "-25%" }, 0); // Reduced movement amount
       }
 
-      // Problem section animations
+      // Problem section animations - optimized for better performance
       if (problemRef.current) {
-        // Floating papers animation
+        // Floating papers animation - optimized with longer durations and less movement
         gsap.to(".floating-paper", {
-          y: "-20px",
-          rotation: 5,
-          duration: 2,
+          y: "-15px", // Reduced movement distance
+          rotation: 3, // Reduced rotation amount
+          duration: 3, // Longer duration = fewer animation cycles
           repeat: -1,
           yoyo: true,
-          ease: "power1.inOut",
-          stagger: 0.2,
+          ease: "sine.inOut", // Simpler ease function
+          stagger: 0.1, // Reduced stagger time
         });
 
-        // Section title reveal
-        gsap.from(".problem-title", {
-          opacity: 0,
-          y: 50,
-          duration: 0.8,
+        // Combine section animations into a timeline for better performance
+        const problemTimeline = gsap.timeline({
           scrollTrigger: {
             trigger: problemRef.current,
             start: "top 80%",
             toggleActions: "play none none reverse",
-          },
+          }
         });
 
-        // Chaotic elements
+        // Section title reveal - added to timeline
+        problemTimeline.from(".problem-title", {
+          opacity: 0,
+          y: 30, // Reduced movement distance
+          duration: 0.7, // Slightly faster animation
+        }, 0);
+
+        // Chaotic elements - optimized by using a single timeline instead of individual animations
         const chaosElements = document.querySelectorAll(".chaos-element");
-        chaosElements.forEach((element, index) => {
-          gsap.from(element, {
-            scale: 0,
+        
+        // Calculate maximum number of elements to animate (limit for performance)
+        const maxElements = Math.min(chaosElements.length, 8);
+        
+        // Process only a limited number of elements for better performance
+        for (let i = 0; i < maxElements; i++) {
+          const element = chaosElements[i];
+          problemTimeline.from(element, {
+            scale: 0.5, // Start from 0.5 scale instead of 0 for less intensive transform
             opacity: 0,
-            rotation: -15 + Math.random() * 30,
-            duration: 0.6,
-            delay: 0.1 * index,
-            scrollTrigger: {
-              trigger: problemRef.current,
-              start: "top 70%",
-              toggleActions: "play none none reverse",
-            },
-          });
-        });
+            rotation: -5 + i * 2, // Deterministic rotation instead of random
+            duration: 0.5, // Shorter duration
+            ease: "power1.out", // Simpler ease function
+          }, 0.1 + (i * 0.05)); // Smaller stagger with consistent pattern
+        }
+        
+        // We're using the timeline's scrollTrigger defined above
+        // No need for individual element scrollTriggers
       }
 
       // Solution section animations
