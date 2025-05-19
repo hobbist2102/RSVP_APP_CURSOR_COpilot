@@ -10,8 +10,10 @@ export function useEvents() {
   const [currentEventId, setCurrentEventId] = useState<number | null>(null);
 
   // Get all events
-  const { data: events = [], isLoading: isLoadingEvents } = useQuery({
+  const { data: events = [], isLoading: isLoadingEvents, isError: isEventsError } = useQuery({
     queryKey: ['/api/events-direct'],
+    retry: 1, // Limit retries to prevent infinite loops
+    retryDelay: 1000,
   });
 
   // Get current event details
@@ -104,8 +106,9 @@ export function useEvents() {
   });
 
   return {
-    events,
+    events: Array.isArray(events) ? events : [],
     isLoadingEvents,
+    isEventsError,
     currentEvent,
     isLoadingCurrentEvent,
     setCurrentEventId,
