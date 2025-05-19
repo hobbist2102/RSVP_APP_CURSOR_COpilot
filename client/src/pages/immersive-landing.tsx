@@ -992,12 +992,12 @@ export default function ImmersiveLanding() {
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
-            <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">
+            <span className="text-white font-serif text-3xl md:text-4xl font-bold">
               Multichannel Guest Engagement
             </span>
           </h2>
 
-          <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
+          <p className="text-white text-center max-w-2xl mx-auto mb-12">
             Keep your guests informed and engaged through personalized WhatsApp
             messages and email communications. Automate Responses with AI
             Chatbots.
