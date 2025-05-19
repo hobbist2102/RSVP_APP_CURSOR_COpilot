@@ -140,8 +140,14 @@ export function EventSelector() {
 
   if (events.length === 0) {
     return (
-      <div className="text-sm text-gray-500 py-2 px-3">
-        No events available
+      <div className="flex items-center justify-between gap-2 py-2 px-3">
+        <span className="text-sm text-gray-500">No events found</span>
+        <a 
+          href="/event-setup-wizard"
+          className="text-xs px-2 py-1 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Create Event
+        </a>
       </div>
     );
   }
