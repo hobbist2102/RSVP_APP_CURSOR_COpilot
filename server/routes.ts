@@ -107,10 +107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     rolling: true, // Reset expiration with each request
     name: 'wedding_session_fixed', // New session name to avoid conflicts
     cookie: { 
-      secure: process.env.NODE_ENV === 'production', // Secure in production only
+      secure: false, // Disable secure cookies for broader compatibility
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true, 
-      sameSite: 'lax', // More compatible setting that works better across environments
+      sameSite: 'lax', // Compatible setting that works across environments
       path: '/'
     }
   }));
