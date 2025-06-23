@@ -232,7 +232,7 @@ export default function EventWizard({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [wizardData, setWizardData] = useState<Partial<EventWizardFormData>>({
+  const [wizardData, setWizardData] = useState<Partial<EventWizardFormData>>(() => ({
     basicInfo: existingEvent ? {
       title: existingEvent.title,
       coupleNames: existingEvent.coupleNames,
