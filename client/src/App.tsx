@@ -44,6 +44,7 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
           <Route path="/auth" component={AuthPage} />
+          <Route path="/register" component={Register} />
           {/* RSVP routes - capture all possible formats */}
           <Route path="/guest-rsvp/:rest*">
             {(params) => <RsvpPage />}
