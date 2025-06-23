@@ -6,22 +6,18 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not defined in environment variables');
 }
 
-// Create postgres connection with improved configuration for resilience
+// Create postgres connection with optimized configuration for stability
 const connectionString = process.env.DATABASE_URL;
 const client = postgres(connectionString, {
-  max: 10, // Maximum number of connections
-  idle_timeout: 20, // How many seconds to wait before killing an idle connection
-  connect_timeout: 10, // How many seconds to wait before timing out when connecting
-  max_lifetime: 60 * 30, // How many seconds a connection can stay open
+  max: 20, // Increased connection pool size
+  idle_timeout: 300, // 5 minutes before closing idle connections
+  connect_timeout: 30, // 30 seconds connection timeout
+  max_lifetime: 3600, // 1 hour max connection lifetime
   onnotice: () => {}, // Silence notice messages
   onparameter: () => {}, // Silence parameter messages
-  debug: (connection, query, params, types) => {
-    // Optional debugging - can be uncommented when needed
-    // console.log('DB Query:', query);
-  },
-  onclose: async (connection) => {
-    // This gets called when a connection is closed
-    console.log('Database connection was closed');
+  debug: false, // Disable debug logging for performance
+  transform: {
+    undefined: null, // Transform undefined to null for database compatibility
   },
 });
 

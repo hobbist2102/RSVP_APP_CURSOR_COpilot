@@ -119,17 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // Add debug middleware to monitor session persistence
-  app.use((req, res, next) => {
-    // Debug middleware to track session and authentication state
-    if (req.path.startsWith('/api/')) {
-      console.log(`Request to ${req.path}, authenticated: ${req.isAuthenticated()}`);
-      if (req.isAuthenticated()) {
-        console.log(`User in request: ${JSON.stringify(req.user)}`);
-      }
-    }
-    next();
-  });
+  // Optimized middleware - removed excessive debug logging for performance
   
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
@@ -171,23 +161,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
   
   passport.serializeUser((user: any, done) => {
-    console.log('Serializing user:', user.id);
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
     try {
-      console.log('Deserializing user ID:', id);
       const user = await storage.getUser(id);
       
       if (!user) {
-        console.log('User not found during deserialization');
         return done(null, null);
       }
       
       // Create a safe version of the user without the password
       const { password, ...safeUser } = user;
-      console.log('Successfully deserialized user:', safeUser.id);
       return done(null, safeUser);
     } catch (error) {
       console.error('Error deserializing user:', error);

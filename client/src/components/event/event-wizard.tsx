@@ -235,7 +235,7 @@ export default function EventWizard({
   const [wizardData, setWizardData] = useState<Partial<EventWizardFormData>>({});
   
   // Initialize wizard data when existingEvent changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (existingEvent) {
       setWizardData({
         basicInfo: {
