@@ -85,6 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const PostgreSqlStore = pgSession(session);
   
   // Create a PostgreSQL connection pool for session storage
+  // Use a more resilient configuration for production environments
   const sessionPool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 5, // Limit connections for session management
@@ -97,8 +98,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session({
     store: new PostgreSqlStore({
       pool: sessionPool,
-      tableName: 'session',
-      createTableIfMissing: true
+      tableName: 'session', // Table name for sessions
+      createTableIfMissing: true // Auto-create the session table if missing
     }),
     secret: 'wedding-rsvp-secret-key',
     resave: false, // Don't save session if unmodified
@@ -262,41 +263,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.post('/api/auth/login', (req, res, next) => {
-    // Demo account fallback when database is unavailable
-    const demoAccounts = {
-      'demo_couple': { id: 1, username: 'demo_couple', name: 'Raj & Priya', email: 'couple@example.com', role: 'couple', password: 'password123' },
-      'demo_planner': { id: 2, username: 'demo_planner', name: 'Wedding Planner', email: 'planner@example.com', role: 'staff', password: 'password123' },
-      'demo_couple2': { id: 3, username: 'demo_couple2', name: 'Arjun & Nisha', email: 'couple2@example.com', role: 'couple', password: 'password123' },
-      'demo_admin': { id: 4, username: 'demo_admin', name: 'System Admin', email: 'admin2@example.com', role: 'admin', password: 'password123' },
-      'abhishek': { id: 5, username: 'abhishek', name: 'Super Admin', email: 'admin@example.com', role: 'admin', password: 'password' }
-    };
-
-    const { username, password } = req.body;
-    
-    // Check if this is a demo account login attempt
-    if (demoAccounts[username] && demoAccounts[username].password === password) {
-      const demoUser = demoAccounts[username];
-      const { password: _, ...safeUser } = demoUser;
-      
-      req.login(safeUser, (loginErr: Error | null) => {
-        if (loginErr) {
-          console.error('Demo login error:', loginErr);
-          return next(loginErr);
-        }
-        
-        console.log('Demo account login successful:', username);
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error('Session save error:', saveErr);
-            return res.status(500).json({ message: 'Login successful but session save failed' });
-          }
-          
-          res.json({ user: safeUser });
-        });
-      });
-      return;
-    }
-
     passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
       if (err) {
         console.error('Authentication error:', err);

@@ -8,7 +8,6 @@ import { Spinner } from "@/components/ui/spinner";
 // Lazy load components to reduce initial bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
-const Register = lazy(() => import("@/pages/register"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const GuestList = lazy(() => import("@/pages/guest-list"));
 const RsvpManagement = lazy(() => import("@/pages/rsvp-management"));
@@ -44,7 +43,6 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
           <Route path="/auth" component={AuthPage} />
-          <Route path="/register" component={Register} />
           {/* RSVP routes - capture all possible formats */}
           <Route path="/guest-rsvp/:rest*">
             {(params) => <RsvpPage />}
