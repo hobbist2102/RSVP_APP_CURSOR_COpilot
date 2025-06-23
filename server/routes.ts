@@ -181,19 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Add logging wrapper for the authentication middleware
-  const loggedIsAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-    console.log('Checking user authentication, session ID:', req.sessionID);
-    console.log('Session object:', req.session);
-    
-    if (req.isAuthenticated()) {
-      console.log('User is authenticated:', req.user);
-    } else {
-      console.log('User is not authenticated');
-    }
-    
-    isAuthenticated(req, res, next);
-  };
+  // Optimized authentication middleware without excessive logging
   
   // Auth routes
   app.post('/api/auth/register', async (req, res) => {
@@ -521,7 +509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // API route for current event, used by event selector
-  app.get('/api/current-event', loggedIsAuthenticated, async (req, res) => {
+  app.get('/api/current-event', isAuthenticated, async (req, res) => {
     try {
       console.log('GET /api/current-event - Session ID:', req.sessionID);
       
