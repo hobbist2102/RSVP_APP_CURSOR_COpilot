@@ -81,26 +81,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   const httpServer = createServer(app);
   
-  // Configure PostgreSQL session store for production-ready session management
-  const PostgreSqlStore = pgSession(session);
-  
-  // Create a PostgreSQL connection pool for session storage
-  // Use a more resilient configuration for production environments
-  const sessionPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 5, // Limit connections for session management
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 10000 // Return an error after 10 seconds if connection not established
-  });
-  
-  // Configure session management with PostgreSQL store
+  // Use memory store temporarily while database is unavailable
+  // Configure session management with memory store
   app.use(session({
-    store: new PostgreSqlStore({
-      pool: sessionPool,
-      tableName: 'session', // Table name for sessions
-      createTableIfMissing: true // Auto-create the session table if missing
-    }),
     secret: 'wedding-rsvp-secret-key',
     resave: false, // Don't save session if unmodified
     saveUninitialized: false, // Don't create session until something stored
