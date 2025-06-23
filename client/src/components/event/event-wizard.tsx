@@ -232,65 +232,72 @@ export default function EventWizard({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [wizardData, setWizardData] = useState<Partial<EventWizardFormData>>(() => ({
-    basicInfo: existingEvent ? {
-      title: existingEvent.title,
-      coupleNames: existingEvent.coupleNames,
-      brideName: existingEvent.brideName,
-      groomName: existingEvent.groomName,
-      startDate: existingEvent.startDate,
-      endDate: existingEvent.endDate,
-      location: existingEvent.location,
-      description: existingEvent.description || undefined,
-    } : undefined,
-    eventStructure: existingEvent ? {
-      includeSangeet: true,
-      includeHaldi: true,
-      includeMehndi: true,
-      includeWedding: true,
-      includeReception: true,
-      customCeremonies: [],
-    } : undefined,
-    guestManagement: existingEvent ? {
-      allowPlusOnes: existingEvent.allowPlusOnes === null ? true : !!existingEvent.allowPlusOnes,
-      allowChildrenDetails: existingEvent.allowChildrenDetails === null ? true : !!existingEvent.allowChildrenDetails,
-      trackRelationship: true,
-      trackSide: true,
-      rsvpDeadline: existingEvent.rsvpDeadline,
-    } : undefined,
-    travelAccommodation: existingEvent ? {
-      accommodationMode: existingEvent.accommodationMode || PROVISION_MODES.NONE,
-      accommodationSpecialDeals: existingEvent.accommodationSpecialDeals,
-      accommodationInstructions: existingEvent.accommodationInstructions,
-      accommodationHotelName: existingEvent.accommodationHotelName,
-      accommodationHotelAddress: existingEvent.accommodationHotelAddress,
-      accommodationHotelPhone: existingEvent.accommodationHotelPhone,
-      accommodationHotelWebsite: existingEvent.accommodationHotelWebsite,
-      accommodationSpecialRates: existingEvent.accommodationSpecialRates,
-      transportMode: existingEvent.transportMode || PROVISION_MODES.NONE,
-      transportSpecialDeals: existingEvent.transportSpecialDeals,
-      transportInstructions: existingEvent.transportInstructions,
-      transportProviderName: existingEvent.transportProviderName,
-      transportProviderContact: existingEvent.transportProviderContact,
-      transportProviderWebsite: existingEvent.transportProviderWebsite,
-      defaultArrivalLocation: existingEvent.defaultArrivalLocation,
-      defaultDepartureLocation: existingEvent.defaultDepartureLocation,
-      flightMode: existingEvent.flightMode || PROVISION_MODES.NONE,
-      flightSpecialDeals: existingEvent.flightSpecialDeals,
-      flightInstructions: existingEvent.flightInstructions,
-      recommendedAirlines: existingEvent.recommendedAirlines,
-      airlineDiscountCodes: existingEvent.airlineDiscountCodes,
-    } : undefined,
-    communication: existingEvent ? {
-      emailFrom: existingEvent.emailFrom || undefined,
-      emailReplyTo: existingEvent.emailReplyTo || undefined,
-      sendRsvpReminders: existingEvent.sendRsvpReminders !== undefined ? existingEvent.sendRsvpReminders : true,
-      sendRsvpConfirmations: existingEvent.sendRsvpConfirmations !== undefined ? existingEvent.sendRsvpConfirmations : true,
-      sendTravelUpdates: existingEvent.sendTravelUpdates !== undefined ? existingEvent.sendTravelUpdates : true,
-      enableWhatsapp: !!existingEvent.whatsappBusinessNumber,
-      whatsappBusinessNumber: existingEvent.whatsappBusinessNumber || undefined,
-    } : undefined,
-  });
+  const [wizardData, setWizardData] = useState<Partial<EventWizardFormData>>({});
+  
+  // Initialize wizard data when existingEvent changes
+  React.useEffect(() => {
+    if (existingEvent) {
+      setWizardData({
+        basicInfo: {
+          title: existingEvent.title,
+          coupleNames: existingEvent.coupleNames,
+          brideName: existingEvent.brideName,
+          groomName: existingEvent.groomName,
+          startDate: existingEvent.startDate,
+          endDate: existingEvent.endDate,
+          location: existingEvent.location,
+          description: existingEvent.description || undefined,
+        },
+        eventStructure: {
+          includeSangeet: true,
+          includeHaldi: true,
+          includeMehndi: true,
+          includeWedding: true,
+          includeReception: true,
+          customCeremonies: [],
+        },
+        guestManagement: {
+          allowPlusOnes: existingEvent.allowPlusOnes === null ? true : !!existingEvent.allowPlusOnes,
+          allowChildrenDetails: existingEvent.allowChildrenDetails === null ? true : !!existingEvent.allowChildrenDetails,
+          trackRelationship: true,
+          trackSide: true,
+          rsvpDeadline: existingEvent.rsvpDeadline,
+        },
+        travelAccommodation: {
+          accommodationMode: existingEvent.accommodationMode || PROVISION_MODES.NONE,
+          accommodationSpecialDeals: existingEvent.accommodationSpecialDeals,
+          accommodationInstructions: existingEvent.accommodationInstructions,
+          accommodationHotelName: existingEvent.accommodationHotelName,
+          accommodationHotelAddress: existingEvent.accommodationHotelAddress,
+          accommodationHotelPhone: existingEvent.accommodationHotelPhone,
+          accommodationHotelWebsite: existingEvent.accommodationHotelWebsite,
+          accommodationSpecialRates: existingEvent.accommodationSpecialRates,
+          transportMode: existingEvent.transportMode || PROVISION_MODES.NONE,
+          transportSpecialDeals: existingEvent.transportSpecialDeals,
+          transportInstructions: existingEvent.transportInstructions,
+          transportProviderName: existingEvent.transportProviderName,
+          transportProviderContact: existingEvent.transportProviderContact,
+          transportProviderWebsite: existingEvent.transportProviderWebsite,
+          defaultArrivalLocation: existingEvent.defaultArrivalLocation,
+          defaultDepartureLocation: existingEvent.defaultDepartureLocation,
+          flightMode: existingEvent.flightMode || PROVISION_MODES.NONE,
+          flightSpecialDeals: existingEvent.flightSpecialDeals,
+          flightInstructions: existingEvent.flightInstructions,
+          recommendedAirlines: existingEvent.recommendedAirlines,
+          airlineDiscountCodes: existingEvent.airlineDiscountCodes,
+        },
+        communication: {
+          emailFrom: existingEvent.emailFrom || undefined,
+          emailReplyTo: existingEvent.emailReplyTo || undefined,
+          sendRsvpReminders: existingEvent.sendRsvpReminders !== undefined ? existingEvent.sendRsvpReminders : true,
+          sendRsvpConfirmations: existingEvent.sendRsvpConfirmations !== undefined ? existingEvent.sendRsvpConfirmations : true,
+          sendTravelUpdates: existingEvent.sendTravelUpdates !== undefined ? existingEvent.sendTravelUpdates : true,
+          enableWhatsapp: !!existingEvent.whatsappBusinessNumber,
+          whatsappBusinessNumber: existingEvent.whatsappBusinessNumber || undefined,
+        },
+      });
+    }
+  }, [existingEvent?.id]); // Only depend on event ID to prevent infinite loops
   
   // Define the step titles and schemas
   const steps = [
