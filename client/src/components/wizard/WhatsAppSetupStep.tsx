@@ -40,13 +40,17 @@ const WhatsAppSetupStep: React.FC<WhatsAppSetupStepProps> = ({ eventId, onComple
   const [testMessage, setTestMessage] = useState('Hello! This is a test message from Eternally Yours.');
   
   // Get event details
-  const { data: event, isLoading: eventLoading } = useQuery({
+  const { data: event, isLoading: eventLoading, error: eventError } = useQuery({
     queryKey: [`/api/events/${eventId}`],
     queryFn: async () => {
+      if (!eventId) return null;
       const response = await apiRequest('GET', `/api/events/${eventId}`);
       return response.json();
     },
-    enabled: !!eventId
+    enabled: !!eventId,
+    retry: 1,
+    staleTime: 10000,
+    refetchOnWindowFocus: false
   });
   
   // Get WhatsApp status
@@ -251,11 +255,28 @@ const WhatsAppSetupStep: React.FC<WhatsAppSetupStepProps> = ({ eventId, onComple
                     qrData && 
                     qrData.qrCode;
   
-  // Loading state
+  // Loading and error handling
   if (eventLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading WhatsApp settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-muted-foreground mb-4">Unable to load event data for WhatsApp configuration.</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }

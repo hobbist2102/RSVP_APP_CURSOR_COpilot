@@ -465,8 +465,29 @@ export default function Events() {
       
       {isLoadingEvents ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-muted-foreground">Loading your events...</p>
+          </div>
         </div>
+      ) : isEventsError ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Unable to Load Events</h3>
+            <p className="text-muted-foreground text-center max-w-md mb-6">
+              There was an issue loading your events. You can still create a new event to get started.
+            </p>
+            <Button 
+              onClick={() => {
+                setLocation('/event-setup-wizard/new');
+              }}
+              className="gold-gradient"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Create New Event
+            </Button>
+          </CardContent>
+        </Card>
       ) : events && events.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event: any) => (

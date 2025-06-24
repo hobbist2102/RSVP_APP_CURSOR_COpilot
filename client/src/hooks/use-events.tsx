@@ -14,6 +14,11 @@ export function useEvents() {
     queryKey: ['/api/events-direct'],
     retry: 1, // Limit retries to prevent infinite loops
     retryDelay: 1000,
+    staleTime: 5000, // Cache for 5 seconds
+    refetchOnWindowFocus: false, // Prevent excessive refetches
+    onError: (error) => {
+      console.error('Failed to load events:', error);
+    }
   });
 
   // Get current event details
