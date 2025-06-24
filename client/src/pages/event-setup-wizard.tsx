@@ -62,13 +62,19 @@ export default function EventSetupWizard() {
   // Fetch the current event
   const { data: currentEvent, isLoading } = useQuery<any>({
     queryKey: [`/api/events/${eventId}`],
-    enabled: !!eventId,
+    enabled: !!eventId && eventId !== 'new',
+    retry: 1,
+    staleTime: 10000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch the event setup progress
   const { data: setupProgress, isLoading: isLoadingProgress } = useQuery<WizardProgress>({
     queryKey: [`/api/wizard/${eventId}/progress`],
-    enabled: !!eventId,
+    enabled: !!eventId && eventId !== 'new',
+    retry: 1,
+    staleTime: 10000,
+    refetchOnWindowFocus: false
   });
 
   // Create new event mutation

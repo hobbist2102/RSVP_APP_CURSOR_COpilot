@@ -122,13 +122,17 @@ export default function TransportSetupStep({
   });
   
   // Get the current event
-  const { data: currentEvent, isLoading: isLoadingEvent } = useQuery({
+  const { data: currentEvent, isLoading: isLoadingEvent, error: eventError } = useQuery({
     queryKey: ['/api/events', eventId],
     queryFn: async () => {
+      if (!eventId || eventId === 'new') return null;
       const res = await apiRequest('GET', `/api/events/${eventId}`);
       return res.json();
     },
-    enabled: !!eventId
+    enabled: !!eventId && eventId !== 'new',
+    retry: 1,
+    staleTime: 10000, // Cache for 10 seconds
+    refetchOnWindowFocus: false
   });
 
   // Form setup
@@ -154,8 +158,8 @@ export default function TransportSetupStep({
 
   // Populate form with existing data when available
   useEffect(() => {
-    if (currentEvent) {
-      form.reset({
+    if (currentEvent && !isLoadingEvent) {
+      const formData = {
         transportMode: currentEvent.transportMode || PROVISION_MODES.SELECTED,
         transportProviderName: currentEvent.transportProviderName || '',
         transportProviderPhone: currentEvent.transportProviderPhone || '',
@@ -170,13 +174,15 @@ export default function TransportSetupStep({
         transportReturnNote: currentEvent.transportReturnNote || '',
         defaultPickupLocation: currentEvent.defaultPickupLocation || '',
         defaultDropoffLocation: currentEvent.defaultDropoffLocation || '',
-      });
+      };
+      
+      form.reset(formData);
       
       // Load vehicles if any saved
       if (currentEvent.transportVehicles) {
         try {
           const savedVehicles = JSON.parse(currentEvent.transportVehicles);
-          if (Array.isArray(savedVehicles)) {
+          if (Array.isArray(savedVehicles) && savedVehicles.length > 0) {
             setVehicles(savedVehicles);
           }
         } catch (error) {
@@ -184,7 +190,7 @@ export default function TransportSetupStep({
         }
       }
     }
-  }, [currentEvent, form]);
+  }, [currentEvent?.id, isLoadingEvent]); // Only depend on event ID and loading state
 
   // Save mutation
   const saveMutation = useMutation({
@@ -262,10 +268,27 @@ export default function TransportSetupStep({
     window.open('/transport-assignments', '_blank');
   };
 
+  // Handle loading and error states
   if (isLoadingEvent) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading transport settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center p-12">
+          <p className="text-muted-foreground mb-4">Unable to load event data for transport configuration.</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }

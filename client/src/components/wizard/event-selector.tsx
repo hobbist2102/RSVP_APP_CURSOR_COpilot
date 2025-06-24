@@ -21,6 +21,8 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
   const { data: events, isLoading, isError } = useQuery({
     queryKey: ['/api/events'],
     retry: 1, // Only retry once to avoid excessive retries
+    staleTime: 5000, // Cache for 5 seconds to prevent rapid refetches
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
     onError: () => {
       toast({
         title: "Couldn't retrieve events",
