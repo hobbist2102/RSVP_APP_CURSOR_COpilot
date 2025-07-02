@@ -380,10 +380,7 @@ export default function HotelsStep({
       accommodationInstructions: data.accommodationInstructions,
     };
     
-    console.log('=== HOTELS STEP FRONTEND DEBUG ===');
-    console.log('Hotels being sent:', hotels);
-    console.log('Room types being sent:', roomTypes);
-    console.log('Final data being sent:', finalData);
+    // Submit hotel and room type data
     
     // Complete the step (which will trigger the save)
     onComplete(finalData);

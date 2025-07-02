@@ -138,6 +138,9 @@ Changelog:
   - Integrated proper accommodation modes (Block Booking, Direct Booking)
   - Added auto-allocation and guest preference settings
   - Connected to accommodation management across the application
+  - **CRITICAL FIX**: Resolved hotel persistence issue where hotels disappeared after save
+  - Fixed query invalidation system for proper data refresh after wizard step saves
+  - Ensured complete database integration with proper hotels and room types persistence
 
 ## User Preferences
 

@@ -247,10 +247,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
       case 'hotels':
         updateValues.accommodationComplete = true;
         
-        console.log('=== HOTELS WIZARD STEP DEBUG ===');
-        console.log('Raw stepData received:', JSON.stringify(stepData, null, 2));
-        console.log('stepData.hotels:', stepData?.hotels);
-        console.log('stepData.roomTypes:', stepData?.roomTypes);
+        // Hotels step data processing
         
         // Update accommodation settings in the event record
         if (stepData && typeof stepData === 'object') {
