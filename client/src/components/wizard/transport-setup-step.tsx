@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -121,10 +122,9 @@ export default function TransportSetupStep({
     { id: 'v2', type: 'SUV', capacity: 6, count: 3 },
     { id: 'v3', type: 'Minivan', capacity: 8, count: 2 },
   ]);
-  const [newVehicle, setNewVehicle] = useState<{ type: string; capacity: number; count: number }>({
+  const [newVehicle, setNewVehicle] = useState<{ type: string; capacity: number }>({
     type: '',
-    capacity: 4,
-    count: 1
+    capacity: 4
   });
   
   // Get the current event
@@ -601,7 +601,7 @@ export default function TransportSetupStep({
                                     <div>
                                       <p className="font-medium">{vehicle.type}</p>
                                       <p className="text-xs text-muted-foreground">
-                                        {vehicle.capacity} passengers • {vehicle.count} available
+                                        {vehicle.capacity} passengers
                                       </p>
                                     </div>
                                   </div>
@@ -624,31 +624,27 @@ export default function TransportSetupStep({
                           <Separator />
                           
                           <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Add New Vehicle</h3>
-                            <div className="grid grid-cols-4 gap-2">
-                              <div className="col-span-2">
+                            <h3 className="text-sm font-medium">Add New Vehicle Type</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="vehicle-type">Vehicle Type</Label>
                                 <Input 
-                                  placeholder="Vehicle type" 
+                                  id="vehicle-type"
+                                  placeholder="e.g., Sedan, SUV, Minivan" 
                                   value={newVehicle.type}
                                   onChange={(e) => setNewVehicle({...newVehicle, type: e.target.value})}
                                 />
                               </div>
                               <div>
+                                <Label htmlFor="vehicle-capacity">Passenger Capacity</Label>
                                 <Input 
+                                  id="vehicle-capacity"
                                   type="number" 
-                                  placeholder="Capacity" 
+                                  placeholder="Number of passengers" 
                                   min={1}
+                                  max={50}
                                   value={newVehicle.capacity}
                                   onChange={(e) => setNewVehicle({...newVehicle, capacity: parseInt(e.target.value) || 1})}
-                                />
-                              </div>
-                              <div>
-                                <Input 
-                                  type="number" 
-                                  placeholder="Count" 
-                                  min={1}
-                                  value={newVehicle.count}
-                                  onChange={(e) => setNewVehicle({...newVehicle, count: parseInt(e.target.value) || 1})}
                                 />
                               </div>
                             </div>
