@@ -672,6 +672,15 @@ export const transportGroups = pgTable("transport_groups", {
   driverInfo: text("driver_info"), // Driver name, contact, etc.
   specialInstructions: text("special_instructions"), // Instructions for driver, coordinator, or guests
   plannerNotes: text("planner_notes"), // Private notes for planner
+  // Enhanced coordination fields
+  assignedVendorId: integer("assigned_vendor_id"),
+  airportRepId: integer("airport_rep_id"),
+  vehicleId: integer("vehicle_id"),
+  pickupStatus: text("pickup_status").default("pending"),
+  guestsPickedUp: integer("guests_picked_up").default(0),
+  totalGuests: integer("total_guests").default(0),
+  delayNotifications: jsonb("delay_notifications"),
+  realTimeUpdates: jsonb("real_time_updates"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -728,6 +737,42 @@ export const insertEventSetupProgressSchema = createInsertSchema(eventSetupProgr
   updatedAt: true,
   completedAt: true,
 });
+
+// Insert schemas for new transport tables
+export const insertTransportVendorSchema = createInsertSchema(transportVendors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLocationRepresentativeSchema = createInsertSchema(locationRepresentatives).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventVehicleSchema = createInsertSchema(eventVehicles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGuestTravelInfoSchema = createInsertSchema(guestTravelInfo).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type TransportVendor = typeof transportVendors.$inferSelect;
+export type InsertTransportVendor = z.infer<typeof insertTransportVendorSchema>;
+
+export type LocationRepresentative = typeof locationRepresentatives.$inferSelect;
+export type InsertLocationRepresentative = z.infer<typeof insertLocationRepresentativeSchema>;
+
+export type EventVehicle = typeof eventVehicles.$inferSelect;
+export type InsertEventVehicle = z.infer<typeof insertEventVehicleSchema>;
+
+export type GuestTravelInfo = typeof guestTravelInfo.$inferSelect;
+export type InsertGuestTravelInfo = z.infer<typeof insertGuestTravelInfoSchema>;
 
 export type TransportGroup = typeof transportGroups.$inferSelect;
 export type InsertTransportGroup = z.infer<typeof insertTransportGroupSchema>;

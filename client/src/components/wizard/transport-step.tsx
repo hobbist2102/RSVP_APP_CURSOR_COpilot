@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { WeddingEvent } from "@shared/schema";
-import { Check, Bus, Car, Plus } from "lucide-react";
-import { VEHICLE_TYPES } from "@/lib/constants";
+import { WeddingEvent, TransportVendor, LocationRepresentative, EventVehicle } from "@shared/schema";
+import { Check, Bus, Car, Plus, Plane, MapPin, Users, Phone, FileText, Trash2, Edit, Settings } from "lucide-react";
 import { 
   Card, 
   CardContent, 
@@ -10,6 +9,36 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface TransportStepProps {
   eventId: string;
@@ -25,43 +54,137 @@ export default function TransportStep({
   isCompleted
 }: TransportStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
+  const [activeTab, setActiveTab] = useState("overview");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Transport settings with family-centric grouping
-  const defaultTransportSettings = {
-    enableTransport: true,
-    // Enforce family-centric grouping to keep families together
-    transportGroupingStrategy: "family",
-    // This ensures families are always kept together in the same vehicle
-    keepFamiliesTogether: true,
-    autoAssignVehicles: true,
-    allowGuestPreferences: true,
-    // Define family priority setting
-    familyPriorityMode: "strict", // "strict" ensures families are never split
-    vehicles: [
-      {
-        name: "Airport Shuttle",
-        type: "Bus",
-        capacity: 45,
-        count: 2,
-        description: "For airport transfers on arrival and departure days",
-        // Setting this to true ensures larger families can be accommodated
-        canAccommodateLargeFamilies: true
-      },
-      {
-        name: "VIP Cars",
-        type: "Sedan",
-        capacity: 4,
-        count: 5,
-        description: "For family members and VIP guests",
-        // Setting this to false means these cars are only for smaller families
-        canAccommodateLargeFamilies: false
-      }
-    ]
+  // Dialog states
+  const [vendorDialogOpen, setVendorDialogOpen] = useState(false);
+  const [repDialogOpen, setRepDialogOpen] = useState(false);
+  const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<TransportVendor | null>(null);
+  const [editingRep, setEditingRep] = useState<LocationRepresentative | null>(null);
+  const [editingVehicle, setEditingVehicle] = useState<EventVehicle | null>(null);
+
+  // Form states
+  const [vendorForm, setVendorForm] = useState({
+    name: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    whatsappNumber: '',
+    specialization: [] as string[]
+  });
+
+  const [repForm, setRepForm] = useState({
+    name: '',
+    locationType: '',
+    locationName: '',
+    terminalGate: '',
+    phone: '',
+    whatsappNumber: ''
+  });
+
+  const [vehicleForm, setVehicleForm] = useState({
+    vendorId: '',
+    vehicleType: '',
+    vehicleName: '',
+    capacity: '',
+    availableCount: '',
+    hourlyRate: '',
+    features: [] as string[]
+  });
+
+  // Data queries
+  const { data: vendors = [] } = useQuery<TransportVendor[]>({
+    queryKey: ['/api/transport/vendors', eventId],
+    enabled: !!eventId
+  });
+
+  const { data: representatives = [] } = useQuery<LocationRepresentative[]>({
+    queryKey: ['/api/transport/representatives', eventId],
+    enabled: !!eventId
+  });
+
+  const { data: vehicles = [] } = useQuery<EventVehicle[]>({
+    queryKey: ['/api/transport/vehicles', eventId],
+    enabled: !!eventId
+  });
+
+  // Mutations
+  const createVendorMutation = useMutation({
+    mutationFn: (data: any) => apiRequest(`/api/transport/vendors`, 'POST', { ...data, eventId: parseInt(eventId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transport/vendors', eventId] });
+      setVendorDialogOpen(false);
+      setVendorForm({ name: '', contactPerson: '', phone: '', email: '', whatsappNumber: '', specialization: [] });
+      toast({ title: "Transport vendor added successfully" });
+    }
+  });
+
+  const createRepMutation = useMutation({
+    mutationFn: (data: any) => apiRequest(`/api/transport/representatives`, {
+      method: 'POST',
+      body: { ...data, eventId: parseInt(eventId) }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transport/representatives', eventId] });
+      setRepDialogOpen(false);
+      setRepForm({ name: '', locationType: '', locationName: '', terminalGate: '', phone: '', whatsappNumber: '' });
+      toast({ title: "Location representative added successfully" });
+    }
+  });
+
+  const createVehicleMutation = useMutation({
+    mutationFn: (data: any) => apiRequest(`/api/transport/vehicles`, {
+      method: 'POST',
+      body: { ...data, eventId: parseInt(eventId) }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transport/vehicles', eventId] });
+      setVehicleDialogOpen(false);
+      setVehicleForm({ vendorId: '', vehicleType: '', vehicleName: '', capacity: '', availableCount: '', hourlyRate: '', features: [] });
+      toast({ title: "Vehicle added successfully" });
+    }
+  });
+
+  // Form handlers
+  const handleVendorSubmit = () => {
+    if (!vendorForm.name || !vendorForm.phone) {
+      toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+    createVendorMutation.mutate(vendorForm);
   };
-  
-  // This is a simplified component for demonstration
+
+  const handleRepSubmit = () => {
+    if (!repForm.name || !repForm.locationType || !repForm.phone) {
+      toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+    createRepMutation.mutate(repForm);
+  };
+
+  const handleVehicleSubmit = () => {
+    if (!vehicleForm.vendorId || !vehicleForm.vehicleType || !vehicleForm.capacity) {
+      toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+    createVehicleMutation.mutate({
+      ...vehicleForm,
+      capacity: parseInt(vehicleForm.capacity),
+      availableCount: parseInt(vehicleForm.availableCount) || 1
+    });
+  };
+
   const handleComplete = () => {
-    onComplete(defaultTransportSettings);
+    const transportData = {
+      vendors: vendors.length,
+      representatives: representatives.length,
+      vehicles: vehicles.length,
+      coordinationEnabled: true
+    };
+    onComplete(transportData);
     setIsEditing(false);
   };
 
