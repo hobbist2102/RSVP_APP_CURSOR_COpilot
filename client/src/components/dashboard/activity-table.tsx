@@ -36,9 +36,9 @@ interface ActivityTableProps {
 // Optimized cell components with aggressive memoization and reduced DOM footprint
 // Pre-computed status colors to avoid recalculations
 const STATUS_COLORS = {
-  confirmed: "bg-green-100 text-green-800",
-  declined: "bg-red-100 text-red-800",
-  pending: "bg-yellow-100 text-yellow-800",
+  confirmed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  declined: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
 };
 
 // Static status labels to avoid string manipulations on every render
@@ -52,12 +52,12 @@ const STATUS_LABELS = {
 const GuestCell = memo(function GuestCell({ guest }: { guest: RsvpActivity['guest'] }) {
   return (
     <div className="flex items-center">
-      <Avatar className="h-8 w-8 rounded-full bg-primary text-white">
+      <Avatar className="h-8 w-8 rounded-full bg-primary text-primary-foreground">
         <AvatarFallback>{guest.initials}</AvatarFallback>
       </Avatar>
       <div className="ml-4">
-        <div className="text-sm font-medium text-neutral">{guest.name}</div>
-        <div className="text-xs text-gray-500">{guest.email}</div>
+        <div className="text-sm font-medium text-foreground">{guest.name}</div>
+        <div className="text-xs text-muted-foreground">{guest.email}</div>
       </div>
     </div>
   );
@@ -71,7 +71,7 @@ const GuestCell = memo(function GuestCell({ guest }: { guest: RsvpActivity['gues
 // Optimized StatusCell that doesn't recalculate styles on every render
 const StatusCell = memo(function StatusCell({ status }: { status: RsvpActivity['status'] }) {
   // Access pre-computed values instead of calculating during render
-  const statusColor = STATUS_COLORS[status] || "bg-gray-100 text-gray-800";
+  const statusColor = STATUS_COLORS[status] || "bg-muted text-muted-foreground";
   const label = STATUS_LABELS[status] || "Unknown";
   
   return (

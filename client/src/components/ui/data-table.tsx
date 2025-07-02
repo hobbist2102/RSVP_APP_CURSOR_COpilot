@@ -315,7 +315,7 @@ const DataTable = <T extends object>({
       {searchable && (
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder={searchPlaceholder}
@@ -377,14 +377,14 @@ const DataTable = <T extends object>({
       </div>
       
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-muted-foreground">
           Showing <span className="font-medium mx-1">{paginatedData.length > 0 ? startIndex + 1 : 0}</span> 
           to <span className="font-medium mx-1">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> 
           of <span className="font-medium mx-1">{filteredData.length}</span> results
         </div>
         
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">Rows per page:</span>
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
           <Select
             value={String(itemsPerPage)}
             onValueChange={handleItemsPerPageChange}
