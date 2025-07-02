@@ -379,6 +379,12 @@ export default function HotelsStep({
       accommodationSpecialDeals: data.accommodationSpecialDeals,
       accommodationInstructions: data.accommodationInstructions,
     };
+    
+    console.log('=== HOTELS STEP FRONTEND DEBUG ===');
+    console.log('Hotels being sent:', hotels);
+    console.log('Room types being sent:', roomTypes);
+    console.log('Final data being sent:', finalData);
+    
     onComplete(finalData);
     setIsEditing(false);
   }

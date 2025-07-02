@@ -247,6 +247,11 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
       case 'hotels':
         updateValues.accommodationComplete = true;
         
+        console.log('=== HOTELS WIZARD STEP DEBUG ===');
+        console.log('Raw stepData received:', JSON.stringify(stepData, null, 2));
+        console.log('stepData.hotels:', stepData?.hotels);
+        console.log('stepData.roomTypes:', stepData?.roomTypes);
+        
         // Update accommodation settings in the event record
         if (stepData && typeof stepData === 'object') {
           await db.update(weddingEvents)
@@ -281,20 +286,21 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
 
               // Insert room types for this hotel
               if (stepData.roomTypes && Array.isArray(stepData.roomTypes)) {
-                const hotelRoomTypes = stepData.roomTypes.filter(rt => rt.hotelId === hotel.id);
+                // Filter room types by the frontend hotel ID (before database insertion)
+                const hotelRoomTypes = stepData.roomTypes.filter((rt: any) => rt.hotelId === hotel.id);
                 
                 for (const roomType of hotelRoomTypes) {
                   await db.insert(accommodations).values({
                     eventId,
-                    hotelId: insertedHotel.id,
+                    hotelId: insertedHotel.id, // Use the actual database hotel ID
                     name: roomType.name,
                     roomType: roomType.name,
                     bedType: roomType.bedType || null,
-                    maxOccupancy: roomType.maxOccupancy,
-                    totalRooms: roomType.totalRooms,
+                    maxOccupancy: roomType.maxOccupancy || 2,
+                    totalRooms: roomType.totalRooms || 1,
                     pricePerNight: roomType.negotiatedRate || null,
                     specialFeatures: roomType.specialFeatures || null,
-                    capacity: roomType.maxOccupancy // For backward compatibility
+                    capacity: roomType.maxOccupancy || 2 // For backward compatibility
                   });
                 }
               }
