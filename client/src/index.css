@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    /* STEP 1: Apple iOS 18 Light Mode Colors - EXACT SPECIFICATION */
+    /* FINAL SPECIFICATION: Apple iOS 18 Light Mode Colors */
     --color-background: #FFFFFF;
     --color-surface: rgba(255, 255, 255, 0.6);
     --color-text-primary: #111111;
@@ -16,34 +16,34 @@
     --color-accent-purple: #5E239D;
     --color-border: rgba(0, 0, 0, 0.06);
     
-    /* STEP 2: Glass effect variables - EXACT SPECIFICATION */
+    /* Glass effect variables */
     --glass-bg: rgba(255, 255, 255, 0.6);
     --glass-blur: blur(12px);
     --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     --glass-border: 1px solid rgba(0, 0, 0, 0.06);
     --glass-radius: 0.75rem;
     
-    /* STEP 4: Hover effects */
+    /* Hover effects */
     --hover-scale: scale(1.02);
     --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      /* STEP 1: Apple iOS 18 Dark Mode Colors - EXACT SPECIFICATION */
+      /* FINAL SPECIFICATION: Apple iOS 18 Dark Mode Colors */
       --color-background: #121212;
       --color-surface: rgba(30, 30, 30, 0.5);
       --color-text-primary: #FDFDFD;
       --color-text-secondary: #AAAAAA;
       --color-border: rgba(255, 255, 255, 0.08);
       
-      /* STEP 2: Glass effect variables for dark mode - EXACT SPECIFICATION */
+      /* Glass effect variables for dark mode */
       --glass-bg: rgba(30, 30, 30, 0.5);
       --glass-blur: blur(10px);
       --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
       --glass-border: 1px solid rgba(255, 255, 255, 0.08);
       
-      /* STEP 4: Dark mode hover effects */
+      /* Dark mode hover effects */
       --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
   }
@@ -52,7 +52,7 @@
     border-color: var(--color-border);
   }
 
-  /* STEP 1: Pure background implementation */
+  /* Pure background implementation */
   html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: var(--color-background);
@@ -69,7 +69,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* STEP 5: Typography implementation */
+  /* Typography implementation */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', sans-serif;
     color: var(--color-text-primary);
@@ -86,7 +86,7 @@
     letter-spacing: 0.02em;
   }
 
-  /* STEP 3: Purple accent for focus states only */
+  /* Purple accent for focus states only */
   :focus-visible {
     outline: 2px solid var(--color-accent-purple);
     outline-offset: 2px;
@@ -100,7 +100,7 @@
 }
 
 @layer components {
-  /* STEP 2: Glass morphism base class - EXACT APPLE iOS 18 SPECIFICATION */
+  /* Glass morphism base class - EXACT APPLE iOS 18 SPECIFICATION */
   .glass,
   .card,
   .wizard-step,
@@ -116,7 +116,7 @@
     padding: 1.5rem;
   }
 
-  /* STEP 4: Hover effects - scale and shadow only, NO background changes */
+  /* Hover effects - scale and shadow only, NO background changes */
   .card:hover,
   .dashboard-panel:hover,
   .wizard-step:hover {
@@ -124,7 +124,7 @@
     box-shadow: var(--hover-shadow);
   }
 
-  /* STEP 2: Sidebar with glass effect */
+  /* Sidebar with glass effect */
   .sidebar {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
@@ -135,7 +135,7 @@
     padding: 1rem;
   }
 
-  /* STEP 3: Purple accent ONLY for active sidebar items - thin 3px border */
+  /* Purple accent ONLY for active sidebar items - thin 3px border */
   .sidebar-nav-item {
     color: var(--color-text-secondary);
     border-radius: 8px;
@@ -157,7 +157,7 @@
     font-weight: 500;
   }
 
-  /* STEP 3: Purple accent - thin 3px left border ONLY */
+  /* Purple accent - thin 3px left border ONLY */
   .sidebar-nav-item.active::before {
     content: '';
     position: absolute;
@@ -170,14 +170,14 @@
     border-radius: 0 2px 2px 0;
   }
 
-  /* STEP 3: Gold accent ONLY for logos */
+  /* Gold accent ONLY for logos */
   .logo {
     color: var(--color-accent-gold);
     font-weight: 600;
     font-size: 1.5rem;
   }
 
-  /* STEP 2: Button variants with glass effects */
+  /* Button variants with glass effects */
   .btn-primary {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
@@ -191,15 +191,181 @@
     box-shadow: var(--glass-shadow);
   }
 
-  /* STEP 4: Button hover - scale and shadow only, NO background fill */
+  /* Button hover - scale and shadow only, NO background fill */
   .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: var(--hover-shadow);
   }
 
-  /* STEP 3: Purple accent on button focus - thin border only */
+  /* Purple accent on button focus - thin border only */
   .btn-primary:focus {
-    border-left: 3px solid var(--color-accent-purple);
+    outline: 2px solid var(--color-accent-purple);
+    outline-offset: 2px;
+  }
+
+  /* Form inputs with glass effects */
+  .form-input {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-left: 3px solid transparent;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: var(--color-text-primary);
+    transition: all 0.3s ease;
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Purple accent on input focus - left border only */
+  .form-input:focus {
+    border-left-color: var(--color-accent-purple);
+    outline: none;
+  }
+
+  /* Purple accent - Progress bars only */
+  .progress-bar {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    height: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .progress-bar {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .progress-fill {
+    background: var(--color-accent-purple);
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+
+  /* Table containers with glass effects */
+  .table-container {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--glass-radius);
+    overflow: hidden;
+  }
+
+  /* Subtle table row hover - minimal effect */
+  .table-row:hover {
+    background: rgba(0, 0, 0, 0.01);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .table-row:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  /* Status pills - Green/red/yellow with glass backgrounds */
+  .status-pill {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: 1rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .status-confirmed {
+    color: #059669;
+    border-left: 3px solid #059669;
+  }
+
+  .status-declined {
+    color: #DC2626;
+    border-left: 3px solid #DC2626;
+  }
+
+  .status-pending {
+    color: #D97706;
+    border-left: 3px solid #D97706;
+  }
+
+  /* Gold accent ONLY for thin underlines on section headings */
+  .section-heading {
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+
+  .section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 2rem;
+    height: 1px;
+    background: var(--color-accent-gold);
+  }
+
+  /* Communication template cards - MUST be glass, NO solid fills */
+  .template-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--glass-radius);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .template-card:hover {
+    transform: var(--hover-scale);
+    box-shadow: var(--hover-shadow);
+  }
+
+  /* Template category indicators - colored left borders only */
+  .template-wedding { border-left: 3px solid #059669; }
+  .template-rsvp { border-left: 3px solid #3B82F6; }
+  .template-ceremony { border-left: 3px solid #8B5CF6; }
+  .template-accommodation { border-left: 3px solid #F59E0B; }
+  .template-travel { border-left: 3px solid #EF4444; }
+
+  /* Mobile responsive adjustments */
+  @media (max-width: 768px) {
+    .glass,
+    .card,
+    .wizard-step,
+    .dashboard-panel,
+    .sidebar-panel {
+      border-radius: 0.5rem;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 1rem;
+    }
+  }
+}
+
+@layer utilities {
+  /* Layout spacing - Large airy luxury feel */
+  .layout-spacing {
+    padding: 1.5rem;
+  }
+
+  .section-spacing {
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .layout-spacing {
+      padding: 1rem;
+    }
+
+    .section-spacing {
+      margin-bottom: 1.5rem;
+    }
   }
 
   .btn-secondary {
@@ -229,136 +395,10 @@
   }
 
   .btn-ghost:hover {
-    background: rgba(0, 0, 0, 0.03);
-    color: var(--color-text-primary);
-  }
-
-  /* Status indicators with proper colors (not purple/gold) */
-  .status-pill {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .status-confirmed {
-    background: rgba(34, 197, 94, 0.1);
-    color: #059669;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-  }
-
-  .status-declined {
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-  }
-
-  .status-pending {
-    background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-  }
-
-  /* STEP 2: Form inputs with glass effect */
-  .form-input {
     background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: var(--glass-border);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
     color: var(--color-text-primary);
-    transition: all 0.2s ease;
   }
 
-  /* STEP 3: Purple accent for input focus - thin border only */
-  .form-input:focus {
-    border-left: 3px solid var(--color-accent-purple);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .form-input::placeholder {
-    color: var(--color-text-secondary);
-  }
-
-  /* STEP 2: Table with glass container */
-  .table-container {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border-radius: var(--glass-radius);
-    border: var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    overflow: hidden;
-  }
-
-  .table-header {
-    background: rgba(0, 0, 0, 0.02);
-    color: var(--color-text-primary);
-    font-weight: 600;
-    font-size: 0.875rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .table-row {
-    border-bottom: var(--glass-border);
-    transition: background-color 0.2s ease;
-  }
-
-  .table-row:hover {
-    background: rgba(0, 0, 0, 0.01);
-  }
-
-  /* STEP 3: Progress indicators - purple fill only */
-  .progress-bar {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    background: var(--color-accent-purple);
-    transition: width 0.3s ease;
-    border-radius: 8px;
-  }
-
-  /* STEP 3: Gold accent for headings - thin underline only */
-  .section-title::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 1px;
-    background: var(--color-accent-gold);
-    margin-top: 0.5rem;
-  }
-
-  /* Utility classes for minimal accent usage */
-  .text-gold {
-    color: var(--color-accent-gold);
-  }
-
-  .text-purple {
-    color: var(--color-accent-purple);
-  }
-
-  .border-purple {
-    border-color: var(--color-accent-purple);
-  }
-
-  .border-gold {
-    border-color: var(--color-accent-gold);
-  }
-
-  /* STEP 7: Chart elements - purple accent only */
-  .chart-segment-active {
-    fill: var(--color-accent-purple) !important;
-  }
-
-  /* STEP 5: Animation classes */
   .fade-in {
     animation: fadeIn 0.3s ease-out;
   }
@@ -394,41 +434,87 @@
 }
 
 .animate-float2 {
-  animation: float2 8s ease-in-out infinite;
-}
-
-.animate-float3 {
-  animation: float3 10s ease-in-out infinite;
+  animation: float2 6s ease-in-out infinite 2s;
 }
 
 @keyframes float1 {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-10px) rotate(2deg); }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(1deg); }
+  66% { transform: translateY(5px) rotate(-1deg); }
 }
 
 @keyframes float2 {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-12px) rotate(-1deg); }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(-1deg); }
+  66% { transform: translateY(5px) rotate(1deg); }
 }
 
-@keyframes float3 {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-8px) rotate(2deg); }
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* STEP 7: Responsive adjustments */
-@media (max-width: 768px) {
-  .glass,
-  .card,
-  .wizard-step,
-  .dashboard-panel {
-    padding: 1rem;
-    border-radius: 8px;
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
   }
-  
-  .btn-primary,
-  .btn-secondary {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.5s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+@keyframes scaleInBounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in-bounce {
+  animation: scaleInBounce 0.6s ease-out;
+}
+
+.text-balance {
+  text-wrap: balance;
 }

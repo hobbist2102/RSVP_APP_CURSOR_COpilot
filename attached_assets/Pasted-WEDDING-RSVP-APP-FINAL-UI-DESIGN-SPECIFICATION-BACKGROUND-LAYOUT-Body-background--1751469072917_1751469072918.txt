@@ -1,0 +1,145 @@
+WEDDING RSVP APP - FINAL UI DESIGN SPECIFICATION
+
+⸻
+
+=== BACKGROUND & LAYOUT ===
+	•	Body background:
+	•	Pure white (#FFFFFF) in light mode
+	•	Deep charcoal (#121212) in dark mode
+	•	Main container:
+	•	Absolutely no additional fills (no gold, no tints)
+	•	Layout spacing:
+	•	Large vertical padding (24px) between major sections for airy, high-end luxury feel.
+
+⸻
+
+=== TYPOGRAPHY ===
+	•	Primary UI font: Inter (weights: 300, 400, 500, 600, 700)
+	•	Decorative font: Cormorant Garamond
+	•	Strictly for couple names, event titles, hero sections
+	•	Font sizes:
+	•	Base 16px, headings 24px/32px/40px, small text 14px
+	•	Text colors:
+	•	Light mode: #111111 (primary), #666666 (secondary)
+	•	Dark mode: #FDFDFD (primary), #AAAAAA (secondary)
+
+⸻
+
+=== GLASS MORPHISM SYSTEM ===
+	•	All cards, panels, sidebars, wizard steps, even small boxes use glass effect.
+	•	Light mode glass:
+	•	rgba(255, 255, 255, 0.6) + backdrop-blur(12px)
+	•	Dark mode glass:
+	•	rgba(30, 30, 30, 0.5) + backdrop-blur(10px)
+	•	Glass shadows:
+	•	0 6px 20px rgba(0, 0, 0, 0.15) in light
+	•	0 6px 20px rgba(0, 0, 0, 0.3) in dark
+	•	Glass borders:
+	•	1px solid rgba(0, 0, 0, 0.06) in light
+	•	1px solid rgba(255, 255, 255, 0.08) in dark
+	•	Border radius:
+	•	0.75rem (12px) consistently on all glass containers
+
+⸻
+
+=== COLOR ACCENTS (STRICT MINIMAL USE) ===
+	•	Purple #5E239D
+	•	ONLY for:
+	•	3px left border on active sidebar items
+	•	focus rings on inputs and buttons
+	•	progress bar fills
+	•	tiny step indicators
+	•	Gold #BFA76F
+	•	ONLY for:
+	•	logo text
+	•	ultra-thin underline on section headings
+	•	❌ Absolutely no large fills, backgrounds, or card bodies in purple or gold.
+
+⸻
+
+=== INTERACTIVE EFFECTS ===
+	•	Hover:
+	•	Cards scale to 1.02
+	•	Shadow deepens to 0 8px 24px rgba(0,0,0,0.2)
+	•	Hover has NO color change, purely scale and shadow for elegant, subtle motion.
+	•	Focus:
+	•	Purple #5E239D outline ring, 2px width, with 2px offset shadow.
+	•	Transitions:
+	•	Uniform 0.3s ease on all interactive states.
+
+⸻
+
+=== SPECIFIC COMPONENTS ===
+	•	Buttons:
+	•	Glass background, subtle border, scale on hover.
+	•	Purple focus ring on active/focus.
+	•	Form inputs:
+	•	Glass background.
+	•	Purple left border (3px) on focus for consistent iOS minimal accent.
+	•	Tables:
+	•	Glass container.
+	•	Subtle hover with rgba(0,0,0,0.01) overlay (almost invisible but provides soft depth).
+	•	Sidebar:
+	•	Always a glass background.
+	•	Active item gets purple 3px left border.
+	•	No other bright color fills or heavy indicators.
+	•	Progress bars:
+	•	Neutral track, purple fill for completion.
+	•	Status pills:
+	•	Use green, red, yellow with semi-glass backgrounds, never purple or gold.
+
+⸻
+
+=== SHADOWS & DEPTH ===
+	•	Default shadow: 0 6px 20px rgba(0, 0, 0, 0.15)
+	•	Hover shadow: 0 8px 24px rgba(0, 0, 0, 0.2)
+	•	No harsh outlines, all transitions should be soft and diffused.
+
+⸻
+
+=== RESPONSIVE BEHAVIOR ===
+	•	Mobile:
+	•	Reduce glass padding to 16px, tighter radius 8px, slightly lighter blur for performance.
+	•	Desktop:
+	•	Full 12px radius, heavy blur, wide spacing.
+
+⸻
+
+=== FILES THIS CONTROLS ===
+	•	index.css:
+	•	Sets all CSS variables, glassmorphism styles, hover/focus transitions, typography.
+	•	tailwind.config.ts:
+	•	Maps all these colors, border-radius, font-families to Tailwind theme so classes work seamlessly.
+	•	theme.json:
+	•	Ensures primary color is purple (#5E239D), radius 0.75, variant is professional.
+	•	All component files (sidebar.tsx, dashboard-layout.tsx, etc.):
+	•	Must apply glass classes, hover scale, correct accent usage.
+
+⸻
+
+🚨 ADDITIONAL NOTES & CORRECTIONS (FROM SCREEN REVIEW)
+
+🔍 Identified issues:
+	•	Sidebar glass styling:
+	•	Some screenshots show a sidebar that is more of a flat matte dark fill — needs to be a true glass with rgba(30,30,30,0.5) and backdrop-blur(10px).
+	•	Top header bar:
+	•	Still using solid gold fills in some places. This violates the luxury minimal style. Should be transparent / pure with thin gold underline only.
+	•	Communication templates:
+	•	Using bright tinted card fills (green, pink, blue). This breaks the minimalism rule — these must also be glass containers with maybe a small colored icon or a 3px left border. The text inside can have green/red/blue labels but the card itself must remain glass.
+
+✅ Enforcement:
+	•	All backgrounds that aren’t explicitly sidebars/cards must be pure #FFFFFF (light) or #121212 (dark).
+	•	Absolutely no component should have a solid gold or purple fill.
+	•	Every container should apply the consistent glass + border radius + shadow style to maintain that iOS 18 look.
+
+⸻
+
+✅ Done.
+This is now your clean, enforced, contradiction-free spec, with explicit call-outs to fix sidebar, header bars, and template cards to truly match the ultra-luxury, airy iOS 18 design we originally visualized.
+
+⸻
+
+💬 If you want, I can now generate a precise file-by-file implementation checklist for your developers (or your Replit agent), telling exactly:
+	•	what lines or sections to look for,
+	•	what variables to adjust,
+	•	what Tailwind theme entries to confirm.

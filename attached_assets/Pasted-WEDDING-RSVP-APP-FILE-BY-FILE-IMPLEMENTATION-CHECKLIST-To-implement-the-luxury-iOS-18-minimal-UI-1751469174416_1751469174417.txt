@@ -1,0 +1,122 @@
+WEDDING RSVP APP - FILE BY FILE IMPLEMENTATION CHECKLIST
+
+(To implement the luxury iOS 18 minimal UI spec exactly)
+
+⸻
+
+📁 1. client/src/index.css
+
+This is your master styling file.
+It controls:
+	•	Global background
+	•	Color variables
+	•	Typography
+	•	Glassmorphism styles
+	•	Component effects like hover & focus
+
+What to ensure in this file:
+	•	Set global body background:
+	•	#FFFFFF in light mode
+	•	#121212 in dark mode
+	•	Use CSS variables to define the design tokens:
+	•	--color-text-primary: #111111;
+	•	--color-text-secondary: #666666;
+	•	--color-text-primary-dark: #FDFDFD;
+	•	--color-text-secondary-dark: #AAAAAA;
+	•	--color-purple: #5E239D;
+	•	--color-gold: #BFA76F;
+	•	--color-glass-light: rgba(255,255,255,0.6);
+	•	--color-glass-dark: rgba(30,30,30,0.5);
+	•	--color-border-light: rgba(0,0,0,0.06);
+	•	--color-border-dark: rgba(255,255,255,0.08);
+	•	Create a .glass class to apply to all cards, panels, sidebars, wizard steps:
+	•	Light mode: background rgba(255,255,255,0.6) + backdrop-filter: blur(12px)
+	•	Dark mode: background rgba(30,30,30,0.5) + backdrop-filter: blur(10px)
+	•	Soft border + subtle shadow.
+	•	Make sure hover effect on .glass:
+	•	transform: scale(1.02)
+	•	box-shadow changes to 0 8px 24px rgba(0,0,0,0.2)
+	•	All text uses font-family: 'Inter', sans-serif;
+	•	For couple names or headings where needed, use .decorative-text with 'Cormorant Garamond', serif.
+	•	All focus rings use:
+	•	outline: 2px solid #5E239D;
+	•	outline-offset: 2px;
+	•	No background fill of purple or gold anywhere (these only used on borders, progress fills, logo text).
+
+⸻
+
+📁 2. tailwind.config.ts
+
+This configures how Tailwind generates classes that link to your design system.
+
+What to ensure in this file:
+	•	Extend colors to map your variables, e.g.:
+	•	primary: '#5E239D'
+	•	gold: '#BFA76F'
+	•	glassLight: 'rgba(255,255,255,0.6)'
+	•	glassDark: 'rgba(30,30,30,0.5)'
+	•	textPrimary: '#111111'
+	•	textSecondary: '#666666'
+	•	Set global border radius to 0.75rem (12px) for consistency across all elements.
+	•	Ensure Inter is the default sans font.
+	•	Ensure transitions are smooth 0.3s ease for transforms & shadows.
+
+⸻
+
+📁 3. theme.json
+
+This sets your theme system defaults.
+
+What to ensure here:
+	•	primary color set to #5E239D (but used only for tiny accents).
+	•	variant is professional.
+	•	radius is 0.75.
+
+⸻
+
+📁 4. Component files (client/src/components/*)
+
+This includes your layout (dashboard-layout, sidebar, header) and UI components (buttons, forms, tables).
+
+What to ensure here:
+	•	All div containers for cards, wizards, panels, etc. use .glass class or Tailwind that maps to glass (like bg-glassLight + backdrop-blur).
+	•	Sidebar:
+	•	Has a glass background.
+	•	Active item shows 3px left border in purple (#5E239D).
+	•	Text in sidebar is always primary text color.
+	•	Buttons:
+	•	Transparent glass look with a subtle border.
+	•	Scale to 1.02 on hover, shadow deepens.
+	•	On focus, show purple ring.
+	•	Form inputs:
+	•	Glass background.
+	•	On focus, show 3px left border in purple.
+	•	Progress bars:
+	•	Light gray or white background with fill in #5E239D.
+	•	Status pills (like confirmed/declined):
+	•	Green/red/yellow, NOT purple/gold.
+	•	Have glass background.
+	•	Tables:
+	•	Glass background.
+	•	Row hover effect: slight background darken rgba(0,0,0,0.01).
+
+⸻
+
+⚠️ ADDITIONAL NOTES (UI/UX CONTRADICTIONS SPOTTED)
+
+After critically reviewing the screenshots vs the spec:
+	•	Some communication template cards do NOT appear to have the glass effect, they look like flat solid white or black boxes.
+	•	They must also have backdrop-blur, semi-transparent glass backgrounds, consistent border radius & shadow.
+	•	Some dashboard card backgrounds & progress cards were showing odd solid fills or wrong shadows (seen in your brownish screenshots).
+	•	They should be semi-transparent glass, never fully solid with that muddy brown.
+	•	The sidebar sometimes does NOT look like it has a glass surface, check that it consistently uses .glass or Tailwind equivalent.
+
+⸻
+
+✅ Done:
+This text now serves as your single source of truth.
+
+When you say:
+
+“Implement this exactly across index.css, tailwind.config.ts, theme.json, and all component files.”
+— it will enforce this luxury minimal iOS 18 design, removing all hard fills, ensuring glass, soft shadows, and correct use of purple/gold accents.
