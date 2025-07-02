@@ -86,14 +86,14 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="glass-card border-b" style={{ borderColor: 'var(--glass-border)' }}>
+    <header className="bg-background border-b border-border">
       <div className="flex justify-between items-center px-6 py-4 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="p-2 rounded-md text-neutral hover:bg-gray-100 lg:hidden"
+            className="p-2 rounded-md text-muted-foreground hover:bg-muted lg:hidden"
           >
             <span className="sr-only">Open sidebar</span>
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -125,7 +125,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 {notifications > 0 && (
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-destructive"></span>
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -133,10 +133,10 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <span className="text-sm">New RSVP from John Davis</span>
+                <span className="text-sm text-foreground">New RSVP from John Davis</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <span className="text-sm">Accommodation request from Rachel Lee</span>
+                <span className="text-sm text-foreground">Accommodation request from Rachel Lee</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
