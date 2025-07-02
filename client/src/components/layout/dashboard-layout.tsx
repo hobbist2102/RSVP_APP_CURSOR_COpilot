@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        <main className="flex-1 overflow-y-auto bg-accent p-6">
+        <main className="flex-1 overflow-y-auto bg-background p-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

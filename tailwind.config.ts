@@ -41,12 +41,12 @@ const config: Config = {
         },
         
         muted: {
-          DEFAULT: "rgba(0, 0, 0, 0.02)",
+          DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-secondary)",
         },
         
         border: "var(--color-border)",
-        ring: "#5E239D",
+        ring: "var(--color-accent-purple)",
         
         card: {
           DEFAULT: "var(--color-surface)",

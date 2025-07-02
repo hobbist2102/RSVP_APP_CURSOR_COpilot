@@ -1,0 +1,67 @@
+🚀 COMPLETE LUXURY DESIGN INSTRUCTION - DO NOT SKIP ANY STEP
+
+IMPORTANT: Completely redo the UI to exactly match the luxury minimal Apple iOS 18 design we discussed, with heavy glass surfaces, pure white or charcoal backgrounds, tiny purple and gold accents only. FOLLOW THESE STEPS PRECISELY, DO NOT SKIP.
+
+----------------------------------------
+1. BACKGROUND
+- LIGHT MODE: body background must be pure white #FFFFFF.
+- DARK MODE: body background must be deep charcoal #121212.
+- NEVER use #BFA76F or #5E239D as a full background fill anywhere.
+
+----------------------------------------
+2. CARDS, PANELS, SIDEBARS (GLASS)
+- All dashboard cards, wizard steps, panels, tables, sidebars must use a GLASS surface:
+  - LIGHT MODE: rgba(255,255,255,0.6) with backdrop-filter: blur(12px).
+  - DARK MODE: rgba(30,30,30,0.5) with backdrop-filter: blur(10px).
+- Add subtle shadow: 0 6px 20px rgba(0,0,0,0.15).
+- Rounded corners: 0.75rem.
+- 1px border using:
+    rgba(0,0,0,0.06) in light,
+    rgba(255,255,255,0.08) in dark.
+
+----------------------------------------
+3. COLOR ACCENTS
+- Purple #5E239D ONLY for:
+    - thin 3px left border on active sidebar item
+    - active wizard step indicator
+    - small progress bar fills
+    - subtle input or button focus rings
+- Gold #BFA76F ONLY for:
+    - thin line under major headings (like section titles)
+    - tiny icon strokes or tiny hover glow on special icons
+- NEVER use purple or gold as full fills for cards, panels, sidebars or backgrounds.
+
+----------------------------------------
+4. HOVER EFFECTS
+- On hover, cards & panels scale slightly (transform: scale(1.02)) and deepen shadow to 0 8px 24px rgba(0,0,0,0.2).
+- NO background color changes on hover.
+
+----------------------------------------
+5. TYPOGRAPHY & SPACING
+- Use Inter font for all UI text.
+- Maintain large spacing and minimal text to achieve that airy, luxury Apple feel.
+
+----------------------------------------
+6. IMPLEMENTATION
+- Redefine CSS variables in index.css for these colors, with prefers-color-scheme for dark mode.
+- Ensure tailwind.config.ts uses these variables for primary, accent, background, surface, text, border.
+- theme.json must set:
+    {
+      "variant": "professional",
+      "primary": "#5E239D",
+      "radius": 0.75,
+      "appearance": "light"
+    }
+- Check every card, sidebar, wizard step, dashboard panel, and make sure it uses glass + blur style, NOT solid fills.
+
+----------------------------------------
+7. FINAL VALIDATION
+- The UI should look like native iOS 18: 
+    - bright white or deep charcoal background,
+    - floating glass cards with blur and subtle shadows,
+    - tiny purple and gold highlights only.
+- NO large purple or gold blocks anywhere.
+- Hover should scale and shadow only, no bright fills.
+
+----------------------------------------
+DO NOT SKIP ANY STEP. This must achieve the same luxury Apple iOS 18 aesthetic as the reference images we reviewed. Reread each instruction and verify implementation line by line.
