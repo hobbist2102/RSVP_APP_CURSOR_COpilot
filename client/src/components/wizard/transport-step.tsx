@@ -346,7 +346,7 @@ export default function TransportStep({
       </Card>
 
       {/* Setup Summary */}
-      {(formData.transportMode !== 'none' || formData.flightMode !== 'none') && (
+      {(formData.transportMode !== PROVISION_MODES.NONE || formData.flightMode !== 'none') && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
