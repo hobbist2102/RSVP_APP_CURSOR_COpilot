@@ -483,26 +483,6 @@ export default function TransportSetupStep({
                           )}
                         />
                         
-                        {form.watch("transportMode") === PROVISION_MODES.SPECIAL_DEAL && (
-                          <FormField
-                            control={form.control}
-                            name="transportSpecialDeals"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Special Deals Information</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    {...field} 
-                                    placeholder="Describe the special deals or discounts available"
-                                    className="min-h-[100px]"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-                        
                         <div className="flex space-x-4">
                           <FormField
                             control={form.control}
