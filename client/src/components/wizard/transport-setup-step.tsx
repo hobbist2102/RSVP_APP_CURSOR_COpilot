@@ -77,7 +77,7 @@ type Vehicle = {
 
 // Schema for the form
 const formSchema = z.object({
-  transportMode: z.string(),
+  transportMode: z.string().default("none"),
   transportProviderName: z.string().optional(),
   transportProviderPhone: z.string().optional(),
   transportProviderEmail: z.string().optional(),
@@ -89,8 +89,6 @@ const formSchema = z.object({
   providesVenueTransfers: z.boolean().default(false),
   transportPickupNote: z.string().optional(),
   transportReturnNote: z.string().optional(),
-  defaultPickupLocation: z.string().optional(),
-  defaultDropoffLocation: z.string().optional(),
   // Flight coordination fields
   flightMode: z.string().default("none"),
   flightInstructions: z.string().optional(),
@@ -147,7 +145,7 @@ export default function TransportSetupStep({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      transportMode: PROVISION_MODES.SELECTED,
+      transportMode: PROVISION_MODES.NONE,
       transportProviderName: '',
       transportProviderPhone: '',
       transportProviderEmail: '',
@@ -159,8 +157,6 @@ export default function TransportSetupStep({
       providesVenueTransfers: true,
       transportPickupNote: '',
       transportReturnNote: '',
-      defaultPickupLocation: '',
-      defaultDropoffLocation: '',
       // Flight coordination defaults
       flightMode: "none",
       flightInstructions: '',
@@ -175,7 +171,7 @@ export default function TransportSetupStep({
   useEffect(() => {
     if (currentEvent && !isLoadingEvent) {
       const formData = {
-        transportMode: currentEvent.transportMode || PROVISION_MODES.SELECTED,
+        transportMode: currentEvent.transportMode || PROVISION_MODES.NONE,
         transportProviderName: currentEvent.transportProviderName || '',
         transportProviderPhone: currentEvent.transportProviderPhone || '',
         transportProviderEmail: currentEvent.transportProviderEmail || '',
@@ -187,8 +183,13 @@ export default function TransportSetupStep({
         providesVenueTransfers: currentEvent.providesVenueTransfers ?? true,
         transportPickupNote: currentEvent.transportPickupNote || '',
         transportReturnNote: currentEvent.transportReturnNote || '',
-        defaultPickupLocation: currentEvent.defaultPickupLocation || '',
-        defaultDropoffLocation: currentEvent.defaultDropoffLocation || '',
+        // Flight coordination
+        flightMode: currentEvent.flightMode || "none",
+        flightInstructions: currentEvent.flightInstructions || '',
+        flightSpecialDeals: currentEvent.flightSpecialDeals || '',
+        recommendedAirlines: currentEvent.recommendedAirlines || '',
+        airlineDiscountCodes: currentEvent.airlineDiscountCodes || '',
+        offerTravelAssistance: currentEvent.offerTravelAssistance ?? false,
       };
       
       form.reset(formData);
@@ -434,36 +435,6 @@ export default function TransportSetupStep({
                             </FormItem>
                           )}
                         />
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="defaultPickupLocation"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Default Pickup Location</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="E.g., Airport Terminal 1" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="defaultDropoffLocation"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Default Dropoff Location</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="E.g., Main Venue" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
                         
                         <FormField
                           control={form.control}
