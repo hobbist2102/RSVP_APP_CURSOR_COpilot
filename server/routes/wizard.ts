@@ -561,6 +561,16 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       await db.insert(eventSetupProgress).values(initialValues);
     }
     
+    // Update session with new event data
+    if (req.session && req.session.currentEvent && req.session.currentEvent.id === eventId) {
+      // Fetch updated event data to sync session
+      const updatedEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+      if (updatedEvent && updatedEvent.length > 0) {
+        req.session.currentEvent = updatedEvent[0];
+        console.log(`Session updated with transport data for event ${eventId}`);
+      }
+    }
+    
     return res.status(200).json({
       success: true,
       message: 'Transport settings saved successfully',

@@ -219,7 +219,11 @@ export default function TransportSetupStep({
       return res.json();
     },
     onSuccess: (data) => {
+      // Invalidate all relevant queries to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/current-event'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/wizard'] });
+      
       toast({
         title: "Transport settings saved",
         description: "Your transport configuration has been updated.",
