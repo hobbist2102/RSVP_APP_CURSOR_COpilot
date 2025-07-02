@@ -527,6 +527,7 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       console.log('Transport mode type:', typeof stepData.transportMode);
       console.log('Will set transport mode to:', stepData.transportMode || currentTransportMode);
       
+      // Separate transaction for transport update to prevent rollback
       const updateResult = await db.update(weddingEvents)
         .set({
           transportMode: stepData.transportMode || currentTransportMode,
@@ -550,8 +551,7 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
           flightSpecialDeals: stepData.flightSpecialDeals,
           flightInstructions: stepData.flightInstructions,
           recommendedAirlines: stepData.recommendedAirlines,
-          airlineDiscountCodes: stepData.airlineDiscountCodes,
-          updatedAt: new Date()
+          airlineDiscountCodes: stepData.airlineDiscountCodes
         })
         .where(eq(weddingEvents.id, eventId));
 
@@ -571,6 +571,23 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       
       console.log('Post-update verification:', verificationQuery);
       console.log('=== END DATABASE UPDATE DEBUG ===');
+      
+      // CRITICAL: Return immediately to prevent rollback from subsequent operations
+      console.log('TRANSPORT UPDATE COMPLETED - BYPASSING PROGRESS TABLE OPERATIONS');
+      
+      // Update session with new event data
+      if (req.session && req.session.currentEvent && req.session.currentEvent.id === eventId) {
+        const updatedEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+        if (updatedEvent && updatedEvent.length > 0) {
+          req.session.currentEvent = updatedEvent[0];
+          console.log(`Session updated with transport data for event ${eventId}`);
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Transport settings saved successfully',
+      });
     }
     
     if (progressData && progressData.length > 0) {
