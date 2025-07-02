@@ -225,6 +225,9 @@ export default function TransportSetupStep({
       queryClient.invalidateQueries({ queryKey: ['/api/current-event'] });
       queryClient.invalidateQueries({ queryKey: ['/api/wizard'] });
       
+      // Force refetch of current event data
+      queryClient.refetchQueries({ queryKey: ['/api/events', eventId] });
+      
       toast({
         title: "Transport settings saved",
         description: "Your transport configuration has been updated.",

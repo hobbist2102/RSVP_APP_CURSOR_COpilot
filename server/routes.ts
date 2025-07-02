@@ -523,6 +523,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (storedEvent) {
           console.log(`Current event from session: ${storedEvent.title} (ID: ${eventId})`);
           
+          // Update session with fresh data from database
+          req.session.currentEvent = storedEvent;
+          
           // Return the database version to ensure we have the latest data
           return res.json(storedEvent);
         } else {
