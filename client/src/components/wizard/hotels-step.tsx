@@ -973,20 +973,50 @@ export default function HotelsStep({
                     />
                   </div>
 
-                  <FormField
-                    control={roomTypeForm.control}
-                    name="negotiatedRate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Negotiated Rate (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="150" {...field} />
-                        </FormControl>
-                        <FormDescription>Special rate in your local currency</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={roomTypeForm.control}
+                      name="currency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Currency</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select currency" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="USD">USD ($)</SelectItem>
+                              <SelectItem value="EUR">EUR (€)</SelectItem>
+                              <SelectItem value="GBP">GBP (£)</SelectItem>
+                              <SelectItem value="INR">INR (₹)</SelectItem>
+                              <SelectItem value="AUD">AUD (A$)</SelectItem>
+                              <SelectItem value="CAD">CAD (C$)</SelectItem>
+                              <SelectItem value="SGD">SGD (S$)</SelectItem>
+                              <SelectItem value="AED">AED (د.إ)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={roomTypeForm.control}
+                      name="negotiatedRate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Negotiated Rate (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="150" {...field} />
+                          </FormControl>
+                          <FormDescription>Special rate per night</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <FormField
                     control={roomTypeForm.control}
@@ -1016,14 +1046,41 @@ export default function HotelsStep({
                     )}
                   />
 
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Room Attachments (Optional)</h4>
+                  <div className="space-y-4 border-t pt-4">
+                    <h4 className="font-medium">Room Attachments & Links (Optional)</h4>
                     <p className="text-sm text-muted-foreground">
-                      Add room photos, floor plans, or amenity details
+                      Add room photos, floor plans, or amenity details for guest communications
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input placeholder="https://hotel.com/room-photos.jpg" />
-                      <Input placeholder="Room Photos" />
+                    <div className="grid grid-cols-1 gap-4">
+                      <FormField
+                        control={roomTypeForm.control}
+                        name="photosUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Room Photos URL</FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://hotel.com/deluxe-suite-photos.jpg" {...field} />
+                            </FormControl>
+                            <FormDescription>Link to room photos or virtual tour</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={roomTypeForm.control}
+                        name="brochureUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Room Brochure / Floor Plan URL</FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://hotel.com/room-amenities.pdf" {...field} />
+                            </FormControl>
+                            <FormDescription>Link to detailed room information or floor plans</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
 
