@@ -316,7 +316,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
               transportInstructions: stepData.transportInstructions,
               transportationProvided: stepData.transportationProvided || false,
               transportProviderName: stepData.transportProviderName,
-              transportProviderContact: stepData.transportProviderContact,
+              transportProviderContact: stepData.transportProviderPhone || stepData.transportProviderContact,
               transportProviderWebsite: stepData.transportProviderWebsite,
               transportSpecialDeals: stepData.transportSpecialDeals,
               defaultArrivalLocation: stepData.defaultArrivalLocation,
@@ -466,6 +466,94 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
   } catch (error) {
     console.error('Error saving step data:', error);
     return res.status(500).json({ error: 'Failed to save step data' });
+  }
+});
+
+/**
+ * Transport step endpoint - uses current event from session
+ */
+router.post('/transport', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+    
+    // Call the existing step saving logic
+    req.params.eventId = eventId.toString();
+    req.params.stepId = 'transport';
+    
+    // Check if event exists
+    const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+    if (!event || event.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    
+    const stepData = req.body;
+    
+    // Get or create progress data
+    const progressData = await db.select().from(eventSetupProgress).where(eq(eventSetupProgress.eventId, eventId));
+    const updateValues: any = {
+      transportComplete: true,
+      currentStep: 'transport',
+      updatedAt: new Date()
+    };
+    
+    // Update transport settings in the event record
+    if (stepData && typeof stepData === 'object') {
+      await db.update(weddingEvents)
+        .set({
+          transportMode: stepData.transportMode || 'none',
+          transportInstructions: stepData.transportInstructions,
+          transportationProvided: stepData.transportationProvided || false,
+          transportProviderName: stepData.transportProviderName,
+          transportProviderContact: stepData.transportProviderPhone || stepData.transportProviderContact,
+          transportProviderWebsite: stepData.transportProviderWebsite,
+          transportSpecialDeals: stepData.transportSpecialDeals,
+          defaultArrivalLocation: stepData.defaultArrivalLocation,
+          defaultDepartureLocation: stepData.defaultDepartureLocation,
+          offerTravelAssistance: stepData.offerTravelAssistance || false,
+          flightMode: stepData.flightMode || 'none',
+          flightSpecialDeals: stepData.flightSpecialDeals,
+          flightInstructions: stepData.flightInstructions,
+          recommendedAirlines: stepData.recommendedAirlines,
+          airlineDiscountCodes: stepData.airlineDiscountCodes,
+          updatedAt: new Date()
+        })
+        .where(eq(weddingEvents.id, eventId));
+    }
+    
+    if (progressData && progressData.length > 0) {
+      // Update existing progress data
+      await db.update(eventSetupProgress)
+        .set(updateValues)
+        .where(eq(eventSetupProgress.eventId, eventId));
+    } else {
+      // Insert new progress data
+      const initialValues = {
+        eventId,
+        currentStep: 'transport',
+        basicInfoComplete: false,
+        venuesComplete: false,
+        rsvpComplete: false,
+        accommodationComplete: false,
+        transportComplete: true,
+        communicationComplete: false,
+        stylingComplete: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      await db.insert(eventSetupProgress).values(initialValues);
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Transport settings saved successfully',
+    });
+  } catch (error) {
+    console.error('Error saving transport data:', error);
+    return res.status(500).json({ error: 'Failed to save transport settings' });
   }
 });
 

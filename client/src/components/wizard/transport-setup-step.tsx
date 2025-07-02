@@ -228,9 +228,10 @@ export default function TransportSetupStep({
       onComplete(data);
     },
     onError: (error) => {
+      console.error('Transport save error:', error);
       toast({
         title: "Error saving transport settings",
-        description: "There was a problem saving your transport configuration.",
+        description: error?.message || "There was a problem saving your transport configuration.",
         variant: "destructive",
       });
     },
