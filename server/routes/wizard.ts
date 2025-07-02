@@ -314,8 +314,19 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
             .set({
               transportMode: stepData.transportMode || 'none',
               transportInstructions: stepData.transportInstructions,
-              transportationProvided: stepData.enableTransport || false,
-              updatedAt: new Date()
+              transportationProvided: stepData.transportationProvided || false,
+              transportProviderName: stepData.transportProviderName,
+              transportProviderContact: stepData.transportProviderContact,
+              transportProviderWebsite: stepData.transportProviderWebsite,
+              transportSpecialDeals: stepData.transportSpecialDeals,
+              defaultArrivalLocation: stepData.defaultArrivalLocation,
+              defaultDepartureLocation: stepData.defaultDepartureLocation,
+              offerTravelAssistance: stepData.offerTravelAssistance || false,
+              flightMode: stepData.flightMode || 'none',
+              flightSpecialDeals: stepData.flightSpecialDeals,
+              flightInstructions: stepData.flightInstructions,
+              recommendedAirlines: stepData.recommendedAirlines,
+              airlineDiscountCodes: stepData.airlineDiscountCodes
             })
             .where(eq(weddingEvents.id, eventId));
 

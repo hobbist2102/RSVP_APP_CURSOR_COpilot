@@ -1,0 +1,185 @@
+Phase 1: Database Schema & Backend Integration
+Enhanced Database Tables:
+-- Transport Vendors
+CREATE TABLE transport_vendors (
+  id SERIAL PRIMARY KEY,
+  event_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  contact_person TEXT,
+  phone TEXT,
+  email TEXT,
+  whatsapp_number TEXT,
+  vehicle_fleet JSONB, -- Array of vehicle types and capacities
+  specialization TEXT[], -- ['airport_shuttle', 'luxury_cars', 'buses']
+  status TEXT DEFAULT 'active'
+);
+-- Location Representatives (Airport/Station Reps)
+CREATE TABLE location_representatives (
+  id SERIAL PRIMARY KEY,
+  event_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  location_type TEXT, -- 'airport', 'train_station', 'hotel'
+  location_name TEXT, -- 'GOI Terminal 1', 'Mumbai Central'
+  terminal_gate TEXT,
+  phone TEXT,
+  whatsapp_number TEXT,
+  login_credentials JSONB, -- For app access
+  status TEXT DEFAULT 'active'
+);
+-- Vehicle Fleet Management
+CREATE TABLE event_vehicles (
+  id SERIAL PRIMARY KEY,
+  event_id INTEGER NOT NULL,
+  vendor_id INTEGER NOT NULL,
+  vehicle_type TEXT NOT NULL, -- 'sedan', 'suv', 'tempo_traveller', 'mini_bus', 'coach'
+  vehicle_name TEXT,
+  capacity INTEGER NOT NULL,
+  available_count INTEGER NOT NULL,
+  hourly_rate DECIMAL,
+  features TEXT[], -- ['ac', 'luggage_space', 'wheelchair_accessible']
+  status TEXT DEFAULT 'available'
+);
+-- Enhanced Transport Groups with Real-Time Tracking
+ALTER TABLE transport_groups ADD COLUMN assigned_vendor_id INTEGER;
+ALTER TABLE transport_groups ADD COLUMN airport_rep_id INTEGER;
+ALTER TABLE transport_groups ADD COLUMN vehicle_id INTEGER;
+ALTER TABLE transport_groups ADD COLUMN pickup_status TEXT DEFAULT 'pending';
+ALTER TABLE transport_groups ADD COLUMN guests_picked_up INTEGER DEFAULT 0;
+ALTER TABLE transport_groups ADD COLUMN total_guests INTEGER DEFAULT 0;
+ALTER TABLE transport_groups ADD COLUMN delay_notifications JSONB;
+ALTER TABLE transport_groups ADD COLUMN real_time_updates JSONB;
+-- Flight/Travel Tracking
+CREATE TABLE guest_travel_info (
+  id SERIAL PRIMARY KEY,
+  guest_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  arrival_method TEXT, -- 'flight', 'train', 'car', 'bus'
+  flight_number TEXT,
+  train_number TEXT,
+  scheduled_arrival TIMESTAMP,
+  actual_arrival TIMESTAMP,
+  delay_minutes INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'scheduled', -- 'scheduled', 'delayed', 'arrived', 'missed'
+  terminal_gate TEXT,
+  luggage_count INTEGER,
+  special_assistance BOOLEAN DEFAULT FALSE,
+  last_updated TIMESTAMP DEFAULT NOW()
+);
+Phase 2: Multi-Vehicle Capacity Management
+Dynamic Vehicle Assignment System:
+Vehicle Fleet by Capacity:
+
+Sedan (4 seats): Solo travelers, couples
+SUV (7 seats): Small families
+Tempo Traveller (12-14 seats): Medium families/groups
+Mini Bus (20-25 seats): Large groups
+Coach (45+ seats): Mass transport
+Smart Allocation Algorithm:
+
+interface VehicleAllocation {
+  capacity: number;
+  currentLoad: number;
+  familyGroups: Family[];
+  priorityGuests: Guest[];
+}
+Real-Time Capacity Optimization:
+
+Auto-adjust vehicle assignments based on delays
+Combine/split groups based on actual arrivals
+Emergency vehicle reallocation for missed connections
+Phase 3: Real-Time Communication Integration
+WhatsApp & Email Notification System:
+Automated Delay Notifications:
+
+// When flight delay detected
+const delayNotification = {
+  to: [vendor.whatsapp, airportRep.whatsapp, planner.whatsapp],
+  message: `🚨 Flight ${flightNumber} delayed by ${delayMinutes} mins. 
+           Pickup time adjusted to ${newPickupTime}.
+           Group: ${groupName} - ${guestCount} guests affected.`
+};
+Pickup Completion Updates:
+
+// When airport rep marks pickup complete
+const pickupUpdate = {
+  to: [vendor.whatsapp, planner.whatsapp, hotelTeam.whatsapp],
+  message: `✅ ${guestsPickedUp}/${totalGuests} guests picked up from ${location}.
+           ETA to hotel: ${estimatedArrival}.
+           Vehicle: ${vehicleType} - ${driverName}`
+};
+Phase 4: Airport Rep Login System
+Rep Dashboard Features:
+Real-Time Guest Tracking:
+
+Live flight status integration
+Guest check-in interface
+Delay reporting system
+Pickup Management:
+
+Mark guests as "picked up"
+Update vehicle departure times
+Report issues/delays
+Communication Hub:
+
+Direct messaging with vendors
+Emergency contact system
+Photo confirmation of pickups
+Phase 5: Hotel/Venue Team Integration
+Arrival Coordination:
+Live Arrival Board:
+
+Real-time ETA updates
+Vehicle tracking
+Guest manifest
+Preparation Alerts:
+
+Room readiness notifications
+Welcome team coordination
+Meal service timing adjustments
+Implementation Workflow:
+Planner Interface:
+Transport Group Creation:
+
+Select vehicle type based on group size
+Assign vendor from available fleet
+Set airport rep for coordination
+Real-Time Monitoring:
+
+Live status dashboard
+Delay management
+Emergency reallocation
+Vendor Portal:
+Assignment Management:
+View assigned groups
+Update vehicle/driver details
+Report completion status
+Airport Rep App:
+Guest Check-In:
+
+Scan/search guest names
+Mark as "present" or "delayed"
+Update pickup status
+Real-Time Updates:
+
+Report delays immediately
+Confirm guest boarding
+Send ETA to hotel
+Technical Integration Points:
+Flight API Integration:
+
+Real-time flight status
+Delay notifications
+Gate changes
+WhatsApp Business API:
+
+Automated notifications
+Group messaging
+Status confirmations
+GPS Tracking:
+
+Vehicle location updates
+ETA calculations
+Route optimization
+This comprehensive plan ensures seamless coordination between all three parties while handling the complex logistics of varied vehicle capacities, real-time delays, and multi-location pickups that are essential for Indian wedding transport management.
+
+Should I begin implementing this system starting with the database schema updates and wizard integration?
