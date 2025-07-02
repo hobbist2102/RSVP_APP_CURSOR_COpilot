@@ -144,14 +144,14 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center space-x-2 cursor-pointer">
-                <div className="h-8 w-8 rounded-full bg-secondary text-white flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                   <span className="text-sm font-medium">{user ? getInitials(user.name) : "?"}</span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-neutral">{user?.name || "Guest"}</p>
-                  <p className="text-xs text-gray-500">{user?.role === "admin" ? "Administrator" : user?.role === "couple" ? "Couple" : "Staff"}</p>
+                  <p className="text-sm font-medium text-foreground">{user?.name || "Guest"}</p>
+                  <p className="text-xs text-muted-foreground">{user?.role === "admin" ? "Administrator" : user?.role === "couple" ? "Couple" : "Staff"}</p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -170,10 +170,10 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         </div>
       </div>
       
-      <div className="glass border-y border-secondary/20 px-4 py-2 flex items-center justify-between">
+      <div className="glass border-y border-border px-4 py-2 flex items-center justify-between">
         <div className="flex items-center">
           {currentEvent && (
-            <div className="px-2 text-gray-600 text-sm hidden md:block">
+            <div className="px-2 text-muted-foreground text-sm hidden md:block">
               <p className="font-medium wedding-subheading">{currentEvent.title}</p>
               <p className="text-xs">{currentEvent.date}</p>
             </div>
