@@ -143,52 +143,509 @@ export default function CommunicationStep({
     }
   ];
 
-  // Template categories data
+  // Comprehensive template categories based on Event Setup Wizard Steps 1-5
   const templateCategories: TemplateCategory[] = [
     {
-      id: 'invitations',
-      name: 'RSVP Invitations',
-      description: 'Initial wedding invitations and RSVP requests',
+      id: 'initial_invitations',
+      name: 'Initial Wedding Invitations',
+      description: 'Save the date and initial wedding announcements (Step 1: Basic Info)',
       templates: [
         {
-          id: 'email_invitation',
+          id: 'save_the_date_email',
           channel: 'email',
-          subject: 'You\'re Invited: {{couple_names}} Wedding Celebration',
-          content: 'Dear {{guest_name}},\n\nWe are delighted to invite you to celebrate our wedding!\n\nPlease RSVP by clicking: {{rsvp_link}}\n\nWith love,\n{{couple_names}}',
+          subject: '✨ Save the Date: {{couple_names}} Wedding Celebration',
+          content: `Dear {{guest_name}},
+
+We are thrilled to announce that {{bride_name}} and {{groom_name}} are getting married!
+
+📅 Wedding Dates: {{start_date}} - {{end_date}}
+📍 Location: {{location}}
+
+{{description}}
+
+Please save these dates in your calendar. A formal invitation with RSVP details will follow soon.
+
+With love and excitement,
+{{couple_names}}`,
           enabled: true
         },
         {
-          id: 'whatsapp_invitation',
+          id: 'save_the_date_whatsapp',
           channel: 'whatsapp',
-          content: 'Hi {{first_name}}! 🎉 We\'re excited to invite you to our wedding celebration. Please confirm your attendance: {{rsvp_link}}',
+          content: `💕 SAVE THE DATE 💕
+
+{{bride_name}} & {{groom_name}} are getting married!
+
+📅 {{start_date}} - {{end_date}}
+📍 {{location}}
+
+{{description}}
+
+Formal invitation coming soon! 
+Can't wait to celebrate with you! 🎉`,
+          enabled: true
+        },
+        {
+          id: 'save_the_date_sms',
+          channel: 'sms',
+          content: 'Save the Date! {{couple_names}} wedding {{start_date}}-{{end_date}} at {{location}}. Formal invitation coming soon!',
+          enabled: false
+        }
+      ]
+    },
+    {
+      id: 'formal_invitations',
+      name: 'Formal RSVP Invitations',
+      description: 'Official wedding invitations with RSVP links (Step 3: RSVP Configuration)',
+      templates: [
+        {
+          id: 'formal_invitation_email',
+          channel: 'email',
+          subject: '💌 You\'re Formally Invited: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+With great joy and excitement, we request the honor of your presence at the wedding celebration of:
+
+{{bride_name}} & {{groom_name}}
+
+📅 Wedding Celebration: {{start_date}} - {{end_date}}
+📍 Venue: {{location}}
+
+{{description}}
+
+🎭 CEREMONIES & EVENTS:
+{{ceremonies_list}}
+
+Please confirm your attendance by clicking the link below:
+👉 RSVP Now: {{rsvp_link}}
+
+⏰ RSVP Deadline: {{rsvp_deadline}}
+
+We can't wait to celebrate this special moment with you!
+
+With love,
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'formal_invitation_whatsapp',
+          channel: 'whatsapp',
+          content: `🌟 WEDDING INVITATION 🌟
+
+{{bride_name}} & {{groom_name}}
+are getting married!
+
+📅 {{start_date}} - {{end_date}}
+📍 {{location}}
+
+{{description}}
+
+🎭 Join us for multiple celebrations:
+{{ceremonies_list}}
+
+Please RSVP: {{rsvp_link}}
+Deadline: {{rsvp_deadline}}
+
+Looking forward to celebrating with you! 💕`,
           enabled: true
         }
       ]
     },
     {
-      id: 'reminders',
-      name: 'RSVP Reminders',
-      description: 'Follow-up messages for pending responses',
+      id: 'ceremony_details',
+      name: 'Ceremony Information',
+      description: 'Detailed ceremony schedules and venue information (Step 2: Venues)',
       templates: [
         {
-          id: 'email_reminder',
+          id: 'ceremony_schedule_email',
           channel: 'email',
-          subject: 'RSVP Reminder: {{couple_names}} Wedding',
-          content: 'Dear {{guest_name}},\n\nWe haven\'t received your RSVP yet. Please respond by {{rsvp_deadline}}.\n\nRSVP here: {{rsvp_link}}',
+          subject: '📅 Wedding Schedule: {{couple_names}} Celebrations',
+          content: `Dear {{guest_name}},
+
+Here's the complete schedule for {{couple_names}} wedding celebrations:
+
+🎭 CEREMONY SCHEDULE:
+{{ceremony_schedule}}
+
+📍 VENUE DETAILS:
+{{venue_details}}
+
+🚗 PARKING & DIRECTIONS:
+{{parking_instructions}}
+
+Looking forward to seeing you there!
+
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'ceremony_reminder_whatsapp',
+          channel: 'whatsapp',
+          content: `📅 CEREMONY REMINDER
+
+{{ceremony_name}} is tomorrow!
+
+⏰ {{ceremony_time}}
+📍 {{ceremony_venue}}
+👗 Dress Code: {{attire_code}}
+
+Don't forget:
+• Arrive 30 mins early
+• Parking available at {{parking_info}}
+• Contact: {{contact_number}}
+
+See you tomorrow! 🎉`,
+          enabled: true
+        }
+      ]
+    },
+    {
+      id: 'accommodation_info',
+      name: 'Accommodation Information',
+      description: 'Hotel details and booking instructions (Step 4: Hotels & Accommodations)',
+      templates: [
+        {
+          id: 'accommodation_details_email',
+          channel: 'email',
+          subject: '🏨 Accommodation Details: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+We've arranged comfortable accommodations for your stay:
+
+🏨 HOTEL INFORMATION:
+{{hotel_details}}
+
+💰 BOOKING INFORMATION:
+{{booking_instructions}}
+
+📞 ASSISTANCE:
+Contact us for any accommodation assistance.
+
+{{accommodation_instructions}}
+
+Warm regards,
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'room_assignment_whatsapp',
+          channel: 'whatsapp',
+          content: `🏨 YOUR ROOM IS READY!
+
+Hi {{guest_name}}!
+
+Your accommodation details:
+🏨 {{hotel_name}}
+🛏️ {{room_type}} - Room {{room_number}}
+📅 {{check_in_date}} to {{check_out_date}}
+
+Check-in Instructions:
+• Front desk: {{hotel_phone}}
+• Mention: {{couple_names}} wedding
+• ID required at check-in
+
+Questions? Contact us anytime! 😊`,
+          enabled: true
+        }
+      ]
+    },
+    {
+      id: 'travel_coordination',
+      name: 'Travel & Transportation',
+      description: 'Flight coordination and transport arrangements (Step 5: Transport)',
+      templates: [
+        {
+          id: 'travel_information_email',
+          channel: 'email',
+          subject: '✈️ Travel Information: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+Here's everything you need to know about travel arrangements:
+
+✈️ FLIGHT COORDINATION:
+{{flight_coordination_info}}
+
+⏰ RECOMMENDED ARRIVAL/DEPARTURE:
+• Arrive: {{recommended_arrival}} ({{arrival_buffer_time}} buffer)
+• Depart: {{recommended_departure}} ({{departure_buffer_time}} buffer)
+
+🚐 AIRPORT TRANSPORTATION:
+{{transport_details}}
+
+✈️ AIRLINE RECOMMENDATIONS:
+{{recommended_airlines}}
+
+💰 SPECIAL DEALS:
+{{flight_special_deals}}
+
+📞 TRAVEL ASSISTANCE:
+{{transport_provider_email}}
+
+Safe travels!
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'transport_details_whatsapp',
+          channel: 'whatsapp',
+          content: `🚐 TRANSPORT UPDATE
+
+Hi {{guest_name}}!
+
+Your transport arrangements:
+
+✈️ Flight: {{flight_number}} arriving {{arrival_time}}
+🚐 Pickup: {{pickup_time}} at {{pickup_location}}
+📍 Drop-off: {{dropoff_location}}
+
+Driver Details:
+👤 {{driver_name}}
+📱 {{driver_phone}}
+🚗 {{vehicle_details}}
+
+Track your ride: {{tracking_link}}
+
+Questions? Call {{transport_provider_contact}}
+
+See you soon! 🎉`,
+          enabled: true
+        }
+      ]
+    },
+    {
+      id: 'rsvp_reminders',
+      name: 'RSVP Follow-ups & Reminders',
+      description: 'Gentle reminders for pending responses',
+      templates: [
+        {
+          id: 'rsvp_reminder_email',
+          channel: 'email',
+          subject: '⏰ RSVP Reminder: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+We hope you're as excited as we are about our upcoming wedding!
+
+We haven't received your RSVP yet, and we want to make sure you're included in all our planning.
+
+📅 Wedding: {{start_date}} - {{end_date}}
+⏰ RSVP Deadline: {{rsvp_deadline}}
+
+Please confirm your attendance:
+👉 RSVP Here: {{rsvp_link}}
+
+If you have any questions or need assistance, please don't hesitate to reach out.
+
+Looking forward to celebrating with you!
+
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'final_rsvp_reminder_whatsapp',
+          channel: 'whatsapp',
+          content: `⏰ FINAL REMINDER
+
+Hi {{guest_name}}!
+
+Just a gentle reminder that our RSVP deadline is {{rsvp_deadline}} ({{days_remaining}} days away).
+
+We'd love to have you celebrate with us!
+
+Quick RSVP: {{rsvp_link}}
+
+Any questions? Just reply here! 😊
+
+{{couple_names}}`,
+          enabled: true
+        }
+      ]
+    },
+    {
+      id: 'stage2_collection',
+      name: 'Stage 2 Details Collection',
+      description: 'Collect accommodation, travel, and meal preferences from confirmed guests',
+      templates: [
+        {
+          id: 'stage2_details_email',
+          channel: 'email',
+          subject: '📋 Please Share Your Preferences: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+Thank you for confirming your attendance at our wedding! 🎉
+
+To ensure everything is perfect for your stay, please provide these additional details:
+
+🏨 ACCOMMODATION PREFERENCES:
+• Room type preferences
+• Check-in/check-out dates
+• Special accommodation needs
+
+✈️ TRAVEL INFORMATION:
+• Flight details (if traveling by air)
+• Arrival and departure times
+• Transportation preferences
+
+🍽️ MEAL PREFERENCES:
+• Dietary restrictions
+• Food allergies
+• Special meal requests
+
+Complete your preferences here: {{stage2_link}}
+
+This helps us coordinate:
+✅ Room assignments
+✅ Airport transfers  
+✅ Catering arrangements
+✅ Special accommodations
+
+Deadline: {{stage2_deadline}}
+
+Thank you for helping us plan the perfect celebration!
+
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'stage2_reminder_whatsapp',
+          channel: 'whatsapp',
+          content: `📋 Quick Favor!
+
+Hi {{guest_name}}!
+
+Could you please share your preferences for our wedding?
+
+We need:
+🏨 Room preferences
+✈️ Flight details  
+🍽️ Meal choices
+
+Takes 2 minutes: {{stage2_link}}
+
+This helps us arrange everything perfectly for you!
+
+Thanks! 😊`,
           enabled: true
         }
       ]
     },
     {
       id: 'confirmations',
-      name: 'Confirmations',
-      description: 'Thank you messages for confirmed guests',
+      name: 'Confirmations & Thank You',
+      description: 'Thank you messages and booking confirmations',
       templates: [
         {
-          id: 'email_confirmation',
+          id: 'rsvp_confirmation_email',
           channel: 'email',
-          subject: 'Thank You for Your RSVP - {{couple_names}}',
-          content: 'Dear {{guest_name}},\n\nThank you for confirming your attendance! We can\'t wait to celebrate with you.\n\nEvent details and updates will follow soon.',
+          subject: '✅ RSVP Confirmed: {{couple_names}} Wedding',
+          content: `Dear {{guest_name}},
+
+Thank you so much for confirming your attendance! We're thrilled you'll be celebrating with us.
+
+✅ YOUR RSVP SUMMARY:
+• Guest: {{guest_name}}
+{{plus_one_info}}
+• Ceremonies attending: {{selected_ceremonies}}
+• Total guests: {{total_guests}}
+
+📋 NEXT STEPS:
+{{next_steps_info}}
+
+💌 WHAT'S NEXT:
+• Detailed schedule (sent 2 weeks before)
+• Accommodation confirmations
+• Transportation arrangements
+• Final reminders and updates
+
+Thank you for being part of our special day!
+
+With love and excitement,
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'accommodation_confirmed_whatsapp',
+          channel: 'whatsapp',
+          content: `✅ ALL CONFIRMED!
+
+Hi {{guest_name}}!
+
+Everything is set for your stay:
+
+🏨 {{hotel_name}} - {{room_type}}
+📅 {{check_in_date}} to {{check_out_date}}
+✈️ Airport pickup arranged
+🍽️ Meal preferences noted
+
+You're all set! 
+
+See you at the wedding! 🎉💕`,
+          enabled: true
+        }
+      ]
+    },
+    {
+      id: 'pre_wedding_updates',
+      name: 'Pre-Wedding Updates & Logistics',
+      description: 'Final details, weather updates, and last-minute information',
+      templates: [
+        {
+          id: 'final_details_email',
+          channel: 'email',
+          subject: '📋 Final Details: {{couple_names}} Wedding ({{days_to_wedding}} days to go!)',
+          content: `Dear {{guest_name}},
+
+The big day is almost here! Just {{days_to_wedding}} days to go! 🎉
+
+📋 FINAL DETAILS & REMINDERS:
+
+🎭 SCHEDULE RECAP:
+{{ceremony_schedule}}
+
+🌤️ WEATHER UPDATE:
+{{weather_forecast}}
+Recommended attire: {{weather_recommendations}}
+
+🚐 TRANSPORTATION:
+{{transport_final_details}}
+
+🏨 ACCOMMODATION:
+Check-in: {{check_in_date}} after 3:00 PM
+Hotel contact: {{hotel_phone}}
+
+📱 EMERGENCY CONTACTS:
+• Wedding coordinator: {{coordinator_contact}}
+• Transport provider: {{transport_provider_contact}}
+• Hotel: {{hotel_phone}}
+
+💝 SPECIAL NOTES:
+{{special_instructions}}
+
+We can't wait to see you and celebrate together!
+
+{{couple_names}}`,
+          enabled: true
+        },
+        {
+          id: 'day_before_reminder_whatsapp',
+          channel: 'whatsapp',
+          content: `🌟 TOMORROW IS THE DAY!
+
+Hi {{guest_name}}!
+
+Final reminders for tomorrow:
+
+⏰ {{ceremony_name}} at {{ceremony_time}}
+📍 {{ceremony_venue}}
+👗 Dress code: {{attire_code}}
+
+Don't forget:
+• Arrive 30 mins early
+• Bring comfortable shoes
+• Weather: {{weather_update}}
+
+Emergency contact: {{coordinator_contact}}
+
+SO EXCITED to celebrate with you! 💕🎉`,
           enabled: true
         }
       ]

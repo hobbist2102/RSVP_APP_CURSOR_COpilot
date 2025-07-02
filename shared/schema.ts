@@ -434,27 +434,30 @@ export const insertRsvpFollowupLogSchema = createInsertSchema(rsvpFollowupLogs).
   sentAt: true,
 });
 
-// Email Templates
-export const emailTemplates = pgTable("email_templates", {
+// Communication Templates - Comprehensive template management for all communication types
+export const communicationTemplates = pgTable("communication_templates", {
   id: serial("id").primaryKey(),
-  eventId: integer("event_id").notNull(),
-  name: text("name").notNull(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  categoryId: text("category_id").notNull(), // initial_invitations, formal_invitations, etc.
+  templateId: text("template_id").notNull(), // save_the_date_email, formal_invitation_email, etc.
+  channel: text("channel").notNull(), // email, whatsapp, sms
+  name: text("name").notNull(), // Display name
   description: text("description"),
-  subject: text("subject").notNull(),
-  bodyHtml: text("body_html").notNull(),
-  bodyText: text("body_text"),
-  category: text("category").notNull(), // invitation, rsvp, reminder, confirmation, etc.
-  isDefault: boolean("is_default").default(false),
+  subject: text("subject"), // Email subject line (null for WhatsApp/SMS)
+  content: text("content").notNull(), // Template content with variables
+  variables: jsonb("variables").default('{}'), // Available variables for this template
+  enabled: boolean("enabled").default(true),
+  sortOrder: integer("sort_order").default(0),
   isSystem: boolean("is_system").default(false), // System templates can't be deleted
-  lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
+export const insertCommunicationTemplateSchema = createInsertSchema(communicationTemplates).omit({
   id: true,
   isSystem: true,
-  lastUpdated: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 // Email Template Styles
@@ -800,3 +803,112 @@ export type InsertRsvpFollowupTemplate = z.infer<typeof insertRsvpFollowupTempla
 
 export type RsvpFollowupLog = typeof rsvpFollowupLogs.$inferSelect;
 export type InsertRsvpFollowupLog = z.infer<typeof insertRsvpFollowupLogSchema>;
+
+// Email Templates - Comprehensive template management for all communication types
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  categoryId: text("category_id").notNull(), // initial_invitations, formal_invitations, etc.
+  templateId: text("template_id").notNull(), // save_the_date_email, formal_invitation_email, etc.
+  channel: text("channel").notNull(), // email, whatsapp, sms
+  name: text("name").notNull(), // Display name
+  description: text("description"),
+  subject: text("subject"), // Email subject line (null for WhatsApp/SMS)
+  content: text("content").notNull(), // Template content with variables
+  variables: jsonb("variables").default('{}'), // Available variables for this template
+  enabled: boolean("enabled").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Brand Assets - Logo, banners, colors, fonts for consistent branding
+export const brandAssets = pgTable("brand_assets", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  assetType: text("asset_type").notNull(), // logo, email_banner, whatsapp_profile, social_media
+  assetName: text("asset_name").notNull(), // Display name
+  fileName: text("file_name"), // Original filename
+  filePath: text("file_path"), // Storage path
+  fileSize: integer("file_size"), // File size in bytes
+  mimeType: text("mime_type"), // File MIME type
+  dimensions: text("dimensions"), // Width x Height for images
+  isActive: boolean("is_active").default(true),
+  metadata: jsonb("metadata").default('{}'), // Additional metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBrandAssetSchema = createInsertSchema(brandAssets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Brand Settings - Colors, fonts, and styling preferences
+export const brandSettings = pgTable("brand_settings", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  primaryColor: text("primary_color").default("#F59E0B"), // Hex color code
+  secondaryColor: text("secondary_color").default("#EA580C"), // Hex color code
+  accentColor: text("accent_color").default("#FEF3C7"), // Hex color code
+  primaryFont: text("primary_font").default("serif"), // Font family for headings
+  secondaryFont: text("secondary_font").default("sans-serif"), // Font family for body
+  logoUrl: text("logo_url"), // Logo asset URL
+  emailBannerUrl: text("email_banner_url"), // Email header banner URL
+  whatsappProfileUrl: text("whatsapp_profile_url"), // WhatsApp profile picture URL
+  socialMediaKitUrl: text("social_media_kit_url"), // Social media assets URL
+  customCss: text("custom_css"), // Custom CSS overrides
+  brandGuidelines: text("brand_guidelines"), // Brand usage guidelines
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBrandSettingSchema = createInsertSchema(brandSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Communication Logs - Track all sent communications
+export const communicationLogs = pgTable("communication_logs", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  guestId: integer("guest_id").references(() => guests.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").references(() => emailTemplates.id, { onDelete: "set null" }),
+  channel: text("channel").notNull(), // email, whatsapp, sms
+  recipient: text("recipient").notNull(), // Email address or phone number
+  subject: text("subject"), // Email subject (null for WhatsApp/SMS)
+  content: text("content").notNull(), // Actual content sent (after variable substitution)
+  status: text("status").notNull().default("pending"), // pending, sent, delivered, failed, opened, clicked
+  errorMessage: text("error_message"), // Error details if failed
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  metadata: jsonb("metadata").default('{}'), // Additional tracking data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCommunicationLogSchema = createInsertSchema(communicationLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+
+export type BrandAsset = typeof brandAssets.$inferSelect;
+export type InsertBrandAsset = z.infer<typeof insertBrandAssetSchema>;
+
+export type BrandSetting = typeof brandSettings.$inferSelect;
+export type InsertBrandSetting = z.infer<typeof insertBrandSettingSchema>;
+
+export type CommunicationLog = typeof communicationLogs.$inferSelect;
+export type InsertCommunicationLog = z.infer<typeof insertCommunicationLogSchema>;
