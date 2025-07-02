@@ -97,7 +97,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
               </li>
             ))
           ) : (
-            <li className="py-3 text-center text-gray-500">
+            <li className="py-3 text-center text-muted-foreground">
               No tasks yet. Add your first task!
             </li>
           )}
@@ -107,7 +107,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50 mt-4"
+              className="w-full flex items-center justify-center px-4 py-2 text-sm mt-4"
             >
               <PlusIcon className="mr-2 h-4 w-4" /> Add Task
             </Button>

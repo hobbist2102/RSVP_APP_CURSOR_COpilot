@@ -31,26 +31,26 @@ export default function AccommodationStatus({
 }: AccommodationStatusProps) {
   return (
     <Card>
-      <CardHeader className="p-6 border-b border-gray-200">
-        <CardTitle className="text-lg font-medium font-playfair">Accommodation Status</CardTitle>
+      <CardHeader className="p-6 border-b border-border">
+        <CardTitle className="text-lg font-medium font-playfair text-foreground">Accommodation Status</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">
           {accommodations.map((accommodation) => (
             <div key={accommodation.id}>
               <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium text-gray-500">{accommodation.name}</span>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-muted-foreground">{accommodation.name}</span>
+                <span className="text-sm font-medium text-foreground">
                   {accommodation.allocated}/{accommodation.total} allocated
                 </span>
               </div>
-              <Progress value={accommodation.percentage} className="h-2 bg-gray-200" indicatorClassName="bg-primary" />
+              <Progress value={accommodation.percentage} className="h-2" />
             </div>
           ))}
         </div>
 
         <div className="mt-8">
-          <h4 className="font-medium text-neutral mb-4">Special Requirements</h4>
+          <h4 className="font-medium text-foreground mb-4">Special Requirements</h4>
           <ul className="space-y-2">
             {specialRequirements.map((requirement) => (
               <li key={requirement.id} className="flex items-start">
@@ -68,7 +68,7 @@ export default function AccommodationStatus({
         <div className="mt-6">
           <Button 
             onClick={onManageClick}
-            className="w-full gold-gradient text-white hover:bg-opacity-90"
+            className="w-full"
           >
             Manage Accommodations
           </Button>
