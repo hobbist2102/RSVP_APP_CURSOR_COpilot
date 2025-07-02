@@ -168,6 +168,9 @@ export default function TransportSetupStep({
       recommendedAirlines: '',
       airlineDiscountCodes: '',
       offerTravelAssistance: false,
+      // Buffer time defaults
+      departureBufferTime: "03:00",
+      arrivalBufferTime: "00:30",
     },
   });
 
@@ -194,6 +197,11 @@ export default function TransportSetupStep({
         recommendedAirlines: currentEvent.recommendedAirlines || '',
         airlineDiscountCodes: currentEvent.airlineDiscountCodes || '',
         offerTravelAssistance: currentEvent.offerTravelAssistance ?? false,
+        // Buffer time fields (convert from old hour fields if needed)
+        departureBufferTime: currentEvent.departureBufferTime || 
+          (currentEvent.departureBufferHours ? `${String(currentEvent.departureBufferHours).padStart(2, '0')}:00` : "03:00"),
+        arrivalBufferTime: currentEvent.arrivalBufferTime || 
+          (currentEvent.arrivalBufferHours ? `${String(currentEvent.arrivalBufferHours).padStart(2, '0')}:00` : "00:30"),
       };
       
       form.reset(formData);
