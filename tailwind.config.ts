@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-export default {
+const config: Config = {
   darkMode: "media",
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
@@ -21,31 +21,20 @@ export default {
         'full': '9999px',
       },
       colors: {
-        // EXACT SPEC: Map to CSS variables
         background: "var(--color-background)",
         foreground: "var(--color-text-primary)",
         surface: "var(--color-surface)",
         
-        // Text colors mapped to variables
-        "text-primary": "var(--color-text-primary)",
-        "text-secondary": "var(--color-text-secondary)",
-        
-        // Border mapped to variable
-        border: "var(--color-border)",
-        
-        // Primary purple accent - EXACT SPEC
         primary: {
           DEFAULT: "var(--color-accent-purple)",
           foreground: "#ffffff",
         },
 
-        // Gold accent - EXACT SPEC
         accent: {
           DEFAULT: "var(--color-accent-gold)",
           foreground: "#ffffff",
         },
 
-        // Semantic colors
         secondary: {
           DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-secondary)",
@@ -55,42 +44,25 @@ export default {
           DEFAULT: "rgba(0, 0, 0, 0.02)",
           foreground: "var(--color-text-secondary)",
         },
+        
+        border: "var(--color-border)",
+        ring: "#5E239D",
+        
+        card: {
+          DEFAULT: "var(--color-surface)",
+          foreground: "var(--color-text-primary)",
+        },
+        
+        popover: {
+          DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-primary)",
         },
 
-        // Status colors
-        success: {
-          DEFAULT: "#22c55e",
-          foreground: "#ffffff",
-        },
-        
-        warning: {
-          DEFAULT: "#f59e0b",
-          foreground: "#ffffff",
-        },
-        
         destructive: {
           DEFAULT: "#ef4444",
           foreground: "#ffffff",
         },
 
-        // UI elements
-        border: "var(--color-border)",
-        input: "var(--glass-bg)",
-        ring: "#5E239D",
-        
-        // Card colors
-        card: {
-          DEFAULT: "var(--glass-bg)",
-          foreground: "var(--color-text-primary)",
-        },
-        
-        popover: {
-          DEFAULT: "var(--glass-bg)",
-          foreground: "var(--color-text-primary)",
-        },
-
-        // Chart colors (purple variations)
         chart: {
           "1": "#5E239D",
           "2": "#8b5cf6",
@@ -99,9 +71,8 @@ export default {
           "5": "#ddd6fe",
         },
 
-        // Sidebar colors
         sidebar: {
-          DEFAULT: "var(--glass-bg)",
+          DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-primary)",
           primary: "#5E239D",
           "primary-foreground": "#ffffff",
@@ -112,23 +83,17 @@ export default {
         },
       },
       
-      // Backdrop blur utilities
       backdropBlur: {
         'ios': '12px',
         'ios-dark': '10px',
       },
-
-      // Box shadows for glassmorphism
+      
       boxShadow: {
-        'glass': '0 4px 16px rgba(0, 0, 0, 0.1)',
-        'glass-dark': '0 4px 16px rgba(0, 0, 0, 0.3)',
-        'glass-hover': '0 8px 32px rgba(0, 0, 0, 0.12)',
-        'purple': '0 2px 8px rgba(94, 35, 157, 0.25)',
-        'purple-hover': '0 4px 16px rgba(94, 35, 157, 0.3)',
-        'gold': '0 2px 8px rgba(191, 167, 111, 0.25)',
+        'glass': '0 6px 20px rgba(0, 0, 0, 0.15)',
+        'glass-dark': '0 6px 20px rgba(0, 0, 0, 0.3)',
       },
+
       keyframes: {
-        // Existing shadcn animations
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -137,57 +102,37 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        
-        // Apple iOS style animations
-        "fade-in": {
-          from: { opacity: "0" },
-          to: { opacity: "1" },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
-        "scale-in": {
-          from: { opacity: "0", transform: "scale(0.95)" },
-          to: { opacity: "1", transform: "scale(1)" },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
-        "slide-up": {
-          from: { opacity: "0", transform: "translateY(10px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        "slide-down": {
-          from: { opacity: "0", transform: "translateY(-10px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "glass-shimmer": {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
-        
-        // Floating animations for decorative elements
         "float-1": {
           "0%, 100%": { transform: "translateY(0) rotate(0)" },
           "50%": { transform: "translateY(-10px) rotate(2deg)" },
         },
         "float-2": {
           "0%, 100%": { transform: "translateY(0) rotate(0)" },
-          "50%": { transform: "translateY(-15px) rotate(-3deg)" },
+          "50%": { transform: "translateY(-12px) rotate(-1deg)" },
         },
         "float-3": {
           "0%, 100%": { transform: "translateY(0) rotate(0)" },
           "50%": { transform: "translateY(-8px) rotate(2deg)" },
         },
       },
-      
       animation: {
-        // Existing shadcn animations
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        
-        // Apple iOS style animations
-        "fade-in": "fade-in 0.3s ease-out",
-        "scale-in": "scale-in 0.2s ease-out",
-        "slide-up": "slide-up 0.3s ease-out",
-        "slide-down": "slide-down 0.3s ease-out",
-        "glass-shimmer": "glass-shimmer 2s infinite linear",
-        
-        // Floating animations
+        fadeIn: "fadeIn 0.3s ease-out",
+        scaleIn: "scaleIn 0.2s ease-out",
+        slideUp: "slideUp 0.3s ease-out",
         "float-1": "float-1 6s ease-in-out infinite",
         "float-2": "float-2 8s ease-in-out infinite", 
         "float-3": "float-3 10s ease-in-out infinite",
@@ -195,4 +140,6 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
-} satisfies Config;
+};
+
+export default config;
