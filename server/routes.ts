@@ -516,15 +516,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Case 1: Event exists in session
       if (req.session && req.session.currentEvent) {
         const eventId = req.session.currentEvent.id;
-        console.log(`Found event ID ${eventId} in session, verifying it exists`);
+        console.log(`Found event ID ${eventId} in session, fetching fresh data from database`);
         
-        // Verify that the session event still exists in the database
+        // Always fetch fresh data from database, don't trust session cache
         const storedEvent = await storage.getEvent(eventId);
         if (storedEvent) {
-          console.log(`Current event from session: ${storedEvent.title} (ID: ${eventId})`);
+          console.log(`Current event from database: ${storedEvent.title} (ID: ${eventId})`);
+          console.log(`Transport mode from DB: ${storedEvent.transportMode}`);
           
           // Update session with fresh data from database
           req.session.currentEvent = storedEvent;
+          
+          // Save session immediately
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                console.error('Error saving session with fresh data:', err);
+                reject(err);
+              } else {
+                console.log('Session updated with fresh database data');
+                resolve();
+              }
+            });
+          });
           
           // Return the database version to ensure we have the latest data
           return res.json(storedEvent);
