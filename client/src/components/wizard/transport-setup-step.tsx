@@ -96,6 +96,9 @@ const formSchema = z.object({
   recommendedAirlines: z.string().optional(),
   airlineDiscountCodes: z.string().optional(),
   offerTravelAssistance: z.boolean().default(false),
+  // Flight timing buffer settings
+  departureBufferHours: z.number().default(3),
+  arrivalBufferHours: z.number().default(1),
 });
 
 // Props for the component
@@ -711,137 +714,110 @@ export default function TransportSetupStep({
                   )}
                 />
                 
-                {form.watch("flightMode") !== "none" && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="recommendedAirlines"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Recommended Airlines</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="List recommended airlines" />
-                          </FormControl>
-                          <FormDescription>
-                            Airlines you recommend for guests (for reference or group bookings)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                {/* Mode-specific configuration fields */}
+                {form.watch("flightMode") === "collect_details" && (
+                  <div className="space-y-4">
+                    <Alert className="bg-blue-50">
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Flight Collection Mode</AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          <li>Outstation guests will be prompted for flight details during RSVP Stage 2</li>
+                          <li>Local guests (from event city) will skip flight questions automatically</li>
+                          <li>Flight data will be available in Travel Management for grouping</li>
+                          <li>Flight timing data will be used for room allocation (check-in/out) and transport coordination</li>
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="departureBufferHours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Departure Buffer (Hours)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                max="24" 
+                                placeholder="3" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 3)}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Hours before flight departure for airport drop-off
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="arrivalBufferHours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Arrival Buffer (Hours)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                max="12" 
+                                placeholder="1" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Hours after flight arrival for pickup coordination
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.watch("flightMode") === "provide_selected" && (
+                  <div className="space-y-4">
+                    <Alert className="bg-amber-50">
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Selective Flight Provision Mode</AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          <li>Use the guest list to flag guests who will receive provided flights</li>
+                          <li>Export flagged guests to send to your travel agent</li>
+                          <li>Import flight updates to populate details for flagged guests only</li>
+                          <li>Other outstation guests still provide their own flight details via RSVP</li>
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
                     
                     <FormField
                       control={form.control}
-                      name="airlineDiscountCodes"
+                      name="flightSpecialDeals"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Airline Discount Codes</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Special discount codes" />
-                          </FormControl>
-                          <FormDescription>
-                            Any group discount codes or special rates available
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="flightInstructions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Flight Booking Instructions</FormLabel>
+                          <FormLabel>Travel Agent Instructions</FormLabel>
                           <FormControl>
                             <Textarea 
                               {...field} 
-                              placeholder="Instructions for guests about flight bookings"
+                              placeholder="Instructions for your travel agent about flight bookings, preferences, budget constraints, etc."
                               className="min-h-[100px]"
                             />
                           </FormControl>
                           <FormDescription>
-                            Detailed instructions for guests about booking flights
+                            Instructions that will be included with the guest export to your travel agent
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    {/* Mode-specific configuration fields */}
-                    {form.watch("flightMode") === "collect_details" && (
-                      <Alert className="bg-blue-50">
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Flight Collection Mode</AlertTitle>
-                        <AlertDescription>
-                          <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>Outstation guests will be prompted for flight details during RSVP Stage 2</li>
-                            <li>Local guests (from event city) will skip flight questions automatically</li>
-                            <li>Flight data will be available in Travel Management for grouping</li>
-                          </ul>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    {form.watch("flightMode") === "provide_selected" && (
-                      <div className="space-y-4">
-                        <Alert className="bg-amber-50">
-                          <Info className="h-4 w-4" />
-                          <AlertTitle>Selective Flight Provision Mode</AlertTitle>
-                          <AlertDescription>
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                              <li>Use the guest list to flag guests who will receive provided flights</li>
-                              <li>Export flagged guests to send to your travel agent</li>
-                              <li>Import flight updates to populate details for flagged guests only</li>
-                              <li>Other outstation guests still provide their own flight details via RSVP</li>
-                            </ul>
-                          </AlertDescription>
-                        </Alert>
-                        
-                        <FormField
-                          control={form.control}
-                          name="flightSpecialDeals"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Travel Agent Instructions</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  {...field} 
-                                  placeholder="Instructions for your travel agent about flight bookings, preferences, budget constraints, etc."
-                                  className="min-h-[100px]"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Instructions that will be included with the guest export to your travel agent
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                    
-                    <FormField
-                      control={form.control}
-                      name="offerTravelAssistance"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <FormLabel className="text-base">Travel Assistance</FormLabel>
-                            <FormDescription>
-                              Offer personalized travel assistance to guests
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </>
+                  </div>
                 )}
               </CardContent>
             </Card>
