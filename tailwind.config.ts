@@ -67,18 +67,18 @@ export default {
 
         // Semantic colors
         secondary: {
-          DEFAULT: "var(--color-text-secondary)",
-          foreground: "var(--color-text-primary)",
+          DEFAULT: "var(--glass-bg)",
+          foreground: "var(--color-text-secondary)",
         },
         
         muted: {
-          DEFAULT: "rgba(0, 0, 0, 0.05)",
+          DEFAULT: "rgba(0, 0, 0, 0.02)",
           foreground: "var(--color-text-secondary)",
         },
         
         accent: {
-          DEFAULT: "#5E239D",
-          foreground: "#ffffff",
+          DEFAULT: "var(--glass-bg)",
+          foreground: "var(--color-text-primary)",
         },
 
         // Status colors

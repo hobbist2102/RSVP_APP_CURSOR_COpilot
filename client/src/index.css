@@ -146,13 +146,14 @@
   }
 
   .sidebar-nav-item:hover {
-    background: rgba(94, 35, 157, 0.08);
+    background: rgba(0, 0, 0, 0.03);
     color: var(--color-text-primary);
   }
 
   .sidebar-nav-item.active {
-    background: rgba(94, 35, 157, 0.1);
-    color: var(--color-accent-purple);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    color: var(--color-text-primary);
     font-weight: 500;
   }
 
@@ -177,35 +178,39 @@
 
   /* Button variants */
   .btn-primary {
-    background: var(--color-accent-purple);
-    color: white;
-    border: none;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     font-weight: 500;
     padding: 0.75rem 1.5rem;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(94, 35, 157, 0.25);
+    box-shadow: var(--glass-shadow);
   }
 
   .btn-primary:hover {
-    background: #6d2eb8;
+    background: rgba(94, 35, 157, 0.05);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(94, 35, 157, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-left: 3px solid var(--color-accent-purple);
   }
 
   .btn-secondary {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    color: var(--color-accent-purple);
-    border: 1px solid var(--color-accent-purple);
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
-    font-weight: 500;
+    font-weight: 400;
     padding: 0.75rem 1.5rem;
     transition: all 0.2s ease;
   }
 
   .btn-secondary:hover {
-    background: rgba(94, 35, 157, 0.1);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    color: var(--color-text-primary);
     transform: translateY(-1px);
   }
 
@@ -220,7 +225,7 @@
   }
 
   .btn-ghost:hover {
-    background: rgba(94, 35, 157, 0.05);
+    background: rgba(0, 0, 0, 0.03);
     color: var(--color-text-primary);
   }
 
@@ -266,8 +271,8 @@
   }
 
   .form-input:focus {
-    border-color: var(--color-accent-purple);
-    box-shadow: 0 0 0 3px rgba(94, 35, 157, 0.1);
+    border-left: 3px solid var(--color-accent-purple);
+    box-shadow: var(--glass-shadow);
   }
 
   .form-input::placeholder {
@@ -281,7 +286,7 @@
   }
 
   .table-header {
-    background: rgba(94, 35, 157, 0.05);
+    background: rgba(0, 0, 0, 0.02);
     color: var(--color-text-primary);
     font-weight: 600;
     font-size: 0.875rem;
@@ -295,7 +300,7 @@
   }
 
   .table-row:hover {
-    background: rgba(94, 35, 157, 0.02);
+    background: rgba(0, 0, 0, 0.01);
   }
 
   /* Chart and dashboard elements */
@@ -312,13 +317,13 @@
 
   /* Progress indicators */
   .progress-bar {
-    background: rgba(94, 35, 157, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
     overflow: hidden;
   }
 
   .progress-fill {
-    background: linear-gradient(90deg, var(--color-accent-purple), var(--color-accent-gold));
+    background: var(--color-accent-purple);
     transition: width 0.3s ease;
     border-radius: 8px;
   }
