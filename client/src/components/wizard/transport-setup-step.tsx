@@ -209,49 +209,27 @@ export default function TransportSetupStep({
     }
   }, [currentEvent?.id, isLoadingEvent]); // Only depend on event ID and loading state
 
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof formSchema>) => {
-      const updatedData = {
-        ...data,
-        transportVehicles: JSON.stringify(vehicles)
-      };
-      const res = await apiRequest('POST', `/api/wizard/transport`, updatedData);
-      return res.json();
-    },
-    onSuccess: async (data) => {
-      // Invalidate all relevant queries to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/current-event'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/wizard'] });
-      
-      // Force refetch of current event data and wait for it to complete
-      await queryClient.refetchQueries({ queryKey: ['/api/events', eventId] });
-      await queryClient.refetchQueries({ queryKey: ['/api/current-event'] });
-      
-      toast({
-        title: "Transport settings saved",
-        description: "Your transport configuration has been updated.",
-      });
-      
-      // Exit editing mode to show the updated display view
-      setIsEditing(false);
-      onComplete(data);
-    },
-    onError: (error) => {
-      console.error('Transport save error:', error);
-      toast({
-        title: "Error saving transport settings",
-        description: error?.message || "There was a problem saving your transport configuration.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Submit handler - follows same pattern as other wizard steps
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    const finalData = {
+      ...data,
+      transportVehicles: JSON.stringify(vehicles)
+    };
+    
+    toast({
+      title: "Transport settings saved",
+      description: "Your transport configuration has been updated.",
+    });
+    
+    // Exit editing mode and complete the step
+    setIsEditing(false);
+    onComplete(finalData);
+  };
 
   // Form submission handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     console.log('Transport form submitting with data:', data);
-    saveMutation.mutate(data);
+    handleSubmit(data);
   };
   
   // Add new vehicle
@@ -841,18 +819,9 @@ export default function TransportSetupStep({
               )}
               
               <div className="flex space-x-2">
-                <Button type="submit" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Transport Settings
-                    </>
-                  )}
+                <Button type="submit">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Transport Settings
                 </Button>
               </div>
             </div>

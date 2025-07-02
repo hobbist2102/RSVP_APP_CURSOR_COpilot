@@ -120,11 +120,7 @@ export default function EventSetupWizard() {
         });
       }
       
-      // Skip duplicate call for transport step - it has its own dedicated endpoint
-      if (data.stepId === WIZARD_STEPS.TRANSPORT) {
-        console.log('Skipping duplicate wizard step call for transport - using dedicated transport endpoint');
-        return { success: true, message: 'Transport data handled by dedicated endpoint' };
-      }
+
       
       // Otherwise, save the step data as usual
       const response = await apiRequest("POST", `/api/wizard/${eventId}/steps/${data.stepId}`, data.stepData);
