@@ -1193,6 +1193,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch ceremonies' });
     }
   });
+
+  // Alternative route for ceremonies by event (for venues step)
+  app.get('/api/ceremonies/by-event/:eventId', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const ceremonies = await storage.getCeremoniesByEvent(eventId);
+      res.json(ceremonies);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch ceremonies' });
+    }
+  });
   
   app.post('/api/events/:eventId/ceremonies', isAuthenticated, async (req, res) => {
     try {

@@ -192,21 +192,54 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
         break;
       case 'venues':
         updateValues.venuesComplete = true;
+        
+        // Save venues as ceremonies in the database
+        if (stepData && stepData.venues && Array.isArray(stepData.venues)) {
+          const { ceremonies } = await import('@shared/schema');
+          
+          // Delete existing ceremonies for this event
+          await db.delete(ceremonies).where(eq(ceremonies.eventId, eventId));
+          
+          // Insert new ceremonies from venues data
+          for (const venue of stepData.venues) {
+            await db.insert(ceremonies).values({
+              eventId,
+              name: venue.name,
+              location: venue.location,
+              date: venue.date,
+              startTime: venue.startTime,
+              endTime: venue.endTime,
+              description: venue.description || null,
+              attireCode: venue.attireCode || null,
+              ceremonyType: venue.ceremonyType
+            });
+          }
+        }
         break;
       case 'rsvp_config':
         updateValues.rsvpComplete = true;
         
         // Update RSVP settings in the event record
         if (stepData && typeof stepData === 'object') {
+          // Calculate RSVP deadline from rsvpDeadlineDays
+          let rsvpDeadline = null;
+          if (stepData.rsvpDeadlineDays) {
+            const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+            if (event[0]?.startDate) {
+              const startDate = new Date(event[0].startDate);
+              startDate.setDate(startDate.getDate() - stepData.rsvpDeadlineDays);
+              rsvpDeadline = startDate.toISOString().split('T')[0];
+            }
+          }
+
           await db.update(weddingEvents)
             .set({
-              allowPlusOnes: stepData.allowPlusOnes,
-              allowChildrenDetails: stepData.allowChildrenDetails,
-              rsvpDeadline: stepData.rsvpDeadline || null,
-              trackDietaryRestrictions: stepData.trackDietaryRestrictions,
-              trackSide: stepData.trackSide,
-              rsvpQuestions: stepData.rsvpQuestions || null,
-              updatedAt: new Date()
+              allowPlusOnes: stepData.enablePlusOne ?? true,
+              allowChildrenDetails: stepData.enableChildrenDetails ?? true,
+              rsvpDeadline: rsvpDeadline,
+              // Map accommodation and transport modes properly
+              accommodationMode: stepData.accommodationMode || 'none',
+              transportMode: stepData.transportMode || 'none'
             })
             .where(eq(weddingEvents.id, eventId));
         }

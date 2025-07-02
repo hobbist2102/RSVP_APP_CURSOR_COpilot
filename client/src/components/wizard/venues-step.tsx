@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -79,6 +80,29 @@ export default function VenuesStep({
   const [venues, setVenues] = useState<VenueData[]>([]);
   const [isAddingVenue, setIsAddingVenue] = useState(false);
   const [editingVenueIndex, setEditingVenueIndex] = useState<number | null>(null);
+
+  // Load existing ceremonies from database
+  const { data: ceremonies = [] } = useQuery<any[]>({
+    queryKey: [`/api/ceremonies/by-event/${eventId}`],
+    enabled: !!eventId,
+  });
+
+  // Convert ceremonies to venue format and populate venues state
+  useEffect(() => {
+    if (ceremonies.length > 0 && venues.length === 0) {
+      const ceremoniesAsVenues = ceremonies.map(ceremony => ({
+        name: ceremony.name,
+        location: ceremony.location,
+        date: ceremony.date,
+        startTime: ceremony.startTime,
+        endTime: ceremony.endTime,
+        description: ceremony.description || "",
+        attireCode: ceremony.attireCode || "",
+        ceremonyType: ceremony.ceremonyType || "Other"
+      }));
+      setVenues(ceremoniesAsVenues);
+    }
+  }, [ceremonies, venues.length]);
   
   // Setup form for managing venues
   const venueForm = useForm<VenueData>({
