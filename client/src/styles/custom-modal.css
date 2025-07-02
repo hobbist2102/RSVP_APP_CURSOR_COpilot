@@ -1,12 +1,24 @@
-/* Modal background override */
+/* iOS 18 Modal background override */
 [data-radix-dialog-content] {
   background-color: white !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Dark mode modals */
+.dark [data-radix-dialog-content] {
+  background-color: #2A2A2A !important;
+  color: #FFFFFF !important;
+  border: 1px solid #374151 !important;
 }
 
 /* Override the event wizard dialog content */
 [role="dialog"] [data-radix-dialog-content] {
   background-color: white !important;
+}
+
+.dark [role="dialog"] [data-radix-dialog-content] {
+  background-color: #2A2A2A !important;
+  color: #FFFFFF !important;
 }
 
 /* Gold gradient buttons should remain purple */

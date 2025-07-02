@@ -116,50 +116,89 @@
     border-color: rgba(255, 255, 255, 0.08) !important;
   }
 
-  /* FORCE EXACT COLORS - Override Tailwind defaults */
-  .dark {
-    /* Override any brown/neutral fallbacks */
+  /* ABSOLUTE COLOR OVERRIDE - Force iOS 18 Specification */
+  html.dark,
+  body.dark,
+  .dark,
+  [data-theme="dark"] {
+    background-color: #1A1A1A !important;
+    color: #FFFFFF !important;
+    
+    /* Override ALL possible brown/neutral variables */
+    --color-background: #1A1A1A !important;
+    --background: 26 26 26 !important;
+    --foreground: 255 255 255 !important;
+    --card: 42 42 42 !important;
+    --border: 55 65 81 !important;
     --tw-bg-opacity: 1 !important;
+  }
+
+  /* Force all background elements */
+  .dark,
+  .dark *,
+  .dark div,
+  .dark main,
+  .dark section,
+  .dark header,
+  .dark aside {
     background-color: #1A1A1A !important;
   }
 
-  /* Force card backgrounds */
+  /* Force card backgrounds specifically */
   .dark .bg-card,
   .dark [class*="bg-card"],
-  .dark .glass-card {
+  .dark .glass-card,
+  .dark .card {
     background-color: #2A2A2A !important;
     background: rgba(30, 30, 30, 0.5) !important;
   }
 
-  /* Force border colors */
+  /* Force borders */
   .dark .border,
   .dark [class*="border"] {
     border-color: #374151 !important;
   }
 
   /* Force text colors */
+  .dark,
+  .dark *,
   .dark .text-foreground,
   .dark [class*="text-foreground"] {
     color: #FFFFFF !important;
   }
 
-  /* Force sidebar colors */
-  .dark .bg-sidebar,
-  .dark [class*="bg-sidebar"] {
-    background-color: #1A1A1A !important;
-  }
-
-  /* Override any remaining brown classes */
-  .dark .bg-brown-900,
+  /* Nuclear option - override ALL possible conflicting classes */
   .dark .bg-neutral-900,
-  .dark .bg-gray-900 {
+  .dark .bg-gray-900,
+  .dark .bg-stone-900,
+  .dark .bg-zinc-900,
+  .dark .bg-slate-900,
+  .dark .bg-brown-900 {
     background-color: #1A1A1A !important;
   }
 
-  .dark .bg-brown-800,
   .dark .bg-neutral-800,
-  .dark .bg-gray-800 {
+  .dark .bg-gray-800,
+  .dark .bg-stone-800,
+  .dark .bg-zinc-800,
+  .dark .bg-slate-800,
+  .dark .bg-brown-800 {
     background-color: #2A2A2A !important;
+  }
+
+  /* Target specific elements from developer tools */
+  .dark body,
+  .dark #root,
+  .dark [data-reactroot],
+  .dark main,
+  .dark .min-h-screen {
+    background-color: #1A1A1A !important;
+    background: #1A1A1A !important;
+  }
+
+  /* Remove any background patterns or gradients */
+  .dark * {
+    background-image: none !important;
   }
 
   /* iOS 18 Typography Classes */
