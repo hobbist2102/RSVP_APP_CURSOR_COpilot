@@ -936,6 +936,71 @@ export default function TransportSetupStep({
                   </>
                 )}
               </dl>
+              
+              {/* Flight Configuration Section */}
+              <div className="border-t pt-6 mt-6">
+                <h4 className="font-semibold text-lg mb-4 flex items-center">
+                  <Plane className="h-5 w-5 mr-2" />
+                  Flight Assistance Configuration
+                </h4>
+                <dl className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between pb-2 border-b">
+                    <dt className="font-medium">Flight Mode:</dt>
+                    <dd>
+                      <Badge variant="outline" className="ml-2">
+                        {(() => {
+                          switch (currentEvent?.flightMode) {
+                            case "collect_details":
+                              return "Collect flight details from guests";
+                            case "provide_selected":
+                              return "Provide flights for selected guests";
+                            case "guidance_only":
+                              return "Guidance and recommendations only";
+                            default:
+                              return "No flight assistance";
+                          }
+                        })()}
+                      </Badge>
+                    </dd>
+                  </div>
+                  
+                  {currentEvent?.flightMode !== "none" && (
+                    <>
+                      {(currentEvent?.departureBufferTime || currentEvent?.arrivalBufferTime) && (
+                        <div className="flex flex-col sm:flex-row sm:justify-between pb-2 border-b">
+                          <dt className="font-medium">Buffer Times:</dt>
+                          <dd className="flex flex-wrap gap-2">
+                            {currentEvent?.departureBufferTime && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                                Departure: {currentEvent.departureBufferTime}
+                              </Badge>
+                            )}
+                            {currentEvent?.arrivalBufferTime && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                Arrival: {currentEvent.arrivalBufferTime}
+                              </Badge>
+                            )}
+                          </dd>
+                        </div>
+                      )}
+                      
+                      {currentEvent?.recommendedAirlines && (
+                        <div className="flex flex-col sm:flex-row sm:justify-between pb-2 border-b">
+                          <dt className="font-medium">Recommended Airlines:</dt>
+                          <dd className="text-sm">{currentEvent.recommendedAirlines}</dd>
+                        </div>
+                      )}
+                      
+                      {currentEvent?.flightInstructions && (
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <dt className="font-medium">Instructions:</dt>
+                          <dd className="text-sm max-w-md">{currentEvent.flightInstructions}</dd>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </dl>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-between">
               {onBack && (
