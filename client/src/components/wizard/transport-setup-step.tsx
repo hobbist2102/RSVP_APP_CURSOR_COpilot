@@ -55,6 +55,7 @@ import {
   ArrowRight,
   RefreshCw,
   Link,
+  Plane,
 } from "lucide-react";
 
 // Constants
@@ -792,6 +793,153 @@ export default function TransportSetupStep({
                 </Card>
               </TabsContent>
             </Tabs>
+            
+            {/* Flight Assistance Mode Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plane className="h-5 w-5" />
+                  Flight Assistance Mode
+                </CardTitle>
+                <CardDescription>
+                  Configure flight coordination and assistance for your guests
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="flightMode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Flight Assistance Mode</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select flight assistance mode" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">No flight assistance</SelectItem>
+                          <SelectItem value="guidance">Flight booking guidance only</SelectItem>
+                          <SelectItem value="list_collection">Collect flight requirements for travel agent</SelectItem>
+                          <SelectItem value="full_coordination">Full flight coordination service</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        How you'll handle flight coordination for guests
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {form.watch("flightMode") !== "none" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="recommendedAirlines"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recommended Airlines</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="List recommended airlines" />
+                          </FormControl>
+                          <FormDescription>
+                            Airlines you recommend for guests (for reference or group bookings)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="airlineDiscountCodes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Airline Discount Codes</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Special discount codes" />
+                          </FormControl>
+                          <FormDescription>
+                            Any group discount codes or special rates available
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="flightInstructions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Flight Booking Instructions</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              placeholder="Instructions for guests about flight bookings"
+                              className="min-h-[100px]"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Detailed instructions for guests about booking flights
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {(form.watch("flightMode") === "full_coordination" || form.watch("flightMode") === "list_collection") && (
+                      <FormField
+                        control={form.control}
+                        name="flightSpecialDeals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Special Flight Deals</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                {...field} 
+                                placeholder="Details about special flight deals or group rates"
+                                className="min-h-[100px]"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Information about special deals, group rates, or booking assistance
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
+                    <FormField
+                      control={form.control}
+                      name="offerTravelAssistance"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <FormLabel className="text-base">Travel Assistance</FormLabel>
+                            <FormDescription>
+                              Offer personalized travel assistance to guests
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
             
             <div className="flex justify-between pt-4">
               {onBack && (

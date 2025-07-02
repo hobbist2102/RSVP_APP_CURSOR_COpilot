@@ -148,6 +148,13 @@ Changelog:
   - Completely rewrote transport wizard step to focus on setup configuration rather than operational management
   - Transport step now handles transport modes, flight coordination, provider details, and guest instructions
   - Operational transport coordination interface (as shown in Travel Management module) will be separate from wizard
+- July 2, 2025. Flight coordination architecture implemented:
+  - Added comprehensive Flight Assistance Mode section to transport setup wizard
+  - Flight coordination workflow: List collection → Export to travel agents → Import flight details → Guest communication
+  - Flight modes: None, Guidance only, List collection for travel agent, Full coordination service
+  - Integration points with RSVP module: Guests indicate flight needs during RSVP Stage 2
+  - Email module integration: Automated flight confirmations and travel updates based on coordination mode
+  - **IMPORTANT**: No in-app flight booking (requires IATA approval) - system only handles coordination and data management
 
 ## User Preferences
 
