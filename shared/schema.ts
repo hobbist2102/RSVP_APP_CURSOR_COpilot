@@ -95,7 +95,14 @@ export const weddingEvents = pgTable("wedding_events", {
   transportInstructions: text("transport_instructions"), // Instructions for arranging transport
   transportProviderName: text("transport_provider_name"), // For special deals
   transportProviderContact: text("transport_provider_contact"),
+  transportProviderEmail: text("transport_provider_email"),
   transportProviderWebsite: text("transport_provider_website"),
+  sendTravelUpdates: boolean("send_travel_updates").default(true),
+  notifyGuests: boolean("notify_guests").default(true),
+  providesAirportPickup: boolean("provides_airport_pickup").default(false),
+  providesVenueTransfers: boolean("provides_venue_transfers").default(false),
+  transportPickupNote: text("transport_pickup_note"),
+  transportReturnNote: text("transport_return_note"),
   
   // Flight Settings
   flightMode: text("flight_mode").default("none"), // 'all', 'none', 'selected', 'special_deal'

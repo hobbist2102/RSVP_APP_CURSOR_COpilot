@@ -173,7 +173,7 @@ export default function TransportSetupStep({
       const formData = {
         transportMode: currentEvent.transportMode || PROVISION_MODES.NONE,
         transportProviderName: currentEvent.transportProviderName || '',
-        transportProviderPhone: currentEvent.transportProviderPhone || '',
+        transportProviderPhone: currentEvent.transportProviderContact || '',
         transportProviderEmail: currentEvent.transportProviderEmail || '',
         transportInstructions: currentEvent.transportInstructions || '',
         transportSpecialDeals: currentEvent.transportSpecialDeals || '',
