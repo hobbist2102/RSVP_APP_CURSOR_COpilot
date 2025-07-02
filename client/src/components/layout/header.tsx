@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Bell, 
   ChevronDown,
   LogOut,
-  User
+  User,
+  Sun,
+  Moon
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -29,6 +31,26 @@ interface HeaderProps {
 export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   const { user, logout } = useAuth();
   const [notifications] = useState(2); // Example notification count
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  
+  useEffect(() => {
+    // Check system preference on mount
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+  
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.style.colorScheme = newTheme;
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -51,6 +73,20 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="relative"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+          </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
