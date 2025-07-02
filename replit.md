@@ -141,6 +141,13 @@ Changelog:
   - **CRITICAL FIX**: Resolved hotel persistence issue where hotels disappeared after save
   - Fixed query invalidation system for proper data refresh after wizard step saves
   - Ensured complete database integration with proper hotels and room types persistence
+- July 2, 2025. Transport coordination system architecture completed:
+  - **ARCHITECTURAL CLARIFICATION**: Event setup wizard is for configuration only; operational transport coordination is a separate module used post-setup
+  - Created comprehensive transport coordination database infrastructure (transport_vendors, location_representatives, event_vehicles, guest_travel_info tables)
+  - Implemented complete transport API routes with CRUD operations for vendors, representatives, and vehicles
+  - Completely rewrote transport wizard step to focus on setup configuration rather than operational management
+  - Transport step now handles transport modes, flight coordination, provider details, and guest instructions
+  - Operational transport coordination interface (as shown in Travel Management module) will be separate from wizard
 
 ## User Preferences
 
