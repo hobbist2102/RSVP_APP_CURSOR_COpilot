@@ -110,13 +110,13 @@ interface EmailTemplate {
   id?: number;
   eventId?: number;
   type: string;
-  emailTemplate: string | null;
-  emailSubject: string | null;
-  whatsappTemplate: string | null;
-  sendImmediately: boolean | null;
+  emailTemplate: string;
+  emailSubject: string;
+  whatsappTemplate: string;
+  sendImmediately: boolean;
   scheduledDate: string | null;
   scheduledTime: string | null;
-  enabled: boolean | null;
+  enabled: boolean;
   lastUpdated?: Date | null;
 }
 
@@ -299,13 +299,13 @@ export default function CommunicationStep({
   const handleEditTemplate = (template: EmailTemplate) => {
     templateForm.reset({
       type: template.type,
-      emailSubject: template.emailSubject || "",
-      emailTemplate: template.emailTemplate || "",
-      whatsappTemplate: template.whatsappTemplate || "",
-      sendImmediately: template.sendImmediately || true,
-      scheduledDate: template.scheduledDate || null,
-      scheduledTime: template.scheduledTime || null,
-      enabled: template.enabled || true,
+      emailSubject: template.emailSubject,
+      emailTemplate: template.emailTemplate,
+      whatsappTemplate: template.whatsappTemplate,
+      sendImmediately: template.sendImmediately,
+      scheduledDate: template.scheduledDate,
+      scheduledTime: template.scheduledTime,
+      enabled: template.enabled,
     });
     setEditingTemplate(template);
   };
@@ -1049,7 +1049,42 @@ export default function CommunicationStep({
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end mt-8">
+      <div className="flex items-center justify-between mt-8">
+        <div className="flex gap-4">
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              try {
+                const result = await fetch('/api/test-email', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    eventId: eventId,
+                    email: 'test@example.com'
+                  })
+                });
+                
+                const response = await result.json();
+                toast({
+                  title: response.success ? "Test Email Sent" : "Test Email Failed",
+                  description: response.message,
+                  variant: response.success ? "default" : "destructive",
+                });
+              } catch (error) {
+                toast({
+                  title: "Test Email Failed",
+                  description: "Failed to send test email",
+                  variant: "destructive",
+                });
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <Mail className="h-4 w-4" />
+            Test Email Delivery
+          </Button>
+        </div>
+        
         <Button onClick={handleComplete} className="flex items-center gap-2">
           <Check className="h-4 w-4" />
           Save Communication Settings
