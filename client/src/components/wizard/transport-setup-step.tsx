@@ -72,7 +72,6 @@ type Vehicle = {
   id: string;
   type: string;
   capacity: number;
-  count: number;
   imageUrl?: string;
 };
 
@@ -118,9 +117,9 @@ export default function TransportSetupStep({
   const [isEditing, setIsEditing] = useState(!isCompleted);
   const [activeTab, setActiveTab] = useState("general");
   const [vehicles, setVehicles] = useState<Vehicle[]>([
-    { id: 'v1', type: 'Sedan', capacity: 4, count: 5 },
-    { id: 'v2', type: 'SUV', capacity: 6, count: 3 },
-    { id: 'v3', type: 'Minivan', capacity: 8, count: 2 },
+    { id: 'v1', type: 'Sedan', capacity: 4 },
+    { id: 'v2', type: 'SUV', capacity: 6 },
+    { id: 'v3', type: 'Minivan', capacity: 8 },
   ]);
   const [newVehicle, setNewVehicle] = useState<{ type: string; capacity: number }>({
     type: '',
@@ -265,8 +264,7 @@ export default function TransportSetupStep({
     setVehicles([...vehicles, newVehicleObj]);
     setNewVehicle({
       type: '',
-      capacity: 4,
-      count: 1
+      capacity: 4
     });
     
     toast({
@@ -650,7 +648,7 @@ export default function TransportSetupStep({
                             </div>
                             <Button type="button" onClick={handleAddVehicle}>
                               <PlusCircle className="h-4 w-4 mr-2" />
-                              Add Vehicle
+                              Add Vehicle Type
                             </Button>
                           </div>
                         </div>
@@ -1030,7 +1028,7 @@ export default function TransportSetupStep({
                           <div className="flex flex-wrap gap-2">
                             {vehicles.map((vehicle) => (
                               <Badge key={vehicle.id} variant="outline">
-                                {vehicle.type} ({vehicle.count})
+                                {vehicle.type} ({vehicle.capacity} seats)
                               </Badge>
                             ))}
                           </div>
