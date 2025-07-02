@@ -333,15 +333,12 @@ export default function TransportSetupStep({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-3 mb-4">
+              <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="general">
                   General Settings
                 </TabsTrigger>
                 <TabsTrigger value="fleet">
                   Fleet Management
-                </TabsTrigger>
-                <TabsTrigger value="notifications">
-                  Notifications
                 </TabsTrigger>
               </TabsList>
               
@@ -677,117 +674,7 @@ export default function TransportSetupStep({
                   </CardContent>
                 </Card>
               </TabsContent>
-              
-              {/* Notifications Tab */}
-              <TabsContent value="notifications" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Transport Notifications</CardTitle>
-                    <CardDescription>
-                      Configure how guests are notified about transportation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {form.watch("transportMode") === PROVISION_MODES.NONE ? (
-                      <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Transportation Disabled</AlertTitle>
-                        <AlertDescription>
-                          Enable transportation in the General Settings tab to configure notifications.
-                        </AlertDescription>
-                      </Alert>
-                    ) : (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="sendTravelUpdates"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-                              <div>
-                                <FormLabel className="text-base">Travel Updates</FormLabel>
-                                <FormDescription>
-                                  Send travel information to guests who need it
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="notifyGuests"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-                              <div>
-                                <FormLabel className="text-base">Guest Notifications</FormLabel>
-                                <FormDescription>
-                                  Notify guests about their transport assignments
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <div className="space-y-4 pt-4">
-                          <FormField
-                            control={form.control}
-                            name="transportPickupNote"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Pickup Notification Message</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    {...field} 
-                                    placeholder="Message to guests about pickup arrangements"
-                                    className="min-h-[100px]"
-                                  />
-                                </FormControl>
-                                <FormDescription>
-                                  This message will be included in pickup notifications
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="transportReturnNote"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Return Notification Message</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    {...field} 
-                                    placeholder="Message to guests about return arrangements"
-                                    className="min-h-[100px]"
-                                  />
-                                </FormControl>
-                                <FormDescription>
-                                  This message will be included in return trip notifications
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+
             </Tabs>
             
             {/* Flight Assistance Mode Section */}
