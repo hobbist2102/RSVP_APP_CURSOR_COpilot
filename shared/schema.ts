@@ -804,29 +804,7 @@ export type InsertRsvpFollowupTemplate = z.infer<typeof insertRsvpFollowupTempla
 export type RsvpFollowupLog = typeof rsvpFollowupLogs.$inferSelect;
 export type InsertRsvpFollowupLog = z.infer<typeof insertRsvpFollowupLogSchema>;
 
-// Email Templates - Comprehensive template management for all communication types
-export const emailTemplates = pgTable("email_templates", {
-  id: serial("id").primaryKey(),
-  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
-  categoryId: text("category_id").notNull(), // initial_invitations, formal_invitations, etc.
-  templateId: text("template_id").notNull(), // save_the_date_email, formal_invitation_email, etc.
-  channel: text("channel").notNull(), // email, whatsapp, sms
-  name: text("name").notNull(), // Display name
-  description: text("description"),
-  subject: text("subject"), // Email subject line (null for WhatsApp/SMS)
-  content: text("content").notNull(), // Template content with variables
-  variables: jsonb("variables").default('{}'), // Available variables for this template
-  enabled: boolean("enabled").default(true),
-  sortOrder: integer("sort_order").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
-export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
 // Brand Assets - Logo, banners, colors, fonts for consistent branding
 export const brandAssets = pgTable("brand_assets", {
@@ -881,7 +859,7 @@ export const communicationLogs = pgTable("communication_logs", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
   guestId: integer("guest_id").references(() => guests.id, { onDelete: "cascade" }),
-  templateId: integer("template_id").references(() => emailTemplates.id, { onDelete: "set null" }),
+  templateId: integer("template_id").references(() => communicationTemplates.id, { onDelete: "set null" }),
   channel: text("channel").notNull(), // email, whatsapp, sms
   recipient: text("recipient").notNull(), // Email address or phone number
   subject: text("subject"), // Email subject (null for WhatsApp/SMS)
@@ -901,8 +879,8 @@ export const insertCommunicationLogSchema = createInsertSchema(communicationLogs
   createdAt: true,
 });
 
-export type EmailTemplate = typeof emailTemplates.$inferSelect;
-export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type CommunicationTemplate = typeof communicationTemplates.$inferSelect;
+export type InsertCommunicationTemplate = z.infer<typeof insertCommunicationTemplateSchema>;
 
 export type BrandAsset = typeof brandAssets.$inferSelect;
 export type InsertBrandAsset = z.infer<typeof insertBrandAssetSchema>;
