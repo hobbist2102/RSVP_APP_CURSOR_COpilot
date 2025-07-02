@@ -36,10 +36,29 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   useEffect(() => {
     // Check system preference on mount
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    const initialTheme = mediaQuery.matches ? 'dark' : 'light';
+    setTheme(initialTheme);
+    
+    // Apply initial theme
+    if (initialTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
     
     const handleChange = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? 'dark' : 'light');
+      const newTheme = e.matches ? 'dark' : 'light';
+      setTheme(newTheme);
+      
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
+      }
     };
     
     mediaQuery.addEventListener('change', handleChange);
@@ -49,11 +68,19 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    document.documentElement.style.colorScheme = newTheme;
+    
+    // Apply dark mode to the entire document
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="glass bg-white/95 dark:bg-gray-900/95 shadow-sm border-b border-purple-600/20">
       <div className="flex justify-between items-center px-4 py-2 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
@@ -75,10 +102,10 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         <div className="flex items-center space-x-4">
           {/* Theme Toggle */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={toggleTheme}
-            className="relative"
+            className="relative border-purple-600/50 bg-white/95 dark:bg-gray-900/95 text-gray-900 dark:text-gray-100"
           >
             {theme === 'light' ? (
               <Moon className="h-5 w-5" />
