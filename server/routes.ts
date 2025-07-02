@@ -58,7 +58,7 @@ import eventSettingsRoutes from "./routes/event-settings";
 import { registerAutoAssignmentRoutes } from "./routes/auto-assignments";
 
 // Import Email Templates routes
-import emailTemplatesRoutes from "./routes/email-templates";
+import communicationTemplatesRoutes from "./routes/communication-templates";
 
 // Import Transport routes
 import transportRoutes from "./routes/transport";
@@ -2431,7 +2431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/event-settings', eventSettingsRoutes);
   
   // Register Email Templates routes
-  app.use(emailTemplatesRoutes);
+  app.use(communicationTemplatesRoutes);
   
   // Register Wizard routes
   app.use('/api/wizard', wizardRouter);
