@@ -90,6 +90,13 @@ const formSchema = z.object({
   transportReturnNote: z.string().optional(),
   defaultPickupLocation: z.string().optional(),
   defaultDropoffLocation: z.string().optional(),
+  // Flight coordination fields
+  flightMode: z.string().default("none"),
+  flightInstructions: z.string().optional(),
+  flightSpecialDeals: z.string().optional(),
+  recommendedAirlines: z.string().optional(),
+  airlineDiscountCodes: z.string().optional(),
+  offerTravelAssistance: z.boolean().default(false),
 });
 
 // Props for the component
@@ -153,6 +160,13 @@ export default function TransportSetupStep({
       transportReturnNote: '',
       defaultPickupLocation: '',
       defaultDropoffLocation: '',
+      // Flight coordination defaults
+      flightMode: "none",
+      flightInstructions: '',
+      flightSpecialDeals: '',
+      recommendedAirlines: '',
+      airlineDiscountCodes: '',
+      offerTravelAssistance: false,
     },
   });
 
