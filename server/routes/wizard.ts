@@ -508,9 +508,18 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
     
     // Update transport settings in the event record
     if (stepData && typeof stepData === 'object') {
+      console.log('Transport save - received stepData:', stepData);
+      
+      // Get existing event data to preserve transportMode if not provided
+      const existingEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+      const currentTransportMode = existingEvent[0]?.transportMode || 'none';
+      
+      console.log('Current transport mode in DB:', currentTransportMode);
+      console.log('Transport mode from form:', stepData.transportMode);
+      
       await db.update(weddingEvents)
         .set({
-          transportMode: stepData.transportMode || 'none',
+          transportMode: stepData.transportMode || currentTransportMode,
           transportInstructions: stepData.transportInstructions,
           transportationProvided: stepData.transportationProvided || false,
           transportProviderName: stepData.transportProviderName,

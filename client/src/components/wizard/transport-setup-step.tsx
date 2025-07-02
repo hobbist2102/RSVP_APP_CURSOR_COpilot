@@ -247,6 +247,7 @@ export default function TransportSetupStep({
 
   // Form submission handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    console.log('Transport form submitting with data:', data);
     saveMutation.mutate(data);
   };
   
