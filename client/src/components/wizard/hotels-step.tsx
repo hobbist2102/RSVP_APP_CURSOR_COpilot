@@ -706,22 +706,7 @@ export default function HotelsStep({
                     )}
                   />
 
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Hotel Attachments (Optional)</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Add brochures, location maps, or other hotel information
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">File URL</label>
-                        <Input placeholder="https://hotel.com/brochure.pdf" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Link Title</label>
-                        <Input placeholder="Hotel Brochure" />
-                      </div>
-                    </div>
-                  </div>
+
 
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setIsHotelDialogOpen(false)}>
@@ -997,6 +982,17 @@ export default function HotelsStep({
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Room Attachments (Optional)</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Add room photos, floor plans, or amenity details
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input placeholder="https://hotel.com/room-photos.jpg" />
+                      <Input placeholder="Room Photos" />
+                    </div>
+                  </div>
 
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setIsRoomTypeDialogOpen(false)}>
