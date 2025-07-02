@@ -134,6 +134,11 @@ const accommodationSettingsSchema = z.object({
   allocationStrategy: z.enum(["family", "individual", "hybrid"]).optional(),
   hotels: z.array(hotelSchema).optional(),
   roomTypes: z.array(roomTypeSchema).optional(),
+  currency: z.string().optional(),
+  showPricing: z.boolean().optional(),
+  accommodationAttachmentUrl: z.string().optional(),
+  accommodationSpecialDeals: z.string().optional(),
+  accommodationInstructions: z.string().optional(),
 });
 
 // TypeScript type for the form data
@@ -361,11 +366,18 @@ export default function HotelsStep({
   };
 
   function onSubmit(data: AccommodationSettingsData) {
-    // Include the hotels and room types in the data
+    // Include the hotels, room types, and current form values in the data
     const finalData = {
       ...data,
       hotels,
       roomTypes,
+      currency: data.currency, // Ensure currency is included
+      enableAutoAllocation: data.enableAutoAllocation,
+      showPricing: data.showPricing,
+      accommodationMode: data.accommodationMode,
+      accommodationAttachmentUrl: data.accommodationAttachmentUrl,
+      accommodationSpecialDeals: data.accommodationSpecialDeals,
+      accommodationInstructions: data.accommodationInstructions,
     };
     onComplete(finalData);
     setIsEditing(false);

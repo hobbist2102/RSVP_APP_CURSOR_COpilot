@@ -253,8 +253,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
             .set({
               accommodationMode: stepData.accommodationMode,
               accommodationSpecialDeals: stepData.accommodationSpecialDeals,
-              accommodationInstructions: stepData.accommodationInstructions,
-              updatedAt: new Date()
+              accommodationInstructions: stepData.accommodationInstructions
             })
             .where(eq(weddingEvents.id, eventId));
 
