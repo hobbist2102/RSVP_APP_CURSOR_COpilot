@@ -140,6 +140,9 @@ export default function EventSetupWizard() {
           queryClient.invalidateQueries({ queryKey: ['transport-groups', eventId] });
           queryClient.invalidateQueries({ queryKey: ['transport-vendors', eventId] });
         }
+        
+        // Always invalidate the main event query to refresh display data
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       }
     },
     onError: (error: Error) => {
