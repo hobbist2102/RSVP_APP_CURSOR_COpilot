@@ -28,7 +28,7 @@ const EventSetupWizard = lazy(() => import("@/pages/event-setup-wizard"));
 const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New cinematic landing page
 const MessageSection = lazy(() => import("@/pages/message-section")); // Multichannel engagement section
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
-const WhatsAppSetupPage = lazy(() => import("@/pages/wizard/WhatsAppSetupPage"));
+
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (

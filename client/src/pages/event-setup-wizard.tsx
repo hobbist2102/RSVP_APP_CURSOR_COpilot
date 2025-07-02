@@ -11,9 +11,7 @@ import VenuesStep from "@/components/wizard/venues-step";
 import RsvpConfigStep from "@/components/wizard/rsvp-config-step";
 import HotelsStep from "@/components/wizard/hotels-step";
 import TransportSetupStep from "@/components/wizard/transport-setup-step";
-import WhatsAppSetupStep from "@/components/wizard/WhatsAppSetupStep";
 import CommunicationStep from "@/components/wizard/communication-step";
-import DesignStep from "@/components/wizard/design-step";
 import AiAssistantStep from "@/components/wizard/ai-assistant-step";
 import EventSelector from "@/components/wizard/event-selector";
 import { WIZARD_STEPS } from "@/lib/constants";
@@ -29,9 +27,7 @@ const steps = [
   { id: WIZARD_STEPS.RSVP_CONFIG, label: "RSVP Configuration" },
   { id: WIZARD_STEPS.HOTELS, label: "Hotels & Accommodations" },
   { id: WIZARD_STEPS.TRANSPORT, label: "Transport" },
-  { id: WIZARD_STEPS.WHATSAPP, label: "WhatsApp Integration" },
   { id: WIZARD_STEPS.COMMUNICATION, label: "Communication" },
-  { id: WIZARD_STEPS.DESIGN, label: "Design & Styling" },
   { id: WIZARD_STEPS.AI_ASSISTANT, label: "AI Assistant" },
 ];
 
@@ -365,23 +361,7 @@ export default function EventSetupWizard() {
             isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
-      case WIZARD_STEPS.WHATSAPP:
-        return (
-          <WhatsAppSetupStep
-            eventId={parseInt(eventId as string) || 0}
-            onComplete={() => {
-              if (isNewEventCreation) {
-                // Skip until event is created in the first step
-                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: true }));
-                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: {} }));
-                goToNextStep();
-              } else {
-                handleStepComplete(WIZARD_STEPS.WHATSAPP, {});
-              }
-            }}
-            onBack={goToPreviousStep}
-          />
-        );
+
       case WIZARD_STEPS.COMMUNICATION:
         return (
           <CommunicationStep
@@ -400,24 +380,7 @@ export default function EventSetupWizard() {
             isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
-      case WIZARD_STEPS.DESIGN:
-        return (
-          <DesignStep
-            eventId={eventId}
-            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
-            onComplete={(data) => {
-              if (isNewEventCreation) {
-                // Skip until event is created in the first step
-                setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.DESIGN]: true }));
-                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.DESIGN]: data }));
-                goToNextStep();
-              } else {
-                handleStepComplete(WIZARD_STEPS.DESIGN, data);
-              }
-            }}
-            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
-          />
-        );
+
       case WIZARD_STEPS.AI_ASSISTANT:
         return (
           <AiAssistantStep
