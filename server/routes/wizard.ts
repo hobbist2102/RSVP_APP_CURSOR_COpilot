@@ -571,58 +571,63 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       
       console.log('Post-update verification:', verificationQuery);
       console.log('=== END DATABASE UPDATE DEBUG ===');
-      
-      // CRITICAL: Return immediately to prevent rollback from subsequent operations
-      console.log('TRANSPORT UPDATE COMPLETED - BYPASSING PROGRESS TABLE OPERATIONS');
-      
+    }
+    
+    console.log('=== PROGRESS OPERATIONS DEBUG ===');
+    console.log('Step:', step);
+    console.log('Update values:', updateValues);
+    console.log('Progress data exists:', progressData && progressData.length > 0);
+    
+    try {
+      if (progressData && progressData.length > 0) {
+        console.log('Updating existing progress data...');
+        const progressResult = await db.update(eventSetupProgress)
+          .set(updateValues)
+          .where(eq(eventSetupProgress.eventId, eventId));
+        console.log('Progress update result:', progressResult);
+      } else {
+        console.log('Inserting new progress data...');
+        const initialValues = {
+          eventId,
+          currentStep: step,
+          basicInfoComplete: false,
+          venuesComplete: false,
+          rsvpComplete: false,
+          accommodationComplete: false,
+          transportComplete: step === 'transport',
+          communicationComplete: false,
+          stylingComplete: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        console.log('Initial progress values:', initialValues);
+        
+        const insertResult = await db.insert(eventSetupProgress).values(initialValues);
+        console.log('Progress insert result:', insertResult);
+      }
+      console.log('Progress operations completed successfully');
+    } catch (progressError) {
+      console.error('PROGRESS OPERATION FAILED:', progressError);
+      throw progressError; // This will cause transaction rollback
+    }
+    
+    console.log('=== SESSION UPDATE DEBUG ===');
+    try {
       // Update session with new event data
       if (req.session && req.session.currentEvent && req.session.currentEvent.id === eventId) {
+        console.log('Updating session with fresh event data...');
         const updatedEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
         if (updatedEvent && updatedEvent.length > 0) {
           req.session.currentEvent = updatedEvent[0];
           console.log(`Session updated with transport data for event ${eventId}`);
         }
       }
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Transport settings saved successfully',
-      });
+      console.log('Session operations completed successfully');
+    } catch (sessionError) {
+      console.error('SESSION OPERATION FAILED:', sessionError);
+      throw sessionError; // This will cause transaction rollback
     }
-    
-    if (progressData && progressData.length > 0) {
-      // Update existing progress data
-      await db.update(eventSetupProgress)
-        .set(updateValues)
-        .where(eq(eventSetupProgress.eventId, eventId));
-    } else {
-      // Insert new progress data
-      const initialValues = {
-        eventId,
-        currentStep: 'transport',
-        basicInfoComplete: false,
-        venuesComplete: false,
-        rsvpComplete: false,
-        accommodationComplete: false,
-        transportComplete: true,
-        communicationComplete: false,
-        stylingComplete: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      await db.insert(eventSetupProgress).values(initialValues);
-    }
-    
-    // Update session with new event data
-    if (req.session && req.session.currentEvent && req.session.currentEvent.id === eventId) {
-      // Fetch updated event data to sync session
-      const updatedEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
-      if (updatedEvent && updatedEvent.length > 0) {
-        req.session.currentEvent = updatedEvent[0];
-        console.log(`Session updated with transport data for event ${eventId}`);
-      }
-    }
+    console.log('=== ALL OPERATIONS DEBUG COMPLETE ===');
     
     return res.status(200).json({
       success: true,
