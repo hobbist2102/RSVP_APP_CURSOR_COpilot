@@ -19,7 +19,15 @@ import {
   Settings,
   FileText,
   Wifi,
-  WifiOff
+  WifiOff,
+  Upload,
+  Image,
+  Palette,
+  Type,
+  Layout,
+  Smartphone,
+  Monitor,
+  Copy
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -37,8 +45,8 @@ interface CommunicationStepProps {
   isCompleted: boolean;
 }
 
-// Two-screen navigation state
-type CommunicationScreen = 'providers' | 'templates';
+// Three-screen navigation state
+type CommunicationScreen = 'providers' | 'templates' | 'assets';
 
 // Provider connection status interface
 interface ProviderStatus {
@@ -413,7 +421,182 @@ export default function CommunicationStep({
     );
   }
 
-  // Templates Screen
+  // Assets Screen
+  if (currentScreen === 'assets') {
+    return (
+      <div className="space-y-6">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between">
+          <Button 
+            onClick={() => setCurrentScreen('templates')}
+            variant="ghost"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Templates
+          </Button>
+          <div className="text-center">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+              Brand Assets & Design
+            </h3>
+            <p className="text-sm text-muted-foreground">Upload logos, banners, and customize your wedding brand</p>
+          </div>
+          <div className="w-24"></div>
+        </div>
+
+        {/* Brand Assets Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Logo Upload */}
+          <Card className="border-2 border-dashed border-amber-200 hover:border-amber-300 transition-colors">
+            <CardHeader className="text-center">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center mb-4">
+                <Image className="h-8 w-8 text-amber-600" />
+              </div>
+              <CardTitle className="text-lg">Wedding Logo</CardTitle>
+              <CardDescription>Upload your couple's logo or monogram (PNG, JPG, SVG)</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button variant="outline" className="flex items-center gap-2 mx-auto">
+                <Upload className="h-4 w-4" />
+                Upload Logo
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">Recommended: 300x300px, transparent background</p>
+            </CardContent>
+          </Card>
+
+          {/* Email Banner */}
+          <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors">
+            <CardHeader className="text-center">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mb-4">
+                <Layout className="h-8 w-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-lg">Email Header Banner</CardTitle>
+              <CardDescription>Beautiful header image for email invitations</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button variant="outline" className="flex items-center gap-2 mx-auto">
+                <Upload className="h-4 w-4" />
+                Upload Banner
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">Recommended: 600x200px, wedding theme</p>
+            </CardContent>
+          </Card>
+
+          {/* WhatsApp Display Picture */}
+          <Card className="border-2 border-dashed border-green-200 hover:border-green-300 transition-colors">
+            <CardHeader className="text-center">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-4">
+                <Smartphone className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle className="text-lg">WhatsApp Profile</CardTitle>
+              <CardDescription>Profile picture for WhatsApp Business account</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button variant="outline" className="flex items-center gap-2 mx-auto">
+                <Upload className="h-4 w-4" />
+                Upload Profile Picture
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">Required: 640x640px, square format</p>
+            </CardContent>
+          </Card>
+
+          {/* Social Media Assets */}
+          <Card className="border-2 border-dashed border-purple-200 hover:border-purple-300 transition-colors">
+            <CardHeader className="text-center">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mb-4">
+                <Monitor className="h-8 w-8 text-purple-600" />
+              </div>
+              <CardTitle className="text-lg">Social Media Kit</CardTitle>
+              <CardDescription>Instagram stories, posts, and sharing graphics</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button variant="outline" className="flex items-center gap-2 mx-auto">
+                <Upload className="h-4 w-4" />
+                Upload Social Assets
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">Multiple formats supported</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Color Palette & Typography */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-amber-600" />
+                Wedding Color Palette
+              </CardTitle>
+              <CardDescription>Define your wedding brand colors</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="h-12 w-12 rounded-full bg-amber-500 mx-auto mb-2 cursor-pointer hover:scale-105 transition-transform"></div>
+                  <p className="text-xs font-medium">Primary</p>
+                  <p className="text-xs text-muted-foreground">#F59E0B</p>
+                </div>
+                <div className="text-center">
+                  <div className="h-12 w-12 rounded-full bg-orange-600 mx-auto mb-2 cursor-pointer hover:scale-105 transition-transform"></div>
+                  <p className="text-xs font-medium">Secondary</p>
+                  <p className="text-xs text-muted-foreground">#EA580C</p>
+                </div>
+                <div className="text-center">
+                  <div className="h-12 w-12 rounded-full bg-amber-100 mx-auto mb-2 cursor-pointer hover:scale-105 transition-transform"></div>
+                  <p className="text-xs font-medium">Accent</p>
+                  <p className="text-xs text-muted-foreground">#FEF3C7</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="w-full">
+                <Palette className="h-4 w-4 mr-2" />
+                Customize Colors
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Type className="h-5 w-5 text-slate-600" />
+                Typography & Fonts
+              </CardTitle>
+              <CardDescription>Choose fonts for your wedding communications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="p-3 bg-white rounded-lg border">
+                  <p className="font-serif text-lg font-semibold">Elegant Serif</p>
+                  <p className="text-sm text-muted-foreground">For headings and formal text</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border">
+                  <p className="font-sans text-base">Clean Sans-Serif</p>
+                  <p className="text-sm text-muted-foreground">For body text and details</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="w-full">
+                <Type className="h-4 w-4 mr-2" />
+                Browse Font Library
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between pt-6 border-t">
+          <Button variant="outline">
+            <Copy className="h-4 w-4 mr-2" />
+            Preview Brand Guidelines
+          </Button>
+          <Button onClick={handleComplete} className="flex items-center gap-2">
+            <Check className="h-4 w-4" />
+            Save Brand Assets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced Templates Screen
   return (
     <div className="space-y-6">
       {/* Navigation Header */}
@@ -427,60 +610,179 @@ export default function CommunicationStep({
           Back to Providers
         </Button>
         <div className="text-center">
-          <h3 className="text-lg font-semibold">Message Templates</h3>
-          <p className="text-sm text-muted-foreground">Customize your communication templates</p>
+          <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Message Templates & Design
+          </h3>
+          <p className="text-sm text-muted-foreground">Create beautiful, consistent messaging across all channels</p>
         </div>
-        <div className="w-24"></div> {/* Spacer for centering */}
+        <Button 
+          onClick={() => setCurrentScreen('assets')}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Image className="h-4 w-4" />
+          Brand Assets
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Template Categories */}
-      <div className="space-y-4">
+      {/* Channel Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-4 text-center">
+            <Mail className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <h4 className="font-semibold text-blue-900">Email Templates</h4>
+            <p className="text-sm text-blue-700 mb-3">Rich HTML with images & styling</p>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">4 Active</Badge>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="p-4 text-center">
+            <MessageSquare className="h-8 w-8 text-green-600 mx-auto mb-2" />
+            <h4 className="font-semibold text-green-900">WhatsApp Templates</h4>
+            <p className="text-sm text-green-700 mb-3">Quick messages with media</p>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">2 Active</Badge>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <CardContent className="p-4 text-center">
+            <MessageSquare className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+            <h4 className="font-semibold text-purple-900">SMS Templates</h4>
+            <p className="text-sm text-purple-700 mb-3">Concise text messages</p>
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800">1 Active</Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Enhanced Template Categories */}
+      <div className="space-y-6">
         {templateCategories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader>
+          <Card key={category.id} className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base">{category.name}</CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {category.id === 'invitations' && <Mail className="h-5 w-5 text-blue-500" />}
+                    {category.id === 'reminders' && <Clock className="h-5 w-5 text-amber-500" />}
+                    {category.id === 'confirmations' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {category.name}
+                  </CardTitle>
+                  <CardDescription className="text-base">{category.description}</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Template
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Template
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {category.templates.map((template) => (
-                <div key={template.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-x divide-gray-100">
+                {/* Email Template */}
+                <div className="p-6 hover:bg-blue-50/30 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      {template.channel === 'email' && <Mail className="h-4 w-4 text-blue-500" />}
-                      {template.channel === 'sms' && <MessageSquare className="h-4 w-4 text-purple-500" />}
-                      {template.channel === 'whatsapp' && <MessageSquare className="h-4 w-4 text-green-500" />}
-                      <Badge variant="outline" className="capitalize">
-                        {template.channel}
-                      </Badge>
+                      <Mail className="h-5 w-5 text-blue-500" />
+                      <Badge variant="outline" className="border-blue-200 text-blue-700">Email</Badge>
                     </div>
-                    <div>
-                      {template.subject && (
-                        <div className="font-medium text-sm">{template.subject}</div>
-                      )}
-                      <div className="text-xs text-muted-foreground line-clamp-2">
-                        {template.content}
+                    <Switch checked={category.templates.find(t => t.channel === 'email')?.enabled || false} />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-white border rounded-lg p-3">
+                      <div className="text-sm font-medium mb-1">Subject Line</div>
+                      <div className="text-xs text-muted-foreground">
+                        {category.templates.find(t => t.channel === 'email')?.subject || 'Add email subject...'}
+                      </div>
+                    </div>
+                    <div className="bg-white border rounded-lg p-3 min-h-[80px]">
+                      <div className="text-sm font-medium mb-1">Email Content</div>
+                      <div className="text-xs text-muted-foreground line-clamp-3">
+                        {category.templates.find(t => t.channel === 'email')?.content || 'Design your email template...'}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={template.enabled} />
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Eye className="h-4 w-4 mr-1" />
+                      Preview
                     </Button>
                   </div>
                 </div>
-              ))}
+
+                {/* WhatsApp Template */}
+                <div className="p-6 hover:bg-green-50/30 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-green-500" />
+                      <Badge variant="outline" className="border-green-200 text-green-700">WhatsApp</Badge>
+                    </div>
+                    <Switch checked={category.templates.find(t => t.channel === 'whatsapp')?.enabled || false} />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 min-h-[120px]">
+                      <div className="text-sm font-medium mb-2 text-green-800">WhatsApp Message</div>
+                      <div className="text-xs text-green-700">
+                        {category.templates.find(t => t.channel === 'whatsapp')?.content || 'Create WhatsApp message...'}
+                      </div>
+                      <div className="mt-3 text-xs text-green-600">
+                        ✓ Media support • ✓ Emojis • ✓ Quick replies
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Eye className="h-4 w-4 mr-1" />
+                      Preview
+                    </Button>
+                  </div>
+                </div>
+
+                {/* SMS Template */}
+                <div className="p-6 hover:bg-purple-50/30 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-purple-500" />
+                      <Badge variant="outline" className="border-purple-200 text-purple-700">SMS</Badge>
+                    </div>
+                    <Switch checked={false} />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 min-h-[120px]">
+                      <div className="text-sm font-medium mb-2 text-purple-800">SMS Text</div>
+                      <div className="text-xs text-purple-700">
+                        Create concise SMS version...
+                      </div>
+                      <div className="mt-3 text-xs text-purple-600">
+                        Character limit: 160 • No images
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Create
+                    </Button>
+                    <Button variant="ghost" size="sm" className="flex-1" disabled>
+                      <Eye className="h-4 w-4 mr-1" />
+                      Preview
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -488,9 +790,12 @@ export default function CommunicationStep({
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t">
-        <Button 
-          variant="outline" 
-          onClick={async () => {
+        <div className="flex gap-3">
+          <Button variant="outline">
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate Templates
+          </Button>
+          <Button variant="outline" onClick={async () => {
             try {
               const result = await fetch('/api/test-email', {
                 method: 'POST',
@@ -503,27 +808,26 @@ export default function CommunicationStep({
               
               const response = await result.json();
               toast({
-                title: response.success ? "Test Email Sent" : "Test Email Failed",
+                title: response.success ? "Test Sent Successfully" : "Test Failed",
                 description: response.message,
                 variant: response.success ? "default" : "destructive",
               });
             } catch (error) {
               toast({
-                title: "Test Email Failed",
-                description: "Failed to send test email",
+                title: "Test Failed",
+                description: "Failed to send test message",
                 variant: "destructive",
               });
             }
-          }}
-          className="flex items-center gap-2"
-        >
-          <Mail className="h-4 w-4" />
-          Test Message Delivery
-        </Button>
+          }}>
+            <Mail className="h-4 w-4 mr-2" />
+            Send Test Messages
+          </Button>
+        </div>
         
         <Button onClick={handleComplete} className="flex items-center gap-2">
           <Check className="h-4 w-4" />
-          Save Communication Settings
+          Save All Templates
         </Button>
       </div>
     </div>
