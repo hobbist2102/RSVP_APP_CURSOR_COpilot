@@ -64,6 +64,14 @@ const PROVISION_MODES = {
   BOOK: "direct_booking"
 };
 
+// Define attachment schema
+const attachmentSchema = z.object({
+  name: z.string(),
+  url: z.string().url(),
+  type: z.enum(["file", "link"]),
+  description: z.string().optional(),
+});
+
 // Define schema for a hotel
 const hotelSchema = z.object({
   id: z.string().optional(),
@@ -83,6 +91,7 @@ const hotelSchema = z.object({
   contactPhone: z.string().optional(),
   amenities: z.string().optional(),
   bookingInstructions: z.string().optional(),
+  attachments: z.array(attachmentSchema).optional(),
 });
 
 // Define schema for a room type
@@ -99,14 +108,10 @@ const roomTypeSchema = z.object({
   totalRooms: z.number().min(1, {
     message: "Total number of rooms must be at least 1.",
   }),
-  // Pricing (for direct booking scenarios)
-  basePrice: z.string().optional(),
-  discountType: z.enum(["none", "percentage", "fixed_amount"]).optional(),
-  discountValue: z.string().optional(),
-  finalPrice: z.string().optional(),
-  // Additional details
+  negotiatedRate: z.string().optional(),
   specialFeatures: z.string().optional(),
   description: z.string().optional(),
+  attachments: z.array(attachmentSchema).optional(),
 });
 
 // TypeScript types
@@ -177,6 +182,7 @@ export default function HotelsStep({
       contactPhone: "",
       amenities: "",
       bookingInstructions: "",
+      attachments: [],
     },
   });
 
@@ -189,9 +195,10 @@ export default function HotelsStep({
       bedType: "double",
       maxOccupancy: 2,
       totalRooms: 1,
-      pricePerNight: "",
+      negotiatedRate: "",
       specialFeatures: "",
       description: "",
+      attachments: [],
     },
   });
 
@@ -683,19 +690,7 @@ export default function HotelsStep({
                     )}
                   />
 
-                  <FormField
-                    control={hotelForm.control}
-                    name="specialDeals"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Special Deals</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Any special rates or offers for guests" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
 
                   <FormField
                     control={hotelForm.control}
@@ -710,6 +705,23 @@ export default function HotelsStep({
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Hotel Attachments (Optional)</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Add brochures, location maps, or other hotel information
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">File URL</label>
+                        <Input placeholder="https://hotel.com/brochure.pdf" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Link Title</label>
+                        <Input placeholder="Hotel Brochure" />
+                      </div>
+                    </div>
+                  </div>
 
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setIsHotelDialogOpen(false)}>
@@ -768,9 +780,9 @@ export default function HotelsStep({
                             <span>
                               {roomType.totalRooms} rooms
                             </span>
-                            {roomType.pricePerNight && (
+                            {roomType.negotiatedRate && (
                               <span>
-                                ${roomType.pricePerNight}/night
+                                ${roomType.negotiatedRate}/night
                               </span>
                             )}
                           </div>
@@ -945,14 +957,14 @@ export default function HotelsStep({
 
                   <FormField
                     control={roomTypeForm.control}
-                    name="pricePerNight"
+                    name="negotiatedRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Price per Night (Optional)</FormLabel>
+                        <FormLabel>Negotiated Rate (Optional)</FormLabel>
                         <FormControl>
                           <Input placeholder="150" {...field} />
                         </FormControl>
-                        <FormDescription>Price in your local currency</FormDescription>
+                        <FormDescription>Special rate in your local currency</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
