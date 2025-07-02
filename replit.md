@@ -131,6 +131,13 @@ The Indian Wedding RSVP Platform is a comprehensive wedding management system de
 
 Changelog:
 - June 24, 2025. Initial setup
+- July 2, 2025. Complete rewrite of Hotel & Accommodation step (Step 4) with full functionality:
+  - Added working "Add Hotel" and "Add Room Type" buttons
+  - Implemented comprehensive hotel management with CRUD operations
+  - Added form validation, edit/delete capabilities, and toast notifications
+  - Integrated proper accommodation modes (Block Booking, Direct Booking)
+  - Added auto-allocation and guest preference settings
+  - Connected to accommodation management across the application
 
 ## User Preferences
 
