@@ -121,8 +121,8 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">Dashboard</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-3xl font-playfair font-bold text-foreground">Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
             Wedding: <span className="font-medium">{currentEvent?.title || "Loading..."}</span> | 
             Dates: <span className="font-medium">
               {currentEvent ? `${formatDateForDisplay(currentEvent.startDate)} - ${formatDateForDisplay(currentEvent.endDate)}` : "Loading..."}

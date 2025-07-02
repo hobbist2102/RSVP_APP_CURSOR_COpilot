@@ -137,7 +137,10 @@ const config: Config = {
         "float-2": "float-2 8s ease-in-out infinite", 
         "float-3": "float-3 10s ease-in-out infinite",
       },
-    },
+      borderWidth: {
+        '3': '3px',
+      }
+    }
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
