@@ -267,16 +267,7 @@ export default function RsvpConfigStep({
         </TabsContent>
       </Tabs>
 
-      <div className="flex gap-4 mt-8 justify-center">
-        <Button variant="outline" className="flex items-center gap-2">
-          <Mail className="h-4 w-4" />
-          Configure Email Templates
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
-          Configure SMS Templates
-        </Button>
-      </div>
+
 
       <div className="flex justify-end mt-8">
         <Button onClick={handleComplete} className="flex items-center gap-2">

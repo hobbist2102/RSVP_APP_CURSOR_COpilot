@@ -54,15 +54,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Template types with friendly names
+// Template types with friendly names covering all communication needs
 const templateTypes = [
-  { id: "invitation", name: "Invitation", description: "Sent when inviting guests to your event" },
-  { id: "rsvp_confirmation", name: "RSVP Confirmation", description: "Sent when guests confirm their attendance" },
-  { id: "rsvp_declined", name: "RSVP Declined", description: "Sent when guests decline their attendance" },
-  { id: "rsvp_pending", name: "RSVP Reminder", description: "Sent to remind guests who haven't completed their RSVP" },
-  { id: "rsvp_maybe", name: "RSVP Maybe", description: "Sent to guests who aren't sure if they can attend" },
-  { id: "pre_event_reminder", name: "Pre-Event Reminder", description: "Sent a few days before the event" },
-  { id: "post_event_thanks", name: "Post-Event Thanks", description: "Sent after the event to thank guests" },
+  // RSVP Templates
+  { id: "invitation", name: "Invitation", description: "Sent when inviting guests to your event", category: "RSVP" },
+  { id: "rsvp_confirmation", name: "RSVP Confirmation", description: "Sent when guests confirm their attendance", category: "RSVP" },
+  { id: "rsvp_declined", name: "RSVP Declined", description: "Sent when guests decline their attendance", category: "RSVP" },
+  { id: "rsvp_pending", name: "RSVP Reminder", description: "Sent to remind guests who haven't completed their RSVP", category: "RSVP" },
+  { id: "rsvp_maybe", name: "RSVP Maybe", description: "Sent to guests who aren't sure if they can attend", category: "RSVP" },
+  
+  // Accommodation Templates
+  { id: "accommodation_confirmation", name: "Accommodation Confirmation", description: "Sent when accommodation is confirmed for guests", category: "Accommodation" },
+  { id: "accommodation_details", name: "Accommodation Details", description: "Sent with hotel check-in details and information", category: "Accommodation" },
+  { id: "accommodation_reminder", name: "Accommodation Reminder", description: "Reminder about accommodation arrangements", category: "Accommodation" },
+  { id: "accommodation_waitlist", name: "Accommodation Waitlist", description: "Sent when guest is placed on accommodation waitlist", category: "Accommodation" },
+  
+  // Transport Templates
+  { id: "transport_confirmation", name: "Transport Confirmation", description: "Sent when transport is confirmed for guests", category: "Transport" },
+  { id: "transport_details", name: "Transport Details", description: "Sent with pickup times and transport information", category: "Transport" },
+  { id: "transport_reminder", name: "Transport Reminder", description: "Reminder about transport arrangements", category: "Transport" },
+  { id: "transport_schedule_change", name: "Transport Schedule Change", description: "Sent when transport schedule changes", category: "Transport" },
+  
+  // General Event Templates
+  { id: "pre_event_reminder", name: "Pre-Event Reminder", description: "Sent a few days before the event", category: "General" },
+  { id: "event_updates", name: "Event Updates", description: "Sent when there are important event updates", category: "General" },
+  { id: "post_event_thanks", name: "Post-Event Thanks", description: "Sent after the event to thank guests", category: "General" },
 ];
 
 // Form schema for template editing
@@ -294,6 +310,45 @@ export default function CommunicationStep({
     setEditingTemplate(template);
   };
   
+  // Get default template content based on type
+  const getDefaultTemplateContent = (templateType: string): { subject: string; body: string; whatsapp: string } => {
+    const eventName = currentEvent?.title || 'Event';
+    const coupleNames = currentEvent?.coupleNames || `${currentEvent?.brideName || 'Bride'} & ${currentEvent?.groomName || 'Groom'}`;
+    
+    switch (templateType) {
+      case 'invitation':
+        return {
+          subject: `You're Invited to ${eventName}!`,
+          body: `Dear {{guest_name}},\n\nWe are delighted to invite you to celebrate ${eventName} with us!\n\nEvent Details:\n📅 Date: {{event_date}}\n📍 Location: {{event_location}}\n\nPlease RSVP by clicking here: {{rsvp_link}}\n\nWe can't wait to celebrate with you!\n\nWith love,\n${coupleNames}`,
+          whatsapp: `🎉 You're invited to ${eventName}! Please RSVP at {{rsvp_link}} - ${coupleNames}`
+        };
+      case 'rsvp_confirmation':
+        return {
+          subject: `Thank you for your RSVP - ${eventName}`,
+          body: `Dear {{guest_name}},\n\nThank you for confirming your attendance at ${eventName}! We're thrilled you'll be celebrating with us.\n\nYour RSVP Details:\n✅ Status: {{rsvp_status}}\n👥 Guests: {{guest_count}}\n🍽️ Meal Choice: {{meal_choice}}\n\nWe'll send you more details closer to the event.\n\nWith excitement,\n${coupleNames}`,
+          whatsapp: `Thank you for your RSVP to ${eventName}! We're excited to celebrate with you. - ${coupleNames}`
+        };
+      case 'accommodation_confirmation':
+        return {
+          subject: `Your Accommodation is Confirmed - ${eventName}`,
+          body: `Dear {{guest_name}},\n\nGreat news! Your accommodation for ${eventName} has been confirmed.\n\nAccommodation Details:\n🏨 Hotel: {{hotel_name}}\n📍 Address: {{hotel_address}}\n📅 Check-in: {{checkin_date}}\n📅 Check-out: {{checkout_date}}\n🛏️ Room Type: {{room_type}}\n\nHotel Contact: {{hotel_phone}}\n\nSee you soon!\n\n${coupleNames}`,
+          whatsapp: `Your accommodation for ${eventName} is confirmed at {{hotel_name}}. Check-in: {{checkin_date}}. - ${coupleNames}`
+        };
+      case 'transport_confirmation':
+        return {
+          subject: `Your Transport is Arranged - ${eventName}`,
+          body: `Dear {{guest_name}},\n\nYour transportation for ${eventName} has been arranged!\n\nTransport Details:\n🚗 Vehicle: {{vehicle_type}}\n⏰ Pickup Time: {{pickup_time}}\n📍 Pickup Location: {{pickup_location}}\n📍 Drop-off: {{dropoff_location}}\n📱 Driver Contact: {{driver_contact}}\n\nPlease be ready 10 minutes before pickup time.\n\n${coupleNames}`,
+          whatsapp: `Transport arranged for ${eventName}! Pickup at {{pickup_time}} from {{pickup_location}}. Driver: {{driver_contact}} - ${coupleNames}`
+        };
+      default:
+        return {
+          subject: `${eventName} - ${templateTypes.find(t => t.id === templateType)?.name || 'Update'}`,
+          body: `Dear {{guest_name}},\n\nWe hope this message finds you well.\n\nThis is an update regarding ${eventName}.\n\nBest regards,\n${coupleNames}`,
+          whatsapp: `Update for ${eventName}: {{message}} - ${coupleNames}`
+        };
+    }
+  };
+
   // Create new template
   const handleCreateTemplate = () => {
     const newTemplateType = templateTypes.find(t => 
@@ -301,18 +356,19 @@ export default function CommunicationStep({
     );
     
     if (newTemplateType) {
-      const newTemplate = {
+      const defaultContent = getDefaultTemplateContent(newTemplateType.id);
+      const newTemplate: EmailTemplate = {
         type: newTemplateType.id,
-        emailSubject: `${currentEvent?.title || 'Event'} - ${newTemplateType.name}`,
-        emailTemplate: `Dear {{guest_name}},\n\nWe hope this email finds you well.\n\nBest regards,\n${currentEvent?.brideName || 'Bride'} & ${currentEvent?.groomName || 'Groom'}`,
-        whatsappTemplate: "",
+        emailSubject: defaultContent.subject,
+        emailTemplate: defaultContent.body,
+        whatsappTemplate: defaultContent.whatsapp,
         sendImmediately: true,
         scheduledDate: null,
         scheduledTime: null,
         enabled: true,
       };
       
-      templateForm.reset(newTemplate as any);
+      templateForm.reset(newTemplate);
       setEditingTemplate(newTemplate);
     } else {
       toast({
@@ -428,23 +484,9 @@ export default function CommunicationStep({
   
   // Handle form submission
   const handleComplete = () => {
-    // In a real implementation, we would include the actual saved templates
-    // For this prototype, we're using the default settings with placeholder templates
     onComplete({
       ...defaultCommunicationSettings,
-      // Use provided templates if available, otherwise use default structure
-      emailTemplates: Array.isArray(emailTemplates) && emailTemplates.length > 0 
-        ? emailTemplates 
-        : Object.entries(defaultCommunicationSettings.emailTemplates || {}).map(([key, template]) => ({
-            type: key,
-            emailSubject: template.subject,
-            emailTemplate: `Dear {{guest_name}},\n\nThis is a default template for ${key}.\n\nBest regards,\n${currentEvent?.brideName || 'Bride'} & ${currentEvent?.groomName || 'Groom'}`,
-            whatsappTemplate: "",
-            sendImmediately: true,
-            scheduledDate: null,
-            scheduledTime: null,
-            enabled: template.enabled,
-          }))
+      emailTemplates: Array.isArray(emailTemplates) ? emailTemplates : []
     });
     setIsEditing(false);
   };
@@ -851,47 +893,159 @@ export default function CommunicationStep({
         </TabsContent>
         
         <TabsContent value="sms" className="space-y-4 mt-4">
-          <Card className="border-dashed">
+          <Card>
             <CardHeader>
-              <CardTitle>SMS Provider (Coming Soon)</CardTitle>
+              <CardTitle>SMS Provider Configuration</CardTitle>
               <CardDescription>
                 Configure SMS provider to send text notifications to your guests
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[200px] flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>SMS integration will be available soon</p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="cursor-pointer hover:border-primary/50">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-blue-500" />
+                      <span>Twilio</span>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="cursor-pointer hover:border-primary/50">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-green-500" />
+                      <span>AWS SNS</span>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="enable-sms" className="font-medium">Enable SMS Notifications</Label>
+                  <Switch id="enable-sms" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="sms-from">SMS From Number</Label>
+                  <Input
+                    id="sms-from"
+                    placeholder="+1234567890"
+                    type="tel"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter your SMS-enabled phone number or short code
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="enable-sms" className="font-medium">Enable SMS Notifications</Label>
-            <Switch id="enable-sms" disabled />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>SMS Templates</CardTitle>
+              <CardDescription>
+                Create SMS versions of your email templates for mobile notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="mb-1">SMS templates</p>
+                <p className="text-sm">Configure your SMS provider first to create SMS templates</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="whatsapp" className="space-y-4 mt-4">
-          <Card className="border-dashed">
+          <Card>
             <CardHeader>
-              <CardTitle>WhatsApp Integration (Coming Soon)</CardTitle>
+              <CardTitle>WhatsApp Integration</CardTitle>
               <CardDescription>
                 Connect your WhatsApp Business account to send messages to guests
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[200px] flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>WhatsApp integration will be available soon</p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="cursor-pointer hover:border-primary/50">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-green-500" />
+                      <span>WhatsApp Business API</span>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="cursor-pointer hover:border-primary/50">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-green-600" />
+                      <span>WhatsApp Web.js</span>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="enable-whatsapp" className="font-medium">Enable WhatsApp Notifications</Label>
+                  <Switch id="enable-whatsapp" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp-number">WhatsApp Business Number</Label>
+                  <Input
+                    id="whatsapp-number"
+                    placeholder="+1234567890"
+                    type="tel"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter your verified WhatsApp Business phone number
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp-token">Access Token</Label>
+                  <Input
+                    id="whatsapp-token"
+                    placeholder="Enter your WhatsApp Business API token"
+                    type="password"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Get this token from your WhatsApp Business API provider
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <div className="flex items-center justify-between">
-            <Label htmlFor="enable-whatsapp" className="font-medium">Enable WhatsApp Notifications</Label>
-            <Switch id="enable-whatsapp" disabled />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>WhatsApp Templates</CardTitle>
+              <CardDescription>
+                Create WhatsApp message templates for different communication types
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="mb-1">WhatsApp templates</p>
+                <p className="text-sm">Configure your WhatsApp provider first to create templates</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
