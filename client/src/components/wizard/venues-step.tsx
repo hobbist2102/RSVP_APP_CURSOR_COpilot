@@ -189,7 +189,7 @@ export default function VenuesStep({
                         {venue.ceremonyType}
                       </span>
                       {venue.attireCode && (
-                        <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
+                        <span className="text-xs glass py-1 px-2 rounded-full border-l-purple-600 border-l-[2px]">{venue.attireCode}</span>
                       )}
                     </div>
                     {venue.description && (
@@ -448,7 +448,7 @@ export default function VenuesStep({
                           {venue.ceremonyType}
                         </span>
                         {venue.attireCode && (
-                          <span className="text-xs bg-muted py-1 px-2 rounded-full">{venue.attireCode}</span>
+                          <span className="text-xs glass py-1 px-2 rounded-full border-l-purple-600 border-l-[2px]">{venue.attireCode}</span>
                         )}
                       </div>
                       {venue.description && (
@@ -460,7 +460,7 @@ export default function VenuesStep({
               ))}
             </div>
           ) : (
-            <div className="bg-muted/30 rounded-md p-6 text-center">
+            <div className="glass rounded-md p-6 text-center">
               <h3 className="text-lg font-medium mb-2">No Venues Added Yet</h3>
               <p className="text-muted-foreground text-sm mb-4">
                 Add venues for your wedding ceremonies and events.

@@ -609,7 +609,7 @@ export default function TransportSetupStep({
                               ))}
                             </div>
                           ) : (
-                            <div className="text-center p-6 border rounded-md bg-muted/50">
+                            <div className="text-center p-6 border rounded-md glass">
                               <p className="text-muted-foreground">No vehicles added yet.</p>
                             </div>
                           )}
