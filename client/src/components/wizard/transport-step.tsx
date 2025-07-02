@@ -91,11 +91,19 @@ export default function TransportStep({
     saveMutation.mutate(formData);
   };
 
+  // Import PROVISION_MODES from constants
+  const PROVISION_MODES = {
+    NONE: "none",
+    ALL: "all", 
+    SELECTED: "selected",
+    SPECIAL_DEAL: "special_deal",
+  };
+
   const transportModes = [
-    { value: 'none', label: 'No transport coordination', icon: <AlertCircle className="h-4 w-4" /> },
-    { value: 'provided', label: 'Transportation provided by us', icon: <Bus className="h-4 w-4" /> },
-    { value: 'coordinated', label: 'Coordinated with partners', icon: <Car className="h-4 w-4" /> },
-    { value: 'guidance', label: 'Travel guidance only', icon: <MapPin className="h-4 w-4" /> }
+    { value: PROVISION_MODES.NONE, label: 'No transport coordination', icon: <AlertCircle className="h-4 w-4" /> },
+    { value: PROVISION_MODES.ALL, label: 'Transportation provided by us', icon: <Bus className="h-4 w-4" /> },
+    { value: PROVISION_MODES.SELECTED, label: 'Coordinated with partners', icon: <Car className="h-4 w-4" /> },
+    { value: PROVISION_MODES.SPECIAL_DEAL, label: 'Travel guidance only', icon: <MapPin className="h-4 w-4" /> }
   ];
 
   const flightModes = [
@@ -148,7 +156,7 @@ export default function TransportStep({
             </Select>
           </div>
 
-          {formData.transportMode !== 'none' && (
+          {formData.transportMode !== PROVISION_MODES.NONE && (
             <>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -163,7 +171,7 @@ export default function TransportStep({
                 </Label>
               </div>
 
-              {(formData.transportMode === 'coordinated' || formData.transportMode === 'provided') && (
+              {(formData.transportMode === PROVISION_MODES.SELECTED || formData.transportMode === PROVISION_MODES.ALL) && (
                 <div className="grid gap-4">
                   <div>
                     <Label htmlFor="transportProviderName">Transport Provider/Company Name</Label>
