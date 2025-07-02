@@ -48,6 +48,19 @@ const config: Config = {
         border: "var(--color-border)",
         ring: "var(--color-accent-purple)",
         
+        // Glass effect utilities
+        glass: {
+          light: "var(--glass-bg)",
+          dark: "var(--glass-bg)",
+        },
+        
+        // Status colors for pills
+        status: {
+          confirmed: "#059669",
+          declined: "#DC2626", 
+          pending: "#D97706",
+        },
+        
         card: {
           DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-primary)",
