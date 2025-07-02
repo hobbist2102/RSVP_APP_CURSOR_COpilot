@@ -86,8 +86,8 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="glass bg-white/95 dark:bg-gray-900/95 shadow-sm border-b border-purple-600/20">
-      <div className="flex justify-between items-center px-4 py-2 mx-auto">
+    <header className="glass-strong border-b border-purple-600/20 backdrop-blur-xl">
+      <div className="flex justify-between items-center px-6 py-4 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost"
@@ -111,7 +111,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
             variant="outline"
             size="icon"
             onClick={toggleTheme}
-            className="relative border-purple-600/50 bg-white/95 dark:bg-gray-900/95 text-gray-900 dark:text-gray-100"
+            className="relative"
           >
             {theme === 'light' ? (
               <Moon className="h-5 w-5" />
