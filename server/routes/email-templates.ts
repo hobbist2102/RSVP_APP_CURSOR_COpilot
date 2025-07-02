@@ -5,11 +5,11 @@ import path from 'path';
 import fs from 'fs';
 import { db } from '../db';
 import { 
-  emailTemplates, 
+  communicationTemplates, 
   emailTemplateStyles, 
   emailAssets, 
   emailSignatures,
-  insertEmailTemplateSchema,
+  insertCommunicationTemplateSchema,
   insertEmailTemplateStyleSchema,
   insertEmailAssetSchema,
   insertEmailSignatureSchema
@@ -303,8 +303,8 @@ async function createSystemTemplates(eventId: number) {
     // Check if templates already exist for this event
     const result = await db
       .select()
-      .from(emailTemplates)
-      .where(eq(emailTemplates.eventId, eventId));
+      .from(communicationTemplates)
+      .where(eq(communicationTemplates.eventId, eventId));
     
     const existingTemplatesCount = result.length;
     
