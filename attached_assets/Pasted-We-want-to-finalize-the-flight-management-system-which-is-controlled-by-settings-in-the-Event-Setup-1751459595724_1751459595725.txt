@@ -1,0 +1,64 @@
+We want to finalize the flight management system, which is controlled by settings in the Event Setup Wizard and executed across existing modules.
+
+✅ Key points:
+	•	Wizard Settings:
+	•	Adds a section under the Transport step to configure flight modes.
+	•	Two modes:
+	1.	Collect flight details from guests:
+	•	Prompts only outstation guests via RSVP.
+	•	Local guests are ignored.
+	2.	Provide flights for selected guests & collect from others:
+	•	Planner flags guests in the guest form (toggle provide_flight).
+	•	System exports flagged guests for travel agent.
+	•	Imports Excel updates only these guests’ flight details.
+	•	All other outstation guests still provide their flight details via RSVP.
+	•	RSVP Module:
+	•	Adjust to trigger flight questions only for outstation guests, respecting local city logic.
+	•	Guest List Module:
+	•	Store provide_flight flag.
+	•	Use this for export/import.
+	•	Travel Management Module:
+	•	Update grouping logic:
+	•	Groups by family connections and exact same flight times only.
+	•	Never combines pickups (airport vs train vs city) in one vehicle.
+	•	Always reserves 1 seat for driver.
+	•	Reports Module:
+	•	Handles travel agent export and selective import.
+
+⸻
+
+🔥 2. What we need from you next
+
+✅ Phase 1:
+	•	Update Event Setup Wizard to include the new flight modes with toggles and short helper texts.
+
+✅ Phase 2:
+	•	Adjust RSVP prompts to only trigger for outstation guests, aligned with flight mode.
+	•	Ensure provide_flight toggle exists in the guest creation form.
+
+✅ Phase 3:
+	•	Build travel agent export of selected guests, and import functionality that updates flight details only for them.
+
+✅ Phase 4:
+	•	Refine Travel Management grouping as discussed:
+	•	Groups by family + exact same flight.
+	•	Separate vehicles by pickup type.
+	•	Vehicle assignment with driver capacity.
+
+✅ Phase 5:
+	•	Confirm all logic is modular so future features (like WhatsApp notifications) can hook into these rules.
+
+⸻
+
+✅ If you’d like, I can also provide:
+	•	JSON sample payloads for flight_mode and guest objects.
+	•	Example Excel formats for import/export.
+	•	UI microcopy for the wizard settings.
+
+Just tell me which to send first.
+
+⸻
+
+🔥 Quick summary statement for Replit
+
+“So next is to integrate the flight assistance logic across the system as above — starting with updating the wizard, then applying these rules in RSVP, Guest List, Travel Management, and Reports. Each of these is just logic inside our existing modules, no new modules needed. Ready for your initial schema or implementation plan whenever you are.”
