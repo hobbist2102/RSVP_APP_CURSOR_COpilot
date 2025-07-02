@@ -13,7 +13,7 @@ export default {
       borderRadius: {
         'none': '0',
         'sm': '6px',
-        DEFAULT: '8px',
+        DEFAULT: '0.75rem',
         'md': '10px',
         'lg': '12px',
         'xl': '16px',
@@ -21,53 +21,33 @@ export default {
         'full': '9999px',
       },
       colors: {
-        // Apple iOS 18 color system
+        // EXACT SPEC: Map to CSS variables
         background: "var(--color-background)",
         foreground: "var(--color-text-primary)",
+        surface: "var(--color-surface)",
         
-        // Glass surfaces
-        glass: {
-          DEFAULT: "var(--glass-bg)",
-          light: "rgba(255, 255, 255, 0.6)",
-          dark: "rgba(30, 30, 30, 0.5)",
-        },
-
-        // Primary purple accent
+        // Text colors mapped to variables
+        "text-primary": "var(--color-text-primary)",
+        "text-secondary": "var(--color-text-secondary)",
+        
+        // Border mapped to variable
+        border: "var(--color-border)",
+        
+        // Primary purple accent - EXACT SPEC
         primary: {
-          DEFAULT: "#5E239D",
-          50: "#f5f3ff",
-          100: "#ede9fe", 
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#5E239D",
-          700: "#6d28d9",
-          800: "#5b21b6",
-          900: "#4c1d95",
-          950: "#2e1065",
+          DEFAULT: "var(--color-accent-purple)",
           foreground: "#ffffff",
         },
 
-        // Gold accent
-        gold: {
-          DEFAULT: "#BFA76F",
-          50: "#fefce8",
-          100: "#fef9c3",
-          200: "#fef08a",
-          300: "#fde047",
-          400: "#facc15",
-          500: "#BFA76F",
-          600: "#ca8a04",
-          700: "#a16207",
-          800: "#854d0e",
-          900: "#713f12",
-          950: "#422006",
+        // Gold accent - EXACT SPEC
+        accent: {
+          DEFAULT: "var(--color-accent-gold)",
+          foreground: "#ffffff",
         },
 
         // Semantic colors
         secondary: {
-          DEFAULT: "var(--glass-bg)",
+          DEFAULT: "var(--color-surface)",
           foreground: "var(--color-text-secondary)",
         },
         
@@ -75,9 +55,6 @@ export default {
           DEFAULT: "rgba(0, 0, 0, 0.02)",
           foreground: "var(--color-text-secondary)",
         },
-        
-        accent: {
-          DEFAULT: "var(--glass-bg)",
           foreground: "var(--color-text-primary)",
         },
 

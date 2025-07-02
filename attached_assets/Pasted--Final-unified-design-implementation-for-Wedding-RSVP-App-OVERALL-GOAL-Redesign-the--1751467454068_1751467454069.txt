@@ -1,0 +1,71 @@
+# 🛠️ Final unified design implementation for Wedding RSVP App
+
+---
+
+## ✨ OVERALL GOAL
+Redesign the Wedding RSVP application to achieve a **luxury, minimal Apple iOS 18 aesthetic**:
+- Clean white & deep charcoal backgrounds
+- Heavy glassmorphism for all cards, panels & sidebars
+- Large spacing, minimal text, subtle shadows
+- Ultra-premium, airy feel
+- Brand accents in purple (#5E239D) & gold (#BFA76F) used **only for tiny highlights**
+
+---
+
+## 🎨 COLORS & EFFECTS
+
+✅ Light mode:
+- Background: `#FFFFFF` (pure white)
+- Glass surfaces: `rgba(255,255,255,0.6)` with `backdrop-filter: blur(12px)`
+- Text: `#111111` (primary), `#666666` (secondary)
+- Borders: `rgba(0,0,0,0.06)`
+
+✅ Dark mode:
+- Background: `#121212` (deep charcoal)
+- Glass surfaces: `rgba(30,30,30,0.5)` with `blur(10px)`
+- Text: `#FDFDFD` (primary), `#AAAAAA` (secondary)
+- Borders: `rgba(255,255,255,0.08)`
+
+✅ Accents:
+- **Purple `#5E239D`** only for:
+  - 3px left border on active sidebar items
+  - active wizard step circles
+  - small progress bar fills
+  - input focus border glow
+- **Gold `#BFA76F`** only for:
+  - thin lines under major headings
+  - small icon strokes (travel, hotel, RSVP icons)
+  - minimal glow on important buttons on hover
+
+---
+
+## 🖥️ FILE-BY-FILE IMPLEMENTATION INSTRUCTIONS
+
+✅ **`index.css`**
+- Define the above colors as `:root` variables, including media query for dark mode.
+- Apply to:
+  - `body` with proper background & text colors
+  - `.card`, `.wizard-step`, `.dashboard-panel`, `.sidebar` with:
+    ```
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    transition: all 0.3s ease;
+    ```
+  - On `:hover`, scale to `1.02` and deepen shadow.
+- Add subtle radial overlay on dark cards for depth.
+- Use `Inter` for all UI text.
+
+✅ **`tailwind.config.ts`**
+- Extend Tailwind theme to map to these CSS variables:
+  - `primary` -> `var(--color-accent-purple)`
+  - `accent` -> `var(--color-accent-gold)`
+  - `background`, `surface`, `text.primary`, `text.secondary`, `border` all from variables.
+- Default `fontFamily.sans` to `Inter`.
+- Set default `borderRadius` to `0.75rem`.
+- Add custom shadow `glass` as `0 6px 20px rgba(0,0,0,0.15)`.
+
+✅ **`theme.json`** (for shadcn)
+- Set:

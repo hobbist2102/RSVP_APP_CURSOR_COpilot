@@ -7,38 +7,34 @@
 
 @layer base {
   :root {
-    /* Apple iOS 18 Light Mode Colors */
+    /* Apple iOS 18 Light Mode Colors - EXACT SPEC */
     --color-background: #FFFFFF;
-    --color-surface: rgba(255, 255, 255, 0.5);
+    --color-surface: rgba(255, 255, 255, 0.6);
     --color-text-primary: #111111;
     --color-text-secondary: #666666;
     --color-accent-gold: #BFA76F;
     --color-accent-purple: #5E239D;
     --color-border: rgba(0, 0, 0, 0.06);
-    --color-shadow: rgba(0, 0, 0, 0.1);
     
-    /* Glass effect variables */
-    --glass-bg: rgba(255, 255, 255, 0.5);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    /* Glass effect variables - EXACT SPEC */
+    --glass-bg: rgba(255, 255, 255, 0.6);
     --glass-blur: blur(12px);
-    --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Apple iOS 18 Dark Mode Colors */
+      /* Apple iOS 18 Dark Mode Colors - EXACT SPEC */
       --color-background: #121212;
-      --color-surface: rgba(30, 30, 30, 0.4);
+      --color-surface: rgba(30, 30, 30, 0.5);
       --color-text-primary: #FDFDFD;
       --color-text-secondary: #AAAAAA;
       --color-border: rgba(255, 255, 255, 0.08);
-      --color-shadow: rgba(0, 0, 0, 0.3);
       
-      /* Glass effect variables for dark mode */
-      --glass-bg: rgba(30, 30, 30, 0.4);
-      --glass-border: rgba(255, 255, 255, 0.1);
+      /* Glass effect variables for dark mode - EXACT SPEC */
+      --glass-bg: rgba(30, 30, 30, 0.5);
       --glass-blur: blur(10px);
-      --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
   }
 
@@ -106,25 +102,36 @@
 }
 
 @layer components {
-  /* Glass morphism base class */
+  /* Glass morphism base class - EXACT APPLE iOS 18 SPEC */
   .glass {
-    background: var(--glass-bg);
+    background: var(--color-surface);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--color-border);
     box-shadow: var(--glass-shadow);
-    border-radius: 12px;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
   }
 
-  .glass-card {
-    @apply glass;
+  /* Card, wizard-step, dashboard-panel, sidebar - EXACT SPEC */
+  .card,
+  .wizard-step,
+  .dashboard-panel,
+  .sidebar-panel {
+    background: var(--color-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    transition: all 0.3s ease;
     padding: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  .card:hover,
+  .dashboard-panel:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
 
   /* Sidebar styling */

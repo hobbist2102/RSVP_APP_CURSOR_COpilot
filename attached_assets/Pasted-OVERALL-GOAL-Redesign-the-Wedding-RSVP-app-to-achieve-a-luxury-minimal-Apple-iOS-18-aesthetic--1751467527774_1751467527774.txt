@@ -1,0 +1,107 @@
+OVERALL GOAL
+
+Redesign the Wedding RSVP app to achieve a luxury, minimal Apple iOS 18 aesthetic:
+	•	Clean white & deep charcoal backgrounds
+	•	Heavy glassmorphism for all cards, panels & sidebars
+	•	Large spacing, minimal text, subtle shadows
+	•	Ultra-premium, airy feel
+	•	Brand accents in purple (#5E239D) & gold (#BFA76F) used ONLY for tiny highlights
+
+⸻
+
+COLOR SYSTEM
+
+Light mode:
+	•	Background: #FFFFFF (pure white)
+	•	Glass surfaces: rgba(255,255,255,0.6) with backdrop-filter: blur(12px)
+	•	Text: #111111 (primary), #666666 (secondary)
+	•	Borders: rgba(0,0,0,0.06)
+
+Dark mode:
+	•	Background: #121212 (deep charcoal)
+	•	Glass surfaces: rgba(30,30,30,0.5) with blur(10px)
+	•	Text: #FDFDFD (primary), #AAAAAA (secondary)
+	•	Borders: rgba(255,255,255,0.08)
+
+Accents:
+	•	Purple #5E239D only for:
+	•	3px left border on active sidebar items
+	•	active wizard step circles
+	•	small progress bar fills
+	•	input focus border glow
+	•	Gold #BFA76F only for:
+	•	thin lines under major headings
+	•	small icon strokes (travel, hotel, RSVP icons)
+	•	minimal glow on important buttons on hover
+
+⸻
+
+FILE-BY-FILE IMPLEMENTATION INSTRUCTIONS
+
+index.css:
+	•	Define these colors as :root variables, including media query for dark mode.
+	•	Apply to:
+	•	body with proper background & text colors
+	•	.card, .wizard-step, .dashboard-panel, .sidebar with:
+background: var(–color-surface);
+backdrop-filter: blur(12px);
+box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+border-radius: 0.75rem;
+border: 1px solid var(–color-border);
+transition: all 0.3s ease;
+	•	On hover, scale to 1.02 and deepen shadow.
+	•	Add subtle radial overlay on dark cards for depth.
+	•	Use Inter for all UI text.
+
+tailwind.config.ts:
+	•	Extend theme to map these CSS variables:
+primary -> var(–color-accent-purple)
+accent -> var(–color-accent-gold)
+background, surface, text.primary, text.secondary, border from variables.
+	•	Default fontFamily.sans to Inter.
+	•	Set default borderRadius to 0.75rem.
+	•	Add custom shadow glass as 0 6px 20px rgba(0,0,0,0.15).
+
+theme.json (for shadcn):
+	•	Set:
+{
+“variant”: “professional”,
+“primary”: “#5E239D”,
+“radius”: 0.75,
+“appearance”: “light”
+}
+
+⸻
+
+COMPONENT BEHAVIOR RULES
+	•	Sidebar:
+	•	Glass style, dark or light depending on mode.
+	•	Active link gets thin 3px left border in purple.
+	•	Dashboard stat cards (Confirmed, Declined, Awaiting, Total Guests):
+	•	Same glass style.
+	•	Hover: no bright background fills. Instead, slight scale + deeper shadow.
+	•	Tiny indicators:
+	•	Progress fills, active steps, small underlines use purple.
+	•	Icon strokes, under major headings use gold.
+	•	Form inputs & buttons:
+	•	Focus ring or subtle glow in purple, no bright fills.
+	•	Tables & RSVP charts:
+	•	Use glass panels, subtle gold or purple on selected rows or hover lines.
+
+⸻
+
+FINAL POLISH
+	•	Maintain large spacing & minimal text for luxury Apple feel.
+	•	All transitions smooth: 0.3s ease.
+	•	Never use purple or gold as full background fills — only small interactive or branding elements.
+
+⸻
+
+TASK SUMMARY
+	•	Completely rewrite index.css, tailwind.config.ts and theme.json to implement this design system.
+	•	Ensure light/dark mode adapts via prefers-color-scheme.
+	•	Preserve existing fade/scale animations.
+	•	Use Inter for all text, Cormorant only if needed for large hero headings.
+	•	Maintain your existing RSVP flow, logic, and structure — only update visuals.
+
+This will result in an RSVP app that feels like an Apple iOS 18 native dashboard, with glass surfaces, luxury spacing, subtle shadows, and minimal gold & purple accents. Please implement these specs exactly.
