@@ -53,6 +53,7 @@ export default function RsvpConfigStep({
 
   // Save RSVP settings
   const handleComplete = () => {
+    console.log('Saving RSVP settings:', rsvpSettings);
     onComplete(rsvpSettings);
     setIsEditing(false);
   };
