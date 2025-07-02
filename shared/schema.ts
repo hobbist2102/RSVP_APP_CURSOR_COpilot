@@ -110,8 +110,8 @@ export const weddingEvents = pgTable("wedding_events", {
   flightInstructions: text("flight_instructions"), // Instructions for booking flights
   recommendedAirlines: text("recommended_airlines"),
   airlineDiscountCodes: text("airline_discount_codes"),
-  departureBufferHours: integer("departure_buffer_hours").default(3), // Hours before departure for check-in
-  arrivalBufferHours: integer("arrival_buffer_hours").default(1), // Hours after arrival for pickup
+  departureBufferTime: text("departure_buffer_time").default("03:00"), // Time before departure for check-in (HH:MM)
+  arrivalBufferTime: text("arrival_buffer_time").default("00:30"), // Time after arrival for pickup (HH:MM)
   
   // Supporting old fields for backward compatibility
   offerTravelAssistance: boolean("offer_travel_assistance").default(false),

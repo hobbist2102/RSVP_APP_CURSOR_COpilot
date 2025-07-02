@@ -552,8 +552,8 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
           flightInstructions: stepData.flightInstructions,
           recommendedAirlines: stepData.recommendedAirlines,
           airlineDiscountCodes: stepData.airlineDiscountCodes,
-          departureBufferHours: stepData.departureBufferHours ?? 3,
-          arrivalBufferHours: stepData.arrivalBufferHours ?? 1
+          departureBufferTime: stepData.departureBufferTime ?? "03:00",
+          arrivalBufferTime: stepData.arrivalBufferTime ?? "00:30"
         })
         .where(eq(weddingEvents.id, eventId));
 

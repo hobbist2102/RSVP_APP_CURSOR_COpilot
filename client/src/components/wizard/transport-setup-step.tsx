@@ -97,8 +97,8 @@ const formSchema = z.object({
   airlineDiscountCodes: z.string().optional(),
   offerTravelAssistance: z.boolean().default(false),
   // Flight timing buffer settings
-  departureBufferHours: z.number().default(3),
-  arrivalBufferHours: z.number().default(1),
+  departureBufferTime: z.string().default("03:00"),
+  arrivalBufferTime: z.string().default("00:30"),
 });
 
 // Props for the component
@@ -733,22 +733,20 @@ export default function TransportSetupStep({
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="departureBufferHours"
+                        name="departureBufferTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Departure Buffer (Hours)</FormLabel>
+                            <FormLabel>Departure Buffer Time</FormLabel>
                             <FormControl>
                               <Input 
-                                type="number" 
-                                min="1" 
-                                max="24" 
-                                placeholder="3" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 3)}
+                                type="time" 
+                                placeholder="03:00" 
+                                {...field}
+                                value={field.value || "03:00"}
                               />
                             </FormControl>
                             <FormDescription>
-                              Hours before flight departure for airport drop-off
+                              Time before flight departure for airport drop-off (HH:MM)
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -757,22 +755,20 @@ export default function TransportSetupStep({
                       
                       <FormField
                         control={form.control}
-                        name="arrivalBufferHours"
+                        name="arrivalBufferTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Arrival Buffer (Hours)</FormLabel>
+                            <FormLabel>Arrival Buffer Time</FormLabel>
                             <FormControl>
                               <Input 
-                                type="number" 
-                                min="0" 
-                                max="12" 
-                                placeholder="1" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                type="time" 
+                                placeholder="00:30" 
+                                {...field}
+                                value={field.value || "00:30"}
                               />
                             </FormControl>
                             <FormDescription>
-                              Hours after flight arrival for pickup coordination
+                              Time after flight arrival for pickup coordination (HH:MM)
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
