@@ -41,10 +41,12 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
     
     // Apply initial theme
     if (initialTheme === 'dark') {
+      document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
       document.documentElement.style.colorScheme = 'light';
     }
     
@@ -53,10 +55,12 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
       setTheme(newTheme);
       
       if (newTheme === 'dark') {
+        document.documentElement.classList.remove('light');
         document.documentElement.classList.add('dark');
         document.documentElement.style.colorScheme = 'dark';
       } else {
         document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
         document.documentElement.style.colorScheme = 'light';
       }
     };
@@ -69,12 +73,14 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     
-    // Apply dark mode to the entire document
+    // Apply theme classes to the entire document
     if (newTheme === 'dark') {
+      document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
       document.documentElement.style.colorScheme = 'light';
     }
   };

@@ -28,6 +28,48 @@
     --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   }
 
+  /* Manual light mode toggle (overrides system preference) */
+  .light {
+    /* FINAL SPECIFICATION: Apple iOS 18 Light Mode Colors */
+    --color-background: #FFFFFF;
+    --color-surface: rgba(255, 255, 255, 0.6);
+    --color-text-primary: #111111;
+    --color-text-secondary: #666666;
+    --color-accent-gold: #BFA76F;
+    --color-accent-purple: #5E239D;
+    --color-border: rgba(0, 0, 0, 0.06);
+    
+    /* Glass effect variables */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-blur: blur(12px);
+    --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    --glass-border: 1px solid rgba(0, 0, 0, 0.06);
+    --glass-radius: 0.75rem;
+    
+    /* Hover effects */
+    --hover-scale: scale(1.02);
+    --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Manual dark mode toggle (overrides system preference) */
+  .dark {
+    /* FINAL SPECIFICATION: Apple iOS 18 Dark Mode Colors */
+    --color-background: #121212;
+    --color-surface: rgba(30, 30, 30, 0.5);
+    --color-text-primary: #FDFDFD;
+    --color-text-secondary: #AAAAAA;
+    --color-border: rgba(255, 255, 255, 0.08);
+    
+    /* Glass effect variables for dark mode */
+    --glass-bg: rgba(30, 30, 30, 0.5);
+    --glass-blur: blur(10px);
+    --glass-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    
+    /* Dark mode hover effects */
+    --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
   @media (prefers-color-scheme: dark) {
     :root {
       /* FINAL SPECIFICATION: Apple iOS 18 Dark Mode Colors */
