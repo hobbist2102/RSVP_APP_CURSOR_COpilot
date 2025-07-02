@@ -45,25 +45,25 @@
   }
 
   .dark {
-    /* iOS 18 LUXURY WEDDING UI: Deep Charcoal Dark Mode */
-    --background: 18 18 18;
-    --foreground: 253 253 253;
-    --card: 18 18 18;
-    --card-foreground: 253 253 253;
-    --popover: 18 18 18;
-    --popover-foreground: 253 253 253;
-    --primary: 94 35 157;
+    /* iOS 18 LUXURY WEDDING UI: EXACT CHARCOAL SPECIFICATION */
+    --background: 26 26 26;       /* #1A1A1A */
+    --foreground: 255 255 255;    /* #FFFFFF */
+    --card: 42 42 42;             /* #2A2A2A */
+    --card-foreground: 255 255 255;
+    --popover: 42 42 42;          /* #2A2A2A */
+    --popover-foreground: 255 255 255;
+    --primary: 94 35 157;         /* #5E239D */
     --primary-foreground: 255 255 255;
-    --secondary: 170 170 170;
-    --secondary-foreground: 253 253 253;
-    --muted: 170 170 170;
+    --secondary: 170 170 170;     /* #AAAAAA */
+    --secondary-foreground: 255 255 255;
+    --muted: 170 170 170;         /* #AAAAAA */
     --muted-foreground: 170 170 170;
-    --accent: 60 60 60;
-    --accent-foreground: 253 253 253;
+    --accent: 55 65 81;           /* #374151 */
+    --accent-foreground: 255 255 255;
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
-    --border: 255 255 255;
-    --input: 255 255 255;
+    --border: 55 65 81;           /* #374151 */
+    --input: 55 65 81;            /* #374151 */
     --ring: 94 35 157;
 
     /* iOS 18 Luxury Dark Color Palette */
@@ -95,13 +95,71 @@
 
   body {
     font-family: inherit;
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
     line-height: 1.5;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* FORCE EXACT SPECIFICATION COLORS */
+  body.dark {
+    background-color: #1A1A1A !important;
+    color: #FFFFFF !important;
+  }
+
+  .dark .glass-card,
+  .dark [class*="glass-card"] {
+    background: rgba(30, 30, 30, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* FORCE EXACT COLORS - Override Tailwind defaults */
+  .dark {
+    /* Override any brown/neutral fallbacks */
+    --tw-bg-opacity: 1 !important;
+    background-color: #1A1A1A !important;
+  }
+
+  /* Force card backgrounds */
+  .dark .bg-card,
+  .dark [class*="bg-card"],
+  .dark .glass-card {
+    background-color: #2A2A2A !important;
+    background: rgba(30, 30, 30, 0.5) !important;
+  }
+
+  /* Force border colors */
+  .dark .border,
+  .dark [class*="border"] {
+    border-color: #374151 !important;
+  }
+
+  /* Force text colors */
+  .dark .text-foreground,
+  .dark [class*="text-foreground"] {
+    color: #FFFFFF !important;
+  }
+
+  /* Force sidebar colors */
+  .dark .bg-sidebar,
+  .dark [class*="bg-sidebar"] {
+    background-color: #1A1A1A !important;
+  }
+
+  /* Override any remaining brown classes */
+  .dark .bg-brown-900,
+  .dark .bg-neutral-900,
+  .dark .bg-gray-900 {
+    background-color: #1A1A1A !important;
+  }
+
+  .dark .bg-brown-800,
+  .dark .bg-neutral-800,
+  .dark .bg-gray-800 {
+    background-color: #2A2A2A !important;
   }
 
   /* iOS 18 Typography Classes */
