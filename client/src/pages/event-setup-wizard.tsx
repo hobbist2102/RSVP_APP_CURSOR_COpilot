@@ -130,6 +130,7 @@ export default function EventSetupWizard() {
       }
     },
     onError: (error: Error) => {
+      console.error("Failed to save current step:", error);
       toast({
         title: "Failed to save step data",
         description: error.message,
@@ -190,6 +191,8 @@ export default function EventSetupWizard() {
 
   // Handle step completion
   const handleStepComplete = (stepId: string, data: any) => {
+    console.log(`Completing step ${stepId} with data:`, data);
+    
     // Update local state
     setStepData((prev) => ({ ...prev, [stepId]: data }));
     setCompletedSteps((prev) => ({ ...prev, [stepId]: true }));
@@ -349,19 +352,18 @@ export default function EventSetupWizard() {
       case WIZARD_STEPS.WHATSAPP:
         return (
           <WhatsAppSetupStep
-            eventId={eventId}
-            onComplete={(data) => {
+            eventId={parseInt(eventId as string) || 0}
+            onComplete={() => {
               if (isNewEventCreation) {
                 // Skip until event is created in the first step
                 setCompletedSteps((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: true }));
-                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: data }));
+                setStepData((prev) => ({ ...prev, [WIZARD_STEPS.WHATSAPP]: {} }));
                 goToNextStep();
               } else {
-                handleStepComplete(WIZARD_STEPS.WHATSAPP, data);
+                handleStepComplete(WIZARD_STEPS.WHATSAPP, {});
               }
             }}
             onBack={goToPreviousStep}
-            isCompleted={isNewEventCreation ? false : isCurrentStepCompleted}
           />
         );
       case WIZARD_STEPS.COMMUNICATION:
