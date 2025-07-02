@@ -800,7 +800,15 @@ export default function HotelsStep({
                             </span>
                             {roomType.negotiatedRate && (
                               <span>
-                                ${roomType.negotiatedRate}/night
+                                {roomType.currency === 'USD' ? '$' : 
+                                 roomType.currency === 'EUR' ? '€' : 
+                                 roomType.currency === 'GBP' ? '£' : 
+                                 roomType.currency === 'INR' ? '₹' : 
+                                 roomType.currency === 'AUD' ? 'A$' : 
+                                 roomType.currency === 'CAD' ? 'C$' : 
+                                 roomType.currency === 'SGD' ? 'S$' : 
+                                 roomType.currency === 'AED' ? 'د.إ' : 
+                                 roomType.currency || '$'}{roomType.negotiatedRate}/night
                               </span>
                             )}
                           </div>
