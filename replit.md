@@ -173,6 +173,14 @@ Changelog:
   - **MISSING INTEGRATIONS**: Guest List needs accommodation/travel/meal columns; modules need wizard setting integration
   - **IMPLEMENTATION PRIORITY**: (1) Master Guest View enhancement (2) Wizard-to-Operations data flow (3) Module integration
   - User requirement for comprehensive guest overview identified as critical missing feature across all operational modules
+- July 2, 2025. **EVENT SETUP WIZARD STRUCTURE FINALIZED**:
+  - **COMMUNICATION CENTRALIZATION**: Consolidated all communication setup into Step 7 (Communication)
+  - **REDUNDANCY ELIMINATION**: Removed duplicate Step 6 (WhatsApp Integration) - functionality moved to Communication step
+  - **DESIGN SIMPLIFICATION**: Removed Step 8 (Design & Styling) - focusing on core functionality over visual customization
+  - **FINAL WIZARD STRUCTURE**: (1) Basic Info (2) Venues (3) RSVP Configuration (4) Hotels & Accommodations (5) Transport (6) Communication (7) AI Assistant
+  - **SINGLE SOURCE TRUTH**: Step 7 Communication now handles email providers, WhatsApp integration, templates, and all messaging configuration
+  - **CODE CLEANUP**: Deleted redundant component files (WhatsAppSetupStep.tsx, design-step.tsx) and updated imports/constants
+  - **ARCHITECTURAL CONSISTENCY**: Clear separation between setup configuration and operational management maintained
 
 ## User Preferences
 
