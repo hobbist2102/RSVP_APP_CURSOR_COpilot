@@ -132,12 +132,14 @@ export default function TransportSetupStep({
     queryFn: async () => {
       if (!eventId || eventId === 'new') return null;
       const res = await apiRequest('GET', `/api/events/${eventId}`);
-      return res.json();
+      const data = await res.json();
+      console.log('Transport step - loaded event data:', data);
+      return data;
     },
     enabled: !!eventId && eventId !== 'new',
     retry: 1,
-    staleTime: 10000, // Cache for 10 seconds
-    refetchOnWindowFocus: false
+    staleTime: 0, // No cache - always refetch
+    refetchOnWindowFocus: true
   });
 
   // Form setup
