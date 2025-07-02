@@ -2498,6 +2498,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Register transport routes
+  app.use('/api/transport', transportRoutes);
+
   // Register WhatsApp routes
   registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
 

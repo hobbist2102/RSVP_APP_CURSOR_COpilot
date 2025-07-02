@@ -1,196 +1,354 @@
-/**
- * Transport Group Management API Routes
- */
-import { Router, Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
-import * as transportService from '../services/transport-service';
-import { z } from 'zod';
-import { insertTransportGroupSchema, insertTransportAllocationSchema } from '@shared/schema';
+import { Router, Request, Response } from 'express';
+import { db } from '../db';
+import { 
+  transportVendors, 
+  locationRepresentatives, 
+  eventVehicles, 
+  guestTravelInfo,
+  insertTransportVendorSchema,
+  insertLocationRepresentativeSchema,
+  insertEventVehicleSchema,
+  insertGuestTravelInfoSchema
+} from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { isAuthenticated } from '../middleware';
 
 const router = Router();
 
-// Get all transport groups for an event
-router.get('/events/:eventId/transport-groups', async (req, res) => {
+// Transport Vendors Routes
+router.get('/vendors', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
-    if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const transportGroups = await storage.getTransportGroupsByEvent(eventId);
-    return res.json(transportGroups);
+
+    const vendors = await db
+      .select()
+      .from(transportVendors)
+      .where(eq(transportVendors.eventId, eventId));
+
+    res.json(vendors);
   } catch (error) {
-    console.error('Error fetching transport groups:', error);
-    return res.status(500).json({ error: 'Failed to fetch transport groups' });
+    console.error('Error fetching transport vendors:', error);
+    res.status(500).json({ error: 'Failed to fetch transport vendors' });
   }
 });
 
-// Get a specific transport group with allocations
-router.get('/transport-groups/:groupId', async (req, res) => {
+router.post('/vendors', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const groupId = parseInt(req.params.groupId);
-    if (isNaN(groupId)) {
-      return res.status(400).json({ error: 'Invalid group ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const groupWithAllocations = await transportService.getTransportGroupWithAllocations(groupId);
-    return res.json(groupWithAllocations);
-  } catch (error) {
-    console.error('Error fetching transport group:', error);
-    return res.status(500).json({ error: 'Failed to fetch transport group' });
-  }
-});
 
-// Create a new transport group
-router.post('/transport-groups', async (req, res) => {
-  try {
-    const validatedData = insertTransportGroupSchema.parse(req.body);
-    const transportGroup = await storage.createTransportGroup(validatedData);
-    return res.status(201).json(transportGroup);
-  } catch (error) {
-    console.error('Error creating transport group:', error);
-    return res.status(500).json({ error: 'Failed to create transport group' });
-  }
-});
-
-// Update a transport group
-router.put('/transport-groups/:groupId', async (req, res) => {
-  try {
-    const groupId = parseInt(req.params.groupId);
-    if (isNaN(groupId)) {
-      return res.status(400).json({ error: 'Invalid group ID' });
-    }
-    
-    const validatedData = insertTransportGroupSchema.partial().parse(req.body);
-    const updatedGroup = await storage.updateTransportGroup(groupId, validatedData);
-    
-    if (!updatedGroup) {
-      return res.status(404).json({ error: 'Transport group not found' });
-    }
-    
-    return res.json(updatedGroup);
-  } catch (error) {
-    console.error('Error updating transport group:', error);
-    return res.status(500).json({ error: 'Failed to update transport group' });
-  }
-});
-
-// Delete a transport group
-router.delete('/transport-groups/:groupId', async (req, res) => {
-  try {
-    const groupId = parseInt(req.params.groupId);
-    if (isNaN(groupId)) {
-      return res.status(400).json({ error: 'Invalid group ID' });
-    }
-    
-    const deleted = await storage.deleteTransportGroup(groupId);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Transport group not found' });
-    }
-    
-    return res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting transport group:', error);
-    return res.status(500).json({ error: 'Failed to delete transport group' });
-  }
-});
-
-// Add allocation to a transport group
-router.post('/transport-groups/:groupId/allocations', async (req, res) => {
-  try {
-    const groupId = parseInt(req.params.groupId);
-    if (isNaN(groupId)) {
-      return res.status(400).json({ error: 'Invalid group ID' });
-    }
-    
-    const validatedData = insertTransportAllocationSchema.parse({
+    const validatedData = insertTransportVendorSchema.parse({
       ...req.body,
-      transportGroupId: groupId
+      eventId
     });
-    
-    const allocation = await storage.createTransportAllocation(validatedData);
-    return res.status(201).json(allocation);
+
+    const [vendor] = await db
+      .insert(transportVendors)
+      .values(validatedData)
+      .returning();
+
+    res.status(201).json(vendor);
   } catch (error) {
-    console.error('Error creating transport allocation:', error);
-    return res.status(500).json({ error: 'Failed to create transport allocation' });
+    console.error('Error creating transport vendor:', error);
+    res.status(500).json({ error: 'Failed to create transport vendor' });
   }
 });
 
-// Update a transport allocation
-router.put('/transport-allocations/:allocationId', async (req, res) => {
+router.put('/vendors/:id', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const allocationId = parseInt(req.params.allocationId);
-    if (isNaN(allocationId)) {
-      return res.status(400).json({ error: 'Invalid allocation ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const validatedData = insertTransportAllocationSchema.partial().parse(req.body);
-    const updatedAllocation = await storage.updateTransportAllocation(allocationId, validatedData);
-    
-    if (!updatedAllocation) {
-      return res.status(404).json({ error: 'Transport allocation not found' });
+
+    const vendorId = parseInt(req.params.id);
+    const validatedData = insertTransportVendorSchema.partial().parse(req.body);
+
+    const [updatedVendor] = await db
+      .update(transportVendors)
+      .set(validatedData)
+      .where(and(
+        eq(transportVendors.id, vendorId),
+        eq(transportVendors.eventId, eventId)
+      ))
+      .returning();
+
+    if (!updatedVendor) {
+      return res.status(404).json({ error: 'Transport vendor not found' });
     }
-    
-    return res.json(updatedAllocation);
+
+    res.json(updatedVendor);
   } catch (error) {
-    console.error('Error updating transport allocation:', error);
-    return res.status(500).json({ error: 'Failed to update transport allocation' });
+    console.error('Error updating transport vendor:', error);
+    res.status(500).json({ error: 'Failed to update transport vendor' });
   }
 });
 
-// Delete a transport allocation
-router.delete('/transport-allocations/:allocationId', async (req, res) => {
+router.delete('/vendors/:id', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const allocationId = parseInt(req.params.allocationId);
-    if (isNaN(allocationId)) {
-      return res.status(400).json({ error: 'Invalid allocation ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const deleted = await storage.deleteTransportAllocation(allocationId);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Transport allocation not found' });
-    }
-    
-    return res.json({ success: true });
+
+    const vendorId = parseInt(req.params.id);
+
+    await db
+      .delete(transportVendors)
+      .where(and(
+        eq(transportVendors.id, vendorId),
+        eq(transportVendors.eventId, eventId)
+      ));
+
+    res.status(204).send();
   } catch (error) {
-    console.error('Error deleting transport allocation:', error);
-    return res.status(500).json({ error: 'Failed to delete transport allocation' });
+    console.error('Error deleting transport vendor:', error);
+    res.status(500).json({ error: 'Failed to delete transport vendor' });
   }
 });
 
-// Generate transport groups based on travel info
-router.post('/events/:eventId/generate-transport-groups', async (req, res) => {
+// Location Representatives Routes
+router.get('/representatives', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
-    if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const generatedGroups = await transportService.generateTransportGroups(eventId);
-    return res.json(generatedGroups);
+
+    const representatives = await db
+      .select()
+      .from(locationRepresentatives)
+      .where(eq(locationRepresentatives.eventId, eventId));
+
+    res.json(representatives);
   } catch (error) {
-    console.error('Error generating transport groups:', error);
-    return res.status(500).json({ error: 'Failed to generate transport groups' });
+    console.error('Error fetching location representatives:', error);
+    res.status(500).json({ error: 'Failed to fetch location representatives' });
   }
 });
 
-// Check if transport groups need to be regenerated
-router.get('/events/:eventId/check-transport-updates', async (req, res) => {
+router.post('/representatives', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
-    if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
     }
-    
-    const updates = await transportService.checkForTransportUpdates(eventId);
-    return res.json(updates);
+
+    const validatedData = insertLocationRepresentativeSchema.parse({
+      ...req.body,
+      eventId
+    });
+
+    const [representative] = await db
+      .insert(locationRepresentatives)
+      .values(validatedData)
+      .returning();
+
+    res.status(201).json(representative);
   } catch (error) {
-    console.error('Error checking transport updates:', error);
-    return res.status(500).json({ error: 'Failed to check transport updates' });
+    console.error('Error creating location representative:', error);
+    res.status(500).json({ error: 'Failed to create location representative' });
   }
 });
 
-// Export router
+router.put('/representatives/:id', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const repId = parseInt(req.params.id);
+    const validatedData = insertLocationRepresentativeSchema.partial().parse(req.body);
+
+    const [updatedRep] = await db
+      .update(locationRepresentatives)
+      .set(validatedData)
+      .where(and(
+        eq(locationRepresentatives.id, repId),
+        eq(locationRepresentatives.eventId, eventId)
+      ))
+      .returning();
+
+    if (!updatedRep) {
+      return res.status(404).json({ error: 'Location representative not found' });
+    }
+
+    res.json(updatedRep);
+  } catch (error) {
+    console.error('Error updating location representative:', error);
+    res.status(500).json({ error: 'Failed to update location representative' });
+  }
+});
+
+router.delete('/representatives/:id', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const repId = parseInt(req.params.id);
+
+    await db
+      .delete(locationRepresentatives)
+      .where(and(
+        eq(locationRepresentatives.id, repId),
+        eq(locationRepresentatives.eventId, eventId)
+      ));
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting location representative:', error);
+    res.status(500).json({ error: 'Failed to delete location representative' });
+  }
+});
+
+// Event Vehicles Routes
+router.get('/vehicles', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const vehicles = await db
+      .select()
+      .from(eventVehicles)
+      .where(eq(eventVehicles.eventId, eventId));
+
+    res.json(vehicles);
+  } catch (error) {
+    console.error('Error fetching vehicles:', error);
+    res.status(500).json({ error: 'Failed to fetch vehicles' });
+  }
+});
+
+router.post('/vehicles', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const validatedData = insertEventVehicleSchema.parse({
+      ...req.body,
+      eventId,
+      vendorId: parseInt(req.body.vendorId)
+    });
+
+    const [vehicle] = await db
+      .insert(eventVehicles)
+      .values(validatedData)
+      .returning();
+
+    res.status(201).json(vehicle);
+  } catch (error) {
+    console.error('Error creating vehicle:', error);
+    res.status(500).json({ error: 'Failed to create vehicle' });
+  }
+});
+
+router.put('/vehicles/:id', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const vehicleId = parseInt(req.params.id);
+    const validatedData = insertEventVehicleSchema.partial().parse(req.body);
+
+    const [updatedVehicle] = await db
+      .update(eventVehicles)
+      .set(validatedData)
+      .where(and(
+        eq(eventVehicles.id, vehicleId),
+        eq(eventVehicles.eventId, eventId)
+      ))
+      .returning();
+
+    if (!updatedVehicle) {
+      return res.status(404).json({ error: 'Vehicle not found' });
+    }
+
+    res.json(updatedVehicle);
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
+    res.status(500).json({ error: 'Failed to update vehicle' });
+  }
+});
+
+router.delete('/vehicles/:id', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const vehicleId = parseInt(req.params.id);
+
+    await db
+      .delete(eventVehicles)
+      .where(and(
+        eq(eventVehicles.id, vehicleId),
+        eq(eventVehicles.eventId, eventId)
+      ));
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting vehicle:', error);
+    res.status(500).json({ error: 'Failed to delete vehicle' });
+  }
+});
+
+// Guest Travel Info Routes
+router.get('/travel-info', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const travelInfo = await db
+      .select()
+      .from(guestTravelInfo)
+      .where(eq(guestTravelInfo.eventId, eventId));
+
+    res.json(travelInfo);
+  } catch (error) {
+    console.error('Error fetching travel info:', error);
+    res.status(500).json({ error: 'Failed to fetch travel info' });
+  }
+});
+
+router.post('/travel-info', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const eventId = req.session.currentEvent?.id;
+    if (!eventId) {
+      return res.status(400).json({ error: 'No event selected' });
+    }
+
+    const validatedData = insertGuestTravelInfoSchema.parse({
+      ...req.body,
+      eventId
+    });
+
+    const [travelInfo] = await db
+      .insert(guestTravelInfo)
+      .values(validatedData)
+      .returning();
+
+    res.status(201).json(travelInfo);
+  } catch (error) {
+    console.error('Error creating travel info:', error);
+    res.status(500).json({ error: 'Failed to create travel info' });
+  }
+});
+
 export default router;

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WeddingEvent, TransportVendor, LocationRepresentative, EventVehicle } from "@shared/schema";
-import { Check, Bus, Car, Plus, Plane, MapPin, Users, Phone, FileText, Trash2, Edit, Settings } from "lucide-react";
+import { WeddingEvent } from "@shared/schema";
+import { Check, Bus, Car, Plane, Train, MapPin, Users, AlertCircle } from "lucide-react";
 import { 
   Card, 
   CardContent, 
@@ -12,18 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -31,14 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TransportStepProps {
   eventId: string;
@@ -123,10 +105,7 @@ export default function TransportStep({
   });
 
   const createRepMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/transport/representatives`, {
-      method: 'POST',
-      body: { ...data, eventId: parseInt(eventId) }
-    }),
+    mutationFn: (data: any) => apiRequest(`/api/transport/representatives`, 'POST', { ...data, eventId: parseInt(eventId) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/transport/representatives', eventId] });
       setRepDialogOpen(false);
@@ -136,10 +115,7 @@ export default function TransportStep({
   });
 
   const createVehicleMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/transport/vehicles`, {
-      method: 'POST',
-      body: { ...data, eventId: parseInt(eventId) }
-    }),
+    mutationFn: (data: any) => apiRequest(`/api/transport/vehicles`, 'POST', { ...data, eventId: parseInt(eventId) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/transport/vehicles', eventId] });
       setVehicleDialogOpen(false);
@@ -192,94 +168,538 @@ export default function TransportStep({
   if (isCompleted && !isEditing) {
     return (
       <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Transport Enabled:</h3>
-              <p className="col-span-3">{defaultTransportSettings.enableTransport ? "Yes" : "No"}</p>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Grouping Strategy:</h3>
-              <p className="col-span-3 capitalize">{defaultTransportSettings.transportGroupingStrategy}</p>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Keep Families Together:</h3>
-              <p className="col-span-3">{defaultTransportSettings.keepFamiliesTogether ? "Yes" : "No"}</p>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Family Priority Mode:</h3>
-              <p className="col-span-3 capitalize">{defaultTransportSettings.familyPriorityMode}</p>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Auto-assign Vehicles:</h3>
-              <p className="col-span-3">{defaultTransportSettings.autoAssignVehicles ? "Yes" : "No"}</p>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <h3 className="font-medium text-sm">Guest Preferences:</h3>
-              <p className="col-span-3">{defaultTransportSettings.allowGuestPreferences ? "Allowed" : "Not Allowed"}</p>
-            </div>
+        <div className="grid gap-6">
+          {/* Transport Coordination Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Bus className="h-5 w-5" />
+                  Transport Vendors
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{vendors.length}</p>
+                <p className="text-sm text-muted-foreground">Registered vendors</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location Reps
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{representatives.length}</p>
+                <p className="text-sm text-muted-foreground">Airport/Station representatives</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Car className="h-5 w-5" />
+                  Vehicles
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{vehicles.length}</p>
+                <p className="text-sm text-muted-foreground">Total fleet capacity</p>
+              </CardContent>
+            </Card>
           </div>
-          
-          <h3 className="font-medium mt-4">Vehicles:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-            {defaultTransportSettings.vehicles.map((vehicle, index) => (
-              <Card key={index}>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-base">{vehicle.name}</CardTitle>
-                    {vehicle.type === "Bus" ? 
-                      <Bus className="h-5 w-5 text-muted-foreground" /> : 
-                      <Car className="h-5 w-5 text-muted-foreground" />
-                    }
+
+          {/* Quick Overview */}
+          {vendors.length > 0 && (
+            <div>
+              <h3 className="font-medium mb-3">Recent Vendors</h3>
+              <div className="grid gap-2">
+                {vendors.slice(0, 3).map((vendor) => (
+                  <div key={vendor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
+                    <div>
+                      <p className="font-medium">{vendor.name}</p>
+                      <p className="text-sm text-muted-foreground">{vendor.phone}</p>
+                    </div>
+                    <Badge variant="secondary">{vendor.status}</Badge>
                   </div>
-                  <CardDescription>{vehicle.type}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm">
-                    <p><span className="font-medium">Capacity:</span> {vehicle.capacity} passengers</p>
-                    <p><span className="font-medium">Count:</span> {vehicle.count} vehicles</p>
-                    <p className="mt-2 text-muted-foreground">{vehicle.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
         <Button type="button" onClick={() => setIsEditing(true)}>
-          Edit Transport Settings
+          <Settings className="h-4 w-4 mr-2" />
+          Manage Transport Coordination
         </Button>
       </div>
     );
   }
 
-  // Placeholder for editing interface
+  // Main editing interface with tabs for three-party coordination
   return (
     <div className="space-y-6">
-      <div className="bg-muted/30 rounded-md p-6 text-center">
-        <h3 className="text-lg font-medium mb-2">Transport Management</h3>
-        <p className="text-muted-foreground text-sm mb-4">
-          This is a placeholder for the transport management interface.
-          In a complete implementation, you would be able to define vehicle types,
-          set up fleet capacities, and configure group allocations based on families.
-        </p>
-        <div className="flex justify-center gap-4 mt-6">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Vehicle
-          </Button>
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Transport Coordination Setup</h3>
+          <p className="text-muted-foreground text-sm">
+            Configure your three-party transport system: Planner → Vendors → Airport/Station Representatives
+          </p>
         </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="vendors" className="flex items-center gap-2">
+              <Bus className="h-4 w-4" />
+              Transport Vendors
+            </TabsTrigger>
+            <TabsTrigger value="representatives" className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Location Reps
+            </TabsTrigger>
+            <TabsTrigger value="vehicles" className="flex items-center gap-2">
+              <Car className="h-4 w-4" />
+              Vehicle Fleet
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Transport Vendors Tab */}
+          <TabsContent value="vendors" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-medium">Transport Vendors</h4>
+                <p className="text-sm text-muted-foreground">External transport service providers</p>
+              </div>
+              <Dialog open={vendorDialogOpen} onOpenChange={setVendorDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Vendor
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Transport Vendor</DialogTitle>
+                    <DialogDescription>
+                      Register a new transport service provider for coordination
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="vendor-name">Vendor Name *</Label>
+                      <Input
+                        id="vendor-name"
+                        value={vendorForm.name}
+                        onChange={(e) => setVendorForm({...vendorForm, name: e.target.value})}
+                        placeholder="e.g., Goa Elite Transport"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="contact-person">Contact Person</Label>
+                      <Input
+                        id="contact-person"
+                        value={vendorForm.contactPerson}
+                        onChange={(e) => setVendorForm({...vendorForm, contactPerson: e.target.value})}
+                        placeholder="Primary contact name"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="vendor-phone">Phone *</Label>
+                        <Input
+                          id="vendor-phone"
+                          value={vendorForm.phone}
+                          onChange={(e) => setVendorForm({...vendorForm, phone: e.target.value})}
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vendor-whatsapp">WhatsApp</Label>
+                        <Input
+                          id="vendor-whatsapp"
+                          value={vendorForm.whatsappNumber}
+                          onChange={(e) => setVendorForm({...vendorForm, whatsappNumber: e.target.value})}
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="vendor-email">Email</Label>
+                      <Input
+                        id="vendor-email"
+                        type="email"
+                        value={vendorForm.email}
+                        onChange={(e) => setVendorForm({...vendorForm, email: e.target.value})}
+                        placeholder="contact@vendor.com"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setVendorDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleVendorSubmit}
+                      disabled={createVendorMutation.isPending}
+                    >
+                      {createVendorMutation.isPending ? "Adding..." : "Add Vendor"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid gap-4">
+              {vendors.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bus className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No transport vendors added yet</p>
+                  <p className="text-sm">Add vendors to enable transport coordination</p>
+                </div>
+              ) : (
+                vendors.map((vendor) => (
+                  <Card key={vendor.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base">{vendor.name}</CardTitle>
+                          <CardDescription>{vendor.contactPerson}</CardDescription>
+                        </div>
+                        <Badge variant={vendor.status === 'active' ? 'default' : 'secondary'}>
+                          {vendor.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          {vendor.phone}
+                        </div>
+                        {vendor.email && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            {vendor.email}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Location Representatives Tab */}
+          <TabsContent value="representatives" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-medium">Location Representatives</h4>
+                <p className="text-sm text-muted-foreground">Airport and station coordinators</p>
+              </div>
+              <Dialog open={repDialogOpen} onOpenChange={setRepDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Representative
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Location Representative</DialogTitle>
+                    <DialogDescription>
+                      Register an airport or station representative for pickup coordination
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="rep-name">Representative Name *</Label>
+                      <Input
+                        id="rep-name"
+                        value={repForm.name}
+                        onChange={(e) => setRepForm({...repForm, name: e.target.value})}
+                        placeholder="e.g., Rajesh Kumar"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="location-type">Location Type *</Label>
+                        <Select value={repForm.locationType} onValueChange={(value) => setRepForm({...repForm, locationType: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="airport">Airport</SelectItem>
+                            <SelectItem value="train_station">Train Station</SelectItem>
+                            <SelectItem value="hotel">Hotel</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="location-name">Location Name</Label>
+                        <Input
+                          id="location-name"
+                          value={repForm.locationName}
+                          onChange={(e) => setRepForm({...repForm, locationName: e.target.value})}
+                          placeholder="e.g., GOI Airport"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="terminal-gate">Terminal/Gate</Label>
+                      <Input
+                        id="terminal-gate"
+                        value={repForm.terminalGate}
+                        onChange={(e) => setRepForm({...repForm, terminalGate: e.target.value})}
+                        placeholder="e.g., Terminal 1, Gate 3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="rep-phone">Phone *</Label>
+                        <Input
+                          id="rep-phone"
+                          value={repForm.phone}
+                          onChange={(e) => setRepForm({...repForm, phone: e.target.value})}
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="rep-whatsapp">WhatsApp</Label>
+                        <Input
+                          id="rep-whatsapp"
+                          value={repForm.whatsappNumber}
+                          onChange={(e) => setRepForm({...repForm, whatsappNumber: e.target.value})}
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setRepDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleRepSubmit}
+                      disabled={createRepMutation.isPending}
+                    >
+                      {createRepMutation.isPending ? "Adding..." : "Add Representative"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid gap-4">
+              {representatives.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No location representatives added yet</p>
+                  <p className="text-sm">Add reps to enable pickup coordination</p>
+                </div>
+              ) : (
+                representatives.map((rep) => (
+                  <Card key={rep.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base">{rep.name}</CardTitle>
+                          <CardDescription className="capitalize">
+                            {rep.locationType?.replace('_', ' ')} - {rep.locationName}
+                          </CardDescription>
+                        </div>
+                        <Badge variant={rep.status === 'active' ? 'default' : 'secondary'}>
+                          {rep.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          {rep.phone}
+                        </div>
+                        {rep.terminalGate && (
+                          <div className="flex items-center gap-2">
+                            <Plane className="h-4 w-4 text-muted-foreground" />
+                            {rep.terminalGate}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Vehicle Fleet Tab */}
+          <TabsContent value="vehicles" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-medium">Vehicle Fleet</h4>
+                <p className="text-sm text-muted-foreground">Available vehicles for transport</p>
+              </div>
+              <Dialog open={vehicleDialogOpen} onOpenChange={setVehicleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button disabled={vendors.length === 0}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Vehicle
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Vehicle</DialogTitle>
+                    <DialogDescription>
+                      Add a vehicle to the fleet for this event
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="vehicle-vendor">Vendor *</Label>
+                      <Select value={vehicleForm.vendorId} onValueChange={(value) => setVehicleForm({...vehicleForm, vendorId: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vendor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vendors.map((vendor) => (
+                            <SelectItem key={vendor.id} value={vendor.id.toString()}>{vendor.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="vehicle-type">Vehicle Type *</Label>
+                        <Select value={vehicleForm.vehicleType} onValueChange={(value) => setVehicleForm({...vehicleForm, vehicleType: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sedan">Sedan</SelectItem>
+                            <SelectItem value="suv">SUV</SelectItem>
+                            <SelectItem value="tempo_traveller">Tempo Traveller</SelectItem>
+                            <SelectItem value="mini_bus">Mini Bus</SelectItem>
+                            <SelectItem value="coach">Coach</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicle-name">Vehicle Name</Label>
+                        <Input
+                          id="vehicle-name"
+                          value={vehicleForm.vehicleName}
+                          onChange={(e) => setVehicleForm({...vehicleForm, vehicleName: e.target.value})}
+                          placeholder="e.g., Luxury Coach #1"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="capacity">Capacity *</Label>
+                        <Input
+                          id="capacity"
+                          type="number"
+                          value={vehicleForm.capacity}
+                          onChange={(e) => setVehicleForm({...vehicleForm, capacity: e.target.value})}
+                          placeholder="Number of passengers"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="available-count">Available Count</Label>
+                        <Input
+                          id="available-count"
+                          type="number"
+                          value={vehicleForm.availableCount}
+                          onChange={(e) => setVehicleForm({...vehicleForm, availableCount: e.target.value})}
+                          placeholder="Number available"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="hourly-rate">Hourly Rate</Label>
+                      <Input
+                        id="hourly-rate"
+                        value={vehicleForm.hourlyRate}
+                        onChange={(e) => setVehicleForm({...vehicleForm, hourlyRate: e.target.value})}
+                        placeholder="₹ per hour"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setVehicleDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleVehicleSubmit}
+                      disabled={createVehicleMutation.isPending}
+                    >
+                      {createVehicleMutation.isPending ? "Adding..." : "Add Vehicle"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid gap-4">
+              {vehicles.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No vehicles added yet</p>
+                  <p className="text-sm">Add vehicles from your registered vendors</p>
+                  {vendors.length === 0 && (
+                    <p className="text-xs mt-2">First add transport vendors in the previous tab</p>
+                  )}
+                </div>
+              ) : (
+                vehicles.map((vehicle) => (
+                  <Card key={vehicle.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base">
+                            {vehicle.vehicleName || `${vehicle.vehicleType} Vehicle`}
+                          </CardTitle>
+                          <CardDescription className="capitalize">
+                            {vehicle.vehicleType?.replace('_', ' ')}
+                          </CardDescription>
+                        </div>
+                        <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
+                          {vehicle.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          Capacity: {vehicle.capacity}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4 text-muted-foreground" />
+                          Available: {vehicle.availableCount}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <div className="flex justify-end mt-8">
+      <Separator />
+
+      <div className="flex justify-end gap-3">
+        <Button variant="outline" onClick={() => setIsEditing(false)}>
+          Cancel
+        </Button>
         <Button onClick={handleComplete} className="flex items-center gap-2">
           <Check className="h-4 w-4" />
-          Save Transport Settings
+          Complete Transport Setup
         </Button>
       </div>
     </div>
