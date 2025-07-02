@@ -389,7 +389,7 @@ export default function TransportSetupStep({
                       )}
                     />
                     
-                    {form.watch("transportMode") !== PROVISION_MODES.NONE && (
+                    {(form.watch("transportMode") === PROVISION_MODES.ALL || form.watch("transportMode") === PROVISION_MODES.SELECTED) && (
                       <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
@@ -540,6 +540,52 @@ export default function TransportSetupStep({
                             )}
                           />
                         </div>
+                      </>
+                    )}
+                    
+                    {form.watch("transportMode") === PROVISION_MODES.SPECIAL_DEAL && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="transportSpecialDeals"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Transportation Options & Discounts</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  {...field} 
+                                  placeholder="Describe the transportation options, discounts, or partnerships available to guests"
+                                  className="min-h-[100px]"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Details about discounted transportation options, partner deals, or preferred providers
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="transportInstructions"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Booking Instructions for Guests</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  {...field} 
+                                  placeholder="Instructions on how guests can access these transportation options"
+                                  className="min-h-[100px]"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Step-by-step instructions for guests on how to book or access discounted transportation
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </>
                     )}
                   </CardContent>
@@ -822,10 +868,9 @@ export default function TransportSetupStep({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">No flight assistance</SelectItem>
-                          <SelectItem value="guidance">Flight booking guidance only</SelectItem>
-                          <SelectItem value="list_collection">Collect flight requirements for travel agent</SelectItem>
-                          <SelectItem value="full_coordination">Full flight coordination service</SelectItem>
+                          <SelectItem value="none">No flight coordination</SelectItem>
+                          <SelectItem value="collect_requirements">Collect flight requirements from guests</SelectItem>
+                          <SelectItem value="provide_flights">Provide flights to guests</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -893,7 +938,7 @@ export default function TransportSetupStep({
                       )}
                     />
                     
-                    {(form.watch("flightMode") === "full_coordination" || form.watch("flightMode") === "list_collection") && (
+                    {form.watch("flightMode") === "provide_flights" && (
                       <FormField
                         control={form.control}
                         name="flightSpecialDeals"
