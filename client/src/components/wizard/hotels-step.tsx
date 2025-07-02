@@ -82,7 +82,6 @@ const hotelSchema = z.object({
   }).optional().or(z.literal("")),
   contactPhone: z.string().optional(),
   amenities: z.string().optional(),
-  specialDeals: z.string().optional(),
   bookingInstructions: z.string().optional(),
 });
 
@@ -100,7 +99,12 @@ const roomTypeSchema = z.object({
   totalRooms: z.number().min(1, {
     message: "Total number of rooms must be at least 1.",
   }),
-  pricePerNight: z.string().optional(),
+  // Pricing (for direct booking scenarios)
+  basePrice: z.string().optional(),
+  discountType: z.enum(["none", "percentage", "fixed_amount"]).optional(),
+  discountValue: z.string().optional(),
+  finalPrice: z.string().optional(),
+  // Additional details
   specialFeatures: z.string().optional(),
   description: z.string().optional(),
 });
@@ -172,7 +176,6 @@ export default function HotelsStep({
       contactEmail: "",
       contactPhone: "",
       amenities: "",
-      specialDeals: "",
       bookingInstructions: "",
     },
   });
