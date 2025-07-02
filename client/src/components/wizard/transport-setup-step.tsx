@@ -215,7 +215,7 @@ export default function TransportSetupStep({
         ...data,
         transportVehicles: JSON.stringify(vehicles)
       };
-      const res = await apiRequest('PATCH', `/api/events/${eventId}`, updatedData);
+      const res = await apiRequest('POST', `/api/wizard/transport`, updatedData);
       return res.json();
     },
     onSuccess: (data) => {

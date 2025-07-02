@@ -994,13 +994,14 @@ export default function TransportAssignmentsPage() {
                       <FormLabel>Vehicle</FormLabel>
                       <FormControl>
                         <Select 
-                          value={field.value} 
+                          value={field.value || ''} 
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select vehicle" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="">Select vehicle</SelectItem>
                             {vehicles.map((vehicle) => (
                               <SelectItem key={vehicle.id} value={vehicle.id}>
                                 {vehicle.type} ({vehicle.capacity} passengers)
