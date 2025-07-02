@@ -38,13 +38,13 @@ export default function StatsCard({ title, value, change, icon, className, onCli
   const getIconClass = () => {
     switch (icon) {
       case "confirmed":
-        return "bg-green-100 text-green-600";
+        return "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400";
       case "declined":
-        return "bg-red-100 text-red-600";
+        return "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400";
       case "pending":
-        return "bg-yellow-100 text-yellow-600";
+        return "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400";
       case "total":
-        return "bg-blue-100 text-blue-600";
+        return "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400";
     }
   };
 
@@ -57,7 +57,7 @@ export default function StatsCard({ title, value, change, icon, className, onCli
   return (
     <div 
       className={cn(
-        "bg-white rounded-lg shadow p-6 transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg", 
+        "bg-card border border-border rounded-lg shadow-sm p-6 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-md", 
         onClick && "cursor-pointer", 
         className
       )}
@@ -68,8 +68,8 @@ export default function StatsCard({ title, value, change, icon, className, onCli
           {getIcon()}
         </div>
         <div className="ml-5">
-          <p className="text-gray-500 text-sm font-medium">{title}</p>
-          <h3 className="font-playfair text-2xl font-bold text-neutral">{value}</h3>
+          <p className="text-muted-foreground text-sm font-medium">{title}</p>
+          <h3 className="font-playfair text-2xl font-bold text-foreground">{value}</h3>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function StatsCard({ title, value, change, icon, className, onCli
               ) : null}
               {Math.abs(change.value)}%
             </span>
-            <span className="text-gray-500 text-sm ml-2">{change.text}</span>
+            <span className="text-muted-foreground text-sm ml-2">{change.text}</span>
           </div>
         </div>
       )}

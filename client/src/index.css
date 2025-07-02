@@ -136,22 +136,57 @@
     border-color: rgba(255, 255, 255, 0.08) !important;
   }
 
-  /* CLEAN MODE ENFORCEMENT */
+  /* FORCE EXACT CLEAN COLORS - NO BROWSER DEFAULTS */
+  * {
+    border-color: hsl(var(--border));
+  }
+
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: #FFFFFF !important;
+    color: #1F1F1F !important;
   }
 
   /* Dark mode clean navy background */
+  .dark,
   .dark body {
-    background-color: #1E293B;
-    color: #F8FAFC;
+    background-color: #1E293B !important;
+    color: #F8FAFC !important;
   }
 
-  /* Clean card styling */
+  /* Force clean card backgrounds */
+  .card,
+  [data-radix-dialog-content],
+  .glass-card {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+  }
+
+  .dark .card,
+  .dark [data-radix-dialog-content],
   .dark .glass-card {
-    background-color: #334155;
-    border-color: #475569;
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+  }
+
+  /* Override all brown/tan/orange colors */
+  .bg-neutral,
+  .bg-stone,
+  .bg-amber,
+  .bg-orange,
+  .bg-yellow-50,
+  .bg-amber-50,
+  .bg-orange-50 {
+    background-color: #FFFFFF !important;
+  }
+
+  .dark .bg-neutral,
+  .dark .bg-stone,
+  .dark .bg-amber,
+  .dark .bg-orange,
+  .dark .bg-yellow-50,
+  .dark .bg-amber-50,
+  .dark .bg-orange-50 {
+    background-color: #334155 !important;
   }
 
   /* iOS 18 Typography Classes */

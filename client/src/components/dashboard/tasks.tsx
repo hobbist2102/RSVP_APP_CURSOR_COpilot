@@ -69,14 +69,14 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
 
   return (
     <Card>
-      <CardHeader className="p-6 border-b border-gray-200 flex justify-between items-center">
-        <CardTitle className="text-lg font-medium font-playfair">Upcoming Tasks</CardTitle>
+      <CardHeader className="p-6 border-b border-border flex justify-between items-center">
+        <CardTitle className="text-lg font-medium font-playfair text-foreground">Upcoming Tasks</CardTitle>
         <Button variant="link" className="text-sm text-primary hover:text-opacity-80 p-0">
           View All
         </Button>
       </CardHeader>
       <CardContent className="p-4">
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-border">
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <li key={task.id} className="py-3">
@@ -88,10 +88,10 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
                     className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                   />
                   <Label htmlFor={`task-${task.id}`} className="ml-3 block">
-                    <span className={`text-sm font-medium ${task.completed ? 'line-through text-gray-400' : 'text-neutral'}`}>
+                    <span className={`text-sm font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                       {task.title}
                     </span>
-                    <span className="block text-xs text-gray-500">Due {task.dueDate}</span>
+                    <span className="block text-xs text-muted-foreground">Due {task.dueDate}</span>
                   </Label>
                 </div>
               </li>

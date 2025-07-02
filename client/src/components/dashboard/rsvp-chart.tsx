@@ -33,14 +33,14 @@ export default function RsvpChart({
 
   return (
     <Card>
-      <CardHeader className="py-5 px-6 border-b border-gray-200">
-        <CardTitle className="text-lg font-medium font-playfair">RSVP Progress</CardTitle>
+      <CardHeader className="py-5 px-6 border-b border-border">
+        <CardTitle className="text-lg font-medium font-playfair text-foreground">RSVP Progress</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h4 className="text-sm font-medium text-gray-500">Total Response Rate</h4>
-            <p className="text-2xl font-bold text-neutral">
+            <h4 className="text-sm font-medium text-muted-foreground">Total Response Rate</h4>
+            <p className="text-2xl font-bold text-foreground">
               {data.length > 0 ? `${data[data.length - 1].value}%` : "0%"}
             </p>
           </div>
@@ -72,32 +72,38 @@ export default function RsvpChart({
             >
               <defs>
                 <linearGradient id="rsvpColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#D4AF37" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#5E239D" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#5E239D" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 12 }} 
+                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} 
                 tickLine={false}
-                axisLine={{ stroke: '#E5E7EB' }}
+                axisLine={{ stroke: 'hsl(var(--border))' }}
               />
               <YAxis 
                 tickFormatter={(value) => `${value}%`}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 tickLine={false}
-                axisLine={{ stroke: '#E5E7EB' }}
+                axisLine={{ stroke: 'hsl(var(--border))' }}
                 domain={[0, 100]}
               />
               <Tooltip 
                 formatter={(value) => [`${value}%`, "Response Rate"]}
                 labelFormatter={(label) => `Date: ${label}`}
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "0.5rem",
+                  color: "hsl(var(--foreground))"
+                }}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#D4AF37"
+                stroke="#5E239D"
                 fillOpacity={1}
                 fill="url(#rsvpColor)"
               />
