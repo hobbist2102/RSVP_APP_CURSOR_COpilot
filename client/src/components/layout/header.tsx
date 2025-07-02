@@ -86,8 +86,8 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="glass-strong border-b border-purple-600/20 backdrop-blur-xl">
-      <div className="flex justify-between items-center px-6 py-4 mx-auto">
+    <header className="glass-strong border-b border-gray-200/30 dark:border-gray-700/30">
+      <div className="flex justify-between items-center px-6 py-3 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost"
