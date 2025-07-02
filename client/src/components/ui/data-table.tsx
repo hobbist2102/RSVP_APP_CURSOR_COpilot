@@ -177,13 +177,13 @@ const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
   // Empty state handling
   if (data.length === 0) {
     return (
-      <div ref={containerRef} style={{ height: containerHeight, overflow: 'auto' }}>
+      <TableBody>
         <TableRow>
           <TableCell colSpan={columns.length} className="h-24 text-center">
             No results found.
           </TableCell>
         </TableRow>
-      </div>
+      </TableBody>
     );
   }
   
@@ -193,46 +193,20 @@ const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
   // Calculate total content height
   const totalHeight = data.length * itemHeight;
   
-  // Render virtualized content
+  // For now, disable virtualization to fix DOM nesting errors
+  // Return a standard TableBody instead of virtualized div structure
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        height: containerHeight, 
-        overflow: 'auto',
-        position: 'relative',
-        willChange: 'scroll-position', // Performance hint
-        overscrollBehavior: 'contain' // Prevent scroll chain for better performance
-      }}
-      data-virtualized="true"
-    >
-      {/* Total height container */}
-      <div style={{ height: totalHeight, position: 'relative' }}>
-        {/* Only the visible rows */}
-        <div
-          ref={visibleRowsRef}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            transform: `translateY(${placeholderHeightRef.current}px)`,
-            willChange: 'transform',
-            contain: 'content' // Additional performance boost
-          }}
-        >
-          {visibleRows.map((row) => (
-            <MemoizedTableRow
-              key={String(row[keyField])}
-              row={row}
-              columns={columns}
-              keyField={keyField}
-              onRowClick={onRowClick}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    <TableBody>
+      {visibleRows.map((row) => (
+        <MemoizedTableRow
+          key={String(row[keyField])}
+          row={row}
+          columns={columns}
+          keyField={keyField}
+          onRowClick={onRowClick}
+        />
+      ))}
+    </TableBody>
   );
 });
 

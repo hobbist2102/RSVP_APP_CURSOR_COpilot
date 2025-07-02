@@ -21,59 +21,46 @@ const config: Config = {
         'full': '9999px',
       },
       colors: {
-        background: "var(--color-background)",
-        foreground: "var(--color-text-primary)",
-        surface: "var(--color-surface)",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         
         primary: {
-          DEFAULT: "var(--color-accent-purple)",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
 
         accent: {
-          DEFAULT: "var(--color-accent-gold)",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
 
         secondary: {
-          DEFAULT: "var(--color-surface)",
-          foreground: "var(--color-text-secondary)",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         
         muted: {
-          DEFAULT: "var(--color-surface)",
-          foreground: "var(--color-text-secondary)",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         
-        border: "var(--color-border)",
-        ring: "var(--color-accent-purple)",
-        
-        // Glass effect utilities
-        glass: {
-          light: "var(--glass-bg)",
-          dark: "var(--glass-bg)",
-        },
-        
-        // Status colors for pills
-        status: {
-          confirmed: "#059669",
-          declined: "#DC2626", 
-          pending: "#D97706",
-        },
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
         
         card: {
-          DEFAULT: "var(--color-surface)",
-          foreground: "var(--color-text-primary)",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         
         popover: {
-          DEFAULT: "var(--color-surface)",
-          foreground: "var(--color-text-primary)",
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
 
         destructive: {
-          DEFAULT: "#ef4444",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
 
         chart: {
@@ -85,14 +72,14 @@ const config: Config = {
         },
 
         sidebar: {
-          DEFAULT: "var(--color-surface)",
-          foreground: "var(--color-text-primary)",
-          primary: "#5E239D",
-          "primary-foreground": "#ffffff",
-          accent: "rgba(94, 35, 157, 0.1)",
-          "accent-foreground": "#5E239D",
-          border: "var(--color-border)",
-          ring: "#5E239D",
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
         },
       },
       

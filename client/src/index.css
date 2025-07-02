@@ -29,6 +29,16 @@
     --ring: 94 35 157;
     --radius: 0.75rem;
 
+    /* Sidebar Colors */
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 31 31 31;
+    --sidebar-primary: 94 35 157;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 249 250 251;
+    --sidebar-accent-foreground: 31 31 31;
+    --sidebar-border: 229 231 235;
+    --sidebar-ring: 94 35 157;
+
     /* Clean Color Palette */
     --color-luxury-purple: 94 35 157;
     --color-luxury-gold: 191 167 111;
@@ -65,6 +75,16 @@
     --border: 71 85 105;          /* #475569 */
     --input: 71 85 105;           /* #475569 */
     --ring: 94 35 157;
+
+    /* Sidebar Colors */
+    --sidebar-background: 30 41 59;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 94 35 157;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 71 85 105;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 71 85 105;
+    --sidebar-ring: 94 35 157;
 
     /* Clean Dark Color Palette */
     --color-luxury-purple: 94 35 157;
@@ -240,7 +260,7 @@
   /* Typography implementation */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', sans-serif;
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.02em;
@@ -256,14 +276,14 @@
 
   /* Purple accent for focus states only */
   :focus-visible {
-    outline: 2px solid var(--color-accent-purple);
+    outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
     border-radius: 6px;
   }
 
   ::selection {
     background-color: rgba(94, 35, 157, 0.2);
-    color: var(--color-text-primary);
+    color: hsl(var(--foreground));
   }
 }
 
