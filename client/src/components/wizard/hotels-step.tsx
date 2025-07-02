@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -159,6 +160,66 @@ export default function HotelsStep({
   const [isHotelDialogOpen, setIsHotelDialogOpen] = useState(false);
   const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  // Fetch existing hotels from database
+  const { data: existingHotels, isLoading: hotelsLoading } = useQuery({
+    queryKey: ['hotels', eventId],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/hotels`);
+      if (!response.ok) throw new Error('Failed to fetch hotels');
+      return response.json();
+    },
+    enabled: !!eventId
+  });
+
+  // Fetch existing accommodations from database
+  const { data: existingAccommodations, isLoading: accommodationsLoading } = useQuery({
+    queryKey: ['accommodations', eventId],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/accommodations`);
+      if (!response.ok) throw new Error('Failed to fetch accommodations');
+      return response.json();
+    },
+    enabled: !!eventId
+  });
+
+  // Initialize hotels and room types from database when data loads
+  useEffect(() => {
+    if (existingHotels && existingHotels.length > 0) {
+      const mappedHotels = existingHotels.map((hotel: any) => ({
+        id: hotel.id.toString(),
+        name: hotel.name,
+        location: hotel.address || '',
+        description: hotel.description || '',
+        website: hotel.website || '',
+        contactEmail: '',
+        contactPhone: hotel.phone || '',
+        amenities: hotel.amenities || '',
+        bookingInstructions: hotel.bookingInstructions || '',
+        attachments: []
+      }));
+      setHotels(mappedHotels);
+    }
+  }, [existingHotels]);
+
+  useEffect(() => {
+    if (existingAccommodations && existingAccommodations.length > 0) {
+      const mappedRoomTypes = existingAccommodations.map((acc: any) => ({
+        id: acc.id.toString(),
+        hotelId: acc.hotelId?.toString() || '',
+        name: acc.name,
+        bedType: acc.bedType || 'double',
+        maxOccupancy: acc.maxOccupancy || acc.capacity || 2,
+        totalRooms: acc.totalRooms,
+        negotiatedRate: acc.pricePerNight || '',
+        currency: 'INR',
+        specialFeatures: acc.specialFeatures || '',
+        description: '',
+        attachments: []
+      }));
+      setRoomTypes(mappedRoomTypes);
+    }
+  }, [existingAccommodations]);
   
   // Set up form with default values 
   const form = useForm<AccommodationSettingsData>({

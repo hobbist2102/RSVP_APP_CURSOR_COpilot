@@ -224,6 +224,50 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
               updatedAt: new Date()
             })
             .where(eq(weddingEvents.id, eventId));
+
+          // Save hotels and room types data to actual database tables
+          if (stepData.hotels && Array.isArray(stepData.hotels)) {
+            // Import hotel and accommodation schemas
+            const { hotels, accommodations } = await import('@shared/schema');
+            
+            // First, delete existing hotels and room types for this event
+            await db.delete(accommodations).where(eq(accommodations.eventId, eventId));
+            await db.delete(hotels).where(eq(hotels.eventId, eventId));
+            
+            // Insert new hotels
+            for (const hotel of stepData.hotels) {
+              const [insertedHotel] = await db.insert(hotels).values({
+                eventId,
+                name: hotel.name,
+                address: hotel.location || '',
+                phone: hotel.contactPhone || null,
+                website: hotel.website || null,
+                description: hotel.description || null,
+                amenities: hotel.amenities || null,
+                isDefault: hotel.isDefault || false
+              }).returning();
+
+              // Insert room types for this hotel
+              if (stepData.roomTypes && Array.isArray(stepData.roomTypes)) {
+                const hotelRoomTypes = stepData.roomTypes.filter(rt => rt.hotelId === hotel.id);
+                
+                for (const roomType of hotelRoomTypes) {
+                  await db.insert(accommodations).values({
+                    eventId,
+                    hotelId: insertedHotel.id,
+                    name: roomType.name,
+                    roomType: roomType.name,
+                    bedType: roomType.bedType || null,
+                    maxOccupancy: roomType.maxOccupancy,
+                    totalRooms: roomType.totalRooms,
+                    pricePerNight: roomType.negotiatedRate || null,
+                    specialFeatures: roomType.specialFeatures || null,
+                    capacity: roomType.maxOccupancy // For backward compatibility
+                  });
+                }
+              }
+            }
+          }
         }
         break;
       case 'transport':
