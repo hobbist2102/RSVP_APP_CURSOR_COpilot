@@ -219,19 +219,22 @@ export default function TransportSetupStep({
       const res = await apiRequest('POST', `/api/wizard/transport`, updatedData);
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Invalidate all relevant queries to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
       queryClient.invalidateQueries({ queryKey: ['/api/current-event'] });
       queryClient.invalidateQueries({ queryKey: ['/api/wizard'] });
       
-      // Force refetch of current event data
-      queryClient.refetchQueries({ queryKey: ['/api/events', eventId] });
+      // Force refetch of current event data and wait for it to complete
+      await queryClient.refetchQueries({ queryKey: ['/api/events', eventId] });
+      await queryClient.refetchQueries({ queryKey: ['/api/current-event'] });
       
       toast({
         title: "Transport settings saved",
         description: "Your transport configuration has been updated.",
       });
+      
+      // Exit editing mode to show the updated display view
       setIsEditing(false);
       onComplete(data);
     },
