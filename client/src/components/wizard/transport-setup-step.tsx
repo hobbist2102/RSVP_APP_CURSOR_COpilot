@@ -693,12 +693,18 @@ export default function TransportSetupStep({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="none">No flight coordination</SelectItem>
-                          <SelectItem value="collect_requirements">Collect flight requirements from guests</SelectItem>
-                          <SelectItem value="provide_flights">Provide flights to guests</SelectItem>
+                          <SelectItem value="collect_details">Collect flight details from guests</SelectItem>
+                          <SelectItem value="provide_selected">Provide flights for selected guests & collect from others</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        How you'll handle flight coordination for guests
+                        {form.watch("flightMode") === "collect_details" ? (
+                          "System will prompt outstation guests for flight details during RSVP. Local guests are ignored."
+                        ) : form.watch("flightMode") === "provide_selected" ? (
+                          "Flag guests in guest list for provided flights. System exports flagged guests for travel agent and imports updates."
+                        ) : (
+                          "How you'll handle flight coordination for guests"
+                        )}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -762,27 +768,57 @@ export default function TransportSetupStep({
                       )}
                     />
                     
-                    {form.watch("flightMode") === "provide_flights" && (
-                      <FormField
-                        control={form.control}
-                        name="flightSpecialDeals"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Special Flight Deals</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                {...field} 
-                                placeholder="Details about special flight deals or group rates"
-                                className="min-h-[100px]"
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Information about special deals, group rates, or booking assistance
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    {/* Mode-specific configuration fields */}
+                    {form.watch("flightMode") === "collect_details" && (
+                      <Alert className="bg-blue-50">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Flight Collection Mode</AlertTitle>
+                        <AlertDescription>
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Outstation guests will be prompted for flight details during RSVP Stage 2</li>
+                            <li>Local guests (from event city) will skip flight questions automatically</li>
+                            <li>Flight data will be available in Travel Management for grouping</li>
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {form.watch("flightMode") === "provide_selected" && (
+                      <div className="space-y-4">
+                        <Alert className="bg-amber-50">
+                          <Info className="h-4 w-4" />
+                          <AlertTitle>Selective Flight Provision Mode</AlertTitle>
+                          <AlertDescription>
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>Use the guest list to flag guests who will receive provided flights</li>
+                              <li>Export flagged guests to send to your travel agent</li>
+                              <li>Import flight updates to populate details for flagged guests only</li>
+                              <li>Other outstation guests still provide their own flight details via RSVP</li>
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                        
+                        <FormField
+                          control={form.control}
+                          name="flightSpecialDeals"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Travel Agent Instructions</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  {...field} 
+                                  placeholder="Instructions for your travel agent about flight bookings, preferences, budget constraints, etc."
+                                  className="min-h-[100px]"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Instructions that will be included with the guest export to your travel agent
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )}
                     
                     <FormField
