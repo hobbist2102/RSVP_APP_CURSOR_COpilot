@@ -134,6 +134,9 @@ export default function EventSetupWizard() {
           queryClient.invalidateQueries({ queryKey: ['accommodations', eventId] });
         } else if (variables.stepId === 'venues') {
           queryClient.invalidateQueries({ queryKey: ['ceremonies', eventId] });
+        } else if (variables.stepId === 'transport') {
+          queryClient.invalidateQueries({ queryKey: ['transport-groups', eventId] });
+          queryClient.invalidateQueries({ queryKey: ['transport-vendors', eventId] });
         }
       }
     },

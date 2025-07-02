@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -583,6 +583,73 @@ export type InsertGuestMealSelection = z.infer<typeof insertGuestMealSelectionSc
 
 export type CoupleMessage = typeof coupleMessages.$inferSelect;
 export type InsertCoupleMessage = z.infer<typeof insertCoupleMessageSchema>;
+
+// Transport Vendors - external transport service providers
+export const transportVendors = pgTable("transport_vendors", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  name: text("name").notNull(),
+  contactPerson: text("contact_person"),
+  phone: text("phone"),
+  email: text("email"),
+  whatsappNumber: text("whatsapp_number"),
+  vehicleFleet: jsonb("vehicle_fleet"), // Array of vehicle types and capacities
+  specialization: text("specialization").array(), // ['airport_shuttle', 'luxury_cars', 'buses']
+  status: text("status").default("active").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Location Representatives - airport/station coordinators
+export const locationRepresentatives = pgTable("location_representatives", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  name: text("name").notNull(),
+  locationType: text("location_type"), // 'airport', 'train_station', 'hotel'
+  locationName: text("location_name"), // 'GOI Terminal 1', 'Mumbai Central'
+  terminalGate: text("terminal_gate"),
+  phone: text("phone"),
+  whatsappNumber: text("whatsapp_number"),
+  loginCredentials: jsonb("login_credentials"), // For app access
+  status: text("status").default("active").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Event Vehicles - available fleet for the event
+export const eventVehicles = pgTable("event_vehicles", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  vehicleType: text("vehicle_type").notNull(), // 'sedan', 'suv', 'tempo_traveller', 'mini_bus', 'coach'
+  vehicleName: text("vehicle_name"),
+  capacity: integer("capacity").notNull(),
+  availableCount: integer("available_count").notNull(),
+  hourlyRate: text("hourly_rate"), // Store as text for now
+  features: text("features").array(), // ['ac', 'luggage_space', 'wheelchair_accessible']
+  status: text("status").default("available").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Guest Travel Information - flight/train details
+export const guestTravelInfo = pgTable("guest_travel_info", {
+  id: serial("id").primaryKey(),
+  guestId: integer("guest_id").notNull(),
+  eventId: integer("event_id").notNull(),
+  arrivalMethod: text("arrival_method"), // 'flight', 'train', 'car', 'bus'
+  flightNumber: text("flight_number"),
+  trainNumber: text("train_number"),
+  scheduledArrival: timestamp("scheduled_arrival"),
+  actualArrival: timestamp("actual_arrival"),
+  delayMinutes: integer("delay_minutes").default(0),
+  status: text("status").default("scheduled").notNull(), // 'scheduled', 'delayed', 'arrived', 'missed'
+  terminalGate: text("terminal_gate"),
+  luggageCount: integer("luggage_count"),
+  specialAssistance: boolean("special_assistance").default(false),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 // Transport Groups - groups of guests traveling together
 export const transportGroups = pgTable("transport_groups", {

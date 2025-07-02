@@ -312,11 +312,46 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
         if (stepData && typeof stepData === 'object') {
           await db.update(weddingEvents)
             .set({
-              transportMode: stepData.transportMode,
+              transportMode: stepData.transportMode || 'none',
               transportInstructions: stepData.transportInstructions,
+              transportationProvided: stepData.enableTransport || false,
               updatedAt: new Date()
             })
             .where(eq(weddingEvents.id, eventId));
+
+          // Save transport groups to database if provided
+          if (stepData.transportGroups && Array.isArray(stepData.transportGroups)) {
+            const { transportGroups } = await import('@shared/schema');
+            
+            // Delete existing transport groups for this event
+            await db.delete(transportGroups).where(eq(transportGroups.eventId, eventId));
+            
+            // Insert new transport groups
+            for (const group of stepData.transportGroups) {
+              await db.insert(transportGroups).values({
+                eventId,
+                name: group.name,
+                transportMode: group.transportMode || 'bus',
+                vehicleType: group.vehicleType,
+                vehicleCapacity: group.vehicleCapacity || 50,
+                pickupLocation: group.pickupLocation,
+                pickupLocationDetails: group.pickupLocationDetails,
+                pickupDate: group.pickupDate,
+                pickupTimeSlot: group.pickupTimeSlot,
+                dropoffLocation: group.dropoffLocation,
+                dropoffLocationDetails: group.dropoffLocationDetails,
+                vehicleCount: group.vehicleCount || 1,
+                status: 'draft',
+                specialInstructions: group.specialInstructions
+              });
+            }
+          }
+
+          // Save transport vendors if provided
+          if (stepData.transportVendors && Array.isArray(stepData.transportVendors)) {
+            // Import transport vendors schema when it's available
+            // Will be implemented in Phase 2
+          }
         }
         break;
       case 'communication':
