@@ -38,20 +38,20 @@ export default function StatsCard({ title, value, change, icon, className, onCli
   const getIconClass = () => {
     switch (icon) {
       case "confirmed":
-        return "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400";
+        return "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400";
       case "declined":
-        return "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400";
+        return "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400";
       case "pending":
-        return "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400";
+        return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
       case "total":
-        return "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400";
+        return "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary";
     }
   };
 
   const getChangeColor = () => {
     if (!change) return "";
     return change.value > 0 ? "text-green-600" : 
-           change.value < 0 ? "text-red-600" : "text-gray-500";
+           change.value < 0 ? "text-red-600" : "text-muted-foreground";
   };
 
   return (
