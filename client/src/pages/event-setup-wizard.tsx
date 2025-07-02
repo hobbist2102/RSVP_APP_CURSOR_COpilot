@@ -124,9 +124,17 @@ export default function EventSetupWizard() {
       const response = await apiRequest("POST", `/api/wizard/${eventId}/steps/${data.stepId}`, data.stepData);
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       if (!isNewEventCreation) {
         queryClient.invalidateQueries({ queryKey: [`/api/wizard/${eventId}/progress`] });
+        
+        // Invalidate specific queries based on the step
+        if (variables.stepId === 'hotels') {
+          queryClient.invalidateQueries({ queryKey: ['hotels', eventId] });
+          queryClient.invalidateQueries({ queryKey: ['accommodations', eventId] });
+        } else if (variables.stepId === 'venues') {
+          queryClient.invalidateQueries({ queryKey: ['ceremonies', eventId] });
+        }
       }
     },
     onError: (error: Error) => {

@@ -385,7 +385,10 @@ export default function HotelsStep({
     console.log('Room types being sent:', roomTypes);
     console.log('Final data being sent:', finalData);
     
+    // Complete the step (which will trigger the save)
     onComplete(finalData);
+    
+    // Exit editing mode after successful completion
     setIsEditing(false);
   }
 
