@@ -481,9 +481,15 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
  */
 router.post('/transport', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const eventId = req.session.currentEvent?.id;
-    if (!eventId) {
+    const rawEventId = req.session.currentEvent?.id;
+    if (!rawEventId) {
       return res.status(400).json({ error: 'No event selected' });
+    }
+    
+    // Ensure eventId is properly converted to number for database operations
+    const eventId = typeof rawEventId === 'string' ? parseInt(rawEventId, 10) : rawEventId;
+    if (isNaN(eventId)) {
+      return res.status(400).json({ error: 'Invalid event ID' });
     }
     
     // Call the existing step saving logic
@@ -521,7 +527,7 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       console.log('Transport mode type:', typeof stepData.transportMode);
       console.log('Will set transport mode to:', stepData.transportMode || currentTransportMode);
       
-      await db.update(weddingEvents)
+      const updateResult = await db.update(weddingEvents)
         .set({
           transportMode: stepData.transportMode || currentTransportMode,
           transportInstructions: stepData.transportInstructions,
@@ -548,6 +554,23 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
           updatedAt: new Date()
         })
         .where(eq(weddingEvents.id, eventId));
+
+      console.log('=== DATABASE UPDATE DEBUG ===');
+      console.log('Update result:', updateResult);
+      console.log('Event ID for WHERE clause:', eventId);
+      console.log('Event ID type:', typeof eventId);
+      
+      // Immediately verify the update by fetching the record
+      const verificationQuery = await db.select({ 
+        id: weddingEvents.id, 
+        transportMode: weddingEvents.transportMode,
+        transportProviderName: weddingEvents.transportProviderName 
+      })
+      .from(weddingEvents)
+      .where(eq(weddingEvents.id, eventId));
+      
+      console.log('Post-update verification:', verificationQuery);
+      console.log('=== END DATABASE UPDATE DEBUG ===');
     }
     
     if (progressData && progressData.length > 0) {

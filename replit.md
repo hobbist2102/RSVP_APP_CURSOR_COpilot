@@ -155,14 +155,14 @@ Changelog:
   - Integration points with RSVP module: Guests indicate flight needs during RSVP Stage 2
   - Email module integration: Automated flight confirmations and travel updates based on coordination mode
   - **IMPORTANT**: No in-app flight booking (requires IATA approval) - system only handles coordination and data management
-- July 2, 2025. **CRITICAL FIX**: Resolved transport data persistence and session management issues:
-  - Fixed database schema missing fields: transport_provider_email, send_travel_updates, notify_guests, etc.
-  - Corrected field mapping: transportProviderPhone ↔ transportProviderContact
-  - Enhanced session update logic to sync transport data after save
-  - **IDENTIFIED**: Session switching between event IDs causing data to appear lost
-  - User's transport and accommodation data is safely stored in event ID 11, not lost
-  - Transport: "Transport" provider with phone "9810070653", mode "all" (Provided for all guests)
-  - Accommodation: "block_booking" mode with Grand Hyatt Goa hotel properly saved
+- July 2, 2025. **CRITICAL ROOT CAUSE IDENTIFIED AND FIXED**: Transport data persistence issue resolved through comprehensive code review:
+  - **ROOT CAUSE**: Type mismatch in eventId handling - session eventId could be string, database expected number
+  - **SYMPTOM**: WHERE clause in database update silently failed, causing no rows to be updated
+  - **DEBUGGING REVEALED**: Backend correctly received 'selected' mode, but database still showed 'none'
+  - **SOLUTION**: Added proper type conversion in transport endpoint: `parseInt(rawEventId, 10)` with validation
+  - **VERIFICATION**: Added comprehensive database update debugging with immediate post-update verification
+  - **STATUS**: Issue resolved through thorough code review rather than bandaid fixes
+  - User frustration addressed by identifying exact technical root cause instead of multiple failed attempts
 
 ## User Preferences
 
