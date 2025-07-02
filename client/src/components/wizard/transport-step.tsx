@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { WeddingEvent } from "@shared/schema";
-import { Check, Bus, Car, Plane, Train, MapPin, Users, AlertCircle } from "lucide-react";
+import { Check, Bus, Car, Plane, Train, MapPin, Users, AlertCircle, Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Card, 
   CardContent, 
@@ -35,6 +38,9 @@ export default function TransportStep({
   onComplete,
   isCompleted
 }: TransportStepProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [formData, setFormData] = useState({
     transportMode: currentEvent?.transportMode || 'none',
     transportationProvided: currentEvent?.transportationProvided || false,
@@ -53,8 +59,36 @@ export default function TransportStep({
     airlineDiscountCodes: currentEvent?.airlineDiscountCodes || ''
   });
 
+  // Save mutation for wizard API
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest('POST', `/api/wizard/${eventId}/steps/transport`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/wizard', eventId, 'progress'] });
+      
+      toast({
+        title: "Transport configuration saved",
+        description: "Your transport settings have been successfully saved.",
+      });
+      
+      onComplete(formData);
+    },
+    onError: (error: any) => {
+      console.error('Failed to save transport settings:', error);
+      toast({
+        title: "Error saving transport settings",
+        description: "There was a problem saving your transport configuration. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleComplete = () => {
-    onComplete(formData);
+    saveMutation.mutate(formData);
   };
 
   const transportModes = [
@@ -326,10 +360,20 @@ export default function TransportStep({
         </div>
         <Button
           onClick={handleComplete}
+          disabled={saveMutation.isPending}
           className="bg-amber-600 hover:bg-amber-700"
         >
-          <Check className="h-4 w-4 mr-2" />
-          Complete Setup
+          {saveMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Complete Setup
+            </>
+          )}
         </Button>
       </div>
     </div>
