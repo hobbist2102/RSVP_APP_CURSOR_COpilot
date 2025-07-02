@@ -109,9 +109,12 @@ const roomTypeSchema = z.object({
     message: "Total number of rooms must be at least 1.",
   }),
   negotiatedRate: z.string().optional(),
+  currency: z.string().optional(),
   specialFeatures: z.string().optional(),
   description: z.string().optional(),
   attachments: z.array(attachmentSchema).optional(),
+  brochureUrl: z.string().optional(),
+  photosUrl: z.string().optional(),
 });
 
 // TypeScript types
@@ -196,9 +199,12 @@ export default function HotelsStep({
       maxOccupancy: 2,
       totalRooms: 1,
       negotiatedRate: "",
+      currency: "USD",
       specialFeatures: "",
       description: "",
       attachments: [],
+      brochureUrl: "",
+      photosUrl: "",
     },
   });
 
@@ -705,6 +711,33 @@ export default function HotelsStep({
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-4 border-t pt-4">
+                    <h4 className="font-medium text-lg">Hotel Attachments & Links</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Add brochures, location maps, or other hotel information for guest communications
+                    </p>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Hotel Brochure URL</label>
+                        <Input placeholder="https://hotel.com/brochure.pdf" />
+                        <p className="text-xs text-muted-foreground">Link to hotel brochure or information packet</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Virtual Tour / Photos URL</label>
+                        <Input placeholder="https://hotel.com/virtual-tour" />
+                        <p className="text-xs text-muted-foreground">Link to hotel photos or virtual tour</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Location Map URL</label>
+                        <Input placeholder="https://maps.google.com/..." />
+                        <p className="text-xs text-muted-foreground">Link to hotel location on maps</p>
+                      </div>
+                    </div>
+                  </div>
 
 
 
