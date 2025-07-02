@@ -165,7 +165,7 @@ export default function HotelsStep({
   const { data: existingHotels, isLoading: hotelsLoading } = useQuery({
     queryKey: ['hotels', eventId],
     queryFn: async () => {
-      const response = await fetch(`/api/events/${eventId}/hotels`);
+      const response = await fetch(`/api/hotels/by-event/${eventId}`);
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return response.json();
     },
