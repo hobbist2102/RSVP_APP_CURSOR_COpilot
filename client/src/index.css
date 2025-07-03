@@ -248,12 +248,17 @@
   }
   
   /* CRITICAL: Missing iOS 18 Focus Ring System */
-  .focus-ring-luxury {
-    @apply focus:outline-none;
+  .focus-ring-luxury:focus {
     outline: 2px solid hsl(var(--primary)) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
     transition: all 150ms ease-out !important;
+  }
+  
+  .focus-ring-luxury:focus-visible {
+    outline: 2px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
   }
   
   /* CRITICAL: Missing Hover Transform System */
