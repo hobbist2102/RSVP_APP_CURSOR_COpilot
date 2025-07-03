@@ -86,7 +86,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="bg-background border-b border-border">
+    <header className="glass border-b border-border">
       <div className="flex justify-between items-center px-6 py-4 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 

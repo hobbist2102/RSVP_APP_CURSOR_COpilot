@@ -57,7 +57,7 @@ export default function StatsCard({ title, value, change, icon, className, onCli
   return (
     <div 
       className={cn(
-        "bg-card border border-border rounded-lg p-6 shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5", 
+        "glass rounded-lg p-6 shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5", 
         onClick && "cursor-pointer", 
         className
       )}

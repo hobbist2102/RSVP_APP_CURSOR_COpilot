@@ -12,9 +12,9 @@
 
 :root {
   /* Light mode - based on design tokens */
-  --background: 0 0% 100%;                    /* colors.neutral.light.background */
+  --background: 0 0% 100%;                    /* Pure white #FFFFFF */
   --foreground: 210 9% 11%;                   /* colors.neutral.light.foreground */
-  --card: 0 0% 100%;                          /* colors.neutral.light.card */
+  --card: 0 0% 100%;                          /* Pure white #FFFFFF */
   --card-foreground: 210 9% 11%;              /* colors.neutral.light.foreground */
   --popover: 0 0% 100%;                       /* colors.neutral.light.card */
   --popover-foreground: 210 9% 11%;           /* colors.neutral.light.foreground */
@@ -49,11 +49,11 @@
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] {
+.dark {
   /* Dark mode - based on design tokens */
-  --background: 215 28% 17%;                  /* colors.neutral.dark.background */
+  --background: 0 0% 7%;                      /* Deep charcoal #121212 */
   --foreground: 210 20% 98%;                  /* colors.neutral.dark.foreground */
-  --card: 215 25% 27%;                        /* colors.neutral.dark.card */
+  --card: 0 0% 10%;                           /* Slightly lighter for cards #1A1A1A */
   --card-foreground: 210 20% 98%;             /* colors.neutral.dark.foreground */
   --popover: 215 25% 27%;                     /* colors.neutral.dark.card */
   --popover-foreground: 210 20% 98%;          /* colors.neutral.dark.foreground */
@@ -189,15 +189,15 @@
   }
   
   /* Dark mode status badges */
-  [data-theme="dark"] .status-confirmed {
+  .dark .status-confirmed {
     @apply bg-green-900/30 text-green-400 border-green-700;
   }
   
-  [data-theme="dark"] .status-pending {
+  .dark .status-pending {
     @apply bg-yellow-900/30 text-yellow-400 border-yellow-700;
   }
   
-  [data-theme="dark"] .status-declined {
+  .dark .status-declined {
     @apply bg-red-900/30 text-red-400 border-red-700;
   }
   
@@ -247,7 +247,33 @@
     box-shadow: var(--shadow-sm);
   }
   
-  /* CRITICAL: Missing iOS 18 Focus Ring System */
+  /* CRITICAL: iOS 18 Glassmorphism System - Per Luxury Specification */
+  .glass-light {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-dark {
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Apply glassmorphism based on theme */
+  :root .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass {
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* iOS 18 Focus Ring System */
   .focus-ring-luxury:focus {
     outline: 2px solid hsl(var(--primary)) !important;
     outline-offset: 2px !important;
