@@ -6,7 +6,7 @@
 
 import { designSystem } from './tokens';
 
-const { colors, typography, spacing, shadows, borderRadius, components } = designSystem;
+const { colors, typography, spacing, shadows, borderRadius, components, animations } = designSystem;
 
 // ============================================================================
 // BUTTON COMPONENT STYLES
@@ -16,13 +16,22 @@ export const buttonStyles = {
     fontFamily: typography.fontFamily.sans.join(', '),
     fontWeight: typography.fontWeight.medium,
     borderRadius: borderRadius.md,
-    transition: 'all 150ms ease',
+    transition: `all ${animations.duration.hover} ${animations.easing.easeOut}`,
     cursor: 'pointer',
     border: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     textDecoration: 'none',
+    '&:focus': {
+      outline: '2px solid #5E239D',
+      outlineOffset: '2px',
+      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+    },
+    '&:active': {
+      transform: 'scale(0.98)',
+      transition: 'all 150ms cubic-bezier(0.4, 0, 1, 1)',
+    },
   },
   
   variants: {

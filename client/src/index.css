@@ -247,9 +247,39 @@
     box-shadow: var(--shadow-sm);
   }
   
-  /* Focus utilities */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  /* CRITICAL: Missing iOS 18 Focus Ring System */
+  .focus-ring-luxury {
+    @apply focus:outline-none;
+    outline: 2px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+    transition: all 150ms ease-out !important;
+  }
+  
+  /* CRITICAL: Missing Hover Transform System */
+  .hover-scale-luxury {
+    transition: all 200ms ease-out !important;
+  }
+  
+  .hover-scale-luxury:hover {
+    transform: scale(1.02) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+  
+  .hover-scale-luxury:active {
+    transform: scale(0.98) !important;
+    transition: all 150ms cubic-bezier(0.4, 0, 1, 1) !important;
+  }
+  
+  /* CRITICAL: Card Hover Shadow Step-up */
+  .card-hover-luxury {
+    box-shadow: var(--shadow-sm);
+    transition: all 200ms ease-out !important;
+  }
+  
+  .card-hover-luxury:hover {
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px) !important;
   }
   
   /* Animation utilities */
@@ -261,7 +291,7 @@
     animation: slideUp 0.3s ease-out;
   }
   
-  /* Hover effects from design system */
+  /* Legacy hover effects - REPLACED WITH LUXURY VERSIONS */
   .hover-lift {
     @apply hover:-translate-y-1 hover:shadow-lg transition-all duration-150;
   }

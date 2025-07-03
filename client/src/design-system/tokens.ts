@@ -186,6 +186,9 @@ export const animations = {
     fast: '150ms',
     normal: '300ms',
     slow: '500ms',
+    hover: '200ms',
+    modal: '300ms',
+    focus: '150ms',
   },
   
   // Easing Functions
@@ -193,12 +196,68 @@ export const animations = {
     ease: 'cubic-bezier(0.4, 0, 0.2, 1)',
     in: 'cubic-bezier(0.4, 0, 1, 1)',
     out: 'cubic-bezier(0, 0, 0.2, 1)',
+    easeOut: 'ease-out',
+  },
+  
+  // Transform Effects
+  transforms: {
+    hoverScale: 'scale(1.02)',
+    activeScale: 'scale(0.98)',
+    hoverTranslate: 'translateY(-1px)',
   },
   
   // Common Hover Effects
   hover: {
     scale: 'scale(1.02)',
     shadow: shadows.light.lg,
+    translate: 'translateY(-1px)',
+  }
+} as const;
+
+// ============================================================================
+// FOCUS & INTERACTION STATES
+// ============================================================================
+export const focusStates = {
+  // Focus Ring Configuration
+  focusRing: {
+    width: '2px',
+    color: '#5E239D', // Purple
+    offset: '2px',
+    shadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+    style: 'solid',
+  },
+  
+  // Ring Colors and Thickness
+  rings: {
+    primary: {
+      width: '3px',
+      color: '#5E239D',
+      opacity: '0.1',
+    },
+    secondary: {
+      width: '2px', 
+      color: '#BFA76F',
+      opacity: '0.15',
+    },
+  },
+  
+  // Interactive States
+  states: {
+    hover: {
+      transform: 'scale(1.02)',
+      transition: 'all 200ms ease-out',
+      shadowStep: 'md-to-lg', // Elevate from shadow-sm to shadow-md
+    },
+    focus: {
+      outline: '2px solid #5E239D',
+      outlineOffset: '2px',
+      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+      transition: 'all 150ms ease-out',
+    },
+    active: {
+      transform: 'scale(0.98)',
+      transition: 'all 150ms cubic-bezier(0.4, 0, 1, 1)',
+    },
   }
 } as const;
 
@@ -278,6 +337,7 @@ export const designSystem = {
   borderRadius,
   components,
   animations,
+  focusStates,
   getColor,
   generateCSSCustomProperties,
 } as const;
