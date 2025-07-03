@@ -108,15 +108,15 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         <div className="flex items-center space-x-4">
           {/* Theme Toggle */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="relative"
+            className="relative transition-all duration-200 hover:bg-primary/10 hover:text-primary"
           >
             {theme === 'light' ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 transition-transform duration-200" />
             ) : (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-5 w-5 transition-transform duration-200" />
             )}
           </Button>
           

@@ -42,7 +42,7 @@ export default function StatsCard({ title, value, change, icon, className, onCli
       case "declined":
         return "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400";
       case "pending":
-        return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-accent/10 text-accent-foreground dark:bg-accent/20 dark:text-accent";
       case "total":
         return "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary";
     }
@@ -68,8 +68,8 @@ export default function StatsCard({ title, value, change, icon, className, onCli
           {getIcon()}
         </div>
         <div className="ml-5">
-          <p className="text-muted-foreground text-sm font-medium">{title}</p>
-          <h3 className="font-playfair text-2xl font-bold text-foreground">{value}</h3>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide">{title}</p>
+          <h3 className="font-serif text-3xl font-semibold text-foreground">{value}</h3>
         </div>
       </div>
 

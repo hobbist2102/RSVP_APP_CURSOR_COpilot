@@ -36,9 +36,9 @@ interface ActivityTableProps {
 // Optimized cell components with aggressive memoization and reduced DOM footprint
 // Pre-computed status colors to avoid recalculations
 const STATUS_COLORS = {
-  confirmed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  declined: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  confirmed: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  declined: "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  pending: "bg-accent/10 text-accent-foreground dark:bg-accent/20 dark:text-accent",
 };
 
 // Static status labels to avoid string manipulations on every render

@@ -34,7 +34,7 @@ export default function RsvpChart({
   return (
     <Card>
       <CardHeader className="py-5 px-6 border-b border-border">
-        <CardTitle className="text-lg font-medium font-playfair text-foreground">RSVP Progress</CardTitle>
+        <CardTitle className="text-xl font-serif font-medium text-foreground">RSVP Progress</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-4">
