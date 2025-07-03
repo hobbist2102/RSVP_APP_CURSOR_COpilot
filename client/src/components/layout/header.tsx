@@ -101,7 +101,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
             </svg>
           </Button>
           <div>
-            <h1 className="font-['Great_Vibes'] text-2xl text-primary">Eternally Yours</h1>
+            <h1 className="font-serif text-2xl font-semibold text-secondary">Eternally Yours</h1>
           </div>
         </div>
         
@@ -174,7 +174,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         <div className="flex items-center">
           {currentEvent && (
             <div className="px-2 text-muted-foreground text-sm hidden md:block">
-              <p className="font-medium wedding-subheading">{currentEvent.title}</p>
+              <p className="font-serif font-medium">{currentEvent.title}</p>
               <p className="text-xs">{currentEvent.date}</p>
             </div>
           )}

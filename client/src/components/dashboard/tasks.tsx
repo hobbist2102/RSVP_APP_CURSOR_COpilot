@@ -70,7 +70,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
   return (
     <Card>
       <CardHeader className="p-6 border-b border-border flex justify-between items-center">
-        <CardTitle className="text-lg font-medium font-playfair text-foreground">Upcoming Tasks</CardTitle>
+        <CardTitle className="text-lg font-medium font-serif text-foreground">Upcoming Tasks</CardTitle>
         <Button variant="link" className="text-sm text-primary hover:text-opacity-80 p-0">
           View All
         </Button>
@@ -85,7 +85,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
                     id={`task-${task.id}`}
                     checked={task.completed}
                     onCheckedChange={() => toggleTaskCompletion(task.id)}
-                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
                   />
                   <Label htmlFor={`task-${task.id}`} className="ml-3 block">
                     <span className={`text-sm font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>

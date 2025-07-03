@@ -37,8 +37,8 @@ interface ActivityTableProps {
 // Pre-computed status colors to avoid recalculations
 const STATUS_COLORS = {
   confirmed: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  declined: "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  pending: "bg-accent/10 text-accent-foreground dark:bg-accent/20 dark:text-accent",
+  declined: "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400", 
+  pending: "bg-secondary/10 text-secondary-foreground dark:bg-secondary/20 dark:text-secondary",
 };
 
 // Static status labels to avoid string manipulations on every render
@@ -232,13 +232,13 @@ const ActivityTable = memo(function ActivityTable({
 
   return (
     <Card>
-      <CardHeader className="py-5 px-6 border-b border-gray-200 flex justify-between items-center flex-wrap sm:flex-nowrap">
-        <CardTitle className="text-lg font-medium font-playfair mb-3 sm:mb-0">
+      <CardHeader className="py-5 px-6 border-b border-border flex justify-between items-center flex-wrap sm:flex-nowrap">
+        <CardTitle className="text-lg font-medium font-serif mb-3 sm:mb-0">
           Recent RSVP Activity
         </CardTitle>
         <div className="flex space-x-2">
           <Select value={state.filter} onValueChange={handleFilterChange}>
-            <SelectTrigger className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary h-9 w-[150px]">
+            <SelectTrigger className="text-sm border-border rounded-md focus:ring-primary focus:border-primary h-9 w-[150px]">
               <SelectValue placeholder="All Responses" />
             </SelectTrigger>
             <SelectContent>

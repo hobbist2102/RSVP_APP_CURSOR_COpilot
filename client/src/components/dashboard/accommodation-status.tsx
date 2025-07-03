@@ -32,7 +32,7 @@ export default function AccommodationStatus({
   return (
     <Card>
       <CardHeader className="p-6 border-b border-border">
-        <CardTitle className="text-lg font-medium font-playfair text-foreground">Accommodation Status</CardTitle>
+        <CardTitle className="text-lg font-medium font-serif text-foreground">Accommodation Status</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">

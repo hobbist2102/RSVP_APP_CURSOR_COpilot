@@ -78,7 +78,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   ];
 
   const sidebarClasses = cn(
-    "bg-sidebar text-sidebar-foreground w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-sidebar-border",
+    "glass w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
     isOpen ? "left-0" : "-left-64 lg:left-0"
   );
 
@@ -89,10 +89,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           <Link key={item.path} href={item.path}>
             <div
               className={cn(
-                "group flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200",
+                "group flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 hover:scale-105",
                 location === item.path
-                  ? "bg-sidebar-accent text-sidebar-primary border-l-4 border-primary font-semibold"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary"
+                  ? "bg-primary/10 text-primary border-l-4 border-primary font-semibold"
+                  : "text-foreground hover:bg-muted hover:text-primary"
               )}
             >
               {item.icon}
@@ -103,9 +103,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       </nav>
       
       <div className="px-4 mt-6">
-        <div className="pt-4 border-t border-sidebar-border">
+        <div className="pt-4 border-t border-border">
           <button
-            className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-muted hover:scale-105 transition-all duration-200"
             onClick={logout}
           >
             <LogOut className="mr-3 h-5 w-5" />
