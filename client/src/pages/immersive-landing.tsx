@@ -657,7 +657,7 @@ export default function ImmersiveLanding() {
 
               <div className="space-y-5 mt-8">
                 <div className="flex items-start gap-4">
-                  <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
+                  <div className="w-4 h-4 rounded-full bg-destructive flex-shrink-0 mt-1"></div>
                   <p className="text-xs">
                     Managing RSVPs from hundreds of guests across different
                     events becomes overwhelming
@@ -665,7 +665,7 @@ export default function ImmersiveLanding() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
+                  <div className="w-4 h-4 rounded-full bg-destructive flex-shrink-0 mt-1"></div>
                   <p className="text-xs">
                     Logistics planning leads to endless spreadsheets, phone
                     calls and sleepless nights
@@ -673,12 +673,12 @@ export default function ImmersiveLanding() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
+                  <div className="w-4 h-4 rounded-full bg-destructive flex-shrink-0 mt-1"></div>
                   <p className="text-xs">Transport Drama and Hotel Mix-ups</p>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-4 h-4 rounded-full bg-[#FF6B6B] flex-shrink-0 mt-1"></div>
+                  <div className="w-4 h-4 rounded-full bg-destructive flex-shrink-0 mt-1"></div>
                   <p className="text-xs">
                     Missed Messages, Lost itineraries, and confused aunties - We
                     feel you!
@@ -694,20 +694,20 @@ export default function ImmersiveLanding() {
       <section
         id={SECTIONS.SOLUTION}
         ref={solutionRef}
-        className="relative py-24 bg-white text-[#5E239D] scroll-section"
+        className="relative py-24 bg-background text-primary scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="solution-title text-center mb-10">
-            <span className="text-[#BFA76F] font-light text-base block">
+            <span className="text-accent font-light text-base block">
               Elegant Simplicity
             </span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
+            <span className="text-3xl md:text-4xl font-serif font-bold text-primary">
               in Every Detail
             </span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="text-[#5E239D] space-y-5 order-2 md:order-1">
+            <div className="text-primary space-y-5 order-2 md:order-1">
               <p className="text-base md:text-lg leading-relaxed">
                 Designed from the ground up by wedding planners, our all-in-one
                 platform removes the noise, so that you can plan with clarity
@@ -715,39 +715,39 @@ export default function ImmersiveLanding() {
               </p>
 
               <div className="space-y-4 mt-8">
-                <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                <div className="solution-element p-4 rounded-md bg-primary/5 border-l-4 border-primary">
                   <h3 className="font-medium text-lg mb-2">
                     One Dashboard, Total Control
                   </h3>
-                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
+                  <p className="text-base text-primary/80 leading-relaxed">
                     Manage guests, logistics, travel, accommodation,
                     communication & more all in one place.
                   </p>
                 </div>
 
-                <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                <div className="solution-element p-4 rounded-md bg-accent/5 border-l-4 border-accent">
                   <h3 className="font-medium text-lg mb-2">
                     Family-Centered Design
                   </h3>
-                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
+                  <p className="text-base text-foreground/80 leading-relaxed">
                     Keep families together in travel, seating, and communication
                   </p>
                 </div>
 
-                <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                <div className="solution-element p-4 rounded-md bg-primary/5 border-l-4 border-primary">
                   <h3 className="font-medium text-lg mb-2">
                     From Save the Date to Departure
                   </h3>
-                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
+                  <p className="text-base text-primary/80 leading-relaxed">
                     Seamlessly manage the entire wedding lifecycle.
                   </p>
                 </div>
 
-                <div className="solution-element p-4 rounded-md bg-[#F3EAFC] border-l-4 border-[#9F79D4]">
+                <div className="solution-element p-4 rounded-md bg-accent/5 border-l-4 border-accent">
                   <h3 className="font-medium text-lg mb-2">
                     Integrated Communication
                   </h3>
-                  <p className="text-base text-[#3A1562]/80 leading-relaxed">
+                  <p className="text-base text-foreground/80 leading-relaxed">
                     Email and WhatsApp integration for seamless guest updates
                     and communication.
                   </p>
@@ -756,9 +756,9 @@ export default function ImmersiveLanding() {
             </div>
 
             <div className="relative order-1 md:order-2">
-              <div className="solution-element relative mx-auto w-[320px] h-[600px] bg-background rounded-[36px] border-8 border-gray-800 shadow-xl overflow-hidden">
-                <div className="absolute top-0 w-full h-6 bg-gray-800 rounded-t-lg"></div>
-                <div className="absolute bottom-0 w-full h-6 bg-gray-800 rounded-b-lg"></div>
+              <div className="solution-element relative mx-auto w-[320px] h-[600px] bg-background rounded-[36px] border-8 border-border shadow-xl overflow-hidden">
+                <div className="absolute top-0 w-full h-6 bg-border rounded-t-lg"></div>
+                <div className="absolute bottom-0 w-full h-6 bg-border rounded-b-lg"></div>
 
                 <div className="h-full overflow-hidden">
                   <div className="h-14 w-full bg-primary flex items-center justify-between px-4">

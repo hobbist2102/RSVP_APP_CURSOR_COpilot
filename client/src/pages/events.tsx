@@ -470,7 +470,7 @@ export default function Events() {
             <p className="text-muted-foreground">Loading your events...</p>
           </div>
         </div>
-      ) : isEventsError ? (
+      ) : events.isError ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />

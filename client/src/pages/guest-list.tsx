@@ -616,9 +616,9 @@ export default function GuestList() {
         {filter && (
           <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex justify-between items-center">
             <div className="flex items-center">
-              <Badge className={`mr-2 ${filter === 'confirmed' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
-                filter === 'declined' ? 'bg-red-100 text-red-800 hover:bg-red-200' : 
-                'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'}`}>
+              <Badge className={`mr-2 ${filter === 'confirmed' ? 'bg-green-500/20 text-green-700 hover:bg-green-500/30 border-green-500/20' : 
+                filter === 'declined' ? 'bg-red-500/20 text-red-700 hover:bg-red-500/30 border-red-500/20' : 
+                'bg-yellow-500/20 text-yellow-700 hover:bg-yellow-500/30 border-yellow-500/20'}`}>
                 {filter.charAt(0).toUpperCase() + filter.slice(1)}
               </Badge>
               <p>Showing {filter} guests only</p>
