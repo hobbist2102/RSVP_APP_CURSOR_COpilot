@@ -581,8 +581,8 @@ export default function GuestList() {
     <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">Guest List</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-3xl font-serif font-bold text-foreground">Guest List</h2>
+          <p className="text-sm text-muted-foreground">
             Manage your wedding guest list and RSVPs
           </p>
         </div>
@@ -611,10 +611,10 @@ export default function GuestList() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="glass rounded-lg shadow p-6">
         {/* Add filter status banner if filtering is active */}
         {filter && (
-          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex justify-between items-center">
+          <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex justify-between items-center">
             <div className="flex items-center">
               <Badge className={`mr-2 ${filter === 'confirmed' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
                 filter === 'declined' ? 'bg-red-100 text-red-800 hover:bg-red-200' : 

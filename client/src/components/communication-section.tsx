@@ -10,21 +10,21 @@ export default function CommunicationSection({ sectionId, sectionRef }: Communic
     <section 
       id={sectionId} 
       ref={sectionRef}
-      className="relative py-24 bg-[#C5A6ED]"
+      className="relative py-24 bg-secondary/20"
     >
       <div className="container mx-auto px-6">
         <h2 className="text-center mb-10">
-          <span className="text-[#5E239D] font-serif text-3xl md:text-4xl font-bold">Multichannel Guest Engagement</span>
+          <span className="text-primary font-serif text-3xl md:text-4xl font-bold">Multichannel Guest Engagement</span>
         </h2>
         
-        <p className="text-[#5E239D] text-center max-w-2xl mx-auto mb-12">
+        <p className="text-primary text-center max-w-2xl mx-auto mb-12">
           Keep your guests informed and engaged through personalized WhatsApp messages
           and email communications.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {/* WhatsApp Integration Card */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

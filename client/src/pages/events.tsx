@@ -284,20 +284,20 @@ export default function Events() {
           <AlertDialog defaultOpen onOpenChange={(open) => !open && resolve(false)}>
             <AlertDialogContent className="border-2 border-primary/20">
               <AlertDialogHeader>
-                <AlertDialogTitle className="font-playfair text-2xl">Date Outside Event Range</AlertDialogTitle>
+                <AlertDialogTitle className="font-serif text-2xl">Date Outside Event Range</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-3">
                   <p>The ceremony date ({formatDateForDisplay(data.date)}) is outside the wedding event dates:</p>
-                  <p className="font-medium text-primary font-script text-lg">
+                  <p className="font-medium text-primary font-serif text-lg">
                     {formatDateForDisplay(event?.startDate)} to {formatDateForDisplay(event?.endDate)}
                   </p>
                   <p>Would you like to proceed with creating this ceremony?</p>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="hover:bg-gray-100">Cancel</AlertDialogCancel>
+                <AlertDialogCancel className="hover:bg-muted">Cancel</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => resolve(true)}
-                  className="gold-gradient hover:from-purple-500 hover:to-purple-600 transition-all duration-300"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200"
                 >
                   Continue Anyway
                 </AlertDialogAction>

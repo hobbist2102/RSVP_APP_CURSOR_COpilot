@@ -377,8 +377,8 @@ export default function ImmersiveLanding() {
     // Only create animation on client side
     if (typeof window === 'undefined') return null;
     
-    // Gold color matching "eternally yours" in Hero Section
-    const goldColor = "#e9d9a8";
+    // Gold color from design system
+    const goldColor = "hsl(var(--secondary))";
     
     return (
       <div 
@@ -567,7 +567,7 @@ export default function ImmersiveLanding() {
           <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="hero-button hero-button-primary rounded-full py-6 px-10 text-base font-medium bg-gradient-to-r from-[#5E239D] to-[#7f33d3] border-0 shadow-lg shadow-primary/20"
+              className="hero-button hero-button-primary rounded-full py-6 px-10 text-base font-medium bg-gradient-to-r from-primary to-primary/80 border-0 shadow-lg shadow-primary/20"
               asChild
             >
               <Link href="/auth">Get Started</Link>
@@ -576,7 +576,7 @@ export default function ImmersiveLanding() {
             <Button
               size="lg"
               variant="outline"
-              className="hero-button hero-button-secondary rounded-full py-6 px-10 text-base font-medium backdrop-blur-md bg-white/5 border-[#BFA76F]/30"
+              className="hero-button hero-button-secondary rounded-full py-6 px-10 text-base font-medium backdrop-blur-md bg-white/5 border-accent/30"
               onClick={() => scrollToSection(SECTIONS.PROBLEM)}
             >
               See How It Works
@@ -586,10 +586,10 @@ export default function ImmersiveLanding() {
 
         {/* Elegant floating scroll indicator with gold accent */}
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-          <div className="relative w-8 h-12 border border-[#BFA76F]/30 rounded-full flex items-center justify-center overflow-hidden backdrop-blur-sm bg-white/5">
-            <span className="absolute w-3 h-3 bg-gradient-to-b from-[#BFA76F] to-[#e9d9a8] rounded-full animate-bounce delay-300 duration-1000"></span>
+          <div className="relative w-8 h-12 border border-accent/30 rounded-full flex items-center justify-center overflow-hidden backdrop-blur-sm bg-white/5">
+            <span className="absolute w-3 h-3 bg-gradient-to-b from-accent to-accent/80 rounded-full animate-bounce delay-300 duration-1000"></span>
           </div>
-          <span className="text-xs font-light text-[#BFA76F]/70 mt-2 tracking-wider uppercase">
+          <span className="text-xs font-light text-accent/70 mt-2 tracking-wider uppercase">
             Scroll to explore
           </span>
         </div>
@@ -599,14 +599,14 @@ export default function ImmersiveLanding() {
       <section
         id={SECTIONS.PROBLEM}
         ref={problemRef}
-        className="relative py-24 bg-white text-[#5E239D] scroll-section"
+        className="relative py-24 bg-background text-primary scroll-section"
       >
         <div className="container mx-auto px-6">
           <h2 className="problem-title text-center mb-10">
-            <span className="text-[#BFA76F] font-light text-base block">
+            <span className="text-accent font-light text-base block">
               Behind the Scenes:
             </span>
-            <span className="text-3xl md:text-4xl font-serif font-bold text-[#5E239D]">
+            <span className="text-3xl md:text-4xl font-serif font-bold text-primary">
               A Symphony or a Storm?
             </span>
           </h2>
@@ -1181,11 +1181,11 @@ export default function ImmersiveLanding() {
       <section
         id={SECTIONS.COMMUNICATION}
         ref={communicationRef}
-        className="relative py-24 bg-[#5E239D]"
+        className="relative py-24 bg-primary"
       >
         <div className="container mx-auto px-6">
           <h2 className="text-center mb-10">
-            <span className="text-[#BFA76F] font-light text-base block">
+            <span className="text-accent font-light text-base block">
               Guest Communications
             </span>
             <span className="text-white font-serif text-3xl md:text-4xl font-bold">
