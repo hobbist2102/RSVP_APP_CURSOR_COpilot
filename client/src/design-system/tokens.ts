@@ -8,24 +8,41 @@
 // COLOR PALETTE - Luxury Wedding Theme
 // ============================================================================
 export const colors = {
-  // Primary Brand Colors
+  // Primary Brand Colors - Exact specification #7A51E1
   primary: {
-    50: '#f3e8ff',   // Lightest purple tint
-    100: '#e9d5ff',  // Light purple tint
-    500: '#5E239D',  // Main brand purple
-    600: '#4c1d84',  // Darker purple
-    900: '#2d0f4f',  // Darkest purple
+    50: '#f8f5ff',   // Very light purple tint
+    100: '#f0ebff',  // Light purple tint  
+    200: '#e1d7ff',  // Soft purple
+    300: '#c9b8ff',  // Medium light purple
+    400: '#a78bff',  // Medium purple
+    500: '#7A51E1',  // Main brand purple (exact hex)
+    600: '#6941c7',  // Darker purple
+    700: '#5832a3',  // Deep purple
+    800: '#472680',  // Very deep purple
+    900: '#3b1f67',  // Darkest purple
   },
   
-  // Accent Colors
-  accent: {
-    gold: '#BFA76F',    // Luxury gold for decorative elements only
-    success: '#22c55e', // Green for success states
-    warning: '#f59e0b', // Amber for warning states
-    error: '#ef4444',   // Red for error states
+  // Secondary Brand Colors - Exact specification #E3C76F  
+  secondary: {
+    50: '#fefdf8',   // Very light gold tint
+    100: '#fdf9ed',  // Light gold tint
+    200: '#fbf2d5',  // Soft gold
+    300: '#f7e8b5',  // Medium light gold
+    400: '#f0d988',  // Medium gold
+    500: '#E3C76F',  // Main brand gold (exact hex)
+    600: '#d4b054',  // Darker gold
+    700: '#b0923e',  // Deep gold
+    800: '#8f7533',  // Very deep gold
+    900: '#765f2d',  // Darkest gold
   },
   
-  // Neutral Colors - Clean and Professional
+  // Exact background colors from specification
+  background: {
+    light: '#FFFFFF',  // Pure white
+    dark: '#121212',   // Deep charcoal (exact hex)
+  },
+  
+  // Neutral Colors - iOS-inspired clean grays
   neutral: {
     // Light Mode
     light: {
@@ -37,16 +54,30 @@ export const colors = {
       'muted-foreground': '#6B7280', // Medium gray for secondary text
     },
     
-    // Dark Mode
+    // Dark Mode  
     dark: {
-      background: '#1E293B',     // Clean navy background
-      foreground: '#F8FAFC',     // Clean white text
-      card: '#334155',           // Navy card backgrounds
-      border: '#475569',         // Medium gray borders
-      muted: '#475569',          // Muted navy areas
-      'muted-foreground': '#94A3B8', // Light gray for secondary text
+      background: '#121212',     // Deep charcoal (exact specification)
+      foreground: '#FAFAFA',     // Clean white text
+      card: '#1E1E1E',           // Dark card backgrounds
+      border: '#2A2A2A',         // Dark gray borders
+      muted: '#262626',          // Muted dark areas
+      'muted-foreground': '#A3A3A3', // Light gray for secondary text
     }
-  }
+  },
+  
+  // Status & accent colors
+  accent: {
+    success: '#22c55e', // Green for success states
+    warning: '#f59e0b', // Amber for warning states
+    error: '#ef4444',   // Red for error states
+    info: '#3b82f6',    // Blue for info states
+  },
+  
+  // Hover overlay colors
+  overlay: {
+    light: 'rgba(122, 81, 225, 0.06)',  // Purple tint for light mode
+    dark: 'rgba(255, 255, 255, 0.04)',  // White tint for dark mode
+  },
 } as const;
 
 // ============================================================================
@@ -218,12 +249,12 @@ export const animations = {
 // FOCUS & INTERACTION STATES
 // ============================================================================
 export const focusStates = {
-  // Focus Ring Configuration
+  // Focus Ring Configuration - Updated with exact brand colors
   focusRing: {
     width: '2px',
-    color: '#5E239D', // Purple
+    color: '#7A51E1', // Exact brand purple
     offset: '2px',
-    shadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+    shadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
     style: 'solid',
   },
   
@@ -231,27 +262,27 @@ export const focusStates = {
   rings: {
     primary: {
       width: '3px',
-      color: '#5E239D',
+      color: '#7A51E1',  // Exact brand purple
       opacity: '0.1',
     },
     secondary: {
       width: '2px', 
-      color: '#BFA76F',
+      color: '#E3C76F',  // Exact brand gold
       opacity: '0.15',
     },
   },
   
-  // Interactive States
+  // Interactive States - iOS 18 inspired
   states: {
     hover: {
-      transform: 'scale(1.02)',
-      transition: 'all 200ms ease-out',
-      shadowStep: 'md-to-lg', // Elevate from shadow-sm to shadow-md
+      transform: 'scale(1.05)',  // Slightly more pronounced
+      transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+      shadowStep: 'md-to-lg',
     },
     focus: {
-      outline: '2px solid #5E239D',
+      outline: '2px solid #7A51E1',  // Exact brand purple
       outlineOffset: '2px',
-      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+      boxShadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
       transition: 'all 150ms ease-out',
     },
     active: {
@@ -302,10 +333,11 @@ export function generateCSSCustomProperties(theme: 'light' | 'dark'): Record<str
     '--color-muted': themeColors.muted,
     '--color-muted-foreground': themeColors['muted-foreground'],
     '--color-primary': colors.primary[500],
-    '--color-accent-gold': colors.accent.gold,
+    '--color-secondary': colors.secondary[500],
     '--color-success': colors.accent.success,
     '--color-warning': colors.accent.warning,
     '--color-error': colors.accent.error,
+    '--color-info': colors.accent.info,
     
     // Typography properties
     '--font-family-sans': typography.fontFamily.sans.join(', '),

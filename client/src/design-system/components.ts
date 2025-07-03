@@ -24,9 +24,9 @@ export const buttonStyles = {
     justifyContent: 'center',
     textDecoration: 'none',
     '&:focus': {
-      outline: '2px solid #5E239D',
+      outline: '2px solid #7A51E1',  // Exact brand purple
       outlineOffset: '2px',
-      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+      boxShadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
     },
     '&:active': {
       transform: 'scale(0.98)',

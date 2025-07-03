@@ -24,19 +24,41 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         
+        // Exact brand purple - #7A51E1
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#7A51E1",
+          50: "#f8f5ff",
+          100: "#f0ebff",  
+          200: "#e1d7ff",
+          300: "#c9b8ff",
+          400: "#a78bff",
+          500: "#7A51E1",
+          600: "#6941c7",
+          700: "#5832a3",
+          800: "#472680",
+          900: "#3b1f67",
+          foreground: "#ffffff",
+        },
+
+        // Exact brand gold - #E3C76F
+        secondary: {
+          DEFAULT: "#E3C76F",
+          50: "#fefdf8",
+          100: "#fdf9ed",
+          200: "#fbf2d5",
+          300: "#f7e8b5",
+          400: "#f0d988",
+          500: "#E3C76F",
+          600: "#d4b054",
+          700: "#b0923e",
+          800: "#8f7533",
+          900: "#765f2d",
+          foreground: "#1f1f1f",
         },
 
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
-        },
-
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
         },
         
         muted: {

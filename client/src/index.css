@@ -18,34 +18,34 @@
   --card-foreground: 210 9% 11%;              /* colors.neutral.light.foreground */
   --popover: 0 0% 100%;                       /* colors.neutral.light.card */
   --popover-foreground: 210 9% 11%;           /* colors.neutral.light.foreground */
-  --primary: 270 47% 38%;                     /* colors.primary.500 */
+  --primary: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
   --primary-foreground: 0 0% 100%;            /* White on purple */
-  --secondary: 220 13% 91%;                   /* colors.neutral.light.border */
-  --secondary-foreground: 210 9% 11%;         /* colors.neutral.light.foreground */
+  --secondary: 47 65% 66%;                    /* Exact brand gold #E3C76F */
+  --secondary-foreground: 210 9% 11%;         /* Dark on gold */
   --muted: 220 14% 96%;                       /* colors.neutral.light.muted */
   --muted-foreground: 215 16% 47%;            /* colors.neutral.light.muted-foreground */
-  --accent: 44 26% 60%;                       /* colors.accent.gold */
+  --accent: 258 73% 59%;                      /* Brand purple for accents */
   --accent-foreground: 210 9% 11%;            /* Dark on gold */
   --destructive: 0 84% 60%;                   /* colors.accent.error */
   --destructive-foreground: 0 0% 100%;        /* White on red */
   --border: 220 13% 91%;                      /* colors.neutral.light.border */
   --input: 220 13% 91%;                       /* colors.neutral.light.border */
-  --ring: 270 47% 38%;                        /* colors.primary.500 */
+  --ring: 258 73% 59%;                        /* Exact brand purple #7A51E1 */
   --radius: 0.75rem;                          /* borderRadius.lg */
   
-  /* Chart colors - purple theme */
-  --chart-1: 270 47% 38%;                     /* Primary purple */
-  --chart-2: 270 35% 50%;                     /* Lighter purple */
-  --chart-3: 270 25% 65%;                     /* Even lighter purple */
-  --chart-4: 44 26% 60%;                      /* Gold accent */
+  /* Chart colors - exact brand theme */
+  --chart-1: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
+  --chart-2: 258 73% 70%;                     /* Lighter purple */
+  --chart-3: 258 73% 80%;                     /* Even lighter purple */
+  --chart-4: 47 65% 66%;                      /* Exact brand gold #E3C76F */
   --chart-5: 160 84% 39%;                     /* Success green */
   
   /* Sidebar variables for consistency */
   --sidebar: 0 0% 100%;                       /* White background */
   --sidebar-foreground: 210 9% 11%;           /* Dark text */
   --sidebar-border: 220 13% 91%;              /* Light border */
-  --sidebar-accent: 270 47% 96%;              /* Very light purple hover */
-  --sidebar-primary: 270 47% 38%;             /* Purple accent */
+  --sidebar-accent: 258 73% 96%;              /* Very light purple hover */
+  --sidebar-primary: 258 73% 59%;             /* Exact brand purple #7A51E1 */
   
   /* Design system tokens */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -58,25 +58,25 @@
 
 .dark {
   /* Dark mode - based on design tokens */
-  --background: 0 0% 7%;                      /* Deep charcoal #121212 */
+  --background: 0 0% 7%;                      /* Exact dark background #121212 */
   --foreground: 210 20% 98%;                  /* colors.neutral.dark.foreground */
-  --card: 0 0% 10%;                           /* Slightly lighter for cards #1A1A1A */
+  --card: 0 0% 12%;                           /* Slightly lighter for cards #1E1E1E */
   --card-foreground: 210 20% 98%;             /* colors.neutral.dark.foreground */
-  --popover: 215 25% 27%;                     /* colors.neutral.dark.card */
+  --popover: 0 0% 12%;                        /* Same as card */
   --popover-foreground: 210 20% 98%;          /* colors.neutral.dark.foreground */
-  --primary: 270 47% 38%;                     /* colors.primary.500 */
+  --primary: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
   --primary-foreground: 0 0% 100%;            /* White on purple */
-  --secondary: 215 19% 35%;                   /* colors.neutral.dark.border */
-  --secondary-foreground: 210 20% 98%;        /* colors.neutral.dark.foreground */
-  --muted: 215 19% 35%;                       /* colors.neutral.dark.muted */
-  --muted-foreground: 215 15% 65%;            /* colors.neutral.dark.muted-foreground */
-  --accent: 44 26% 60%;                       /* colors.accent.gold */
-  --accent-foreground: 210 9% 11%;            /* Dark on gold */
+  --secondary: 47 65% 66%;                    /* Exact brand gold #E3C76F */
+  --secondary-foreground: 0 0% 7%;            /* Dark on gold */
+  --muted: 0 0% 15%;                          /* Darker muted #262626 */
+  --muted-foreground: 0 0% 64%;               /* Light gray for secondary text */
+  --accent: 258 73% 59%;                      /* Brand purple for accents */
+  --accent-foreground: 0 0% 100%;             /* White on purple */
   --destructive: 0 63% 31%;                   /* Darker red for dark mode */
   --destructive-foreground: 0 0% 100%;        /* White on red */
-  --border: 215 19% 35%;                      /* colors.neutral.dark.border */
-  --input: 215 19% 35%;                       /* colors.neutral.dark.border */
-  --ring: 270 47% 38%;                        /* colors.primary.500 */
+  --border: 0 0% 16%;                         /* Dark gray borders #2A2A2A */
+  --input: 0 0% 16%;                          /* Dark gray borders #2A2A2A */
+  --ring: 258 73% 59%;                        /* Exact brand purple #7A51E1 */
   
   /* Dark mode sidebar variables */
   --sidebar: 0 0% 7%;                         /* Same as background */
