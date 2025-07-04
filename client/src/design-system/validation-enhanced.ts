@@ -282,6 +282,112 @@ export function validateTailwindClasses(element: HTMLElement): ValidationResult 
 }
 
 /**
+ * HYBRID APPROACH ARCHITECTURE VALIDATION
+ * Ensures components follow the hybrid design system approach:
+ * Design Tokens → CSS Variables → Component Utilities
+ * 
+ * Focuses on real violations developers might introduce
+ */
+export function validateHybridApproach(element: HTMLElement): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  
+  // 1. CHECK FOR INLINE STYLES (Major violation of hybrid approach)
+  if (element.style.length > 0) {
+    const inlineStyleViolations = [];
+    for (let i = 0; i < element.style.length; i++) {
+      const property = element.style[i];
+      const value = element.style.getPropertyValue(property);
+      
+      // Only flag problematic inline styles
+      if (property === 'color' || property === 'background-color' || 
+          property === 'border-color' || property === 'font-size' ||
+          property === 'font-family' || property === 'margin' || property === 'padding') {
+        inlineStyleViolations.push(`${property}: ${value}`);
+      }
+    }
+    
+    if (inlineStyleViolations.length > 0) {
+      errors.push(`Inline styles violate hybrid approach: ${inlineStyleViolations.join(', ')}. Use design system classes instead.`);
+    }
+  }
+  
+  // 2. CHECK FOR DIRECT CSS CUSTOM PROPERTY USAGE IN CLASSES
+  const classList = element.className;
+  if (classList && classList.includes('var(--')) {
+    errors.push(`Direct CSS variable usage in className violates hybrid approach. Use design token classes instead.`);
+  }
+  
+  // 3. CHECK FOR NON-APPROVED STYLE ATTRIBUTES
+  const styleAttr = element.getAttribute('style');
+  if (styleAttr) {
+    // Check for hardcoded colors in style attribute
+    const colorPatterns = [/#[0-9a-fA-F]{3,8}/, /rgb\([^)]+\)/, /rgba\([^)]+\)/, /hsl\([^)]+\)/, /oklch\([^)]+\)/];
+    const hasHardcodedColor = colorPatterns.some(pattern => pattern.test(styleAttr));
+    
+    if (hasHardcodedColor) {
+      errors.push(`Hardcoded colors in style attribute violate hybrid approach. Use design system CSS variables.`);
+    }
+    
+    // Check for custom CSS properties that bypass design system
+    const customVarMatches = styleAttr.match(/--[a-zA-Z0-9-]+\s*:\s*[^;]+/g);
+    if (customVarMatches) {
+      const unauthorizedVars = customVarMatches.filter(varDef => {
+        const varName = varDef.split(':')[0].trim();
+        return !varName.startsWith('--background') && 
+               !varName.startsWith('--primary') && 
+               !varName.startsWith('--secondary') &&
+               !varName.startsWith('--accent') &&
+               !varName.startsWith('--muted') &&
+               !varName.startsWith('--card') &&
+               !varName.startsWith('--tw-') &&
+               !varName.startsWith('--font-') &&
+               !varName.startsWith('--shadow-') &&
+               !varName.startsWith('--color-') &&
+               !varName.startsWith('--sidebar-');
+      });
+      
+      if (unauthorizedVars.length > 0) {
+        warnings.push(`Custom CSS variables bypass design system: ${unauthorizedVars.join(', ')}. Use approved design tokens.`);
+      }
+    }
+  }
+  
+  // 4. CHECK FOR COMPONENT UTILITY VIOLATIONS
+  if (classList) {
+    // Check for mixing of design approaches
+    const hasUtilityClasses = classList.match(/bg-|text-|border-|p-|m-|flex|grid/);
+    const hasArbitraryValues = classList.includes('[') && classList.includes(']');
+    
+    if (hasUtilityClasses && hasArbitraryValues) {
+      warnings.push(`Mixing utility classes with arbitrary values may violate design consistency. Prefer design tokens.`);
+    }
+  }
+  
+  // 5. CHECK FOR MISSING DESIGN SYSTEM COMPLIANCE ON INTERACTIVE ELEMENTS
+  const interactiveElements = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'];
+  const hasInteractiveRole = element.getAttribute('role') === 'button' || 
+                            element.getAttribute('role') === 'link' ||
+                            interactiveElements.includes(element.tagName);
+  
+  if (hasInteractiveRole && classList) {
+    const hasDesignSystemClasses = classList.includes('bg-') || classList.includes('text-') || 
+                                  classList.includes('border-') || classList.includes('glass') ||
+                                  classList.includes('flat') || classList.includes('hover:');
+    
+    if (!hasDesignSystemClasses) {
+      warnings.push(`Interactive element lacks design system styling. Use component utilities or design token classes.`);
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+
+/**
  * COMPREHENSIVE BUTTON VALIDATION
  * Validates button styling and interactions
  */
@@ -342,6 +448,7 @@ export function validateEntireDocument(): ValidationResult {
         validateSpacing(element),
         validateGlassmorphism(element),
         validateTailwindClasses(element),
+        validateHybridApproach(element),
         validateButtons(element)
       ];
 
@@ -416,6 +523,7 @@ export default {
   validateSpacing,
   validateGlassmorphism,
   validateTailwindClasses,
+  validateHybridApproach,
   validateButtons,
   validateEntireDocument,
   runDesignSystemValidation
