@@ -31,14 +31,10 @@ export {
   getNavItemClasses 
 } from './components';
 
-// Export validation utilities
+// Export comprehensive audit system
 export { 
-  validateFlatDesign,
-  validateColorUsage,
-  validateEntireDocument,
-  enforceFlatDesign,
-  runDesignSystemValidation
-} from './validation';
+  default as runComprehensiveAudit
+} from './comprehensive-audit-system';
 
 /**
  * Design system usage examples:

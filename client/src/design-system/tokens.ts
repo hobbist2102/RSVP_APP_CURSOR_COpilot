@@ -89,6 +89,46 @@ export const colors = {
       dark: 'oklch(0.9940 0 0)',             // Near white on destructive
     }
   },
+
+  // Success Colors
+  success: {
+    light: 'oklch(0.6196 0.1765 142.50)', // Success green
+    dark: 'oklch(0.7196 0.1765 142.50)',
+    foreground: {
+      light: 'oklch(1.0000 0 0)',
+      dark: 'oklch(0.9940 0 0)',
+    }
+  },
+
+  // Warning Colors
+  warning: {
+    light: 'oklch(0.7294 0.1451 85.87)', // Warning amber
+    dark: 'oklch(0.8294 0.1451 85.87)',
+    foreground: {
+      light: 'oklch(1.0000 0 0)',
+      dark: 'oklch(0.9940 0 0)',
+    }
+  },
+
+  // Info Colors
+  info: {
+    light: 'oklch(0.6314 0.1686 259.85)', // Info blue
+    dark: 'oklch(0.7314 0.1686 259.85)',
+    foreground: {
+      light: 'oklch(1.0000 0 0)',
+      dark: 'oklch(0.9940 0 0)',
+    }
+  },
+
+  // Popover Colors
+  popover: {
+    light: 'oklch(1.0000 0 0)', // Pure white
+    dark: 'oklch(0.2350 0 0)',
+    foreground: {
+      light: 'oklch(0.3211 0 0)',
+      dark: 'oklch(0.9370 0 0)',
+    }
+  },
   
   // Chart Colors - EXACT MATCH
   chart: {
