@@ -219,40 +219,166 @@ export const borderRadius = {
 } as const;
 
 // ============================================================================
-// COMPONENT-SPECIFIC TOKENS - FLAT DESIGN
+// LAYOUT SYSTEM - COMPREHENSIVE CONTAINER BEHAVIORS
 // ============================================================================
-export const components = {
-  // Button Styles - FLAT DESIGN
-  button: {
-    height: {
-      sm: '2rem',      // 32px
-      md: '2.5rem',    // 40px
-      lg: '3rem',      // 48px
+export const layout = {
+  // Container Specifications
+  containers: {
+    maxWidth: {
+      sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1536px', full: '100%'
     },
     padding: {
-      sm: '0.5rem 0.75rem',
-      md: '0.75rem 1rem',
-      lg: '1rem 1.5rem',
+      xs: spacing[2], sm: spacing[4], md: spacing[6], lg: spacing[8], xl: spacing[12]
     },
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    fontWeight: typography.fontWeight.medium,
-    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
+    gap: {
+      xs: spacing[1], sm: spacing[2], md: spacing[4], lg: spacing[6], xl: spacing[8]
+    }
   },
   
-  // Card Styles - FLAT DESIGN
+  // Text Overflow and Truncation Behaviors
+  textBehaviors: {
+    truncate: {
+      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, minWidth: '0'
+    },
+    truncateLines2: {
+      display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical' as const,
+      overflow: 'hidden', textOverflow: 'ellipsis'
+    },
+    breakWords: {
+      wordBreak: 'break-word' as const, overflowWrap: 'break-word' as const, hyphens: 'auto' as const
+    }
+  },
+  
+  // Flex Layout Patterns
+  flexPatterns: {
+    centerBoth: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    centerVertical: { display: 'flex', alignItems: 'center' },
+    spaceBetween: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    column: { display: 'flex', flexDirection: 'column' as const },
+    rowGap: (gap: keyof typeof spacing) => ({ display: 'flex', gap: spacing[gap], alignItems: 'center' }),
+    flexGrow: { flex: '1 1 0%', minWidth: '0' }
+  }
+} as const;
+
+// ============================================================================
+// COMPONENT-SPECIFIC TOKENS - COMPLETE SPECIFICATIONS
+// ============================================================================
+export const components = {
+  // Button Specifications - Complete system
+  button: {
+    base: {
+      fontFamily: typography.fontFamily.sans, fontWeight: typography.fontWeight.medium,
+      fontSize: typography.fontSize.sm, borderRadius: '0px', border: '1px solid',
+      cursor: 'pointer', transition: 'all 200ms ease', textAlign: 'center' as const
+    },
+    sizes: {
+      sm: { height: '32px', padding: '6px 12px', fontSize: typography.fontSize.xs },
+      md: { height: '40px', padding: '8px 16px', fontSize: typography.fontSize.sm },
+      lg: { height: '48px', padding: '12px 24px', fontSize: typography.fontSize.base }
+    }
+  },
+  
+  // Card Specifications - Complete behavior definitions
   card: {
-    padding: spacing[6],           // 24px
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    borderWidth: '1px',
-    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
+    base: {
+      borderRadius: '0px', fontFamily: typography.fontFamily.sans,
+      ...layout.textBehaviors.breakWords, minWidth: '0', position: 'relative' as const
+    },
+    sizes: {
+      sm: { padding: spacing[4], gap: spacing[3] },
+      md: { padding: spacing[6], gap: spacing[4] },
+      lg: { padding: spacing[8], gap: spacing[6] }
+    },
+    layouts: {
+      withHeader: {
+        header: { padding: `${spacing[4]} ${spacing[6]}`, borderBottom: '1px solid', ...layout.flexPatterns.spaceBetween },
+        content: { padding: spacing[6] }
+      }
+    }
   },
   
-  // Input Styles - FLAT DESIGN
+  // Table Specifications - Complete data presentation
+  table: {
+    base: {
+      width: '100%', borderCollapse: 'collapse' as const, fontFamily: typography.fontFamily.sans,
+      fontSize: typography.fontSize.sm, tableLayout: 'fixed' as const
+    },
+    header: {
+      borderBottom: '2px solid', fontWeight: typography.fontWeight.semibold,
+      padding: `${spacing[3]} ${spacing[4]}`, textAlign: 'left' as const,
+      ...layout.textBehaviors.truncate
+    },
+    cell: {
+      base: {
+        padding: `${spacing[3]} ${spacing[4]}`, borderBottom: '1px solid',
+        verticalAlign: 'top' as const, ...layout.textBehaviors.truncate, maxWidth: '200px'
+      },
+      widths: { xs: '60px', sm: '100px', md: '150px', lg: '200px', xl: '300px', auto: 'auto' },
+      types: {
+        text: { ...layout.textBehaviors.truncate },
+        number: { textAlign: 'right' as const, fontWeight: typography.fontWeight.medium },
+        status: { textAlign: 'center' as const, fontWeight: typography.fontWeight.medium }
+      }
+    }
+  },
+  
+  // Form Specifications - Complete form system
+  form: {
+    container: { ...layout.flexPatterns.column, gap: spacing[6], maxWidth: '600px' },
+    section: { ...layout.flexPatterns.column, gap: spacing[4] },
+    fieldGroup: { ...layout.flexPatterns.column, gap: spacing[2] },
+    label: {
+      fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium,
+      lineHeight: typography.lineHeight.tight, marginBottom: spacing[1]
+    },
+    helpText: {
+      fontSize: typography.fontSize.xs, lineHeight: typography.lineHeight.normal, marginTop: spacing[1]
+    },
+    actions: {
+      ...layout.flexPatterns.rowGap(3), justifyContent: 'flex-end', marginTop: spacing[8],
+      paddingTop: spacing[6], borderTop: '1px solid'
+    }
+  },
+  
+  // Navigation Specifications - Complete navigation system
+  navigation: {
+    sidebar: {
+      container: {
+        width: '256px', height: '100vh', borderRight: '1px solid',
+        ...layout.flexPatterns.column, overflow: 'hidden'
+      },
+      header: {
+        padding: spacing[6], borderBottom: '1px solid',
+        ...layout.flexPatterns.centerVertical, gap: spacing[3],
+        ...layout.textBehaviors.truncate
+      },
+      navigation: {
+        flex: '1 1 0%', padding: spacing[4], overflowY: 'auto' as const,
+        ...layout.flexPatterns.column, gap: spacing[1]
+      }
+    },
+    navItem: {
+      base: {
+        display: 'flex', alignItems: 'center', gap: spacing[3], padding: spacing[3],
+        fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium,
+        transition: 'all 200ms ease', borderLeft: '3px solid transparent',
+        borderRadius: '0px', textDecoration: 'none', minWidth: '0'
+      },
+      content: {
+        ...layout.flexPatterns.column, gap: spacing[1], minWidth: '0', flex: '1 1 0%'
+      },
+      title: { ...layout.textBehaviors.truncate, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium },
+      description: { ...layout.textBehaviors.truncate, fontSize: typography.fontSize.xs }
+    }
+  },
+  
+  // Input Specifications - Complete input system
   input: {
-    height: '2.5rem',              // 40px
-    padding: '0.5rem 0.75rem',     // 8px 12px
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    borderWidth: '1px',
+    base: {
+      height: '40px', padding: '8px 12px', fontSize: typography.fontSize.sm,
+      fontFamily: typography.fontFamily.sans, lineHeight: typography.lineHeight.normal,
+      border: '1px solid', borderRadius: '0px', outline: 'none', transition: 'border-color 200ms ease'
+    }
   }
 } as const;
 
