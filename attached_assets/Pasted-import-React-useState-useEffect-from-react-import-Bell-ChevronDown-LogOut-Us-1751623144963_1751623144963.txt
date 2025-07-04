@@ -5,8 +5,7 @@ import {
   LogOut,
   User,
   Sun,
-  Moon,
-  Calendar
+  Moon
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -22,7 +21,7 @@ import { getInitials } from "@/lib/utils";
 import EventSelector from "../event/event-selector";
 
 interface HeaderProps {
-  toggleSidebar?: () => void;
+  toggleSidebar: () => void;
   currentEvent?: {
     title: string;
     date: string;

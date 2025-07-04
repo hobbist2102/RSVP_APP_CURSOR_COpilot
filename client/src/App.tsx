@@ -29,7 +29,6 @@ const MessageSection = lazy(() => import("@/pages/message-section"));
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "@/components/theme-provider";
 import '@/design-system/validation'; // Auto-run validation in development
 
 
@@ -42,8 +41,7 @@ const LoadingSpinner = () => (
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="wedding-rsvp-theme">
-      <AuthProvider>
+    <AuthProvider>
         <Suspense fallback={<LoadingSpinner />}>
           <Switch>
             <Route path="/auth" component={AuthPage} />
@@ -165,7 +163,6 @@ function App() {
       </Suspense>
       <Toaster />
     </AuthProvider>
-    </ThemeProvider>
   );
 }
 
