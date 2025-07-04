@@ -153,26 +153,32 @@ export function EventSelector() {
   }
 
   return (
-    <div className="flex items-center space-x-2 px-2 py-1">
-      <CalendarClock className="h-4 w-4 text-accent flex-shrink-0" />
-      <div className="flex-1 min-w-0 max-w-[280px]">
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="w-full max-w-[300px] min-w-0">
         <Select
           value={selectedEventId || undefined}
           onValueChange={handleEventChange}
         >
-          <SelectTrigger className="bg-background border-border hover:border-accent text-sm h-8 overflow-hidden flat">
-            <SelectValue placeholder="Select Event" className="truncate" />
+          <SelectTrigger className="bg-background border-border hover:border-accent text-sm h-9 w-full flat">
+            <div className="flex items-center gap-2 min-w-0 w-full">
+              <CalendarClock className="h-4 w-4 text-accent flex-shrink-0" />
+              <div className="min-w-0 flex-1 text-left">
+                <SelectValue placeholder="Select Event" />
+              </div>
+            </div>
           </SelectTrigger>
-          <SelectContent className="bg-background border-border flat">
+          <SelectContent className="bg-background border-border flat w-[400px]">
             {events.map((event) => (
               <SelectItem 
                 key={event.id} 
                 value={String(event.id)}
-                className="py-2 cursor-pointer hover:bg-accent/10"
+                className="py-3 cursor-pointer hover:bg-accent/10"
               >
-                <div className="flex flex-col min-w-0">
-                  <span className="font-medium truncate text-sm text-foreground">{event.title}</span>
-                  <span className="text-xs text-muted-foreground truncate">{formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}</span>
+                <div className="flex flex-col gap-1 min-w-0 w-full">
+                  <span className="font-semibold text-sm text-foreground truncate">{event.title}</span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}
+                  </span>
                 </div>
               </SelectItem>
             ))}
