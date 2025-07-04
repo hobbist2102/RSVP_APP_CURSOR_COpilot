@@ -1,82 +1,100 @@
 /**
- * MASTER DESIGN SYSTEM TOKENS
+ * MASTER DESIGN SYSTEM TOKENS - FLAT DESIGN WITH OKLCH
  * Single source of truth for all styling in the application
- * Follow this file for all color, typography, spacing, and component styling
+ * Using OKLCH color space for precise color representation
  */
 
 // ============================================================================
-// COLOR PALETTE - Luxury Wedding Theme
+// COLOR PALETTE - Modern Flat Design Theme
 // ============================================================================
 export const colors = {
-  // Primary Brand Colors - Exact specification #7A51E1
+  // Primary Brand Colors - OKLCH Purple Theme
   primary: {
-    50: '#f8f5ff',   // Very light purple tint
-    100: '#f0ebff',  // Light purple tint  
-    200: '#e1d7ff',  // Soft purple
-    300: '#c9b8ff',  // Medium light purple
-    400: '#a78bff',  // Medium purple
-    500: '#7A51E1',  // Main brand purple (exact hex)
-    600: '#6941c7',  // Darker purple
-    700: '#5832a3',  // Deep purple
-    800: '#472680',  // Very deep purple
-    900: '#3b1f67',  // Darkest purple
-  },
-  
-  // Secondary Brand Colors - Exact specification #E3C76F  
-  secondary: {
-    50: '#fefdf8',   // Very light gold tint
-    100: '#fdf9ed',  // Light gold tint
-    200: '#fbf2d5',  // Soft gold
-    300: '#f7e8b5',  // Medium light gold
-    400: '#f0d988',  // Medium gold
-    500: '#E3C76F',  // Main brand gold (exact hex)
-    600: '#d4b054',  // Darker gold
-    700: '#b0923e',  // Deep gold
-    800: '#8f7533',  // Very deep gold
-    900: '#765f2d',  // Darkest gold
-  },
-  
-  // Exact background colors from specification
-  background: {
-    light: '#FFFFFF',  // Pure white
-    dark: '#121212',   // Deep charcoal (exact hex)
-  },
-  
-  // Neutral Colors - iOS-inspired clean grays
-  neutral: {
-    // Light Mode
-    light: {
-      background: '#FFFFFF',     // Pure white background
-      foreground: '#1F1F1F',     // Near black text
-      card: '#FFFFFF',           // Card backgrounds
-      border: '#E5E7EB',         // Light gray borders
-      muted: '#F9FAFB',          // Very light gray for muted areas
-      'muted-foreground': '#6B7280', // Medium gray for secondary text
-    },
-    
-    // Dark Mode  
-    dark: {
-      background: '#121212',     // Deep charcoal (exact specification)
-      foreground: '#FAFAFA',     // Clean white text
-      card: '#1E1E1E',           // Dark card backgrounds
-      border: '#2A2A2A',         // Dark gray borders
-      muted: '#262626',          // Muted dark areas
-      'muted-foreground': '#A3A3A3', // Light gray for secondary text
+    light: 'oklch(0.4664 0.1906 298.6874)',    // Main primary
+    dark: 'oklch(0.4145 0.1828 300.3155)',     // Dark mode primary
+    foreground: {
+      light: 'oklch(1.0000 0 0)',              // White on primary
+      dark: 'oklch(0.9940 0 0)',               // White on primary (dark)
     }
   },
   
-  // Status & accent colors
-  accent: {
-    success: '#22c55e', // Green for success states
-    warning: '#f59e0b', // Amber for warning states
-    error: '#ef4444',   // Red for error states
-    info: '#3b82f6',    // Blue for info states
+  // Secondary Brand Colors - OKLCH Gold/Yellow Theme  
+  secondary: {
+    light: 'oklch(0.7932 0.0782 87.3519)',    // Main secondary
+    dark: 'oklch(0.7364 0.0790 87.2521)',     // Dark mode secondary
+    foreground: {
+      light: 'oklch(1.0000 0 0)',              // White on secondary
+      dark: 'oklch(0.1822 0 0)',               // Dark on secondary
+    }
   },
   
-  // Hover overlay colors
-  overlay: {
-    light: 'rgba(122, 81, 225, 0.06)',  // Purple tint for light mode
-    dark: 'rgba(255, 255, 255, 0.04)',  // White tint for dark mode
+  // Accent Colors - Purple variants
+  accent: {
+    light: 'oklch(0.6565 0.1922 293.8621)',   // Main accent
+    dark: 'oklch(0.6056 0.2189 292.7172)',    // Dark mode accent
+    foreground: {
+      light: 'oklch(1.0000 0 0)',              // White on accent
+      dark: 'oklch(0.9940 0 0)',               // White on accent (dark)
+    }
+  },
+  
+  // Background & Surface Colors
+  background: {
+    light: 'oklch(1.0000 0 0)',               // Pure white
+    dark: 'oklch(0.1822 0 0)',                // Deep charcoal
+  },
+  
+  // Card & Surface Colors
+  card: {
+    light: 'oklch(0.9851 0 0)',               // Very light gray
+    dark: 'oklch(0.2350 0 0)',                // Dark card surface
+  },
+  
+  // Text Colors
+  foreground: {
+    light: 'oklch(0.3211 0 0)',               // Dark gray text
+    dark: 'oklch(0.9370 0 0)',                // Light text for dark mode
+  },
+  
+  // Border & Input Colors
+  border: {
+    light: 'oklch(0.8975 0 0)',              // Light border
+    dark: 'oklch(0.3211 0 0)',               // Dark border
+  },
+  
+  // Input Colors
+  input: {
+    light: 'oklch(1.0000 0 0)',              // Light input
+    dark: 'oklch(0.2350 0 0)',               // Dark input
+  },
+  
+  // Muted Colors
+  muted: {
+    light: 'oklch(0.5103 0 0)',              // Light muted
+    dark: 'oklch(0.5103 0 0)',               // Dark muted
+    foreground: {
+      light: 'oklch(0.5103 0 0)',            // Light muted text
+      dark: 'oklch(0.7380 0 0)',             // Dark muted text
+    }
+  },
+  
+  // Status & System Colors
+  destructive: {
+    light: 'oklch(0.6368 0.2078 25.3313)',   // Light destructive
+    dark: 'oklch(0.5771 0.2152 27.3250)',    // Dark destructive
+    foreground: {
+      light: 'oklch(1.0000 0 0)',            // White on destructive
+      dark: 'oklch(0.9940 0 0)',             // White on destructive (dark)
+    }
+  },
+  
+  // Chart Colors
+  chart: {
+    1: 'oklch(0.4145 0.1828 300.3155)',      // Primary purple
+    2: 'oklch(0.6056 0.2189 292.7172)',      // Secondary purple
+    3: 'oklch(0.7364 0.0790 87.2521)',       // Gold
+    4: 'oklch(0.4210 0.0897 57.7077)',       // Green
+    5: 'oklch(0.3791 0.1378 265.5222)',      // Blue
   },
 } as const;
 

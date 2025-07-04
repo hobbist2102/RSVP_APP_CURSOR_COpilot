@@ -78,7 +78,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   ];
 
   const sidebarClasses = cn(
-    "glass w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
+    "bg-sidebar w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
     isOpen ? "left-0" : "-left-64 lg:left-0"
   );
 

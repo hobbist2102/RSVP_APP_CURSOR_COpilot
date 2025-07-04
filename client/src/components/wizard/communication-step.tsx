@@ -1022,8 +1022,8 @@ SO EXCITED to celebrate with you! 💕🎉`,
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="p-3 bg-white rounded-lg border">
-                  <p className="font-serif text-lg font-semibold">Elegant Serif</p>
-                  <p className="text-sm text-muted-foreground">For headings and formal text</p>
+                  <p className="font-sans text-lg font-semibold">Inter Font Family</p>
+                  <p className="text-sm text-muted-foreground">Clean, modern typography</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg border">
                   <p className="font-sans text-base">Clean Sans-Serif</p>

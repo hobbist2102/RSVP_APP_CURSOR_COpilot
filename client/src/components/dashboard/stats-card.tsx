@@ -57,19 +57,19 @@ export default function StatsCard({ title, value, change, icon, className, onCli
   return (
     <div 
       className={cn(
-        "glass rounded-lg p-6 shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5", 
+        "bg-card border border-border p-6 transition-all duration-200 ease-out hover:scale-105", 
         onClick && "cursor-pointer", 
         className
       )}
       onClick={onClick}
     >
       <div className="flex items-center">
-        <div className={cn("p-3 rounded-full", getIconClass())}>
+        <div className={cn("p-3", getIconClass())}>
           {getIcon()}
         </div>
         <div className="ml-5">
           <p className="text-muted-foreground text-sm font-medium tracking-wide">{title}</p>
-          <h3 className="font-serif text-3xl font-semibold text-foreground">{value}</h3>
+          <h3 className="font-sans text-3xl font-semibold text-foreground">{value}</h3>
         </div>
       </div>
 
