@@ -42,24 +42,25 @@ const LoadingSpinner = () => (
 
 function App() {
   return (
-    <AuthProvider>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/auth" component={AuthPage} />
-          {/* RSVP routes - capture all possible formats */}
-          <Route path="/guest-rsvp/:rest*">
-            {(params) => <RsvpPage />}
-          </Route>
-          <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
-          <Route path="/" component={ImmersiveLanding} />
-          <Route path="/engagement" component={MessageSection} />
-          <Route path="/dashboard">
-            {() => (
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            )}
-          </Route>
+    <ThemeProvider defaultTheme="system" storageKey="wedding-rsvp-theme">
+      <AuthProvider>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Switch>
+            <Route path="/auth" component={AuthPage} />
+            {/* RSVP routes - capture all possible formats */}
+            <Route path="/guest-rsvp/:rest*">
+              {(params) => <RsvpPage />}
+            </Route>
+            <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
+            <Route path="/" component={ImmersiveLanding} />
+            <Route path="/engagement" component={MessageSection} />
+            <Route path="/dashboard">
+              {() => (
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              )}
+            </Route>
         <Route path="/guests">
           {() => (
             <PrivateRoute>
@@ -164,6 +165,7 @@ function App() {
       </Suspense>
       <Toaster />
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

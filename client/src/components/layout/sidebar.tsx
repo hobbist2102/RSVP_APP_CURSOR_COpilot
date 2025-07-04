@@ -80,7 +80,7 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 export function Sidebar() {
-  const location = useLocation();
+  const [location] = useLocation();
 
   return (
     <div className="flex h-full w-64 flex-col bg-background border-r border-border">
@@ -90,7 +90,7 @@ export function Sidebar() {
       
       <nav className="flex-1 space-y-1 p-4">
         {sidebarItems.map((item) => {
-          const isActive = location.pathname === item.href;
+          const isActive = location === item.href;
           const Icon = item.icon;
           
           return (
