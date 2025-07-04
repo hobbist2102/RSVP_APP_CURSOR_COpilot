@@ -1,111 +1,130 @@
+
 /**
  * MASTER DESIGN SYSTEM TOKENS - FLAT DESIGN WITH OKLCH
  * Single source of truth for all styling in the application
  * Using OKLCH color space for precise color representation
+ * UPDATED TO MATCH EXACT SPECIFICATION - COMPLETELY FLAT DESIGN
  */
 
 // ============================================================================
-// COLOR PALETTE - Modern Flat Design Theme
+// COLOR PALETTE - Exact Specification Match
 // ============================================================================
 export const colors = {
-  // Primary Brand Colors - OKLCH Purple Theme
+  // Primary Brand Colors - EXACT OKLCH VALUES FROM SPEC
   primary: {
-    light: 'oklch(0.4664 0.1906 298.6874)',    // Main primary
-    dark: 'oklch(0.4145 0.1828 300.3155)',     // Dark mode primary
+    light: 'oklch(0.4664 0.1906 298.6874)',    // Exact match
+    dark: 'oklch(0.4145 0.1828 300.3155)',     // Exact match
     foreground: {
-      light: 'oklch(1.0000 0 0)',              // White on primary
-      dark: 'oklch(0.9940 0 0)',               // White on primary (dark)
+      light: 'oklch(1.0000 0 0)',              // Pure white
+      dark: 'oklch(0.9940 0 0)',               // Near white for dark
     }
   },
   
-  // Secondary Brand Colors - OKLCH Gold/Yellow Theme  
+  // Secondary Brand Colors - EXACT OKLCH VALUES FROM SPEC
   secondary: {
-    light: 'oklch(0.7932 0.0782 87.3519)',    // Main secondary
-    dark: 'oklch(0.7364 0.0790 87.2521)',     // Dark mode secondary
+    light: 'oklch(0.7932 0.0782 87.3519)',    // Exact match
+    dark: 'oklch(0.7364 0.0790 87.2521)',     // Exact match
     foreground: {
       light: 'oklch(1.0000 0 0)',              // White on secondary
       dark: 'oklch(0.1822 0 0)',               // Dark on secondary
     }
   },
   
-  // Accent Colors - Purple variants
+  // Accent Colors - EXACT OKLCH VALUES FROM SPEC
   accent: {
-    light: 'oklch(0.6565 0.1922 293.8621)',   // Main accent
-    dark: 'oklch(0.6056 0.2189 292.7172)',    // Dark mode accent
+    light: 'oklch(0.6565 0.1922 293.8621)',   // Exact match
+    dark: 'oklch(0.6056 0.2189 292.7172)',    // Exact match
     foreground: {
       light: 'oklch(1.0000 0 0)',              // White on accent
-      dark: 'oklch(0.9940 0 0)',               // White on accent (dark)
+      dark: 'oklch(0.9940 0 0)',               // Near white on accent
     }
   },
   
-  // Background & Surface Colors
+  // Background & Surface Colors - EXACT MATCH
   background: {
     light: 'oklch(1.0000 0 0)',               // Pure white
-    dark: 'oklch(0.1822 0 0)',                // Deep charcoal
+    dark: 'oklch(0.1822 0 0)',                // Exact dark background
   },
   
-  // Card & Surface Colors
+  // Card & Surface Colors - EXACT MATCH
   card: {
-    light: 'oklch(0.9851 0 0)',               // Very light gray
-    dark: 'oklch(0.2350 0 0)',                // Dark card surface
+    light: 'oklch(0.9851 0 0)',               // Exact light card
+    dark: 'oklch(0.2350 0 0)',                // Exact dark card
   },
   
-  // Text Colors
+  // Text Colors - EXACT MATCH
   foreground: {
-    light: 'oklch(0.3211 0 0)',               // Dark gray text
-    dark: 'oklch(0.9370 0 0)',                // Light text for dark mode
+    light: 'oklch(0.3211 0 0)',               // Exact text color
+    dark: 'oklch(0.9370 0 0)',                // Exact dark text
   },
   
-  // Border & Input Colors
+  // Border & Input Colors - EXACT MATCH
   border: {
-    light: 'oklch(0.8975 0 0)',              // Light border
-    dark: 'oklch(0.3211 0 0)',               // Dark border
+    light: 'oklch(0.8975 0 0)',              // Exact border
+    dark: 'oklch(0.3211 0 0)',               // Exact dark border
   },
   
-  // Input Colors
+  // Input Colors - EXACT MATCH
   input: {
-    light: 'oklch(1.0000 0 0)',              // Light input
-    dark: 'oklch(0.2350 0 0)',               // Dark input
+    light: 'oklch(1.0000 0 0)',              // Pure white input
+    dark: 'oklch(0.2350 0 0)',               // Exact dark input
   },
   
-  // Muted Colors
+  // Muted Colors - EXACT MATCH
   muted: {
-    light: 'oklch(0.5103 0 0)',              // Light muted
-    dark: 'oklch(0.5103 0 0)',               // Dark muted
+    light: 'oklch(0.5103 0 0)',              // Exact muted
+    dark: 'oklch(0.5103 0 0)',               // Same for both
     foreground: {
-      light: 'oklch(0.5103 0 0)',            // Light muted text
-      dark: 'oklch(0.7380 0 0)',             // Dark muted text
+      light: 'oklch(0.5103 0 0)',            // Exact muted text
+      dark: 'oklch(0.7380 0 0)',             // Exact dark muted text
     }
   },
   
-  // Status & System Colors
+  // Status & System Colors - EXACT MATCH
   destructive: {
-    light: 'oklch(0.6368 0.2078 25.3313)',   // Light destructive
-    dark: 'oklch(0.5771 0.2152 27.3250)',    // Dark destructive
+    light: 'oklch(0.6368 0.2078 25.3313)',   // Exact destructive
+    dark: 'oklch(0.5771 0.2152 27.3250)',    // Exact dark destructive
     foreground: {
       light: 'oklch(1.0000 0 0)',            // White on destructive
-      dark: 'oklch(0.9940 0 0)',             // White on destructive (dark)
+      dark: 'oklch(0.9940 0 0)',             // Near white on destructive
     }
   },
   
-  // Chart Colors
+  // Chart Colors - EXACT MATCH
   chart: {
-    1: 'oklch(0.4145 0.1828 300.3155)',      // Primary purple
-    2: 'oklch(0.6056 0.2189 292.7172)',      // Secondary purple
-    3: 'oklch(0.7364 0.0790 87.2521)',       // Gold
-    4: 'oklch(0.4210 0.0897 57.7077)',       // Green
-    5: 'oklch(0.3791 0.1378 265.5222)',      // Blue
+    1: 'oklch(0.4145 0.1828 300.3155)',      // Exact chart-1
+    2: 'oklch(0.6056 0.2189 292.7172)',      // Exact chart-2
+    3: 'oklch(0.7364 0.0790 87.2521)',       // Exact chart-3
+    4: 'oklch(0.4210 0.0897 57.7077)',       // Exact chart-4
+    5: 'oklch(0.3791 0.1378 265.5222)',      // Exact chart-5
+  },
+  
+  // Sidebar Colors - EXACT MATCH FROM SPEC
+  sidebar: {
+    light: 'oklch(0.9672 0 0)',              // Exact sidebar background
+    dark: 'oklch(0.2350 0 0)',               // Exact dark sidebar
+    foreground: {
+      light: 'oklch(0.1776 0 0)',            // Exact sidebar text
+      dark: 'oklch(0.9940 0 0)',             // Exact dark sidebar text
+    },
+    primary: 'oklch(0.4145 0.1828 300.3155)', // Exact sidebar primary
+    accent: 'oklch(0.5510 0.0234 264.3637)',  // Exact sidebar accent
+    border: {
+      light: 'oklch(0 0 0)',                 // Black border light
+      dark: 'oklch(1.0000 0 0)',             // White border dark
+    }
   },
 } as const;
 
 // ============================================================================
-// TYPOGRAPHY SYSTEM
+// TYPOGRAPHY SYSTEM - EXACT SPECIFICATION
 // ============================================================================
 export const typography = {
-  // Font Families
+  // Font Families - EXACT MATCH
   fontFamily: {
-    sans: ['Inter', 'system-ui', 'sans-serif'],      // Clean, modern UI font
-    serif: ['Cormorant Garamond', 'serif'],          // Elegant decorative font
+    sans: ['Inter UI', 'sans-serif'],              // Exact match
+    serif: ['Cormorant', 'serif'],                 // Exact match
+    mono: ['Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
   },
   
   // Font Sizes (rem units for scalability)
@@ -134,15 +153,25 @@ export const typography = {
     tight: '1.1',
     normal: '1.5',
     relaxed: '1.75',
+  },
+  
+  // Letter Spacing - EXACT MATCH
+  letterSpacing: {
+    tighter: 'calc(0.025em - 0.05em)',
+    tight: 'calc(0.025em - 0.025em)',
+    normal: '0.025em',                  // EXACT MATCH FROM SPEC
+    wide: 'calc(0.025em + 0.025em)',
+    wider: 'calc(0.025em + 0.05em)',
+    widest: 'calc(0.025em + 0.1em)',
   }
 } as const;
 
 // ============================================================================
-// SPACING SYSTEM (8px grid)
+// SPACING SYSTEM (0.25rem base unit)
 // ============================================================================
 export const spacing = {
   0: '0',
-  1: '0.25rem',  // 4px
+  1: '0.25rem',  // 4px - EXACT BASE UNIT FROM SPEC
   2: '0.5rem',   // 8px
   3: '0.75rem',  // 12px
   4: '1rem',     // 16px
@@ -157,43 +186,43 @@ export const spacing = {
 } as const;
 
 // ============================================================================
-// SHADOW SYSTEM
+// SHADOW SYSTEM - COMPLETELY FLAT (ALL ZEROS)
 // ============================================================================
 export const shadows = {
-  // Light Mode Shadows
+  // ALL SHADOWS ARE 0px - COMPLETELY FLAT DESIGN
   light: {
-    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    md: '0 4px 6px rgba(0, 0, 0, 0.07)',
-    lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
-    xl: '0 20px 25px rgba(0, 0, 0, 0.1)',
+    sm: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
+    md: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
+    lg: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
+    xl: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
   },
   
-  // Dark Mode Shadows
+  // ALL SHADOWS ARE 0px - COMPLETELY FLAT DESIGN
   dark: {
-    sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
-    md: '0 4px 6px rgba(0, 0, 0, 0.4)',
-    lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
-    xl: '0 20px 25px rgba(0, 0, 0, 0.6)',
+    sm: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
+    md: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
+    lg: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
+    xl: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
   }
 } as const;
 
 // ============================================================================
-// BORDER RADIUS SYSTEM
+// BORDER RADIUS SYSTEM - COMPLETELY FLAT (ALL ZEROS)
 // ============================================================================
 export const borderRadius = {
-  none: '0',
-  sm: '0.25rem',   // 4px
-  md: '0.5rem',    // 8px - Standard for cards/buttons
-  lg: '0.75rem',   // 12px - Large cards
-  xl: '1rem',      // 16px - Hero sections
-  full: '9999px',  // Pills and circular elements
+  none: '0px',      // EXACT MATCH - NO RADIUS
+  sm: '0px',        // EXACT MATCH - NO RADIUS
+  md: '0px',        // EXACT MATCH - NO RADIUS
+  lg: '0px',        // EXACT MATCH - NO RADIUS
+  xl: '0px',        // EXACT MATCH - NO RADIUS
+  full: '0px',      // EXACT MATCH - NO RADIUS (FLAT DESIGN)
 } as const;
 
 // ============================================================================
-// COMPONENT-SPECIFIC TOKENS
+// COMPONENT-SPECIFIC TOKENS - FLAT DESIGN
 // ============================================================================
 export const components = {
-  // Button Styles
+  // Button Styles - FLAT DESIGN
   button: {
     height: {
       sm: '2rem',      // 32px
@@ -205,29 +234,30 @@ export const components = {
       md: '0.75rem 1rem',
       lg: '1rem 1.5rem',
     },
-    borderRadius: borderRadius.md,
+    borderRadius: '0px',           // FLAT - NO RADIUS
     fontWeight: typography.fontWeight.medium,
+    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
   },
   
-  // Card Styles
+  // Card Styles - FLAT DESIGN
   card: {
     padding: spacing[6],           // 24px
-    borderRadius: borderRadius.lg, // 12px
+    borderRadius: '0px',           // FLAT - NO RADIUS
     borderWidth: '1px',
-    shadow: shadows.light.md,
+    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
   },
   
-  // Input Styles
+  // Input Styles - FLAT DESIGN
   input: {
     height: '2.5rem',              // 40px
     padding: '0.5rem 0.75rem',     // 8px 12px
-    borderRadius: borderRadius.md,  // 8px
+    borderRadius: '0px',           // FLAT - NO RADIUS
     borderWidth: '1px',
   }
 } as const;
 
 // ============================================================================
-// ANIMATION & TRANSITIONS
+// ANIMATION & TRANSITIONS - MINIMAL FOR FLAT DESIGN
 // ============================================================================
 export const animations = {
   // Transition Durations
@@ -248,64 +278,64 @@ export const animations = {
     easeOut: 'ease-out',
   },
   
-  // Transform Effects
+  // NO TRANSFORM EFFECTS FOR FLAT DESIGN
   transforms: {
-    hoverScale: 'scale(1.02)',
-    activeScale: 'scale(0.98)',
-    hoverTranslate: 'translateY(-1px)',
+    hoverScale: 'scale(1)',        // NO SCALE
+    activeScale: 'scale(1)',       // NO SCALE
+    hoverTranslate: 'translateY(0)', // NO TRANSLATE
   },
   
-  // Common Hover Effects
+  // NO HOVER EFFECTS FOR FLAT DESIGN
   hover: {
-    scale: 'scale(1.02)',
-    shadow: shadows.light.lg,
-    translate: 'translateY(-1px)',
+    scale: 'scale(1)',             // NO SCALE
+    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
+    translate: 'translateY(0)',    // NO TRANSLATE
   }
 } as const;
 
 // ============================================================================
-// FOCUS & INTERACTION STATES
+// FOCUS & INTERACTION STATES - FLAT DESIGN
 // ============================================================================
 export const focusStates = {
-  // Focus Ring Configuration - Updated with exact brand colors
+  // Focus Ring Configuration - EXACT BRAND COLORS, NO SHADOWS
   focusRing: {
     width: '2px',
-    color: '#7A51E1', // Exact brand purple
+    color: 'oklch(0.4145 0.1828 300.3155)', // Exact primary color
     offset: '2px',
-    shadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
+    shadow: 'none',                          // NO SHADOW
     style: 'solid',
   },
   
-  // Ring Colors and Thickness
+  // Ring Colors and Thickness - NO SHADOWS
   rings: {
     primary: {
-      width: '3px',
-      color: '#7A51E1',  // Exact brand purple
-      opacity: '0.1',
+      width: '2px',
+      color: 'oklch(0.4145 0.1828 300.3155)',  // Exact primary
+      opacity: '1',                            // Full opacity, no blur
     },
     secondary: {
       width: '2px', 
-      color: '#E3C76F',  // Exact brand gold
-      opacity: '0.15',
+      color: 'oklch(0.7364 0.0790 87.2521)',   // Exact secondary
+      opacity: '1',                            // Full opacity, no blur
     },
   },
   
-  // Interactive States - iOS 18 inspired
+  // Interactive States - FLAT DESIGN (NO TRANSFORMS/SHADOWS)
   states: {
     hover: {
-      transform: 'scale(1.05)',  // Slightly more pronounced
-      transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-      shadowStep: 'md-to-lg',
+      transform: 'none',                      // NO TRANSFORM
+      transition: 'all 200ms ease',
+      shadowStep: 'none',                     // NO SHADOW
     },
     focus: {
-      outline: '2px solid #7A51E1',  // Exact brand purple
+      outline: '2px solid oklch(0.4145 0.1828 300.3155)', // Exact primary
       outlineOffset: '2px',
-      boxShadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
+      boxShadow: 'none',                      // NO SHADOW
       transition: 'all 150ms ease-out',
     },
     active: {
-      transform: 'scale(0.98)',
-      transition: 'all 150ms cubic-bezier(0.4, 0, 1, 1)',
+      transform: 'none',                      // NO TRANSFORM
+      transition: 'all 150ms ease',
     },
   }
 } as const;
@@ -316,8 +346,6 @@ export const focusStates = {
 
 /**
  * Get color value by theme and path
- * @param theme - 'light' | 'dark'
- * @param colorPath - Path to color (e.g., 'primary.500', 'neutral.light.background')
  */
 export function getColor(theme: 'light' | 'dark', colorPath: string): string {
   const paths = colorPath.split('.');
@@ -327,12 +355,6 @@ export function getColor(theme: 'light' | 'dark', colorPath: string): string {
     value = value?.[path];
   }
   
-  // Handle neutral colors with theme-specific values
-  if (colorPath.startsWith('neutral.') && !colorPath.includes('.light.') && !colorPath.includes('.dark.')) {
-    const neutralPath = colorPath.replace('neutral.', '');
-    return colors.neutral[theme]?.[neutralPath as keyof typeof colors.neutral.light] || value;
-  }
-  
   return value || colorPath;
 }
 
@@ -340,41 +362,41 @@ export function getColor(theme: 'light' | 'dark', colorPath: string): string {
  * Generate CSS custom properties for the design system
  */
 export function generateCSSCustomProperties(theme: 'light' | 'dark'): Record<string, string> {
-  const themeColors = colors.neutral[theme];
-  
   return {
-    // Color properties
-    '--color-background': themeColors.background,
-    '--color-foreground': themeColors.foreground,
-    '--color-card': themeColors.card,
-    '--color-border': themeColors.border,
-    '--color-muted': themeColors.muted,
-    '--color-muted-foreground': themeColors['muted-foreground'],
-    '--color-primary': colors.primary[500],
-    '--color-secondary': colors.secondary[500],
-    '--color-success': colors.accent.success,
-    '--color-warning': colors.accent.warning,
-    '--color-error': colors.accent.error,
-    '--color-info': colors.accent.info,
+    // Color properties - EXACT OKLCH VALUES
+    '--color-background': colors.background[theme],
+    '--color-foreground': colors.foreground[theme],
+    '--color-card': colors.card[theme],
+    '--color-border': colors.border[theme],
+    '--color-muted': colors.muted[theme],
+    '--color-muted-foreground': colors.muted.foreground[theme],
+    '--color-primary': colors.primary[theme],
+    '--color-secondary': colors.secondary[theme],
+    '--color-accent': colors.accent[theme],
+    '--color-destructive': colors.destructive[theme],
     
-    // Typography properties
+    // Typography properties - EXACT MATCH
     '--font-family-sans': typography.fontFamily.sans.join(', '),
     '--font-family-serif': typography.fontFamily.serif.join(', '),
+    '--font-family-mono': typography.fontFamily.mono.join(', '),
     
     // Spacing properties
-    '--spacing-unit': '0.25rem', // 4px base unit
+    '--spacing-unit': '0.25rem', // EXACT BASE UNIT
     
-    // Shadow properties
+    // Shadow properties - ALL ZERO
     '--shadow-sm': shadows[theme].sm,
     '--shadow-md': shadows[theme].md,
     '--shadow-lg': shadows[theme].lg,
     '--shadow-xl': shadows[theme].xl,
     
-    // Border radius properties
+    // Border radius properties - ALL ZERO
     '--border-radius-sm': borderRadius.sm,
     '--border-radius-md': borderRadius.md,
     '--border-radius-lg': borderRadius.lg,
     '--border-radius-xl': borderRadius.xl,
+    
+    // Letter spacing - EXACT MATCH
+    '--letter-spacing-normal': typography.letterSpacing.normal,
   };
 }
 

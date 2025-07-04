@@ -1,7 +1,9 @@
+
 /**
- * COMPONENT STYLE DEFINITIONS
+ * COMPONENT STYLE DEFINITIONS - FLAT DESIGN SPECIFICATION
  * Production-quality component styling based on design tokens
  * All components must reference these styles for consistency
+ * UPDATED FOR COMPLETELY FLAT DESIGN
  */
 
 import { designSystem } from './tokens';
@@ -9,51 +11,54 @@ import { designSystem } from './tokens';
 const { colors, typography, spacing, shadows, borderRadius, components, animations } = designSystem;
 
 // ============================================================================
-// BUTTON COMPONENT STYLES
+// BUTTON COMPONENT STYLES - COMPLETELY FLAT
 // ============================================================================
 export const buttonStyles = {
   base: {
     fontFamily: typography.fontFamily.sans.join(', '),
     fontWeight: typography.fontWeight.medium,
-    borderRadius: borderRadius.md,
-    transition: `all ${animations.duration.hover} ${animations.easing.easeOut}`,
+    borderRadius: '0px',  // FLAT DESIGN
+    transition: `color ${animations.duration.hover} ${animations.easing.easeOut}, background-color ${animations.duration.hover} ${animations.easing.easeOut}`,
     cursor: 'pointer',
     border: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     textDecoration: 'none',
+    boxShadow: 'none',  // NO SHADOW
     '&:focus': {
-      outline: '2px solid #7A51E1',  // Exact brand purple
+      outline: '2px solid oklch(0.4145 0.1828 300.3155)',  // Exact brand purple
       outlineOffset: '2px',
-      boxShadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
+      boxShadow: 'none',  // NO SHADOW
     },
     '&:active': {
-      transform: 'scale(0.98)',
-      transition: 'all 150ms cubic-bezier(0.4, 0, 1, 1)',
+      transform: 'none',  // NO TRANSFORM
+      transition: 'color 150ms ease, background-color 150ms ease',
     },
   },
   
   variants: {
     primary: {
       light: {
-        backgroundColor: colors.primary[500],
-        color: colors.neutral.light.background,
-        boxShadow: shadows.light.sm,
+        backgroundColor: colors.primary.light,
+        color: colors.primary.foreground.light,
+        boxShadow: 'none',  // NO SHADOW
         '&:hover': {
-          backgroundColor: colors.primary[600],
-          boxShadow: shadows.light.md,
-          transform: 'translateY(-1px)',
+          backgroundColor: colors.primary.light,
+          opacity: '0.9',
+          boxShadow: 'none',  // NO SHADOW
+          transform: 'none',  // NO TRANSFORM
         }
       },
       dark: {
-        backgroundColor: colors.primary[500],
-        color: colors.neutral.dark.background,
-        boxShadow: shadows.dark.sm,
+        backgroundColor: colors.primary.dark,
+        color: colors.primary.foreground.dark,
+        boxShadow: 'none',  // NO SHADOW
         '&:hover': {
-          backgroundColor: colors.primary[600],
-          boxShadow: shadows.dark.md,
-          transform: 'translateY(-1px)',
+          backgroundColor: colors.primary.dark,
+          opacity: '0.9',
+          boxShadow: 'none',  // NO SHADOW
+          transform: 'none',  // NO TRANSFORM
         }
       }
     },
@@ -61,20 +66,22 @@ export const buttonStyles = {
     outline: {
       light: {
         backgroundColor: 'transparent',
-        color: colors.primary[500],
-        border: `1px solid ${colors.primary[500]}`,
+        color: colors.primary.light,
+        border: `1px solid ${colors.primary.light}`,
         '&:hover': {
-          backgroundColor: colors.primary[50],
-          transform: 'translateY(-1px)',
+          backgroundColor: colors.primary.light,
+          color: colors.primary.foreground.light,
+          transform: 'none',  // NO TRANSFORM
         }
       },
       dark: {
         backgroundColor: 'transparent',
-        color: colors.primary[500],
-        border: `1px solid ${colors.primary[500]}`,
+        color: colors.primary.dark,
+        border: `1px solid ${colors.primary.dark}`,
         '&:hover': {
-          backgroundColor: colors.primary[900],
-          transform: 'translateY(-1px)',
+          backgroundColor: colors.primary.dark,
+          color: colors.primary.foreground.dark,
+          transform: 'none',  // NO TRANSFORM
         }
       }
     },
@@ -82,16 +89,18 @@ export const buttonStyles = {
     ghost: {
       light: {
         backgroundColor: 'transparent',
-        color: colors.neutral.light.foreground,
+        color: colors.foreground.light,
         '&:hover': {
-          backgroundColor: colors.neutral.light.muted,
+          backgroundColor: colors.muted.light,
+          transform: 'none',  // NO TRANSFORM
         }
       },
       dark: {
         backgroundColor: 'transparent',
-        color: colors.neutral.dark.foreground,
+        color: colors.foreground.dark,
         '&:hover': {
-          backgroundColor: colors.neutral.dark.muted,
+          backgroundColor: colors.muted.dark,
+          transform: 'none',  // NO TRANSFORM
         }
       }
     }
@@ -117,59 +126,60 @@ export const buttonStyles = {
 } as const;
 
 // ============================================================================
-// CARD COMPONENT STYLES
+// CARD COMPONENT STYLES - COMPLETELY FLAT
 // ============================================================================
 export const cardStyles = {
   base: {
-    borderRadius: borderRadius.lg,
+    borderRadius: '0px',  // FLAT DESIGN
     border: '1px solid',
     padding: spacing[6],
-    transition: 'all 150ms ease',
+    transition: 'none',  // NO TRANSITIONS
+    boxShadow: 'none',  // NO SHADOW
   },
   
   variants: {
     default: {
       light: {
-        backgroundColor: colors.neutral.light.card,
-        borderColor: colors.neutral.light.border,
-        color: colors.neutral.light.foreground,
-        boxShadow: shadows.light.sm,
+        backgroundColor: colors.card.light,
+        borderColor: colors.border.light,
+        color: colors.foreground.light,
+        boxShadow: 'none',  // NO SHADOW
         '&:hover': {
-          boxShadow: shadows.light.md,
-          transform: 'translateY(-2px)',
+          boxShadow: 'none',  // NO SHADOW
+          transform: 'none',  // NO TRANSFORM
         }
       },
       dark: {
-        backgroundColor: colors.neutral.dark.card,
-        borderColor: colors.neutral.dark.border,
-        color: colors.neutral.dark.foreground,
-        boxShadow: shadows.dark.sm,
+        backgroundColor: colors.card.dark,
+        borderColor: colors.border.dark,
+        color: colors.foreground.dark,
+        boxShadow: 'none',  // NO SHADOW
         '&:hover': {
-          boxShadow: shadows.dark.md,
-          transform: 'translateY(-2px)',
+          boxShadow: 'none',  // NO SHADOW
+          transform: 'none',  // NO TRANSFORM
         }
       }
     },
     
     elevated: {
       light: {
-        backgroundColor: colors.neutral.light.card,
-        borderColor: colors.neutral.light.border,
-        color: colors.neutral.light.foreground,
-        boxShadow: shadows.light.lg,
+        backgroundColor: colors.card.light,
+        borderColor: colors.border.light,
+        color: colors.foreground.light,
+        boxShadow: 'none',  // NO SHADOW
       },
       dark: {
-        backgroundColor: colors.neutral.dark.card,
-        borderColor: colors.neutral.dark.border,
-        color: colors.neutral.dark.foreground,
-        boxShadow: shadows.dark.lg,
+        backgroundColor: colors.card.dark,
+        borderColor: colors.border.dark,
+        color: colors.foreground.dark,
+        boxShadow: 'none',  // NO SHADOW
       }
     }
   }
 } as const;
 
 // ============================================================================
-// INPUT COMPONENT STYLES
+// INPUT COMPONENT STYLES - COMPLETELY FLAT
 // ============================================================================
 export const inputStyles = {
   base: {
@@ -177,47 +187,56 @@ export const inputStyles = {
     fontSize: typography.fontSize.base,
     height: components.input.height,
     padding: components.input.padding,
-    borderRadius: borderRadius.md,
+    borderRadius: '0px',  // FLAT DESIGN
     border: '1px solid',
-    transition: 'all 150ms ease',
+    transition: 'border-color 150ms ease',
     outline: 'none',
+    boxShadow: 'none',  // NO SHADOW
   },
   
   states: {
     default: {
       light: {
-        backgroundColor: colors.neutral.light.background,
-        borderColor: colors.neutral.light.border,
-        color: colors.neutral.light.foreground,
+        backgroundColor: colors.background.light,
+        borderColor: colors.border.light,
+        color: colors.foreground.light,
         '&:focus': {
-          borderColor: colors.primary[500],
-          boxShadow: `0 0 0 3px ${colors.primary[100]}`,
+          borderColor: colors.primary.light,
+          outline: `2px solid ${colors.primary.light}`,
+          outlineOffset: '2px',
+          boxShadow: 'none',  // NO SHADOW
         }
       },
       dark: {
-        backgroundColor: colors.neutral.dark.card,
-        borderColor: colors.neutral.dark.border,
-        color: colors.neutral.dark.foreground,
+        backgroundColor: colors.input.dark,
+        borderColor: colors.border.dark,
+        color: colors.foreground.dark,
         '&:focus': {
-          borderColor: colors.primary[500],
-          boxShadow: `0 0 0 3px ${colors.primary[900]}`,
+          borderColor: colors.primary.dark,
+          outline: `2px solid ${colors.primary.dark}`,
+          outlineOffset: '2px',
+          boxShadow: 'none',  // NO SHADOW
         }
       }
     },
     
     error: {
       light: {
-        borderColor: colors.accent.error,
+        borderColor: colors.destructive.light,
         '&:focus': {
-          borderColor: colors.accent.error,
-          boxShadow: `0 0 0 3px rgba(239, 68, 68, 0.1)`,
+          borderColor: colors.destructive.light,
+          outline: `2px solid ${colors.destructive.light}`,
+          outlineOffset: '2px',
+          boxShadow: 'none',  // NO SHADOW
         }
       },
       dark: {
-        borderColor: colors.accent.error,
+        borderColor: colors.destructive.dark,
         '&:focus': {
-          borderColor: colors.accent.error,
-          boxShadow: `0 0 0 3px rgba(239, 68, 68, 0.2)`,
+          borderColor: colors.destructive.dark,
+          outline: `2px solid ${colors.destructive.dark}`,
+          outlineOffset: '2px',
+          boxShadow: 'none',  // NO SHADOW
         }
       }
     }
@@ -225,7 +244,7 @@ export const inputStyles = {
 } as const;
 
 // ============================================================================
-// NAVIGATION COMPONENT STYLES
+// NAVIGATION COMPONENT STYLES - COMPLETELY FLAT
 // ============================================================================
 export const navigationStyles = {
   sidebar: {
@@ -235,18 +254,20 @@ export const navigationStyles = {
       borderRight: '1px solid',
       padding: spacing[4],
       fontFamily: typography.fontFamily.sans.join(', '),
+      borderRadius: '0px',  // FLAT DESIGN
+      boxShadow: 'none',  // NO SHADOW
     },
     
     theme: {
       light: {
-        backgroundColor: colors.neutral.light.background,
-        borderColor: colors.neutral.light.border,
-        color: colors.neutral.light.foreground,
+        backgroundColor: colors.background.light,
+        borderColor: colors.border.light,
+        color: colors.foreground.light,
       },
       dark: {
-        backgroundColor: colors.neutral.dark.background,
-        borderColor: colors.neutral.dark.border,
-        color: colors.neutral.dark.foreground,
+        backgroundColor: colors.background.dark,
+        borderColor: colors.border.dark,
+        color: colors.foreground.dark,
       }
     }
   },
@@ -256,43 +277,43 @@ export const navigationStyles = {
       display: 'flex',
       alignItems: 'center',
       padding: `${spacing[2]} ${spacing[3]}`,
-      borderRadius: borderRadius.md,
+      borderRadius: '0px',  // FLAT DESIGN
       fontSize: typography.fontSize.sm,
       fontWeight: typography.fontWeight.medium,
       textDecoration: 'none',
-      transition: 'all 150ms ease',
+      transition: 'background-color 150ms ease, color 150ms ease',
       cursor: 'pointer',
     },
     
     states: {
       default: {
         light: {
-          color: colors.neutral.light['muted-foreground'],
+          color: colors.muted.foreground.light,
           '&:hover': {
-            backgroundColor: colors.neutral.light.muted,
-            color: colors.neutral.light.foreground,
+            backgroundColor: colors.muted.light,
+            color: colors.foreground.light,
           }
         },
         dark: {
-          color: colors.neutral.dark['muted-foreground'],
+          color: colors.muted.foreground.dark,
           '&:hover': {
-            backgroundColor: colors.neutral.dark.muted,
-            color: colors.neutral.dark.foreground,
+            backgroundColor: colors.muted.dark,
+            color: colors.foreground.dark,
           }
         }
       },
       
       active: {
         light: {
-          backgroundColor: colors.neutral.light.muted,
-          color: colors.primary[500],
-          borderLeft: `3px solid ${colors.primary[500]}`,
+          backgroundColor: colors.muted.light,
+          color: colors.primary.light,
+          borderLeft: `3px solid ${colors.primary.light}`,
           fontWeight: typography.fontWeight.semibold,
         },
         dark: {
-          backgroundColor: colors.neutral.dark.muted,
-          color: colors.primary[500],
-          borderLeft: `3px solid ${colors.primary[500]}`,
+          backgroundColor: colors.muted.dark,
+          color: colors.primary.dark,
+          borderLeft: `3px solid ${colors.primary.dark}`,
           fontWeight: typography.fontWeight.semibold,
         }
       }
@@ -301,13 +322,14 @@ export const navigationStyles = {
 } as const;
 
 // ============================================================================
-// TABLE COMPONENT STYLES
+// TABLE COMPONENT STYLES - COMPLETELY FLAT
 // ============================================================================
 export const tableStyles = {
   container: {
-    borderRadius: borderRadius.lg,
+    borderRadius: '0px',  // FLAT DESIGN
     border: '1px solid',
     overflow: 'hidden',
+    boxShadow: 'none',  // NO SHADOW
   },
   
   table: {
@@ -327,14 +349,14 @@ export const tableStyles = {
     
     theme: {
       light: {
-        backgroundColor: colors.neutral.light.muted,
-        color: colors.neutral.light.foreground,
-        borderColor: colors.neutral.light.border,
+        backgroundColor: colors.muted.light,
+        color: colors.foreground.light,
+        borderColor: colors.border.light,
       },
       dark: {
-        backgroundColor: colors.neutral.dark.muted,
-        color: colors.neutral.dark.foreground,
-        borderColor: colors.neutral.dark.border,
+        backgroundColor: colors.muted.dark,
+        color: colors.foreground.dark,
+        borderColor: colors.border.dark,
       }
     }
   },
@@ -347,17 +369,17 @@ export const tableStyles = {
     
     theme: {
       light: {
-        color: colors.neutral.light.foreground,
-        borderColor: colors.neutral.light.border,
+        color: colors.foreground.light,
+        borderColor: colors.border.light,
         '&:hover': {
-          backgroundColor: colors.neutral.light.muted,
+          backgroundColor: colors.muted.light,
         }
       },
       dark: {
-        color: colors.neutral.dark.foreground,
-        borderColor: colors.neutral.dark.border,
+        color: colors.foreground.dark,
+        borderColor: colors.border.dark,
         '&:hover': {
-          backgroundColor: colors.neutral.dark.muted,
+          backgroundColor: colors.muted.dark,
         }
       }
     }
@@ -365,35 +387,35 @@ export const tableStyles = {
 } as const;
 
 // ============================================================================
-// UTILITY FUNCTIONS FOR STYLE GENERATION
+// UTILITY FUNCTIONS FOR STYLE GENERATION - FLAT DESIGN
 // ============================================================================
 
 /**
- * Generate Tailwind classes for button variants
+ * Generate Tailwind classes for button variants - FLAT DESIGN
  */
 export function getButtonClasses(variant: 'primary' | 'outline' | 'ghost', size: 'sm' | 'md' | 'lg' = 'md'): string {
   const baseClasses = [
     'inline-flex', 'items-center', 'justify-center',
-    'font-medium', 'transition-all', 'duration-150',
-    'cursor-pointer', 'border-0', 'no-underline'
+    'font-medium', 'transition-colors', 'duration-200',
+    'cursor-pointer', 'border-0', 'no-underline',
+    'flat', 'no-hover-transform'  // FLAT DESIGN CLASSES
   ];
   
   const sizeClasses = {
-    sm: ['h-8', 'px-3', 'text-sm', 'rounded-md'],
-    md: ['h-10', 'px-4', 'text-base', 'rounded-md'],
-    lg: ['h-12', 'px-6', 'text-lg', 'rounded-md']
+    sm: ['h-8', 'px-3', 'text-sm'],
+    md: ['h-10', 'px-4', 'text-base'],
+    lg: ['h-12', 'px-6', 'text-lg']
   };
   
   const variantClasses = {
     primary: [
       'bg-primary', 'text-primary-foreground',
-      'shadow-sm', 'hover:bg-primary/90',
-      'hover:shadow-md', 'hover:-translate-y-px'
+      'hover:opacity-90'  // SIMPLE OPACITY CHANGE
     ],
     outline: [
       'bg-transparent', 'text-primary',
       'border', 'border-primary',
-      'hover:bg-primary/10', 'hover:-translate-y-px'
+      'hover:bg-primary', 'hover:text-primary-foreground'
     ],
     ghost: [
       'bg-transparent', 'text-foreground',
@@ -409,22 +431,20 @@ export function getButtonClasses(variant: 'primary' | 'outline' | 'ghost', size:
 }
 
 /**
- * Generate Tailwind classes for card variants
+ * Generate Tailwind classes for card variants - FLAT DESIGN
  */
 export function getCardClasses(variant: 'default' | 'elevated' = 'default'): string {
   const baseClasses = [
-    'rounded-lg', 'border', 'p-6',
-    'transition-all', 'duration-150'
+    'border', 'p-6',
+    'flat', 'no-hover-transform'  // FLAT DESIGN CLASSES
   ];
   
   const variantClasses = {
     default: [
-      'bg-card', 'border-border', 'text-card-foreground',
-      'shadow-sm', 'hover:shadow-md', 'hover:-translate-y-0.5'
+      'bg-card', 'border-border', 'text-card-foreground'
     ],
     elevated: [
-      'bg-card', 'border-border', 'text-card-foreground',
-      'shadow-lg'
+      'bg-card', 'border-border', 'text-card-foreground'
     ]
   };
   
@@ -435,14 +455,14 @@ export function getCardClasses(variant: 'default' | 'elevated' = 'default'): str
 }
 
 /**
- * Generate Tailwind classes for navigation items
+ * Generate Tailwind classes for navigation items - FLAT DESIGN
  */
 export function getNavItemClasses(isActive: boolean = false): string {
   const baseClasses = [
     'flex', 'items-center', 'px-3', 'py-2',
-    'rounded-md', 'text-sm', 'font-medium',
-    'no-underline', 'transition-all', 'duration-150',
-    'cursor-pointer'
+    'text-sm', 'font-medium',
+    'no-underline', 'transition-colors', 'duration-150',
+    'cursor-pointer', 'flat'  // FLAT DESIGN CLASS
   ];
   
   const stateClasses = isActive ? [

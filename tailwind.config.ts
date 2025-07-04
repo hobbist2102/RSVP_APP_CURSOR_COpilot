@@ -6,29 +6,29 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        serif: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        display: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        sans: ['Inter UI', 'sans-serif'],  // EXACT MATCH
+        serif: ['Cormorant', 'serif'],     // EXACT MATCH  
+        display: ['Inter UI', 'sans-serif'], // EXACT MATCH
       },
       borderRadius: {
-        'none': '0px',
-        'sm': 'calc(var(--radius) - 4px)',
-        DEFAULT: 'var(--radius)',
-        'md': 'calc(var(--radius) - 2px)',
-        'lg': 'var(--radius)',
-        'xl': 'calc(var(--radius) + 4px)',
-        '2xl': 'calc(var(--radius) + 8px)',
-        'full': '9999px',
+        'none': '0px',     // FORCE FLAT
+        'sm': '0px',       // FORCE FLAT
+        DEFAULT: '0px',    // FORCE FLAT
+        'md': '0px',       // FORCE FLAT
+        'lg': '0px',       // FORCE FLAT
+        'xl': '0px',       // FORCE FLAT
+        '2xl': '0px',      // FORCE FLAT
+        'full': '0px',     // FORCE FLAT (NO PILLS)
       },
       boxShadow: {
         'none': 'none',
-        'sm': 'var(--shadow-sm)',
-        DEFAULT: 'var(--shadow)',
-        'md': 'var(--shadow-md)',
-        'lg': 'var(--shadow-lg)',
-        'xl': 'var(--shadow-xl)',
-        '2xl': 'var(--shadow-2xl)',
-        'inner': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+        'sm': '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',              // FORCE FLAT
+        DEFAULT: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',           // FORCE FLAT
+        'md': '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',              // FORCE FLAT
+        'lg': '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',              // FORCE FLAT
+        'xl': '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',              // FORCE FLAT
+        '2xl': '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',             // FORCE FLAT
+        'inner': 'none',                                          // FORCE FLAT
       },
       colors: {
         background: "var(--background)",
@@ -87,64 +87,13 @@ const config: Config = {
           900: "#765f2d",
           foreground: "#1f1f1f",
         },
-
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-
-        chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
-        },
-
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
       },
-      
+
+      // REMOVE BACKDROP BLUR - FLAT DESIGN
       backdropBlur: {
+        'none': 'none',  // FORCE NO BLUR
         'ios': '12px',
         'ios-dark': '10px',
-      },
-      
-      boxShadow: {
-        'glass': '0 6px 20px rgba(0, 0, 0, 0.15)',
-        'glass-dark': '0 6px 20px rgba(0, 0, 0, 0.3)',
       },
 
       keyframes: {
@@ -160,6 +109,7 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        // REMOVE SCALE ANIMATIONS - FLAT DESIGN
         scaleIn: {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
@@ -188,15 +138,35 @@ const config: Config = {
         scaleIn: "scaleIn 0.2s ease-out",
         slideUp: "slideUp 0.3s ease-out",
         "float-1": "float-1 6s ease-in-out infinite",
-        "float-2": "float-2 8s ease-in-out infinite", 
+        "float-2": "float-2 8s ease-in-out infinite",
         "float-3": "float-3 10s ease-in-out infinite",
+        // REMOVE FLOATING ANIMATIONS - FLAT DESIGN
       },
       borderWidth: {
         '3': '3px',
       }
     }
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"), 
+    require("@tailwindcss/typography"),
+    // Add plugin to force flat design
+    function({ addUtilities }: any) {
+      const flatUtilities = {
+        '.flat': {
+          'border-radius': '0px !important',
+          'box-shadow': 'none !important',
+        },
+        '.no-transform': {
+          'transform': 'none !important',
+        },
+        '.no-hover-transform:hover': {
+          'transform': 'none !important',
+        },
+      }
+      addUtilities(flatUtilities)
+    }
+  ],
 };
 
 export default config;
