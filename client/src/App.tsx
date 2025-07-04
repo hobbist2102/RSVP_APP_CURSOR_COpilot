@@ -4,6 +4,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import PrivateRoute from "@/components/auth/private-route";
 import { Suspense, lazy } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { AuditRunner } from "@/components/dev/audit-runner";
 
 // Lazy load components to reduce initial bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -162,6 +163,7 @@ function App() {
       </Switch>
       </Suspense>
       <Toaster />
+      <AuditRunner />
     </AuthProvider>
   );
 }

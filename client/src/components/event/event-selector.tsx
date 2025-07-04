@@ -153,26 +153,26 @@ export function EventSelector() {
   }
 
   return (
-    <div className="flex items-center space-x-2 px-2 py-2">
-      <CalendarClock className="h-5 w-5 text-accent" />
-      <div className="flex-1 min-w-[200px]">
+    <div className="flex items-center space-x-2 px-2 py-1">
+      <CalendarClock className="h-4 w-4 text-accent flex-shrink-0" />
+      <div className="flex-1 min-w-0 max-w-[280px]">
         <Select
           value={selectedEventId || undefined}
           onValueChange={handleEventChange}
         >
-          <SelectTrigger className="bg-background/80 border-border hover:border-accent">
-            <SelectValue placeholder="Select Event" />
+          <SelectTrigger className="glass border-border hover:border-accent text-sm h-8 overflow-hidden">
+            <SelectValue placeholder="Select Event" className="truncate" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="glass border-border">
             {events.map((event) => (
               <SelectItem 
                 key={event.id} 
                 value={String(event.id)}
-                className="py-2 cursor-pointer"
+                className="py-2 cursor-pointer hover:bg-accent/10"
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">{event.title}</span>
-                  <span className="text-xs text-muted-foreground">{formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-medium truncate text-sm text-foreground">{event.title}</span>
+                  <span className="text-xs text-muted-foreground truncate">{formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}</span>
                 </div>
               </SelectItem>
             ))}
