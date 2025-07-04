@@ -75,7 +75,7 @@ export default function Sidebar({ isCollapsed = false }: SidebarProps) {
   const [location] = useLocation();
 
   return (
-    <aside className="w-64 bg-background border-r border-border flex flex-col">
+    <aside className="w-full h-full bg-background border-r border-border flex flex-col">
       {/* Sidebar Header - Aligned with main header */}
       <div className="px-6 py-4 border-b border-border">
         <Link href="/dashboard">

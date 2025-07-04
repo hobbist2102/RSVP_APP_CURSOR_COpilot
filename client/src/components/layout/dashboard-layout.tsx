@@ -31,15 +31,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Fixed Sidebar */}
-      <Sidebar />
+      <div className="fixed left-0 top-0 bottom-0 w-64 z-40">
+        <Sidebar />
+      </div>
 
       {/* Main content area with left margin to account for fixed sidebar */}
-      <div className="flex flex-col min-h-screen ml-64">
+      <div className="flex flex-col min-h-screen ml-64 flex-1">
         <Header toggleSidebar={toggleSidebar} currentEvent={eventData} />
 
-        <main className="flex-1 overflow-y-auto bg-background p-6">
+        <main className="flex-1 bg-background p-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
