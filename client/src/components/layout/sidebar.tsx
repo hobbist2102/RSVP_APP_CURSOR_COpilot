@@ -12,7 +12,8 @@ import {
   Plane,
   UtensilsCrossed,
   FileText,
-  BarChart3
+  BarChart3,
+  Wand2
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -40,6 +41,12 @@ const sidebarItems: SidebarItem[] = [
     href: '/events',
     icon: Calendar,
     description: 'Event management'
+  },
+  {
+    title: 'Event Setup Wizard',
+    href: '/event-setup-wizard',
+    icon: Wand2,
+    description: 'Configure new events'
   },
   {
     title: 'RSVP Management',
@@ -83,7 +90,7 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className="flex h-full w-64 flex-col bg-background border-r border-border">
+    <div className="flex h-screen w-64 flex-col bg-background border-r border-border fixed left-0 top-0 z-30">
       <div className="flex h-14 items-center border-b border-border px-4">
         <h2 className="text-lg font-semibold text-foreground">Wedding RSVP</h2>
       </div>

@@ -31,27 +31,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header toggleSidebar={toggleSidebar} currentEvent={eventData} />
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Fixed Sidebar */}
+      <Sidebar />
 
-      <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
-
-        {/* Overlay for mobile */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 z-[5] bg-black/50 lg:hidden"
-            onClick={handleOverlayClick}
-          />
-        )}
+      {/* Main content area with left margin to account for fixed sidebar */}
+      <div className="flex flex-col min-h-screen ml-64">
+        <Header toggleSidebar={toggleSidebar} currentEvent={eventData} />
 
         <main className="flex-1 overflow-y-auto bg-background p-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
+        
+        <Footer />
       </div>
-      <Footer />
     </div>
   );
 }
