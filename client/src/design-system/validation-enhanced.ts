@@ -13,6 +13,78 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+// COMPREHENSIVE UI ELEMENT VALIDATION FRAMEWORK
+// Complete list of ALL elements that constitute professional UI design
+const UI_VALIDATION_CATEGORIES = {
+  // 1. BUTTON ELEMENTS - All interactive buttons must follow design system
+  BUTTON_SELECTORS: [
+    'button', '.btn', '.button', '[role="button"]', 'input[type="submit"]', 
+    'input[type="button"]', 'input[type="reset"]', '.view-all', '.add-task',
+    '.connect-button', '.import-guests', '.add-guest', '.create-event'
+  ],
+  
+  // 2. NAVIGATION ELEMENTS - Sidebars, headers, navigation
+  NAVIGATION_SELECTORS: [
+    'nav', '.nav', '.navbar', '.sidebar', 'header', '.header',
+    '.navigation', '.menu', '.nav-item', '.nav-link'
+  ],
+  
+  // 3. CARD ELEMENTS - All card components and containers
+  CARD_SELECTORS: [
+    '.card', '.panel', '.widget', '.dashboard-card', '.stats-card',
+    '.progress-card', '.task-card', '.accommodation-card'
+  ],
+  
+  // 4. FORM ELEMENTS - All input and form components
+  FORM_SELECTORS: [
+    'input', 'select', 'textarea', '.form-control', '.input',
+    '.select', '.checkbox', '.radio', '.form-group', 'label'
+  ],
+  
+  // 5. STATUS INDICATORS - All status and state elements
+  STATUS_SELECTORS: [
+    '.status', '.badge', '.chip', '.pill', '.tag',
+    '.pending', '.confirmed', '.declined', '.success', '.error', '.warning'
+  ],
+  
+  // 6. COMMUNICATION ELEMENTS - Email providers, templates, etc.
+  COMMUNICATION_SELECTORS: [
+    '.email-provider', '.sms-provider', '.template-card',
+    '.provider-card', '.communication-step', '.wizard-step'
+  ],
+  
+  // 7. HOVER STATES - All elements with hover interactions
+  HOVER_STATES: [
+    ':hover', '.hover\\:', 'button:hover', '.btn:hover',
+    '.card:hover', '.nav-item:hover', '.template:hover'
+  ]
+};
+
+// CRITICAL DESIGN VIOLATIONS TO CATCH
+const CRITICAL_VIOLATIONS = {
+  // Font violations - Only Inter and Cormorant Garamond allowed
+  FORBIDDEN_FONTS: [
+    'arial', 'helvetica', 'times', 'georgia', 'verdana', 'courier',
+    'tahoma', 'trebuchet', 'impact', 'lucida', 'palatino', 'century',
+    'bookman', 'optima', 'futura', 'franklin', 'gill sans'
+  ],
+  
+  // Color violations - Colors not in our design system
+  FORBIDDEN_COLORS: {
+    'blue': 'Should use var(--primary) or var(--accent)',
+    'green': 'Should use var(--success) or approved design tokens',
+    'red': 'Should use var(--destructive) or approved design tokens',
+    'yellow': 'Should use var(--warning) or approved design tokens',
+    'white': 'Should use var(--background) or var(--card)',
+    'black': 'Should use var(--foreground) or var(--primary)'
+  },
+  
+  // Button violations - All buttons must follow design system
+  BUTTON_VIOLATIONS: [
+    'View All', 'Add Task', 'Connect', 'Import Guests', 'Add Guest'
+  ]
+};
+
 // Hardcoded color patterns to detect and flag
 const HARDCODED_COLOR_PATTERNS = [
   /rgb\(\d+,\s*\d+,\s*\d+\)/, // rgb(255, 255, 255)
@@ -83,38 +155,71 @@ export function validateColorUsage(element: HTMLElement): ValidationResult {
         errors.push(`${property}: "${value}" should use design tokens (var(--*)).`);
       }
       
-      // ENHANCED: Check for specific design system violations
-      const classList = element.className;
+      // COMPREHENSIVE UI ELEMENT VALIDATION
+      const normalizedValue = value.replace(/\s+/g, ' ').trim().toLowerCase();
+      const classList = element.className || '';
+      const tagName = element.tagName.toLowerCase();
+      const textContent = element.textContent?.trim() || '';
       
-      // Check sidebar components for correct background color
-      if ((classList && (classList.includes('sidebar') || element.closest('nav'))) || 
-          element.tagName === 'NAV') {
+      // 1. BUTTON VALIDATION - Check all button elements
+      if (tagName === 'button' || classList.includes('btn') || classList.includes('button') || 
+          textContent.includes('View All') || textContent.includes('Add Task') || 
+          textContent.includes('Connect') || textContent.includes('Import Guests')) {
         
+        // Buttons should not use blue, green, or white backgrounds unless design tokens
         if (property === 'backgroundColor') {
-          const isDarkMode = document.documentElement.classList.contains('dark');
-          const sidebarNormalizedValue = value.replace(/\s+/g, ' ').trim().toLowerCase();
-          
-          // Expected colors for sidebar/cards
-          const expectedDarkBg = 'oklch(0.235 0 0)';  // #1E1E1E equivalent
-          const expectedLightBg = 'oklch(0.9851 0 0)'; // Light card
-          
-          // Check if using wrong color
-          if (isDarkMode) {
-            if (!value.includes('var(--card)') && !sidebarNormalizedValue.includes('0.235') && 
-                !sidebarNormalizedValue.includes('0.2350')) {
-              warnings.push(`Sidebar should use bg-card (${expectedDarkBg}) in dark mode, found: ${value}`);
-            }
-          } else {
-            if (!value.includes('var(--card)') && !sidebarNormalizedValue.includes('0.9851')) {
-              warnings.push(`Sidebar should use bg-card (${expectedLightBg}) in light mode, found: ${value}`);
-            }
+          if ((normalizedValue.includes('blue') || normalizedValue.includes('rgb(0, 123, 255)') ||
+               normalizedValue.includes('green') || normalizedValue.includes('rgb(40, 167, 69)') ||
+               normalizedValue.includes('white') || normalizedValue.includes('rgb(255, 255, 255)')) &&
+              !value.includes('var(--')) {
+            errors.push(`BUTTON VIOLATION: "${textContent}" button uses unauthorized color "${value}". Should use design tokens like var(--primary) or var(--accent).`);
           }
         }
       }
       
-      // Check for common color violations with specific replacements
-      const normalizedValue = value.replace(/\s+/g, ' ').trim().toLowerCase();
-      const commonColorViolations = [
+      // 2. COMMUNICATION STEP VALIDATION - Check hover states
+      if (classList.includes('communication') || classList.includes('provider') || 
+          classList.includes('template') || element.closest('.communication-step')) {
+        
+        if (property === 'backgroundColor' && normalizedValue.includes('white')) {
+          errors.push(`COMMUNICATION HOVER VIOLATION: Communication elements showing white hover colors instead of design system colors. Use var(--accent-hover) or var(--card-hover).`);
+        }
+      }
+      
+      // 3. HEADER/EVENT SECTION VALIDATION
+      if (tagName === 'header' || classList.includes('header') || 
+          classList.includes('event-selector') || element.closest('header')) {
+        
+        if (property === 'backgroundColor' || property === 'color') {
+          // Check for non-design-system colors in header
+          if ((normalizedValue.includes('blue') || normalizedValue.includes('green')) && 
+              !value.includes('var(--')) {
+            errors.push(`HEADER COLOR VIOLATION: Event section uses unauthorized "${value}". Should match UI color scheme with design tokens.`);
+          }
+        }
+      }
+      
+      // 4. SIDEBAR VALIDATION (Enhanced)
+      if (tagName === 'nav' || classList.includes('sidebar') || element.closest('nav')) {
+        if (property === 'backgroundColor') {
+          const isDarkMode = document.documentElement.classList.contains('dark');
+          if (isDarkMode && !value.includes('var(--card)') && !normalizedValue.includes('0.235')) {
+            warnings.push(`SIDEBAR: Should use bg-card (oklch(0.235 0 0)) in dark mode, found: ${value}`);
+          } else if (!isDarkMode && !value.includes('var(--card)') && !normalizedValue.includes('0.9851')) {
+            warnings.push(`SIDEBAR: Should use bg-card (oklch(0.9851 0 0)) in light mode, found: ${value}`);
+          }
+        }
+      }
+      
+      // 5. FORBIDDEN COLOR DETECTION
+      Object.entries(CRITICAL_VIOLATIONS.FORBIDDEN_COLORS).forEach(([color, replacement]) => {
+        if (normalizedValue.includes(color) && !value.includes('var(--')) {
+          errors.push(`FORBIDDEN COLOR: "${color}" detected in ${property}. ${replacement}`);
+        }
+      });
+      
+      // 6. PURE COLOR VIOLATIONS (Black/White)
+      const pureColorViolations = [
         { 
           patterns: ['rgba(0, 0, 0', 'rgb(0, 0, 0)', '#000000', '#000'], 
           replacement: 'var(--foreground)',
@@ -124,15 +229,10 @@ export function validateColorUsage(element: HTMLElement): ValidationResult {
           patterns: ['rgba(255, 255, 255', 'rgb(255, 255, 255)', '#ffffff', '#fff'], 
           replacement: 'var(--background)',
           description: 'Pure white'
-        },
-        { 
-          patterns: ['#1e1e1e', '#1E1E1E', 'rgb(30, 30, 30)'], 
-          replacement: 'var(--card)',
-          description: 'Dark card color'
         }
       ];
       
-      commonColorViolations.forEach(violation => {
+      pureColorViolations.forEach(violation => {
         const hasViolation = violation.patterns.some(pattern => 
           normalizedValue.includes(pattern.toLowerCase())
         );
