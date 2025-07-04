@@ -484,3 +484,86 @@ img {
 body {
   letter-spacing: var(--tracking-normal);
 }
+
+/* =============================================================================
+   ULTIMATE DESIGN SYSTEM ENFORCEMENT - HEX COLORS ONLY
+   ============================================================================= */
+
+/* FORCE HEX COLORS - OVERRIDE ALL OKLCH/RGB/HSL */
+* {
+  /* Override any computed RGB/OKLCH with design tokens */
+  color: inherit !important;
+  background-color: transparent !important;
+  border-color: var(--border) !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  outline-color: var(--ring) !important;
+  text-decoration-color: currentColor !important;
+  caret-color: currentColor !important;
+  column-rule-color: var(--border) !important;
+}
+
+/* ELEMENT-SPECIFIC FIXES */
+html, body { 
+  background-color: var(--background) !important; 
+  color: var(--foreground) !important;
+}
+
+/* OVERRIDE VITE THEME PLUGIN OKLCH VALUES */
+:root, :root * {
+  --background: #ffffff !important;
+  --foreground: #333333 !important;
+  --card: #fafafa !important;
+  --card-foreground: #333333 !important;
+  --primary: #6b33b3 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #d1b981 !important;
+  --secondary-foreground: #ffffff !important;
+  --accent: #9a73f9 !important;
+  --accent-foreground: #ffffff !important;
+  --border: #dddddd !important;
+  --ring: #5e239d !important;
+}
+
+.dark, .dark * {
+  --background: #121212 !important;
+  --foreground: #eaeaea !important;
+  --card: #1e1e1e !important;
+  --card-foreground: #eaeaea !important;
+  --primary: #8b5cf6 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #e3c76f !important;
+  --secondary-foreground: #121212 !important;
+  --accent: #8b5cf6 !important;
+  --accent-foreground: #ffffff !important;
+  --border: #333333 !important;
+  --ring: #8b5cf6 !important;
+}
+
+/* TAILWIND CLASS FIXES */
+.bg-background { background-color: var(--background) !important; }
+.bg-foreground { background-color: var(--foreground) !important; color: var(--background) !important; }
+.bg-card { background-color: var(--card) !important; color: var(--card-foreground) !important; }
+.bg-primary { background-color: var(--primary) !important; color: var(--primary-foreground) !important; }
+.bg-secondary { background-color: var(--secondary) !important; color: var(--secondary-foreground) !important; }
+.bg-accent { background-color: var(--accent) !important; color: var(--accent-foreground) !important; }
+.bg-destructive { background-color: var(--destructive) !important; color: var(--destructive-foreground) !important; }
+.bg-muted { background-color: var(--muted) !important; color: var(--muted-foreground) !important; }
+.bg-input { background-color: var(--input) !important; }
+
+.text-foreground { color: var(--foreground) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-secondary { color: var(--secondary) !important; }
+.text-accent { color: var(--accent) !important; }
+.text-muted-foreground { color: var(--muted-foreground) !important; }
+
+.border { border-color: var(--border) !important; }
+.border-primary { border-color: var(--primary) !important; }
+.border-accent { border-color: var(--accent) !important; }
+
+/* SVG FIXES */
+svg, svg * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  color: inherit !important;
+}
