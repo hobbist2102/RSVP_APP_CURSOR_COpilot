@@ -23,6 +23,37 @@ const HARDCODED_COLOR_PATTERNS = [
   /#[0-9a-fA-F]{3,8}/, // #fff, #ffffff, #ffffff80
 ];
 
+// Prohibited Tailwind CSS classes that use hardcoded colors
+const PROHIBITED_TAILWIND_CLASSES = [
+  // Background colors
+  /bg-gray-\d+/, /bg-slate-\d+/, /bg-zinc-\d+/, /bg-neutral-\d+/, /bg-stone-\d+/,
+  /bg-red-\d+/, /bg-orange-\d+/, /bg-amber-\d+/, /bg-yellow-\d+/, /bg-lime-\d+/,
+  /bg-green-\d+/, /bg-emerald-\d+/, /bg-teal-\d+/, /bg-cyan-\d+/, /bg-sky-\d+/,
+  /bg-blue-\d+/, /bg-indigo-\d+/, /bg-violet-\d+/, /bg-purple-\d+/, /bg-fuchsia-\d+/,
+  /bg-pink-\d+/, /bg-rose-\d+/, /bg-white/, /bg-black/,
+  
+  // Hover background colors
+  /hover:bg-gray-\d+/, /hover:bg-slate-\d+/, /hover:bg-zinc-\d+/, /hover:bg-neutral-\d+/, /hover:bg-stone-\d+/,
+  /hover:bg-red-\d+/, /hover:bg-orange-\d+/, /hover:bg-amber-\d+/, /hover:bg-yellow-\d+/, /hover:bg-lime-\d+/,
+  /hover:bg-green-\d+/, /hover:bg-emerald-\d+/, /hover:bg-teal-\d+/, /hover:bg-cyan-\d+/, /hover:bg-sky-\d+/,
+  /hover:bg-blue-\d+/, /hover:bg-indigo-\d+/, /hover:bg-violet-\d+/, /hover:bg-purple-\d+/, /hover:bg-fuchsia-\d+/,
+  /hover:bg-pink-\d+/, /hover:bg-rose-\d+/, /hover:bg-white/, /hover:bg-black/,
+  
+  // Text colors
+  /text-gray-\d+/, /text-slate-\d+/, /text-zinc-\d+/, /text-neutral-\d+/, /text-stone-\d+/,
+  /text-red-\d+/, /text-orange-\d+/, /text-amber-\d+/, /text-yellow-\d+/, /text-lime-\d+/,
+  /text-green-\d+/, /text-emerald-\d+/, /text-teal-\d+/, /text-cyan-\d+/, /text-sky-\d+/,
+  /text-blue-\d+/, /text-indigo-\d+/, /text-violet-\d+/, /text-purple-\d+/, /text-fuchsia-\d+/,
+  /text-pink-\d+/, /text-rose-\d+/, /text-white/, /text-black/,
+  
+  // Border colors
+  /border-gray-\d+/, /border-slate-\d+/, /border-zinc-\d+/, /border-neutral-\d+/, /border-stone-\d+/,
+  /border-red-\d+/, /border-orange-\d+/, /border-amber-\d+/, /border-yellow-\d+/, /border-lime-\d+/,
+  /border-green-\d+/, /border-emerald-\d+/, /border-teal-\d+/, /border-cyan-\d+/, /border-sky-\d+/,
+  /border-blue-\d+/, /border-indigo-\d+/, /border-violet-\d+/, /border-purple-\d+/, /border-fuchsia-\d+/,
+  /border-pink-\d+/, /border-rose-\d+/, /border-white/, /border-black/,
+];
+
 // Approved fonts according to design system
 const APPROVED_FONTS = ['Inter', 'Cormorant Garamond', 'system-ui', '-apple-system'];
 
@@ -214,6 +245,43 @@ export function validateGlassmorphism(element: HTMLElement): ValidationResult {
 }
 
 /**
+ * COMPREHENSIVE TAILWIND CLASS VALIDATION
+ * Validates that no prohibited hardcoded color classes are used
+ */
+export function validateTailwindClasses(element: HTMLElement): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  
+  const classList = element.className;
+  
+  if (classList) {
+    // Check for prohibited Tailwind classes
+    PROHIBITED_TAILWIND_CLASSES.forEach(pattern => {
+      const matches = classList.match(pattern);
+      if (matches) {
+        errors.push(`Prohibited Tailwind class: "${matches[0]}". Use design tokens instead (bg-card, hover:glass-light, etc.).`);
+      }
+    });
+    
+    // Special check for rounded corners in flat design
+    if (classList.includes('rounded') && !element.classList.contains('glass')) {
+      errors.push(`Class "rounded" violates flat design. Remove border-radius or use glassmorphism.`);
+    }
+    
+    // Check for shadow classes
+    if (classList.match(/shadow-\w+/)) {
+      errors.push(`Shadow classes violate flat design. Remove all shadow utilities.`);
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+
+/**
  * COMPREHENSIVE BUTTON VALIDATION
  * Validates button styling and interactions
  */
@@ -273,6 +341,7 @@ export function validateEntireDocument(): ValidationResult {
         validateTypography(element),
         validateSpacing(element),
         validateGlassmorphism(element),
+        validateTailwindClasses(element),
         validateButtons(element)
       ];
 
@@ -346,6 +415,7 @@ export default {
   validateTypography,
   validateSpacing,
   validateGlassmorphism,
+  validateTailwindClasses,
   validateButtons,
   validateEntireDocument,
   runDesignSystemValidation
