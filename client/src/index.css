@@ -1,492 +1,526 @@
-/**
- * ENTERPRISE-GRADE DESIGN SYSTEM CSS
- * Tailwind 4 Compatible with Hex-Based Colors
- * 
- * Implements luxury iOS 18 flat design with zero-tolerance compliance
- * Zero shadows, zero border-radius, beautiful typography, hex colors
- */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+@import './styles/custom-modal.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* =============================================================================
-   TAILWIND 4 HEX-BASED COLOR SYSTEM
-   ============================================================================= */
+/* ===========================================
+   DESIGN SYSTEM INTEGRATION
+   Master token-based CSS variables from design-system/tokens.ts
+   =========================================== */
 
 :root {
-  /* === CORE COLORS === */
-  --background: #ffffff;
-  --foreground: #333333;
+  /* Light mode - based on design tokens */
+  --background: 0 0% 100%;                    /* Pure white #FFFFFF */
+  --foreground: 210 9% 11%;                   /* colors.neutral.light.foreground */
+  --card: 0 0% 100%;                          /* Pure white #FFFFFF */
+  --card-foreground: 210 9% 11%;              /* colors.neutral.light.foreground */
+  --popover: 0 0% 100%;                       /* colors.neutral.light.card */
+  --popover-foreground: 210 9% 11%;           /* colors.neutral.light.foreground */
+  --primary: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
+  --primary-foreground: 0 0% 100%;            /* White on purple */
+  --secondary: 47 65% 66%;                    /* Exact brand gold #E3C76F */
+  --secondary-foreground: 210 9% 11%;         /* Dark on gold */
+  --muted: 220 14% 96%;                       /* colors.neutral.light.muted */
+  --muted-foreground: 215 16% 47%;            /* colors.neutral.light.muted-foreground */
+  --accent: 258 73% 59%;                      /* Brand purple for accents */
+  --accent-foreground: 210 9% 11%;            /* Dark on gold */
+  --destructive: 0 84% 60%;                   /* colors.accent.error */
+  --destructive-foreground: 0 0% 100%;        /* White on red */
+  --border: 220 13% 91%;                      /* colors.neutral.light.border */
+  --input: 220 13% 91%;                       /* colors.neutral.light.border */
+  --ring: 258 73% 59%;                        /* Exact brand purple #7A51E1 */
+  --radius: 0.75rem;                          /* borderRadius.lg */
   
-  /* === SURFACE COLORS === */
-  --card: #fafafa;
-  --card-foreground: #333333;
-  --popover: #ffffff;
-  --popover-foreground: #111111;
+  /* Chart colors - exact brand theme */
+  --chart-1: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
+  --chart-2: 258 73% 70%;                     /* Lighter purple */
+  --chart-3: 258 73% 80%;                     /* Even lighter purple */
+  --chart-4: 47 65% 66%;                      /* Exact brand gold #E3C76F */
+  --chart-5: 160 84% 39%;                     /* Success green */
   
-  /* === BRAND COLORS === */
-  --primary: #6b33b3;
-  --primary-foreground: #ffffff;
-  --secondary: #d1b981;
-  --secondary-foreground: #ffffff;
+  /* Sidebar variables for consistency */
+  --sidebar: 0 0% 100%;                       /* White background */
+  --sidebar-foreground: 210 9% 11%;           /* Dark text */
+  --sidebar-border: 220 13% 91%;              /* Light border */
+  --sidebar-accent: 258 73% 96%;              /* Very light purple hover */
+  --sidebar-primary: 258 73% 59%;             /* Exact brand purple #7A51E1 */
   
-  /* === ACCENT SYSTEM === */
-  --accent: #9a73f9;
-  --accent-foreground: #ffffff;
-  
-  /* === STATUS COLORS === */
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --muted: #666666;
-  --muted-foreground: #666666;
-  
-  /* === INTERFACE COLORS === */
-  --border: #dddddd;
-  --input: #ffffff;
-  --ring: #5e239d;
-  
-  /* === SIDEBAR SYSTEM === */
-  --sidebar: #f4f4f4;
-  --sidebar-foreground: #111111;
-  --sidebar-primary: #5e239d;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #6b7280;
-  --sidebar-accent-foreground: #111111;
-  --sidebar-border: #000000;
-  --sidebar-ring: #5e239d;
-  
-  /* === CHART COLORS === */
-  --chart-1: #5e239d;
-  --chart-2: #8b5cf6;
-  --chart-3: #bfa76f;
-  --chart-4: #713f12;
-  --chart-5: #1e3a8a;
-  
-  /* === TYPOGRAPHY === */
+  /* Design system tokens */
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-mono: 'JetBrains Mono', Consolas, monospace;
-  
-  /* === FLAT DESIGN ENFORCEMENT === */
-  --radius: 0px;
-  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-sm: 0px 0px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow: 0px 0px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow-md: 0px 0px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.00);
-  --shadow-lg: 0px 0px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.00);
-  --shadow-xl: 0px 0px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.00);
-  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
-  
-  /* === TRACKING === */
-  --tracking-normal: 0.025em;
-  --spacing: 0.25rem;
+  --font-serif: 'Cormorant Garamond', serif;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
 }
 
 .dark {
-  /* === CORE COLORS === */
-  --background: #121212;
-  --foreground: #eaeaea;
+  /* Dark mode - based on design tokens */
+  --background: 0 0% 7%;                      /* Exact dark background #121212 */
+  --foreground: 210 20% 98%;                  /* colors.neutral.dark.foreground */
+  --card: 0 0% 12%;                           /* Slightly lighter for cards #1E1E1E */
+  --card-foreground: 210 20% 98%;             /* colors.neutral.dark.foreground */
+  --popover: 0 0% 12%;                        /* Same as card */
+  --popover-foreground: 210 20% 98%;          /* colors.neutral.dark.foreground */
+  --primary: 258 73% 59%;                     /* Exact brand purple #7A51E1 */
+  --primary-foreground: 0 0% 100%;            /* White on purple */
+  --secondary: 47 65% 66%;                    /* Exact brand gold #E3C76F */
+  --secondary-foreground: 0 0% 7%;            /* Dark on gold */
+  --muted: 0 0% 15%;                          /* Darker muted #262626 */
+  --muted-foreground: 0 0% 64%;               /* Light gray for secondary text */
+  --accent: 258 73% 59%;                      /* Brand purple for accents */
+  --accent-foreground: 0 0% 100%;             /* White on purple */
+  --destructive: 0 63% 31%;                   /* Darker red for dark mode */
+  --destructive-foreground: 0 0% 100%;        /* White on red */
+  --border: 0 0% 16%;                         /* Dark gray borders #2A2A2A */
+  --input: 0 0% 16%;                          /* Dark gray borders #2A2A2A */
+  --ring: 258 73% 59%;                        /* Exact brand purple #7A51E1 */
   
-  /* === SURFACE COLORS === */
-  --card: #1e1e1e;
-  --card-foreground: #eaeaea;
-  --popover: #1e1e1e;
-  --popover-foreground: #eaeaea;
+  /* Dark mode sidebar variables */
+  --sidebar: 0 0% 7%;                         /* Same as background */
+  --sidebar-foreground: 210 20% 85%;          /* Lighter text for readability */
+  --sidebar-border: 215 19% 25%;              /* Darker border */
+  --sidebar-accent: 270 47% 15%;              /* Dark purple hover */
+  --sidebar-primary: 270 47% 45%;             /* Brighter purple for dark mode */
   
-  /* === BRAND COLORS === */
-  --primary: #5e239d;
-  --primary-foreground: #fdfdfd;
-  --secondary: #bfa76f;
-  --secondary-foreground: #121212;
+  /* Chart colors - same purple theme */
+  --chart-1: 270 47% 38%;                     /* Primary purple */
+  --chart-2: 270 35% 50%;                     /* Lighter purple */
+  --chart-3: 270 25% 65%;                     /* Even lighter purple */
+  --chart-4: 44 26% 60%;                      /* Gold accent */
+  --chart-5: 160 84% 39%;                     /* Success green */
   
-  /* === ACCENT SYSTEM === */
-  --accent: #8b5cf6;
-  --accent-foreground: #fdfdfd;
+  /* Dark mode shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* ===========================================
+   BASE LAYER - DESIGN SYSTEM FOUNDATION
+   =========================================== */
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
+  /* Ensure all input elements follow design system */
+  input, textarea, select {
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+  }
+}
+
+/* ===========================================
+   COMPONENT LAYER - DESIGN TOKEN IMPLEMENTATIONS
+   =========================================== */
+
+@layer components {
+  /* Button implementations from design system */
+  .btn-primary {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200 
+           bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 
+           hover:shadow-md hover:scale-105 focus:ring-2 focus:ring-primary focus:ring-offset-2 
+           rounded-md px-6 py-3;
+  }
   
-  /* === STATUS COLORS === */
-  --destructive: #dc2626;
-  --destructive-foreground: #fdfdfd;
-  --muted: #666666;
-  --muted-foreground: #aaaaaa;
+  .btn-outline {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200
+           bg-transparent text-primary border border-primary 
+           hover:bg-primary/10 hover:scale-105 focus:ring-2 focus:ring-primary focus:ring-offset-2
+           rounded-md px-6 py-3;
+  }
   
-  /* === INTERFACE COLORS === */
-  --border: #333333;
-  --input: #1e1e1e;
-  --ring: #5e239d;
+  .btn-ghost {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200
+           bg-transparent text-foreground hover:bg-muted hover:scale-105 
+           focus:ring-2 focus:ring-muted focus:ring-offset-2 rounded-md px-6 py-3;
+  }
   
-  /* === SIDEBAR SYSTEM === */
-  --sidebar: #1e1e1e;
-  --sidebar-foreground: #fdfdfd;
-  --sidebar-primary: #5e239d;
-  --sidebar-primary-foreground: #fdfdfd;
-  --sidebar-accent: #6b7280;
-  --sidebar-accent-foreground: #fdfdfd;
-  --sidebar-border: #ffffff;
-  --sidebar-ring: #5e239d;
+  /* Form input styling */
+  .form-input {
+    @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm 
+           transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 
+           focus:outline-none disabled:cursor-not-allowed disabled:opacity-50;
+  }
   
-  /* === CHART COLORS === */
-  --chart-1: #5e239d;
-  --chart-2: #8b5cf6;
-  --chart-3: #bfa76f;
-  --chart-4: #713f12;
-  --chart-5: #1e3a8a;
+  /* Card implementations from design system */
+  .card-glass {
+    @apply bg-card/80 backdrop-blur-sm border border-border text-card-foreground 
+           shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300
+           rounded-xl p-6;
+  }
   
-  /* === SHADOWS (TRANSPARENT) === */
-  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 100% / 0.00);
-  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 100% / 0.00);
-  --shadow-sm: 0px 0px 0px 0px hsl(0 0% 100% / 0.00), 0px 1px 2px -1px hsl(0 0% 100% / 0.00);
-  --shadow: 0px 0px 0px 0px hsl(0 0% 100% / 0.00), 0px 1px 2px -1px hsl(0 0% 100% / 0.00);
-  --shadow-md: 0px 0px 0px 0px hsl(0 0% 100% / 0.00), 0px 2px 4px -1px hsl(0 0% 100% / 0.00);
-  --shadow-lg: 0px 0px 0px 0px hsl(0 0% 100% / 0.00), 0px 4px 6px -1px hsl(0 0% 100% / 0.00);
-  --shadow-xl: 0px 0px 0px 0px hsl(0 0% 100% / 0.00), 0px 8px 10px -1px hsl(0 0% 100% / 0.00);
-  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 100% / 0.00);
-}
-
-/* =============================================================================
-   TAILWIND 4 @THEME INLINE DEFINITIONS
-   ============================================================================= */
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --font-serif: var(--font-serif);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  --shadow-2xs: var(--shadow-2xs);
-  --shadow-xs: var(--shadow-xs);
-  --shadow-sm: var(--shadow-sm);
-  --shadow: var(--shadow);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-xl: var(--shadow-xl);
-  --shadow-2xl: var(--shadow-2xl);
-
-  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
-  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
-  --tracking-normal: var(--tracking-normal);
-  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
-  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
-  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-}
-
-/* =============================================================================
-   GLOBAL ENTERPRISE-GRADE RESETS
-   ============================================================================= */
-
-* {
-  margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
+  .card-solid {
+    @apply bg-card border border-border text-card-foreground 
+           shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300
+           rounded-xl p-6;
+  }
   
-  /* FLAT DESIGN ENFORCEMENT */
-  border-radius: 0px !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
+  /* Wizard step styling */
+  .wizard-step {
+    @apply flex items-center justify-center w-8 h-8 rounded-full font-medium text-sm
+           transition-all duration-200;
+  }
   
-  /* FONT ENFORCEMENT */
-  font-family: var(--font-sans) !important;
+  .wizard-step-active {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .wizard-step-completed {
+    @apply bg-primary/20 text-primary border-2 border-primary;
+  }
+  
+  .wizard-step-inactive {
+    @apply bg-muted text-muted-foreground border-2 border-border;
+  }
+  
+  /* Navigation implementations from design system */
+  .nav-item {
+    @apply flex items-center px-3 py-2 rounded-md text-sm font-medium 
+           no-underline transition-all duration-150 cursor-pointer
+           text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+  
+  .nav-item-active {
+    @apply bg-muted text-primary font-semibold;
+    border-left: 3px solid hsl(var(--primary));
+    padding-left: calc(0.75rem - 3px);
+  }
+  
+  /* Status badge implementations */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           border transition-colors duration-150;
+  }
+  
+  .status-confirmed {
+    @apply bg-green-50 text-green-700 border-green-200;
+  }
+  
+  .status-pending {
+    @apply bg-yellow-50 text-yellow-700 border-yellow-200;
+  }
+  
+  .status-declined {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  
+  /* Dark mode status badges */
+  .dark .status-confirmed {
+    @apply bg-green-900/30 text-green-400 border-green-700;
+  }
+  
+  .dark .status-pending {
+    @apply bg-yellow-900/30 text-yellow-400 border-yellow-700;
+  }
+  
+  .dark .status-declined {
+    @apply bg-red-900/30 text-red-400 border-red-700;
+  }
+  
+  /* Table implementations from design system */
+  .table-container {
+    @apply border border-border rounded-lg overflow-hidden bg-card shadow-sm;
+  }
+  
+  .table-header {
+    @apply bg-muted text-foreground font-semibold text-left p-4 border-b border-border 
+           text-sm tracking-wide;
+  }
+  
+  .table-cell {
+    @apply text-foreground p-4 border-b border-border hover:bg-muted/30 transition-all duration-200
+           text-sm;
+  }
+  
+  .table-row:last-child .table-cell {
+    @apply border-b-0;
+  }
+  
+  .table-row:hover {
+    @apply bg-muted/20;
+  }
+  
+  /* Responsive button sizing */
+  @media (max-width: 768px) {
+    .btn-primary,
+    .btn-outline,
+    .btn-ghost {
+      @apply px-4 py-2 text-sm;
+    }
+  }
 }
 
-html, body {
-  height: 100%;
-  font-family: var(--font-sans) !important;
-  background-color: var(--background) !important;
-  color: var(--foreground) !important;
-  letter-spacing: var(--tracking-normal);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ===========================================
+   UTILITY LAYER - DESIGN SYSTEM UTILITIES
+   =========================================== */
+
+@layer utilities {
+  /* Typography utilities from design system */
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+  
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+  
+  /* Border utilities */
+  .border-l-3 {
+    border-left-width: 3px;
+  }
+  
+  /* Shadow utilities from design system */
+  .shadow-luxury {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .shadow-subtle {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* CRITICAL: iOS 18 Glassmorphism System - Per Luxury Specification */
+  .glass-light {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-dark {
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Apply glassmorphism based on theme */
+  :root .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass {
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* iOS 18 Focus Ring System */
+  .focus-ring-luxury:focus {
+    outline: 2px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+    transition: all 150ms ease-out !important;
+  }
+  
+  .focus-ring-luxury:focus-visible {
+    outline: 2px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+  }
+  
+  /* CRITICAL: Missing Hover Transform System */
+  .hover-scale-luxury {
+    transition: all 200ms ease-out !important;
+  }
+  
+  .hover-scale-luxury:hover {
+    transform: scale(1.02) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+  
+  .hover-scale-luxury:active {
+    transform: scale(0.98) !important;
+    transition: all 150ms cubic-bezier(0.4, 0, 1, 1) !important;
+  }
+  
+  /* CRITICAL: Card Hover Shadow Step-up */
+  .card-hover-luxury {
+    box-shadow: var(--shadow-sm);
+    transition: all 200ms ease-out !important;
+  }
+  
+  .card-hover-luxury:hover {
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  /* Legacy hover effects - REPLACED WITH LUXURY VERSIONS */
+  .hover-lift {
+    @apply hover:-translate-y-1 hover:shadow-lg transition-all duration-150;
+  }
+  
+  .hover-scale {
+    @apply hover:scale-105 transition-transform duration-150;
+  }
+  
+  /* Color enforcement utilities */
+  .text-design-foreground {
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  .text-design-muted {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  
+  .bg-design-background {
+    background-color: hsl(var(--background)) !important;
+  }
+  
+  .bg-design-card {
+    background-color: hsl(var(--card)) !important;
+  }
+  
+  .border-design {
+    border-color: hsl(var(--border)) !important;
+  }
 }
 
-/* === TYPOGRAPHY HIERARCHY === */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif) !important;
-  font-weight: 600 !important;
-  color: var(--foreground) !important;
+/* ===========================================
+   KEYFRAME ANIMATIONS
+   =========================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-p, span, div, a, button, input, textarea, select, label {
-  font-family: var(--font-sans) !important;
-  color: inherit !important;
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
-/* === LINK STYLING === */
-a {
-  text-decoration: none !important;
-  color: var(--accent) !important;
-  transition: color 200ms ease !important;
+/* ===========================================
+   COMPONENT-SPECIFIC INTEGRATIONS
+   =========================================== */
+
+/* Chart component styling */
+.recharts-cartesian-axis-tick-value,
+.recharts-legend-item-text,
+.recharts-tooltip-label,
+.recharts-tooltip-item {
+  fill: hsl(var(--foreground)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-a:hover {
-  color: var(--primary) !important;
+.recharts-cartesian-grid line {
+  stroke: hsl(var(--border)) !important;
+  opacity: 0.5;
 }
 
-/* === BUTTON BASE STYLING === */
-button {
-  border: none !important;
-  background: none !important;
-  cursor: pointer !important;
-  transition: all 200ms ease !important;
+.recharts-tooltip-wrapper {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
-/* === FORM ELEMENT STYLING === */
-input, textarea, select {
-  border: 1px solid var(--border) !important;
-  background-color: var(--input) !important;
-  color: var(--foreground) !important;
-  padding: 8px 12px !important;
+/* Progress bar styling */
+.progress-bar,
+.progress-indicator {
+  background-color: hsl(var(--primary)) !important;
 }
 
-input:focus, textarea:focus, select:focus {
-  outline: 2px solid var(--ring) !important;
-  outline-offset: 2px !important;
-  border-color: var(--ring) !important;
+.progress-track {
+  background-color: hsl(var(--muted)) !important;
 }
 
-/* === SVG COLOR ENFORCEMENT === */
-svg {
-  color: inherit !important;
-  fill: currentColor !important;
+/* Modal and dialog overrides */
+.dialog-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
 }
 
-/* === TABLE STYLING === */
-table {
-  border-collapse: collapse !important;
-  width: 100% !important;
+.dialog-content {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--card-foreground));
+  box-shadow: var(--shadow-xl);
 }
 
-th, td {
-  text-align: left !important;
-  padding: 8px 12px !important;
-  border-bottom: 1px solid var(--border) !important;
+/* ===========================================
+   FORCED COLOR CORRECTIONS
+   Prevents any non-design-system colors
+   =========================================== */
+
+/* Force override any hardcoded colors that don't follow design system */
+.text-neutral,
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800 {
+  color: hsl(var(--muted-foreground)) !important;
 }
 
-th {
-  font-weight: 600 !important;
-  background-color: var(--card) !important;
+.bg-neutral,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200 {
+  background-color: hsl(var(--muted)) !important;
 }
 
-/* === IMAGE STYLING === */
-img {
-  max-width: 100% !important;
-  height: auto !important;
+.border-gray-200,
+.border-gray-300,
+.border-neutral {
+  border-color: hsl(var(--border)) !important;
 }
 
-/* =============================================================================
-   ENTERPRISE UTILITY CLASSES
-   ============================================================================= */
-
-/* === FLAT DESIGN CLASS === */
-.flat {
-  border-radius: 0px !important;
-  box-shadow: none !important;
+/* Ensure consistent text colors for all headings and paragraphs */
+h1, h2, h3, h4, h5, h6, p, span, div, label {
+  color: inherit;
 }
 
-/* === TYPOGRAPHY UTILITIES === */
-.font-display {
-  font-family: var(--font-serif) !important;
+/* Sidebar specific corrections */
+.sidebar-container {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-.font-body {
-  font-family: var(--font-sans) !important;
+/* Dashboard stats specific corrections */
+.stats-card {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border-color: hsl(var(--border)) !important;
 }
-
-.font-mono {
-  font-family: var(--font-mono) !important;
-}
-
-/* === SPACING UTILITIES === */
-.spacing-4px {
-  gap: 4px !important;
-}
-
-.spacing-8px {
-  gap: 8px !important;
-}
-
-.spacing-16px {
-  gap: 16px !important;
-}
-
-/* === COLOR UTILITIES === */
-.text-brand {
-  color: var(--primary) !important;
-}
-
-.text-accent {
-  color: var(--accent) !important;
-}
-
-.bg-brand {
-  background-color: var(--primary) !important;
-}
-
-.bg-accent {
-  background-color: var(--accent) !important;
-}
-
-/* === BORDER UTILITIES === */
-.border-brand {
-  border-color: var(--primary) !important;
-}
-
-.border-accent {
-  border-color: var(--accent) !important;
-}
-
-/* =============================================================================
-   COMPONENT-SPECIFIC OVERRIDES
-   ============================================================================= */
-
-/* === SIDEBAR COMPLIANCE === */
-[data-sidebar] {
-  background-color: var(--sidebar) !important;
-  color: var(--sidebar-foreground) !important;
-  border-color: var(--sidebar-border) !important;
-}
-
-/* === CARD COMPLIANCE === */
-[data-component="card"], .card {
-  background-color: var(--card) !important;
-  color: var(--card-foreground) !important;
-  border: 1px solid var(--border) !important;
-}
-
-/* === BUTTON COMPLIANCE === */
-.btn-primary {
-  background-color: var(--primary) !important;
-  color: var(--primary-foreground) !important;
-  border: 2px solid var(--primary) !important;
-}
-
-.btn-secondary {
-  background-color: var(--secondary) !important;
-  color: var(--secondary-foreground) !important;
-  border: 2px solid var(--secondary) !important;
-}
-
-.btn-ghost {
-  background-color: transparent !important;
-  color: var(--foreground) !important;
-  border: 2px solid transparent !important;
-}
-
-.btn-ghost:hover {
-  background-color: var(--accent) !important;
-  color: var(--accent-foreground) !important;
-  transform: scale(1.02) !important;
-}
-
-/* =============================================================================
-   ZERO-TOLERANCE VIOLATION FIXES
-   ============================================================================= */
-
-/* === REMOVE ALL UNAUTHORIZED COLORS === */
-.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300,
-.bg-gray-400, .bg-gray-500, .bg-gray-600, .bg-gray-700,
-.bg-gray-800, .bg-gray-900,
-.bg-blue-50, .bg-blue-100, .bg-blue-500, .bg-blue-600,
-.bg-green-50, .bg-green-100, .bg-green-500, .bg-green-600,
-.bg-red-50, .bg-red-100, .bg-red-500, .bg-red-600,
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-500, .bg-yellow-600 {
-  background-color: var(--card) !important;
-}
-
-.text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700,
-.text-blue-500, .text-blue-600,
-.text-green-500, .text-green-600,
-.text-red-500, .text-red-600 {
-  color: var(--foreground) !important;
-}
-
-.border-gray-200, .border-gray-300, .border-gray-400,
-.border-blue-200, .border-blue-300,
-.border-green-200, .border-green-300,
-.border-red-200, .border-red-300 {
-  border-color: var(--border) !important;
-}
-
-/* === HOVER STATE FIXES === */
-.hover\\:bg-gray-50:hover,
-.hover\\:bg-gray-100:hover,
-.hover\\:bg-blue-50:hover,
-.hover\\:bg-green-50:hover {
-  background-color: var(--accent) !important;
-  color: var(--accent-foreground) !important;
-}
-
-/* === FOCUS STATE FIXES === */
-.focus\\:ring-blue-500:focus,
-.focus\\:ring-green-500:focus,
-.focus\\:ring-red-500:focus {
-  --tw-ring-color: var(--ring) !important;
-}
-
-/* === ROUNDED CORNER ELIMINATION === */
-.rounded, .rounded-sm, .rounded-md, .rounded-lg, .rounded-xl,
-.rounded-2xl, .rounded-3xl, .rounded-full,
-.rounded-t, .rounded-r, .rounded-b, .rounded-l,
-.rounded-tl, .rounded-tr, .rounded-bl, .rounded-br {
-  border-radius: 0px !important;
-}
-
-/* === SHADOW ELIMINATION === */
-.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl,
-.shadow-2xl, .shadow-inner, .shadow-none,
-.drop-shadow, .drop-shadow-sm, .drop-shadow-md,
-.drop-shadow-lg, .drop-shadow-xl, .drop-shadow-2xl {
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-body {
-  letter-spacing: var(--tracking-normal);
-}
-
-/* =============================================================================
-   FLAT DESIGN ENFORCEMENT ONLY - NO COLOR OVERRIDES
-   ============================================================================= */
-
-/* Maintain only essential flat design rules */

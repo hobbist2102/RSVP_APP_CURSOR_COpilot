@@ -71,7 +71,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
     <Card>
       <CardHeader className="p-6 border-b border-border flex justify-between items-center">
         <CardTitle className="text-lg font-medium font-serif text-foreground">Upcoming Tasks</CardTitle>
-        <Button variant="ghost" size="sm" className="text-sm text-accent hover:text-accent-foreground hover:bg-accent/10 transition-colors">
+        <Button variant="link" className="text-sm text-primary hover:text-opacity-80 p-0">
           View All
         </Button>
       </CardHeader>

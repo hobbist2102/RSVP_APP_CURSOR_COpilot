@@ -686,24 +686,24 @@ SO EXCITED to celebrate with you! 💕🎉`,
 
     return (
       <div className="space-y-6">
-        <div className="flat bg-background border border-border p-6">
+        <div className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 flat bg-accent border border-accent flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-background" />
+            <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Communication Configured</h3>
-              <p className="text-sm text-muted-foreground">Ready to send messages to your guests</p>
+              <h3 className="font-semibold text-green-900">Communication Configured</h3>
+              <p className="text-sm text-green-700">Ready to send messages to your guests</p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-card flat border border-border p-4">
-              <div className="text-2xl font-bold text-foreground">{connectedProviders.length}</div>
-              <div className="text-sm text-muted-foreground">Connected Providers</div>
+            <div className="bg-white/50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-900">{connectedProviders.length}</div>
+              <div className="text-sm text-green-700">Connected Providers</div>
             </div>
-            <div className="bg-card flat border border-border p-4">
-              <div className="text-2xl font-bold text-foreground">{totalTemplates}</div>
+            <div className="bg-white/50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-900">{totalTemplates}</div>
               <div className="text-sm text-green-700">Active Templates</div>
             </div>
           </div>
@@ -1022,8 +1022,8 @@ SO EXCITED to celebrate with you! 💕🎉`,
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="p-3 bg-white rounded-lg border">
-                  <p className="font-sans text-lg font-semibold">Inter Font Family</p>
-                  <p className="text-sm text-muted-foreground">Clean, modern typography</p>
+                  <p className="font-serif text-lg font-semibold">Elegant Serif</p>
+                  <p className="text-sm text-muted-foreground">For headings and formal text</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg border">
                   <p className="font-sans text-base">Clean Sans-Serif</p>

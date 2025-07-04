@@ -23,16 +23,14 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
     retry: 1, // Only retry once to avoid excessive retries
     staleTime: 5000, // Cache for 5 seconds to prevent rapid refetches
     refetchOnWindowFocus: false, // Prevent refetch on window focus
+    onError: () => {
+      toast({
+        title: "Couldn't retrieve events",
+        description: "There was an issue loading your events. You can create your first event to get started.",
+        variant: "destructive",
+      });
+    }
   });
-
-  // Handle error state
-  if (isError) {
-    toast({
-      title: "Couldn't retrieve events",
-      description: "There was an issue loading your events. You can create your first event to get started.",
-      variant: "destructive",
-    });
-  }
   
   // Set current event mutation
   const setCurrentEventMutation = useMutation({
@@ -94,7 +92,7 @@ export default function EventSelector({ onSelectEvent }: EventSelectorProps) {
             {events.map((event: any) => (
               <div 
                 key={event.id}
-                className="flex items-center justify-between p-4 border flat hover:glass-light transition-colors"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/10 rounded-full">

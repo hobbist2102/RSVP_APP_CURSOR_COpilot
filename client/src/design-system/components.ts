@@ -1,357 +1,473 @@
 /**
- * ENTERPRISE-GRADE COMPONENT UTILITIES
- * 
- * Reusable component style generators using design tokens
- * Implements luxury iOS 18 flat design with zero-tolerance compliance
- * Tailwind 4 compatible with hex-based color system
+ * COMPONENT STYLE DEFINITIONS
+ * Production-quality component styling based on design tokens
+ * All components must reference these styles for consistency
  */
 
-import { colorTokens } from './tokens';
+import { designSystem } from './tokens';
 
-// =============================================================================
-// BUTTON COMPONENTS
-// =============================================================================
+const { colors, typography, spacing, shadows, borderRadius, components, animations } = designSystem;
 
-export function getButtonClasses(
-  variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' = 'primary',
-  size: 'sm' | 'md' | 'lg' = 'md'
-): string {
-  const baseClasses = [
-    'inline-flex items-center justify-center',
-    'font-medium transition-all duration-200',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-    'disabled:opacity-50 disabled:pointer-events-none',
-    'flat', // Zero border-radius, zero shadows
-  ];
-
-  const sizeClasses = {
-    sm: 'h-8 px-3 text-sm',
-    md: 'h-10 px-4 text-sm',
-    lg: 'h-12 px-6 text-base',
-  };
-
-  const variantClasses = {
-    primary: 'bg-primary text-primary-foreground border-2 border-primary hover:bg-primary/90 hover:scale-105',
-    secondary: 'bg-secondary text-secondary-foreground border-2 border-secondary hover:bg-secondary/90 hover:scale-105',
-    outline: 'border-2 border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground hover:scale-105',
-    ghost: 'border-2 border-transparent text-foreground hover:bg-accent hover:text-accent-foreground hover:scale-105',
-    destructive: 'bg-destructive text-destructive-foreground border-2 border-destructive hover:bg-destructive/90 hover:scale-105',
-  };
-
-  return [
-    ...baseClasses,
-    sizeClasses[size],
-    variantClasses[variant],
-  ].join(' ');
-}
-
-// =============================================================================
-// CARD COMPONENTS
-// =============================================================================
-
-export function getCardClasses(
-  variant: 'default' | 'elevated' | 'interactive' = 'default'
-): string {
-  const baseClasses = [
-    'bg-card text-card-foreground',
-    'border border-border',
-    'flat', // Zero border-radius, zero shadows
-  ];
-
-  const variantClasses = {
-    default: '',
-    elevated: 'border-2 border-accent',
-    interactive: 'transition-all duration-200 hover:border-accent hover:scale-102 cursor-pointer',
-  };
-
-  return [
-    ...baseClasses,
-    variantClasses[variant],
-  ].join(' ');
-}
-
-// =============================================================================
-// NAVIGATION COMPONENTS
-// =============================================================================
-
-export function getNavItemClasses(
-  isActive: boolean = false,
-  variant: 'sidebar' | 'header' | 'tab' = 'sidebar'
-): string {
-  const baseClasses = [
-    'flex items-center gap-3 px-3 py-2',
-    'text-sm font-medium transition-all duration-200',
-    'flat', // Zero border-radius, zero shadows
-  ];
-
-  const variantClasses = {
-    sidebar: [
-      'text-sidebar-foreground',
-      isActive 
-        ? 'bg-sidebar-accent text-sidebar-accent-foreground border-l-3 border-sidebar-primary' 
-        : 'hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground',
-    ],
-    header: [
-      'text-foreground',
-      isActive 
-        ? 'bg-accent text-accent-foreground border-b-3 border-accent' 
-        : 'hover:bg-accent/10 hover:text-accent',
-    ],
-    tab: [
-      'text-muted-foreground',
-      isActive 
-        ? 'text-foreground border-b-3 border-accent' 
-        : 'hover:text-foreground hover:border-b-3 hover:border-border',
-    ],
-  };
-
-  return [
-    ...baseClasses,
-    ...variantClasses[variant],
-  ].join(' ');
-}
-
-// =============================================================================
-// INPUT COMPONENTS
-// =============================================================================
-
-export function getInputClasses(
-  variant: 'default' | 'error' | 'success' = 'default',
-  size: 'sm' | 'md' | 'lg' = 'md'
-): string {
-  const baseClasses = [
-    'flex w-full bg-input text-foreground',
-    'border border-border px-3 py-2',
-    'transition-colors duration-200',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-    'disabled:cursor-not-allowed disabled:opacity-50',
-    'placeholder:text-muted-foreground',
-    'flat', // Zero border-radius, zero shadows
-  ];
-
-  const sizeClasses = {
-    sm: 'h-8 px-2 text-sm',
-    md: 'h-10 px-3 text-sm',
-    lg: 'h-12 px-4 text-base',
-  };
-
-  const variantClasses = {
-    default: 'border-border focus-visible:border-ring',
-    error: 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive',
-    success: 'border-accent focus-visible:border-accent focus-visible:ring-accent',
-  };
-
-  return [
-    ...baseClasses,
-    sizeClasses[size],
-    variantClasses[variant],
-  ].join(' ');
-}
-
-// =============================================================================
-// TEXT COMPONENTS
-// =============================================================================
-
-export function getTextClasses(
-  variant: 'h1' | 'h2' | 'h3' | 'h4' | 'body' | 'caption' | 'label' = 'body',
-  weight: 'normal' | 'medium' | 'semibold' | 'bold' = 'normal'
-): string {
-  const fontFamilyClasses = {
-    h1: 'font-serif',
-    h2: 'font-serif', 
-    h3: 'font-serif',
-    h4: 'font-serif',
-    body: 'font-sans',
-    caption: 'font-sans',
-    label: 'font-sans',
-  };
-
-  const sizeClasses = {
-    h1: 'text-4xl lg:text-5xl',
-    h2: 'text-3xl lg:text-4xl',
-    h3: 'text-2xl lg:text-3xl',
-    h4: 'text-xl lg:text-2xl',
-    body: 'text-base',
-    caption: 'text-sm',
-    label: 'text-sm',
-  };
-
-  const weightClasses = {
-    normal: 'font-normal',
-    medium: 'font-medium',
-    semibold: 'font-semibold',
-    bold: 'font-bold',
-  };
-
-  return [
-    fontFamilyClasses[variant],
-    sizeClasses[variant],
-    weightClasses[weight],
-    'text-foreground',
-  ].join(' ');
-}
-
-// =============================================================================
-// BADGE COMPONENTS
-// =============================================================================
-
-export function getBadgeClasses(
-  variant: 'default' | 'secondary' | 'accent' | 'destructive' | 'outline' = 'default',
-  size: 'sm' | 'md' = 'md'
-): string {
-  const baseClasses = [
-    'inline-flex items-center font-medium',
-    'border transition-colors',
-    'flat', // Zero border-radius, zero shadows
-  ];
-
-  const sizeClasses = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-3 py-1 text-sm',
-  };
-
-  const variantClasses = {
-    default: 'bg-primary text-primary-foreground border-primary',
-    secondary: 'bg-secondary text-secondary-foreground border-secondary',
-    accent: 'bg-accent text-accent-foreground border-accent',
-    destructive: 'bg-destructive text-destructive-foreground border-destructive',
-    outline: 'bg-transparent text-foreground border-border',
-  };
-
-  return [
-    ...baseClasses,
-    sizeClasses[size],
-    variantClasses[variant],
-  ].join(' ');
-}
-
-// =============================================================================
-// CONTAINER COMPONENTS
-// =============================================================================
-
-export function getContainerClasses(
-  variant: 'page' | 'section' | 'content' = 'content',
-  spacing: 'none' | 'sm' | 'md' | 'lg' = 'md'
-): string {
-  const baseClasses = ['w-full'];
-
-  const variantClasses = {
-    page: 'min-h-screen bg-background',
-    section: 'bg-card border border-border',
-    content: 'bg-transparent',
-  };
-
-  const spacingClasses = {
-    none: '',
-    sm: 'p-2',
-    md: 'p-4',
-    lg: 'p-6',
-  };
-
-  return [
-    ...baseClasses,
-    variantClasses[variant],
-    spacingClasses[spacing],
-    'flat', // Zero border-radius, zero shadows
-  ].join(' ');
-}
-
-// =============================================================================
-// UTILITY FUNCTIONS
-// =============================================================================
-
-export function createComponentVariant(
-  baseClasses: string[],
-  variantClasses: Record<string, string>,
-  variant: string
-): string {
-  return [
-    ...baseClasses,
-    variantClasses[variant] || variantClasses.default || '',
-  ].join(' ');
-}
-
-export function applyDesignTokens(
-  element: HTMLElement,
-  tokenMap: Record<string, string>
-): void {
-  Object.entries(tokenMap).forEach(([property, token]) => {
-    element.style.setProperty(property, `var(--${token})`);
-  });
-}
-
-// =============================================================================
-// RESPONSIVE UTILITIES
-// =============================================================================
-
-export function getResponsiveClasses(
-  mobile: string,
-  tablet?: string,
-  desktop?: string
-): string {
-  const classes = [mobile];
+// ============================================================================
+// BUTTON COMPONENT STYLES
+// ============================================================================
+export const buttonStyles = {
+  base: {
+    fontFamily: typography.fontFamily.sans.join(', '),
+    fontWeight: typography.fontWeight.medium,
+    borderRadius: borderRadius.md,
+    transition: `all ${animations.duration.hover} ${animations.easing.easeOut}`,
+    cursor: 'pointer',
+    border: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
+    '&:focus': {
+      outline: '2px solid #7A51E1',  // Exact brand purple
+      outlineOffset: '2px',
+      boxShadow: '0 0 0 3px rgba(122, 81, 225, 0.1)',
+    },
+    '&:active': {
+      transform: 'scale(0.98)',
+      transition: 'all 150ms cubic-bezier(0.4, 0, 1, 1)',
+    },
+  },
   
-  if (tablet) {
-    classes.push(`md:${tablet}`);
+  variants: {
+    primary: {
+      light: {
+        backgroundColor: colors.primary[500],
+        color: colors.neutral.light.background,
+        boxShadow: shadows.light.sm,
+        '&:hover': {
+          backgroundColor: colors.primary[600],
+          boxShadow: shadows.light.md,
+          transform: 'translateY(-1px)',
+        }
+      },
+      dark: {
+        backgroundColor: colors.primary[500],
+        color: colors.neutral.dark.background,
+        boxShadow: shadows.dark.sm,
+        '&:hover': {
+          backgroundColor: colors.primary[600],
+          boxShadow: shadows.dark.md,
+          transform: 'translateY(-1px)',
+        }
+      }
+    },
+    
+    outline: {
+      light: {
+        backgroundColor: 'transparent',
+        color: colors.primary[500],
+        border: `1px solid ${colors.primary[500]}`,
+        '&:hover': {
+          backgroundColor: colors.primary[50],
+          transform: 'translateY(-1px)',
+        }
+      },
+      dark: {
+        backgroundColor: 'transparent',
+        color: colors.primary[500],
+        border: `1px solid ${colors.primary[500]}`,
+        '&:hover': {
+          backgroundColor: colors.primary[900],
+          transform: 'translateY(-1px)',
+        }
+      }
+    },
+    
+    ghost: {
+      light: {
+        backgroundColor: 'transparent',
+        color: colors.neutral.light.foreground,
+        '&:hover': {
+          backgroundColor: colors.neutral.light.muted,
+        }
+      },
+      dark: {
+        backgroundColor: 'transparent',
+        color: colors.neutral.dark.foreground,
+        '&:hover': {
+          backgroundColor: colors.neutral.dark.muted,
+        }
+      }
+    }
+  },
+  
+  sizes: {
+    sm: {
+      height: components.button.height.sm,
+      padding: components.button.padding.sm,
+      fontSize: typography.fontSize.sm,
+    },
+    md: {
+      height: components.button.height.md,
+      padding: components.button.padding.md,
+      fontSize: typography.fontSize.base,
+    },
+    lg: {
+      height: components.button.height.lg,
+      padding: components.button.padding.lg,
+      fontSize: typography.fontSize.lg,
+    }
   }
+} as const;
+
+// ============================================================================
+// CARD COMPONENT STYLES
+// ============================================================================
+export const cardStyles = {
+  base: {
+    borderRadius: borderRadius.lg,
+    border: '1px solid',
+    padding: spacing[6],
+    transition: 'all 150ms ease',
+  },
   
-  if (desktop) {
-    classes.push(`lg:${desktop}`);
+  variants: {
+    default: {
+      light: {
+        backgroundColor: colors.neutral.light.card,
+        borderColor: colors.neutral.light.border,
+        color: colors.neutral.light.foreground,
+        boxShadow: shadows.light.sm,
+        '&:hover': {
+          boxShadow: shadows.light.md,
+          transform: 'translateY(-2px)',
+        }
+      },
+      dark: {
+        backgroundColor: colors.neutral.dark.card,
+        borderColor: colors.neutral.dark.border,
+        color: colors.neutral.dark.foreground,
+        boxShadow: shadows.dark.sm,
+        '&:hover': {
+          boxShadow: shadows.dark.md,
+          transform: 'translateY(-2px)',
+        }
+      }
+    },
+    
+    elevated: {
+      light: {
+        backgroundColor: colors.neutral.light.card,
+        borderColor: colors.neutral.light.border,
+        color: colors.neutral.light.foreground,
+        boxShadow: shadows.light.lg,
+      },
+      dark: {
+        backgroundColor: colors.neutral.dark.card,
+        borderColor: colors.neutral.dark.border,
+        color: colors.neutral.dark.foreground,
+        boxShadow: shadows.dark.lg,
+      }
+    }
   }
+} as const;
+
+// ============================================================================
+// INPUT COMPONENT STYLES
+// ============================================================================
+export const inputStyles = {
+  base: {
+    fontFamily: typography.fontFamily.sans.join(', '),
+    fontSize: typography.fontSize.base,
+    height: components.input.height,
+    padding: components.input.padding,
+    borderRadius: borderRadius.md,
+    border: '1px solid',
+    transition: 'all 150ms ease',
+    outline: 'none',
+  },
   
-  return classes.join(' ');
-}
+  states: {
+    default: {
+      light: {
+        backgroundColor: colors.neutral.light.background,
+        borderColor: colors.neutral.light.border,
+        color: colors.neutral.light.foreground,
+        '&:focus': {
+          borderColor: colors.primary[500],
+          boxShadow: `0 0 0 3px ${colors.primary[100]}`,
+        }
+      },
+      dark: {
+        backgroundColor: colors.neutral.dark.card,
+        borderColor: colors.neutral.dark.border,
+        color: colors.neutral.dark.foreground,
+        '&:focus': {
+          borderColor: colors.primary[500],
+          boxShadow: `0 0 0 3px ${colors.primary[900]}`,
+        }
+      }
+    },
+    
+    error: {
+      light: {
+        borderColor: colors.accent.error,
+        '&:focus': {
+          borderColor: colors.accent.error,
+          boxShadow: `0 0 0 3px rgba(239, 68, 68, 0.1)`,
+        }
+      },
+      dark: {
+        borderColor: colors.accent.error,
+        '&:focus': {
+          borderColor: colors.accent.error,
+          boxShadow: `0 0 0 3px rgba(239, 68, 68, 0.2)`,
+        }
+      }
+    }
+  }
+} as const;
 
-// =============================================================================
-// ANIMATION UTILITIES
-// =============================================================================
+// ============================================================================
+// NAVIGATION COMPONENT STYLES
+// ============================================================================
+export const navigationStyles = {
+  sidebar: {
+    base: {
+      width: '256px', // 16rem
+      height: '100vh',
+      borderRight: '1px solid',
+      padding: spacing[4],
+      fontFamily: typography.fontFamily.sans.join(', '),
+    },
+    
+    theme: {
+      light: {
+        backgroundColor: colors.neutral.light.background,
+        borderColor: colors.neutral.light.border,
+        color: colors.neutral.light.foreground,
+      },
+      dark: {
+        backgroundColor: colors.neutral.dark.background,
+        borderColor: colors.neutral.dark.border,
+        color: colors.neutral.dark.foreground,
+      }
+    }
+  },
+  
+  navItem: {
+    base: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: `${spacing[2]} ${spacing[3]}`,
+      borderRadius: borderRadius.md,
+      fontSize: typography.fontSize.sm,
+      fontWeight: typography.fontWeight.medium,
+      textDecoration: 'none',
+      transition: 'all 150ms ease',
+      cursor: 'pointer',
+    },
+    
+    states: {
+      default: {
+        light: {
+          color: colors.neutral.light['muted-foreground'],
+          '&:hover': {
+            backgroundColor: colors.neutral.light.muted,
+            color: colors.neutral.light.foreground,
+          }
+        },
+        dark: {
+          color: colors.neutral.dark['muted-foreground'],
+          '&:hover': {
+            backgroundColor: colors.neutral.dark.muted,
+            color: colors.neutral.dark.foreground,
+          }
+        }
+      },
+      
+      active: {
+        light: {
+          backgroundColor: colors.neutral.light.muted,
+          color: colors.primary[500],
+          borderLeft: `3px solid ${colors.primary[500]}`,
+          fontWeight: typography.fontWeight.semibold,
+        },
+        dark: {
+          backgroundColor: colors.neutral.dark.muted,
+          color: colors.primary[500],
+          borderLeft: `3px solid ${colors.primary[500]}`,
+          fontWeight: typography.fontWeight.semibold,
+        }
+      }
+    }
+  }
+} as const;
 
-export function getAnimationClasses(
-  type: 'fade' | 'slide' | 'scale' | 'bounce' = 'fade',
-  duration: 'fast' | 'normal' | 'slow' = 'normal'
-): string {
-  const durationClasses = {
-    fast: 'duration-150',
-    normal: 'duration-200',
-    slow: 'duration-300',
+// ============================================================================
+// TABLE COMPONENT STYLES
+// ============================================================================
+export const tableStyles = {
+  container: {
+    borderRadius: borderRadius.lg,
+    border: '1px solid',
+    overflow: 'hidden',
+  },
+  
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    fontFamily: typography.fontFamily.sans.join(', '),
+    fontSize: typography.fontSize.sm,
+  },
+  
+  header: {
+    base: {
+      fontWeight: typography.fontWeight.semibold,
+      textAlign: 'left' as const,
+      padding: spacing[3],
+      borderBottom: '1px solid',
+    },
+    
+    theme: {
+      light: {
+        backgroundColor: colors.neutral.light.muted,
+        color: colors.neutral.light.foreground,
+        borderColor: colors.neutral.light.border,
+      },
+      dark: {
+        backgroundColor: colors.neutral.dark.muted,
+        color: colors.neutral.dark.foreground,
+        borderColor: colors.neutral.dark.border,
+      }
+    }
+  },
+  
+  cell: {
+    base: {
+      padding: spacing[3],
+      borderBottom: '1px solid',
+    },
+    
+    theme: {
+      light: {
+        color: colors.neutral.light.foreground,
+        borderColor: colors.neutral.light.border,
+        '&:hover': {
+          backgroundColor: colors.neutral.light.muted,
+        }
+      },
+      dark: {
+        color: colors.neutral.dark.foreground,
+        borderColor: colors.neutral.dark.border,
+        '&:hover': {
+          backgroundColor: colors.neutral.dark.muted,
+        }
+      }
+    }
+  }
+} as const;
+
+// ============================================================================
+// UTILITY FUNCTIONS FOR STYLE GENERATION
+// ============================================================================
+
+/**
+ * Generate Tailwind classes for button variants
+ */
+export function getButtonClasses(variant: 'primary' | 'outline' | 'ghost', size: 'sm' | 'md' | 'lg' = 'md'): string {
+  const baseClasses = [
+    'inline-flex', 'items-center', 'justify-center',
+    'font-medium', 'transition-all', 'duration-150',
+    'cursor-pointer', 'border-0', 'no-underline'
+  ];
+  
+  const sizeClasses = {
+    sm: ['h-8', 'px-3', 'text-sm', 'rounded-md'],
+    md: ['h-10', 'px-4', 'text-base', 'rounded-md'],
+    lg: ['h-12', 'px-6', 'text-lg', 'rounded-md']
   };
-
-  const typeClasses = {
-    fade: 'transition-opacity',
-    slide: 'transition-transform',
-    scale: 'transition-transform',
-    bounce: 'transition-transform',
+  
+  const variantClasses = {
+    primary: [
+      'bg-primary', 'text-primary-foreground',
+      'shadow-sm', 'hover:bg-primary/90',
+      'hover:shadow-md', 'hover:-translate-y-px'
+    ],
+    outline: [
+      'bg-transparent', 'text-primary',
+      'border', 'border-primary',
+      'hover:bg-primary/10', 'hover:-translate-y-px'
+    ],
+    ghost: [
+      'bg-transparent', 'text-foreground',
+      'hover:bg-muted'
+    ]
   };
-
+  
   return [
-    typeClasses[type],
-    durationClasses[duration],
-    'ease-in-out',
+    ...baseClasses,
+    ...sizeClasses[size],
+    ...variantClasses[variant]
   ].join(' ');
 }
 
-// =============================================================================
-// FOCUS & ACCESSIBILITY UTILITIES
-// =============================================================================
-
-export function getFocusClasses(): string {
+/**
+ * Generate Tailwind classes for card variants
+ */
+export function getCardClasses(variant: 'default' | 'elevated' = 'default'): string {
+  const baseClasses = [
+    'rounded-lg', 'border', 'p-6',
+    'transition-all', 'duration-150'
+  ];
+  
+  const variantClasses = {
+    default: [
+      'bg-card', 'border-border', 'text-card-foreground',
+      'shadow-sm', 'hover:shadow-md', 'hover:-translate-y-0.5'
+    ],
+    elevated: [
+      'bg-card', 'border-border', 'text-card-foreground',
+      'shadow-lg'
+    ]
+  };
+  
   return [
-    'focus-visible:outline-none',
-    'focus-visible:ring-2',
-    'focus-visible:ring-ring',
-    'focus-visible:ring-offset-2',
-    'focus-visible:ring-offset-background',
+    ...baseClasses,
+    ...variantClasses[variant]
   ].join(' ');
 }
 
-export function getAccessibilityClasses(): string {
+/**
+ * Generate Tailwind classes for navigation items
+ */
+export function getNavItemClasses(isActive: boolean = false): string {
+  const baseClasses = [
+    'flex', 'items-center', 'px-3', 'py-2',
+    'rounded-md', 'text-sm', 'font-medium',
+    'no-underline', 'transition-all', 'duration-150',
+    'cursor-pointer'
+  ];
+  
+  const stateClasses = isActive ? [
+    'bg-muted', 'text-primary', 'border-l-3', 'border-primary',
+    'font-semibold'
+  ] : [
+    'text-muted-foreground', 'hover:bg-muted', 'hover:text-foreground'
+  ];
+  
   return [
-    'focus-visible:outline-none',
-    'focus-visible:ring-2',
-    'focus-visible:ring-ring',
-    'disabled:pointer-events-none',
-    'disabled:opacity-50',
-    'aria-disabled:pointer-events-none',
-    'aria-disabled:opacity-50',
+    ...baseClasses,
+    ...stateClasses
   ].join(' ');
 }
+
+// Export all component styles
+export const componentStyles = {
+  button: buttonStyles,
+  card: cardStyles,
+  input: inputStyles,
+  navigation: navigationStyles,
+  table: tableStyles,
+  getButtonClasses,
+  getCardClasses,
+  getNavItemClasses,
+} as const;
+
+export default componentStyles;

@@ -5,8 +5,7 @@ import {
   LogOut,
   User,
   Sun,
-  Moon,
-  Calendar
+  Moon
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -17,11 +16,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils";
 import EventSelector from "../event/event-selector";
 
 interface HeaderProps {
-  toggleSidebar?: () => void;
+  toggleSidebar: () => void;
   currentEvent?: {
     title: string;
     date: string;
@@ -30,14 +30,16 @@ interface HeaderProps {
 
 export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   const { user, logout } = useAuth();
-  const [notifications] = useState(2);
+  const [notifications] = useState(2); // Example notification count
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
+  
   useEffect(() => {
+    // Check system preference on mount
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const initialTheme = mediaQuery.matches ? 'dark' : 'light';
     setTheme(initialTheme);
-
+    
+    // Apply initial theme
     if (initialTheme === 'dark') {
       document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
@@ -47,10 +49,11 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
       document.documentElement.classList.add('light');
       document.documentElement.style.colorScheme = 'light';
     }
-
+    
     const handleChange = (e: MediaQueryListEvent) => {
       const newTheme = e.matches ? 'dark' : 'light';
       setTheme(newTheme);
+      
       if (newTheme === 'dark') {
         document.documentElement.classList.remove('light');
         document.documentElement.classList.add('dark');
@@ -61,15 +64,16 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         document.documentElement.style.colorScheme = 'light';
       }
     };
-
+    
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
+  
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     
+    // Apply theme classes to the entire document
     if (newTheme === 'dark') {
       document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
@@ -81,102 +85,104 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
     }
   };
 
-  if (!user) return null;
-
   return (
-    <header className="bg-background border-b border-border">
-      {/* Professional Single Header Bar */}
-      <div className="bg-background px-6 py-4 flex items-center justify-between">
-        {/* Left Section - Event Selection */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-accent" />
-            <span className="text-sm font-semibold text-foreground">Current Event:</span>
-            <div className="min-w-0">
-              <EventSelector />
-            </div>
+    <header className="glass border-b border-border">
+      <div className="flex justify-between items-center px-6 py-4 mx-auto">
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="p-2 rounded-md text-muted-foreground hover:bg-muted lg:hidden"
+          >
+            <span className="sr-only">Open sidebar</span>
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Button>
+          <div>
+            <h1 className="font-serif text-2xl font-semibold text-secondary">Eternally Yours</h1>
           </div>
         </div>
-
-        {/* Right Section - Controls & Profile (Standard Right Alignment) */}
-        <div className="flex items-center gap-4">
-          {/* Theme Toggle - Professional Switch Design */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Theme</span>
-            <button
-              onClick={toggleTheme}
-              className="relative w-12 h-6 bg-muted border border-border flex items-center flat transition-colors hover:bg-muted/80"
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-            >
-              <div 
-                className={`absolute w-4 h-4 bg-accent transition-transform duration-200 flat ${
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              >
-                {theme === 'light' ? (
-                  <Sun className="h-3 w-3 text-accent-foreground m-0.5" />
-                ) : (
-                  <Moon className="h-3 w-3 text-accent-foreground m-0.5" />
-                )}
-              </div>
-            </button>
-          </div>
-
-          {/* Notifications - Professional Design */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Alerts</span>
-            <div className="relative">
-              <button 
-                className="p-2 bg-background border border-border hover:bg-muted flat transition-colors"
-                aria-label={`${notifications} notifications`}
-              >
-                <Bell className="h-4 w-4 text-foreground" />
-                {notifications > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center flat px-1">
-                    {notifications}
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Profile - Standard Right Alignment */}
+        
+        <div className="flex items-center space-x-4">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="relative transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-5 w-5 transition-transform duration-200" />
+            ) : (
+              <Sun className="h-5 w-5 transition-transform duration-200" />
+            )}
+          </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 px-4 py-2 bg-card border border-border hover:bg-muted flat transition-colors">
-                <div className="w-8 h-8 bg-accent text-accent-foreground font-bold text-sm flex items-center justify-center flat">
-                  {getInitials(user.name)}
-                </div>
-                <div className="text-left min-w-0">
-                  <div className="text-sm font-semibold text-foreground truncate">{user.name}</div>
-                  <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              </button>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {notifications > 0 && (
+                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-destructive"></span>
+                )}
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-background border border-border flat">
-              <DropdownMenuLabel className="text-foreground px-4 py-3">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-semibold">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                  <p className="text-xs text-accent font-medium capitalize">{user.role}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem className="text-foreground hover:bg-muted px-4 py-2">
-                <User className="mr-3 h-4 w-4" />
-                <span>Profile Settings</span>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <span className="text-sm text-foreground">New RSVP from John Davis</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem 
-                onClick={logout}
-                className="text-destructive hover:bg-destructive/10 px-4 py-2"
-              >
-                <LogOut className="mr-3 h-4 w-4" />
-                <span>Sign Out</span>
+              <DropdownMenuItem>
+                <span className="text-sm text-foreground">Accommodation request from Rachel Lee</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center space-x-2 cursor-pointer">
+                <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                  <span className="text-sm font-medium">{user ? getInitials(user.name) : "?"}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-foreground">{user?.name || "Guest"}</p>
+                  <p className="text-xs text-muted-foreground">{user?.role === "admin" ? "Administrator" : user?.role === "couple" ? "Couple" : "Staff"}</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      
+      <div className="glass border-y border-border px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center">
+          {currentEvent && (
+            <div className="px-2 text-muted-foreground text-sm hidden md:block">
+              <p className="font-serif font-medium">{currentEvent.title}</p>
+              <p className="text-xs">{currentEvent.date}</p>
+            </div>
+          )}
+        </div>
+        
+        {/* EventSelector loads here */}
+        <div className="flex-1 max-w-sm ml-auto">
+          <EventSelector />
         </div>
       </div>
     </header>

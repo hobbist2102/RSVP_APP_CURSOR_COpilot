@@ -70,8 +70,8 @@ export const StickyNav: React.FC = () => {
             onClick={(e) => scrollToSection(e, link.href)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
               activeSection === link.href.substring(1)
-                ? 'text-background bg-accent'
-                : 'text-background/80 hover:text-background hover:bg-accent/20'
+                ? 'text-white bg-primary'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
             }`}
           >
             {link.name}

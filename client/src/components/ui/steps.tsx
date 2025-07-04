@@ -48,20 +48,20 @@ export function Steps({
                 step.isActive && "font-medium"
               )}
             >
-              {/* Step indicator - FLAT DESIGN */}
+              {/* Step circle */}
               <div className={cn(
-                "h-8 w-8 min-w-8 flat flex items-center justify-center border-2 transition-all",
+                "h-8 w-8 min-w-8 rounded-full flex items-center justify-center border-2 transition-all",
                 step.isCompleted 
-                  ? "bg-accent border-accent text-background" 
+                  ? "bg-primary border-primary text-white" 
                   : step.isActive 
-                    ? "border-accent text-accent bg-background" 
-                    : "border-border text-muted-foreground bg-background",
-                "group-hover:border-accent/70"
+                    ? "border-primary text-primary" 
+                    : "border-muted-foreground/20 text-muted-foreground",
+                "group-hover:border-primary/70"
               )}>
                 {step.isCompleted ? (
                   <Check className="h-4 w-4" />
                 ) : (
-                  <Check className="h-4 w-4 opacity-0" />
+                  <span className="text-sm">{index + 1}</span>
                 )}
               </div>
               

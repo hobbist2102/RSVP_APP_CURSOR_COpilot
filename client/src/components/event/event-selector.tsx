@@ -131,8 +131,8 @@ export function EventSelector() {
 
   if (eventsLoading) {
     return (
-      <div className="flex items-center gap-2 py-2 px-3 text-sm text-muted-foreground">
-        <div className="animate-spin h-4 w-4 border-2 border-accent rounded-full border-t-transparent"></div>
+      <div className="flex items-center gap-2 py-2 px-3 text-sm text-gray-500">
+        <div className="animate-spin h-4 w-4 border-2 border-primary rounded-full border-t-transparent"></div>
         Loading events...
       </div>
     );
@@ -141,10 +141,10 @@ export function EventSelector() {
   if (events.length === 0) {
     return (
       <div className="flex items-center justify-between gap-2 py-2 px-3">
-        <span className="text-sm text-muted-foreground">No events found</span>
+        <span className="text-sm text-gray-500">No events found</span>
         <a 
           href="/event-setup-wizard"
-          className="text-xs px-2 py-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 transition-colors"
+          className="text-xs px-2 py-1 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
         >
           Create Event
         </a>
@@ -153,32 +153,26 @@ export function EventSelector() {
   }
 
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div className="w-full max-w-[300px] min-w-0">
+    <div className="flex items-center space-x-2 px-2 py-2">
+      <CalendarClock className="h-5 w-5 text-secondary" />
+      <div className="flex-1 min-w-[200px]">
         <Select
           value={selectedEventId || undefined}
           onValueChange={handleEventChange}
         >
-          <SelectTrigger className="bg-background border-border hover:border-accent text-sm h-9 w-full flat">
-            <div className="flex items-center gap-2 min-w-0 w-full">
-              <CalendarClock className="h-4 w-4 text-accent flex-shrink-0" />
-              <div className="min-w-0 flex-1 text-left">
-                <SelectValue placeholder="Select Event" />
-              </div>
-            </div>
+          <SelectTrigger className="bg-white/80 border-secondary/30 hover:border-secondary">
+            <SelectValue placeholder="Select Event" />
           </SelectTrigger>
-          <SelectContent className="bg-background border-border flat w-[400px]">
+          <SelectContent>
             {events.map((event) => (
               <SelectItem 
                 key={event.id} 
                 value={String(event.id)}
-                className="py-3 cursor-pointer hover:bg-accent/10"
+                className="py-2 cursor-pointer"
               >
-                <div className="flex flex-col gap-1 min-w-0 w-full">
-                  <span className="font-semibold text-sm text-foreground truncate">{event.title}</span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}
-                  </span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{event.title}</span>
+                  <span className="text-xs text-gray-500">{formatDateForDisplay(event.startDate)} - {formatDateForDisplay(event.endDate)}</span>
                 </div>
               </SelectItem>
             ))}

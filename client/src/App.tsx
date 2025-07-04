@@ -4,7 +4,6 @@ import { AuthProvider } from "@/hooks/use-auth";
 import PrivateRoute from "@/components/auth/private-route";
 import { Suspense, lazy } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { AuditRunner } from "@/components/dev/audit-runner";
 
 // Lazy load components to reduce initial bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -25,12 +24,10 @@ const EmailTemplatesPage = lazy(() => import("@/pages/email-templates-page"));
 const TransportPage = lazy(() => import("@/pages/transport"));
 const TransportAssignmentsPage = lazy(() => import("@/pages/transport-assignments"));
 const EventSetupWizard = lazy(() => import("@/pages/event-setup-wizard"));
-const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing"));
-const MessageSection = lazy(() => import("@/pages/message-section"));
+// Removed immersive-storytelling import as it's no longer used
+const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New cinematic landing page
+const MessageSection = lazy(() => import("@/pages/message-section")); // Multichannel engagement section
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// Validation now handled by AuditRunner component
 
 
 // Loading component for Suspense fallback
@@ -43,23 +40,23 @@ const LoadingSpinner = () => (
 function App() {
   return (
     <AuthProvider>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Switch>
-            <Route path="/auth" component={AuthPage} />
-            {/* RSVP routes - capture all possible formats */}
-            <Route path="/guest-rsvp/:rest*">
-              {(params) => <RsvpPage />}
-            </Route>
-            <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
-            <Route path="/" component={ImmersiveLanding} />
-            <Route path="/engagement" component={MessageSection} />
-            <Route path="/dashboard">
-              {() => (
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              )}
-            </Route>
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route path="/auth" component={AuthPage} />
+          {/* RSVP routes - capture all possible formats */}
+          <Route path="/guest-rsvp/:rest*">
+            {(params) => <RsvpPage />}
+          </Route>
+          <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
+          <Route path="/" component={ImmersiveLanding} />
+          <Route path="/engagement" component={MessageSection} />
+          <Route path="/dashboard">
+            {() => (
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            )}
+          </Route>
         <Route path="/guests">
           {() => (
             <PrivateRoute>
@@ -163,7 +160,6 @@ function App() {
       </Switch>
       </Suspense>
       <Toaster />
-      <AuditRunner />
     </AuthProvider>
   );
 }
