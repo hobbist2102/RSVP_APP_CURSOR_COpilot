@@ -205,27 +205,45 @@ export function validateFlatDesign(element: HTMLElement): ValidationResult {
 }
 
 /**
- * COMPREHENSIVE TYPOGRAPHY VALIDATION
- * Validates font families, weights, and text styling
+ * ULTRA-COMPREHENSIVE TYPOGRAPHY VALIDATION
+ * Validates font families with ZERO TOLERANCE for violations
  */
 export function validateTypography(element: HTMLElement): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const computedStyle = window.getComputedStyle(element);
 
-  // Font family validation
-  const fontFamily = computedStyle.fontFamily;
-  const hasApprovedFont = APPROVED_FONTS.some(font => fontFamily.toLowerCase().includes(font.toLowerCase()));
+  // STRICT Font family validation - ONLY Inter and Cormorant Garamond allowed
+  const fontFamily = computedStyle.fontFamily.toLowerCase();
+  const isSystemFont = fontFamily.includes('inherit') || fontFamily.includes('initial') || fontFamily.includes('unset');
   
-  if (!hasApprovedFont && fontFamily !== 'inherit' && fontFamily !== 'initial') {
-    errors.push(`font-family: ${fontFamily}. Should use Inter or Cormorant Garamond.`);
+  if (!isSystemFont) {
+    const hasInter = fontFamily.includes('inter');
+    const hasCormorant = fontFamily.includes('cormorant') || fontFamily.includes('garamond');
+    
+    if (!hasInter && !hasCormorant) {
+      errors.push(`FONT VIOLATION: font-family "${computedStyle.fontFamily}" detected. ONLY Inter and Cormorant Garamond are allowed in our design system.`);
+    }
+    
+    // Check for common font violations
+    const forbiddenFonts = [
+      'arial', 'helvetica', 'times', 'georgia', 'verdana', 'courier', 'comic sans', 
+      'tahoma', 'trebuchet', 'impact', 'lucida', 'palatino', 'garamond', 'century',
+      'bookman', 'avant garde', 'optima', 'futura', 'franklin', 'gill sans'
+    ];
+    
+    forbiddenFonts.forEach(forbidden => {
+      if (fontFamily.includes(forbidden) && !fontFamily.includes('cormorant')) {
+        errors.push(`FORBIDDEN FONT: "${forbidden}" detected in font-family. Use Inter for UI text or Cormorant Garamond for decorative text.`);
+      }
+    });
   }
 
   // Font weight validation
   const fontWeight = computedStyle.fontWeight;
   const numericWeight = parseInt(fontWeight);
   if (numericWeight && (numericWeight < 300 || numericWeight > 700)) {
-    warnings.push(`font-weight: ${fontWeight}. Consider using weights between 300-700.`);
+    warnings.push(`font-weight: ${fontWeight}. Should use weights between 300-700 for optimal readability.`);
   }
 
   // Text decoration validation
