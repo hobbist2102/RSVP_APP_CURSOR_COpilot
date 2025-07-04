@@ -31,7 +31,7 @@ export {
   getNavItemClasses 
 } from './components';
 
-// Export comprehensive audit system
+// Export single comprehensive audit system
 export { 
   default as runComprehensiveAudit
 } from './comprehensive-audit-system';
