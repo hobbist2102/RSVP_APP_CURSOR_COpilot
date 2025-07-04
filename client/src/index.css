@@ -489,19 +489,7 @@ body {
    ULTIMATE DESIGN SYSTEM ENFORCEMENT - HEX COLORS ONLY
    ============================================================================= */
 
-/* FORCE HEX COLORS - OVERRIDE ALL OKLCH/RGB/HSL */
-* {
-  /* Override any computed RGB/OKLCH with design tokens */
-  color: inherit !important;
-  background-color: transparent !important;
-  border-color: var(--border) !important;
-  fill: currentColor !important;
-  stroke: currentColor !important;
-  outline-color: var(--ring) !important;
-  text-decoration-color: currentColor !important;
-  caret-color: currentColor !important;
-  column-rule-color: var(--border) !important;
-}
+/* TARGETED HEX COLOR ENFORCEMENT - SAFE APPROACH */
 
 /* ELEMENT-SPECIFIC FIXES */
 html, body { 
