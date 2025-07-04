@@ -17,7 +17,7 @@ export function StatsCard({
   variant = 'default' 
 }: StatsCardProps) {
   return (
-    <Card className="flat bg-card border-border text-card-foreground hover:opacity-95 transition-opacity duration-200">
+    <Card className="bg-card border-border text-card-foreground hover:opacity-95 transition-opacity duration-200 flat shadow-none">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

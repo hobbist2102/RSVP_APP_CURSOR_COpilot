@@ -24,14 +24,11 @@ const EmailTemplatesPage = lazy(() => import("@/pages/email-templates-page"));
 const TransportPage = lazy(() => import("@/pages/transport"));
 const TransportAssignmentsPage = lazy(() => import("@/pages/transport-assignments"));
 const EventSetupWizard = lazy(() => import("@/pages/event-setup-wizard"));
-// Removed immersive-storytelling import as it's no longer used
-const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New cinematic landing page
-const MessageSection = lazy(() => import("@/pages/message-section")); // Multichannel engagement section
+const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing"));
+const MessageSection = lazy(() => import("@/pages/message-section"));
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
-import { Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider";
 import '@/design-system/validation'; // Auto-run validation in development
 

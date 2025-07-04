@@ -31,7 +31,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     title: 'Guest List',
-    href: '/guest-list',
+    href: '/guests',
     icon: Users,
     description: 'Manage guest information'
   },
@@ -43,7 +43,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     title: 'RSVP Management',
-    href: '/rsvp-management',
+    href: '/rsvp',
     icon: Mail,
     description: 'RSVP tracking and follow-up'
   },
