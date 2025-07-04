@@ -43,9 +43,9 @@
   --sidebar-accent-foreground: oklch(0.1776 0 0);
   --sidebar-border: oklch(0 0 0);
   --sidebar-ring: oklch(0.4145 0.1828 300.3155);
-  --font-sans: Inter UI, sans-serif;
-  --font-serif: Cormorant, serif;
-  --font-mono: Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-sans: sans-serif;
+  --font-serif: serif;
+  --font-mono: Inter UI, monospace;
   --radius: 0px;
   --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
@@ -92,9 +92,9 @@
   --sidebar-accent-foreground: oklch(0.9940 0 0);
   --sidebar-border: oklch(1.0000 0 0);
   --sidebar-ring: oklch(0.4145 0.1828 300.3155);
-  --font-sans: Inter UI, sans-serif;
-  --font-serif: Cormorant, serif;
-  --font-mono: Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-sans: sans-serif;
+  --font-serif: serif;
+  --font-mono: Inter UI, monospace;
   --radius: 0px;
   --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 100% / 0.00);
   --shadow-xs: 0px 0px 0px 0px hsl(0 0% 100% / 0.00);
