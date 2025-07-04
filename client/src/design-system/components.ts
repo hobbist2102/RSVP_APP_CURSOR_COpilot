@@ -27,7 +27,7 @@ export const buttonStyles = {
     textDecoration: 'none',
     boxShadow: 'none',  // NO SHADOW
     '&:focus': {
-      outline: '2px solid oklch(0.4145 0.1828 300.3155)',  // Exact brand purple
+      outline: '2px solid var(--primary)',  // Use design token
       outlineOffset: '2px',
       boxShadow: 'none',  // NO SHADOW
     },

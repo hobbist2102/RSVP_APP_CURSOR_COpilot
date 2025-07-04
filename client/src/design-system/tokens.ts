@@ -328,7 +328,7 @@ export const focusStates = {
       shadowStep: 'none',                     // NO SHADOW
     },
     focus: {
-      outline: '2px solid oklch(0.4145 0.1828 300.3155)', // Exact primary
+      outline: '2px solid var(--primary)', // Use design token
       outlineOffset: '2px',
       boxShadow: 'none',                      // NO SHADOW
       transition: 'all 150ms ease-out',
