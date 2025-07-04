@@ -12,6 +12,7 @@ export function AuditRunner() {
   useEffect(() => {
     // Run audit after component mount and DOM is ready
     const timer = setTimeout(() => {
+      
       const result = conductComprehensiveAudit();
       setAuditResult(result);
       

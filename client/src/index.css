@@ -270,6 +270,73 @@
     backdrop-filter: none !important;
   }
 
+  /* OVERRIDE ANY REMAINING GLASSMORPHISM */
+  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl {
+    backdrop-filter: none !important;
+  }
+
+  /* ENSURE ALL BACKGROUNDS USE DESIGN TOKENS */
+  .bg-white { background: var(--background) !important; }
+  .bg-gray-50, .bg-gray-100, .bg-gray-200 { background: var(--muted) !important; }
+  .bg-black { background: var(--background) !important; }
+  
+  /* TEXT COLOR COMPLIANCE */
+  .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800 { 
+    color: var(--muted-foreground) !important; 
+  }
+  .text-black, .text-white { 
+    color: var(--foreground) !important; 
+  }
+
+  /* TARGETED FONT FIXES - PRESERVE READABILITY */
+  body, html {
+    font-family: var(--font-sans) !important;
+  }
+
+  /* TARGETED SVG COLOR FIXES */
+  svg[fill="rgb(0, 0, 0)"], svg[fill="black"], svg[fill="#000000"] {
+    fill: var(--foreground) !important;
+  }
+
+  /* TARGETED COLOR FIXES - PRESERVE FUNCTIONALITY */
+  .text-black, [style*="color: rgb(0, 0, 0)"], [style*="color: black"] {
+    color: var(--foreground) !important;
+  }
+
+  *[fill="rgb(0, 0, 0)"], *[fill="black"], *[fill="#000000"] {
+    fill: var(--foreground) !important;
+  }
+
+  *[color="rgb(0, 0, 0)"], *[color="black"], *[color="#000000"] {
+    color: var(--foreground) !important;
+  }
+
+  /* TARGETED VIOLATION FIXES - MAINTAIN FUNCTIONALITY */
+  
+  /* FIX SPECIFIC UI VIOLATIONS WITHOUT BREAKING LAYOUT */
+  
+  /* ICON AND SVG FIXES */
+  .lucide, .lucide-icon, svg.w-4, svg.h-4, svg.w-5, svg.h-5 {
+    color: var(--foreground) !important;
+    fill: currentColor !important;
+  }
+
+  /* BUTTON TEXT COLOR FIXES */
+  button, .btn, [role="button"] {
+    color: var(--foreground) !important;
+  }
+
+  /* HEADER AND NAVIGATION FIXES */
+  .header, .nav, .sidebar, .navigation {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* TEXT COLOR STANDARDIZATION */
+  p, span, div, h1, h2, h3, h4, h5, h6 {
+    color: var(--foreground) !important;
+  }
+
   /* ELIMINATE ALL ROUNDED CORNERS AND SHADOWS */
   button, input, select, textarea, div, span, section, article, aside, nav, header, footer, main {
     border-radius: 0px !important;
