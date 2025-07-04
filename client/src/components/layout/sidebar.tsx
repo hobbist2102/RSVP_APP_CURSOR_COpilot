@@ -1,118 +1,122 @@
-import React from "react";
-import { Link, useLocation } from "wouter";
-import {
-  LayoutDashboard,
-  Users,
-  Reply,
-  Calendar,
-  Plane,
-  Utensils,
-  FileSpreadsheet,
-  Settings,
-  LogOut,
-  Mail,
-  Wand2
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
 
-interface SidebarProps {
-  isOpen: boolean;
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Calendar, 
+  Mail, 
+  Settings,
+  Hotel,
+  Plane,
+  UtensilsCrossed,
+  FileText,
+  BarChart3
+} from 'lucide-react';
+
+interface SidebarItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<any>;
+  description?: string;
 }
 
-export default function Sidebar({ isOpen }: SidebarProps) {
-  const [location] = useLocation();
-  const { logout } = useAuth();
+const sidebarItems: SidebarItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    description: 'Overview and analytics'
+  },
+  {
+    title: 'Guest List',
+    href: '/guest-list',
+    icon: Users,
+    description: 'Manage guest information'
+  },
+  {
+    title: 'Events',
+    href: '/events',
+    icon: Calendar,
+    description: 'Event management'
+  },
+  {
+    title: 'RSVP Management',
+    href: '/rsvp-management',
+    icon: Mail,
+    description: 'RSVP tracking and follow-up'
+  },
+  {
+    title: 'Accommodations',
+    href: '/accommodations',
+    icon: Hotel,
+    description: 'Hotel and room management'
+  },
+  {
+    title: 'Travel',
+    href: '/travel',
+    icon: Plane,
+    description: 'Flight and transport coordination'
+  },
+  {
+    title: 'Meals',
+    href: '/meals',
+    icon: UtensilsCrossed,
+    description: 'Dietary preferences and catering'
+  },
+  {
+    title: 'Reports',
+    href: '/reports',
+    icon: BarChart3,
+    description: 'Analytics and reporting'
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    icon: Settings,
+    description: 'Configuration and preferences'
+  }
+];
 
-  const menuItems = [
-    {
-      name: "Dashboard",
-      icon: <LayoutDashboard className="mr-3 h-5 w-5" />,
-      path: "/dashboard"
-    },
-    {
-      name: "Event Setup Wizard",
-      icon: <Wand2 className="mr-3 h-5 w-5" />,
-      path: "/event-setup-wizard"
-    },
-    {
-      name: "Events",
-      icon: <Calendar className="mr-3 h-5 w-5" />,
-      path: "/events"
-    },
-    {
-      name: "Guest List",
-      icon: <Users className="mr-3 h-5 w-5" />,
-      path: "/guests"
-    },
-    {
-      name: "RSVP Management",
-      icon: <Reply className="mr-3 h-5 w-5" />,
-      path: "/rsvp"
-    },
-    {
-      name: "Travel Management",
-      icon: <Plane className="mr-3 h-5 w-5" />,
-      path: "/travel"
-    },
-    {
-      name: "Meal Planning",
-      icon: <Utensils className="mr-3 h-5 w-5" />,
-      path: "/meals"
-    },
-    {
-      name: "Reports",
-      icon: <FileSpreadsheet className="mr-3 h-5 w-5" />,
-      path: "/reports"
-    },
-    {
-      name: "Settings",
-      icon: <Settings className="mr-3 h-5 w-5" />,
-      path: "/settings"
-    },
-    {
-      name: "Email Templates",
-      icon: <Mail className="mr-3 h-5 w-5" />,
-      path: "/email-templates"
-    }
-  ];
-
-  const sidebarClasses = cn(
-    "bg-sidebar w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
-    isOpen ? "left-0" : "-left-64 lg:left-0"
-  );
+export function Sidebar() {
+  const location = useLocation();
 
   return (
-    <aside className={sidebarClasses}>
-      <nav className="mt-5 px-2 space-y-1">
-        {menuItems.map((item) => (
-          <Link key={item.path} href={item.path}>
-            <div
+    <div className="flex h-full w-64 flex-col bg-background border-r border-border">
+      <div className="flex h-14 items-center border-b border-border px-4">
+        <h2 className="text-lg font-semibold text-foreground">Wedding RSVP</h2>
+      </div>
+      
+      <nav className="flex-1 space-y-1 p-4">
+        {sidebarItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          const Icon = item.icon;
+          
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
               className={cn(
-                "group flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 hover:scale-105",
-                location === item.path
-                  ? "bg-primary/10 text-primary border-l-4 border-primary font-semibold"
-                  : "text-foreground hover:bg-muted hover:text-primary"
+                'flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors duration-150 flat',
+                isActive
+                  ? 'bg-muted text-primary border-l-3 border-primary font-semibold'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
-              {item.icon}
-              {item.name}
-            </div>
-          </Link>
-        ))}
+              <Icon className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span>{item.title}</span>
+                {item.description && (
+                  <span className="text-xs text-muted-foreground">
+                    {item.description}
+                  </span>
+                )}
+              </div>
+            </Link>
+          );
+        })}
       </nav>
-
-      <div className="px-4 mt-6">
-        <div className="pt-4 border-t border-border">
-          <button
-            className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-muted hover:scale-105 transition-all duration-200"
-            onClick={logout}
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            Sign Out
-          </button>
-        </div>
-      </div>
-    </aside>
+    </div>
   );
 }

@@ -30,7 +30,8 @@ const MessageSection = lazy(() => import("@/pages/message-section")); // Multich
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider";
 import '@/design-system/validation'; // Auto-run validation in development
 
