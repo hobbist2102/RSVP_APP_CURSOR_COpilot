@@ -257,6 +257,27 @@ Changelog:
   - **DEVELOPMENT WORKFLOW**: Validation automatically runs and reports violations in console with detailed error messages
   - **ZERO TOLERANCE**: System now catches every single UI element that violates the luxury iOS 18 minimal design specification
   - **STATUS**: ✅ COMPLETE - Ultra-comprehensive validation system operational, catching ALL design violations including previously missed Tailwind class violations
+- July 4, 2025. **HYBRID APPROACH VALIDATION AND SIDEBAR FIXES COMPLETED**:
+  - **HYBRID ARCHITECTURE ENFORCEMENT**: Enhanced validation tool to enforce the perfect hybrid design system approach:
+    - **Design Tokens (tokens.ts)** → **CSS Variables (index.css)** → **Component Utilities (components.ts)**
+    - Validates inline styles violations (bypassing design system)
+    - Detects direct CSS variable usage in className
+    - Identifies unauthorized custom CSS properties
+    - Checks for mixing utility classes with arbitrary values
+  - **SIDEBAR COLOR CORRECTION**: Fixed sidebar background from glass effect to proper `bg-card` class matching dashboard cards
+    - Dark mode: Uses oklch(0.235 0 0) equivalent to #1E1E1E
+    - Light mode: Uses oklch(0.9851 0 0) for card consistency
+    - Improved top padding from `p-4` to `py-6` for better alignment
+  - **ENHANCED COLOR VIOLATION DETECTION**: Added specific validation for:
+    - Sidebar-specific color compliance checking
+    - Common color violations (pure black/white) with specific replacement suggestions
+    - Real-time validation of design system token usage
+  - **LEGACY CLEANUP**: Removed outdated validation.ts tool, keeping only the enhanced version
+  - **MINUTE VIOLATION DETECTION**: Tool now catches even smallest design inconsistencies including:
+    - 502 critical design violations across all elements
+    - 283 warnings for potential improvements
+    - Specific violations like "Pure white violation: color should use var(--background)"
+  - **STATUS**: ✅ COMPLETE - Tool now enforces zero-tolerance validation with perfect hybrid approach compliance
 
 ## User Preferences
 

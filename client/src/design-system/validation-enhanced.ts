@@ -82,6 +82,65 @@ export function validateColorUsage(element: HTMLElement): ValidationResult {
       if (isHardcodedColor) {
         errors.push(`${property}: "${value}" should use design tokens (var(--*)).`);
       }
+      
+      // ENHANCED: Check for specific design system violations
+      const classList = element.className;
+      
+      // Check sidebar components for correct background color
+      if ((classList && (classList.includes('sidebar') || element.closest('nav'))) || 
+          element.tagName === 'NAV') {
+        
+        if (property === 'backgroundColor') {
+          const isDarkMode = document.documentElement.classList.contains('dark');
+          const sidebarNormalizedValue = value.replace(/\s+/g, ' ').trim().toLowerCase();
+          
+          // Expected colors for sidebar/cards
+          const expectedDarkBg = 'oklch(0.235 0 0)';  // #1E1E1E equivalent
+          const expectedLightBg = 'oklch(0.9851 0 0)'; // Light card
+          
+          // Check if using wrong color
+          if (isDarkMode) {
+            if (!value.includes('var(--card)') && !sidebarNormalizedValue.includes('0.235') && 
+                !sidebarNormalizedValue.includes('0.2350')) {
+              warnings.push(`Sidebar should use bg-card (${expectedDarkBg}) in dark mode, found: ${value}`);
+            }
+          } else {
+            if (!value.includes('var(--card)') && !sidebarNormalizedValue.includes('0.9851')) {
+              warnings.push(`Sidebar should use bg-card (${expectedLightBg}) in light mode, found: ${value}`);
+            }
+          }
+        }
+      }
+      
+      // Check for common color violations with specific replacements
+      const normalizedValue = value.replace(/\s+/g, ' ').trim().toLowerCase();
+      const commonColorViolations = [
+        { 
+          patterns: ['rgba(0, 0, 0', 'rgb(0, 0, 0)', '#000000', '#000'], 
+          replacement: 'var(--foreground)',
+          description: 'Pure black'
+        },
+        { 
+          patterns: ['rgba(255, 255, 255', 'rgb(255, 255, 255)', '#ffffff', '#fff'], 
+          replacement: 'var(--background)',
+          description: 'Pure white'
+        },
+        { 
+          patterns: ['#1e1e1e', '#1E1E1E', 'rgb(30, 30, 30)'], 
+          replacement: 'var(--card)',
+          description: 'Dark card color'
+        }
+      ];
+      
+      commonColorViolations.forEach(violation => {
+        const hasViolation = violation.patterns.some(pattern => 
+          normalizedValue.includes(pattern.toLowerCase())
+        );
+        
+        if (hasViolation) {
+          warnings.push(`${violation.description} violation: ${property} should use ${violation.replacement} instead of "${value}"`);
+        }
+      });
     }
   });
 

@@ -90,12 +90,12 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className="flex h-screen w-64 flex-col glass border-r border-border/30 fixed left-0 top-0 z-30 backdrop-blur-xl">
+    <div className="flex h-screen w-64 flex-col bg-card border-r border-border/30 fixed left-0 top-0 z-30">
       <div className="flex h-14 items-center border-b border-border px-4">
         <h2 className="text-lg font-semibold text-foreground">Wedding RSVP</h2>
       </div>
       
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 px-4 py-6">
         {sidebarItems.map((item) => {
           const isActive = location === item.href;
           const Icon = item.icon;
