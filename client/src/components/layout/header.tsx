@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MoonIcon, SunIcon, UserIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/theme-provider';
 import { useAuth } from '@/hooks/use-auth';
 
 export function Header() {
