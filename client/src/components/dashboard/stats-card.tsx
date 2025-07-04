@@ -17,8 +17,9 @@ export function StatsCard({
   description, 
   icon, 
   variant = 'default',
-  onClick 
-}: StatsCardProps) {
+  onClick,
+  change
+}: StatsCardProps & { change?: { value: number; text: string } }) {
   // Get proper icon for each metric type
   const getIcon = () => {
     if (typeof icon === 'string') {
