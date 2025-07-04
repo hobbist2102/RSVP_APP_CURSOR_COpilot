@@ -184,7 +184,198 @@ export const SPACING = {
 } as const;
 
 // ============================================================================
-// COMPONENT SPECIFICATIONS - COMPLETE DEFINITIONS
+// LAYOUT SYSTEM - COMPREHENSIVE CONTAINER BEHAVIORS
+// ============================================================================
+export const LAYOUT_SYSTEM = {
+  // Container Specifications
+  containers: {
+    // Maximum widths for different container types
+    maxWidth: {
+      sm: '640px',    // Small screens
+      md: '768px',    // Medium screens  
+      lg: '1024px',   // Large screens
+      xl: '1280px',   // Extra large
+      '2xl': '1536px', // 2X large
+      full: '100%',   // Full width
+    },
+    
+    // Standard padding for different container sizes
+    padding: {
+      xs: SPACING[2],  // 8px - Minimal spacing
+      sm: SPACING[4],  // 16px - Small containers
+      md: SPACING[6],  // 24px - Medium containers (default)
+      lg: SPACING[8],  // 32px - Large containers
+      xl: SPACING[12], // 48px - Extra large containers
+    },
+    
+    // Gap specifications for grid/flex layouts
+    gap: {
+      xs: SPACING[1],  // 4px - Tight spacing
+      sm: SPACING[2],  // 8px - Small gaps
+      md: SPACING[4],  // 16px - Standard gaps
+      lg: SPACING[6],  // 24px - Large gaps
+      xl: SPACING[8],  // 32px - Extra large gaps
+    }
+  },
+  
+  // Text Overflow and Truncation Behaviors
+  textBehaviors: {
+    // Single line truncation
+    truncate: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap' as const,
+      minWidth: '0', // Critical for flex children
+    },
+    
+    // Multi-line truncation (2 lines)
+    truncateLines2: {
+      display: '-webkit-box',
+      WebkitLineClamp: '2',
+      WebkitBoxOrient: 'vertical' as const,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
+    
+    // Multi-line truncation (3 lines)  
+    truncateLines3: {
+      display: '-webkit-box',
+      WebkitLineClamp: '3',
+      WebkitBoxOrient: 'vertical' as const,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
+    
+    // Word break for long content
+    breakWords: {
+      wordBreak: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
+      hyphens: 'auto' as const,
+    },
+    
+    // No wrap behavior
+    noWrap: {
+      whiteSpace: 'nowrap' as const,
+      overflow: 'hidden',
+    }
+  },
+  
+  // Flex Layout Patterns
+  flexPatterns: {
+    // Center content both ways
+    centerBoth: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    
+    // Center content vertically
+    centerVertical: {
+      display: 'flex',
+      alignItems: 'center',
+    },
+    
+    // Space between items
+    spaceBetween: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    
+    // Column layout
+    column: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+    },
+    
+    // Column with gap
+    columnGap: (gap: keyof typeof SPACING) => ({
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: SPACING[gap],
+    }),
+    
+    // Row with gap
+    rowGap: (gap: keyof typeof SPACING) => ({
+      display: 'flex',
+      gap: SPACING[gap],
+      alignItems: 'center',
+    }),
+    
+    // Flexible item that grows
+    flexGrow: {
+      flex: '1 1 0%',
+      minWidth: '0', // Prevents overflow in flex containers
+    },
+    
+    // Flexible item that shrinks
+    flexShrink: {
+      flex: '0 1 auto',
+      minWidth: '0',
+    },
+    
+    // Fixed flex item
+    flexFixed: {
+      flex: '0 0 auto',
+    }
+  },
+  
+  // Grid Layout Patterns
+  gridPatterns: {
+    // Auto-fit columns with minimum width
+    autoFit: (minWidth: string) => ({
+      display: 'grid',
+      gridTemplateColumns: `repeat(auto-fit, minmax(${minWidth}, 1fr))`,
+      gap: SPACING[4],
+    }),
+    
+    // Auto-fill columns
+    autoFill: (minWidth: string) => ({
+      display: 'grid', 
+      gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))`,
+      gap: SPACING[4],
+    }),
+    
+    // Fixed columns
+    columns: (count: number, gap: keyof typeof SPACING = 4) => ({
+      display: 'grid',
+      gridTemplateColumns: `repeat(${count}, 1fr)`,
+      gap: SPACING[gap],
+    }),
+    
+    // Dashboard grid (responsive)
+    dashboard: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: SPACING[6],
+      padding: SPACING[6],
+    }
+  },
+  
+  // Responsive Breakpoints
+  breakpoints: {
+    sm: '640px',   // Small devices
+    md: '768px',   // Medium devices  
+    lg: '1024px',  // Large devices
+    xl: '1280px',  // Extra large devices
+    '2xl': '1536px', // 2X large devices
+  },
+  
+  // Z-Index Scale
+  zIndex: {
+    base: '0',
+    dropdown: '10',
+    sticky: '20', 
+    modal: '50',
+    popover: '60',
+    tooltip: '70',
+    overlay: '80',
+    max: '9999',
+  }
+} as const;
+
+// ============================================================================
+// COMPONENT SPECIFICATIONS - COMPLETE DEFINITIONS  
 // ============================================================================
 export const COMPONENT_SPECS = {
   // Button Specifications
@@ -245,20 +436,67 @@ export const COMPONENT_SPECS = {
     }
   },
   
-  // Card Specifications
+  // Card Specifications - Complete behavior definitions
   card: {
     base: {
       backgroundColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].card,
       border: `1px solid`,
       borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
       borderRadius: '0px',  // FLAT DESIGN
-      padding: SPACING[6],   // 24px
       fontFamily: TYPOGRAPHY.fontFamily.sans,
+      // Text overflow handling
+      ...LAYOUT_SYSTEM.textBehaviors.breakWords,
+      // Container behavior
+      minWidth: '0', // Prevents flex overflow
+      position: 'relative' as const,
+    },
+    sizes: {
+      sm: {
+        padding: SPACING[4],  // 16px
+        gap: SPACING[3],      // 12px between elements
+      },
+      md: {
+        padding: SPACING[6],  // 24px
+        gap: SPACING[4],      // 16px between elements
+      },
+      lg: {
+        padding: SPACING[8],  // 32px
+        gap: SPACING[6],      // 24px between elements
+      }
     },
     variants: {
       default: {},
       elevated: {
         borderWidth: '2px',
+      },
+      compact: {
+        padding: SPACING[3],  // 12px
+      }
+    },
+    // Content layout patterns
+    layouts: {
+      // Header + content layout
+      withHeader: {
+        header: {
+          padding: `${SPACING[4]} ${SPACING[6]}`,
+          borderBottom: '1px solid',
+          borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+          ...LAYOUT_SYSTEM.flexPatterns.spaceBetween,
+        },
+        content: {
+          padding: SPACING[6],
+        }
+      },
+      // Grid content layout
+      grid: {
+        ...LAYOUT_SYSTEM.gridPatterns.autoFit('200px'),
+        padding: SPACING[6],
+      },
+      // List content layout
+      list: {
+        ...LAYOUT_SYSTEM.flexPatterns.column,
+        gap: SPACING[2],
+        padding: SPACING[6],
       }
     }
   },
@@ -290,32 +528,272 @@ export const COMPONENT_SPECS = {
     }
   },
   
-  // Navigation Specifications
-  navigation: {
-    sidebar: {
-      width: '256px',  // 64 * 4px = 256px
-      backgroundColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].card,
-      borderRight: '1px solid',
-      borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+  // Table Specifications - Complete data presentation system
+  table: {
+    base: {
+      width: '100%',
+      borderCollapse: 'collapse' as const,
+      fontFamily: TYPOGRAPHY.fontFamily.sans,
+      fontSize: TYPOGRAPHY.fontSize.sm,
+      // Text overflow handling for cells
+      tableLayout: 'fixed' as const, // Enables consistent column widths
     },
+    header: {
+      backgroundColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].backgroundSecondary,
+      borderBottom: '2px solid',
+      borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+      color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foreground,
+      padding: `${SPACING[3]} ${SPACING[4]}`,
+      textAlign: 'left' as const,
+      // Header text behavior
+      ...LAYOUT_SYSTEM.textBehaviors.truncate,
+    },
+    cell: {
+      base: {
+        padding: `${SPACING[3]} ${SPACING[4]}`,
+        borderBottom: '1px solid',
+        borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+        color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foreground,
+        verticalAlign: 'top' as const,
+        // Cell text behavior - always truncate to prevent overflow
+        ...LAYOUT_SYSTEM.textBehaviors.truncate,
+        maxWidth: '200px', // Default max width
+      },
+      // Cell width specifications
+      widths: {
+        xs: '60px',    // Icon columns
+        sm: '100px',   // Status, numbers
+        md: '150px',   // Names, short text
+        lg: '200px',   // Descriptions
+        xl: '300px',   // Long content
+        auto: 'auto',  // Dynamic width
+      },
+      // Cell content types with specific behaviors
+      types: {
+        text: {
+          ...LAYOUT_SYSTEM.textBehaviors.truncate,
+        },
+        number: {
+          textAlign: 'right' as const,
+          fontWeight: TYPOGRAPHY.fontWeight.medium,
+          fontVariantNumeric: 'tabular-nums' as const,
+        },
+        status: {
+          textAlign: 'center' as const,
+          fontWeight: TYPOGRAPHY.fontWeight.medium,
+        },
+        action: {
+          textAlign: 'right' as const,
+          width: '100px',
+        }
+      }
+    },
+    row: {
+      base: {
+        transition: 'background-color 200ms ease',
+      },
+      hover: (theme: 'light' | 'dark') => ({
+        backgroundColor: SEMANTIC_COLORS[theme].hover,
+      }),
+      selected: (theme: 'light' | 'dark') => ({
+        backgroundColor: `${SEMANTIC_COLORS[theme].accent}10`,
+        borderLeft: '3px solid',
+        borderColor: SEMANTIC_COLORS[theme].accent,
+      })
+    }
+  },
+  
+  // Form Specifications - Complete form system
+  form: {
+    // Form container
+    container: {
+      ...LAYOUT_SYSTEM.flexPatterns.column,
+      gap: SPACING[6],  // 24px between form sections
+      maxWidth: '600px', // Optimal form width
+    },
+    
+    // Form sections
+    section: {
+      ...LAYOUT_SYSTEM.flexPatterns.column,
+      gap: SPACING[4],  // 16px between fields
+    },
+    
+    // Field groups
+    fieldGroup: {
+      ...LAYOUT_SYSTEM.flexPatterns.column,
+      gap: SPACING[2],  // 8px between label and input
+    },
+    
+    // Inline field groups (side by side)
+    fieldGroupInline: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: SPACING[4],
+      alignItems: 'end', // Align to bottom (input baseline)
+    },
+    
+    // Label specifications
+    label: {
+      fontSize: TYPOGRAPHY.fontSize.sm,
+      fontWeight: TYPOGRAPHY.fontWeight.medium,
+      color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foreground,
+      lineHeight: TYPOGRAPHY.lineHeight.tight,
+      marginBottom: SPACING[1], // 4px
+    },
+    
+    // Help text
+    helpText: {
+      fontSize: TYPOGRAPHY.fontSize.xs,
+      color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foregroundSecondary,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+      marginTop: SPACING[1], // 4px
+    },
+    
+    // Error text
+    errorText: {
+      fontSize: TYPOGRAPHY.fontSize.xs,
+      color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].destructive,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+      marginTop: SPACING[1], // 4px
+      fontWeight: TYPOGRAPHY.fontWeight.medium,
+    },
+    
+    // Form actions (buttons)
+    actions: {
+      ...LAYOUT_SYSTEM.flexPatterns.rowGap(3),
+      justifyContent: 'flex-end',
+      marginTop: SPACING[8], // 32px spacing before actions
+      paddingTop: SPACING[6], // 24px
+      borderTop: '1px solid',
+      borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+    }
+  },
+  
+  // Navigation Specifications - Complete navigation system
+  navigation: {
+    // Sidebar navigation
+    sidebar: {
+      container: {
+        width: '256px',  // 64 * 4px = 256px
+        height: '100vh',
+        backgroundColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].card,
+        borderRight: '1px solid',
+        borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+        ...LAYOUT_SYSTEM.flexPatterns.column,
+        overflow: 'hidden', // Prevent sidebar scroll
+      },
+      
+      header: {
+        padding: SPACING[6],
+        borderBottom: '1px solid',
+        borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+        ...LAYOUT_SYSTEM.flexPatterns.centerVertical,
+        gap: SPACING[3],
+        // Text truncation for long titles
+        ...LAYOUT_SYSTEM.textBehaviors.truncate,
+      },
+      
+      navigation: {
+        flex: '1 1 0%',
+        padding: SPACING[4],
+        overflowY: 'auto' as const, // Allow nav scroll if needed
+        ...LAYOUT_SYSTEM.flexPatterns.column,
+        gap: SPACING[1], // 4px between nav items
+      },
+      
+      footer: {
+        padding: SPACING[4],
+        borderTop: '1px solid',
+        borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+      }
+    },
+    
+    // Navigation items
     navItem: {
       base: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: SPACING[3],  // 12px
         padding: SPACING[3],  // 12px
         fontSize: TYPOGRAPHY.fontSize.sm,
         fontWeight: TYPOGRAPHY.fontWeight.medium,
         color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foregroundSecondary,
         transition: 'all 200ms ease',
         borderLeft: '3px solid transparent',
+        borderRadius: '0px', // FLAT DESIGN
+        textDecoration: 'none',
+        // Text truncation for long labels
+        minWidth: '0',
       },
-      active: (theme: 'light' | 'dark') => ({
-        color: SEMANTIC_COLORS[theme].foreground,
-        backgroundColor: SEMANTIC_COLORS[theme].hover,
-        borderLeftColor: SEMANTIC_COLORS[theme].accent,
-      }),
-      hover: (theme: 'light' | 'dark') => ({
-        color: SEMANTIC_COLORS[theme].foreground,
-        backgroundColor: SEMANTIC_COLORS[theme].hover,
-      })
+      
+      content: {
+        ...LAYOUT_SYSTEM.flexPatterns.column,
+        gap: SPACING[1], // 4px between title and description
+        minWidth: '0', // Critical for text truncation
+        flex: '1 1 0%',
+      },
+      
+      title: {
+        ...LAYOUT_SYSTEM.textBehaviors.truncate,
+        fontSize: TYPOGRAPHY.fontSize.sm,
+        fontWeight: TYPOGRAPHY.fontWeight.medium,
+      },
+      
+      description: {
+        ...LAYOUT_SYSTEM.textBehaviors.truncate,
+        fontSize: TYPOGRAPHY.fontSize.xs,
+        color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foregroundMuted,
+      },
+      
+      // Navigation states
+      states: {
+        active: (theme: 'light' | 'dark') => ({
+          color: SEMANTIC_COLORS[theme].foreground,
+          backgroundColor: SEMANTIC_COLORS[theme].hover,
+          borderLeftColor: SEMANTIC_COLORS[theme].accent,
+        }),
+        hover: (theme: 'light' | 'dark') => ({
+          color: SEMANTIC_COLORS[theme].foreground,
+          backgroundColor: SEMANTIC_COLORS[theme].hover,
+        }),
+        focus: (theme: 'light' | 'dark') => ({
+          outline: `2px solid ${SEMANTIC_COLORS[theme].accent}`,
+          outlineOffset: '2px',
+        })
+      }
+    },
+    
+    // Top navigation bar
+    topNav: {
+      height: '64px', // Standard header height
+      backgroundColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].background,
+      borderBottom: '1px solid',
+      borderColor: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].border,
+      padding: `0 ${SPACING[6]}`,
+      ...LAYOUT_SYSTEM.flexPatterns.spaceBetween,
+    },
+    
+    // Breadcrumb navigation
+    breadcrumb: {
+      ...LAYOUT_SYSTEM.flexPatterns.centerVertical,
+      gap: SPACING[2], // 8px
+      fontSize: TYPOGRAPHY.fontSize.sm,
+      color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foregroundSecondary,
+      
+      item: {
+        ...LAYOUT_SYSTEM.textBehaviors.truncate,
+        maxWidth: '200px', // Prevent extremely long breadcrumb items
+      },
+      
+      separator: {
+        color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foregroundMuted,
+      },
+      
+      current: {
+        color: (theme: 'light' | 'dark') => SEMANTIC_COLORS[theme].foreground,
+        fontWeight: TYPOGRAPHY.fontWeight.medium,
+      }
     }
   }
 } as const;
