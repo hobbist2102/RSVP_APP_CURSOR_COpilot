@@ -29,7 +29,7 @@ const MessageSection = lazy(() => import("@/pages/message-section"));
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import '@/design-system/validation'; // Auto-run validation in development
+import '@/design-system/validation-enhanced'; // Auto-run ultra-comprehensive validation in development
 
 
 // Loading component for Suspense fallback

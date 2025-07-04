@@ -90,7 +90,7 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-background border-r border-border fixed left-0 top-0 z-30">
+    <div className="flex h-screen w-64 flex-col glass border-r border-border/30 fixed left-0 top-0 z-30 backdrop-blur-xl">
       <div className="flex h-14 items-center border-b border-border px-4">
         <h2 className="text-lg font-semibold text-foreground">Wedding RSVP</h2>
       </div>
@@ -107,8 +107,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors duration-150 flat',
                 isActive
-                  ? 'bg-muted text-primary border-l-3 border-primary font-semibold'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'glass-light text-primary border-l-[3px] border-primary font-semibold'
+                  : 'text-muted-foreground hover:glass-light hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
