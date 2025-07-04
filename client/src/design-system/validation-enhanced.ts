@@ -16,48 +16,252 @@ export interface ValidationResult {
 // COMPREHENSIVE UI ELEMENT VALIDATION FRAMEWORK
 // Complete list of ALL elements that constitute professional UI design
 const UI_VALIDATION_CATEGORIES = {
-  // 1. BUTTON ELEMENTS - All interactive buttons must follow design system
-  BUTTON_SELECTORS: [
-    'button', '.btn', '.button', '[role="button"]', 'input[type="submit"]', 
-    'input[type="button"]', 'input[type="reset"]', '.view-all', '.add-task',
-    '.connect-button', '.import-guests', '.add-guest', '.create-event'
-  ],
+  // 🎨 1. COLORS - All color properties and usage patterns
+  COLORS: {
+    BACKGROUND_COLORS: ['backgroundColor', 'bg-*'],
+    FOREGROUND_COLORS: ['color', 'text-*'],
+    ACCENT_COLORS: ['borderColor', 'border-*', 'accentColor'],
+    SHADOW_COLORS: ['boxShadow', 'textShadow', 'dropShadow'],
+    STATUS_COLORS: ['.success', '.warning', '.error', '.info'],
+    HOVER_COLORS: [':hover', '.hover\\:*'],
+    GLASS_OVERLAYS: ['.glass', '.glass-light', 'backdrop-filter']
+  },
   
-  // 2. NAVIGATION ELEMENTS - Sidebars, headers, navigation
-  NAVIGATION_SELECTORS: [
-    'nav', '.nav', '.navbar', '.sidebar', 'header', '.header',
-    '.navigation', '.menu', '.nav-item', '.nav-link'
-  ],
+  // 🖋 2. TYPOGRAPHY - Font families, weights, sizes
+  TYPOGRAPHY: {
+    FONT_FAMILIES: ['fontFamily', 'font-*'],
+    FONT_WEIGHTS: ['fontWeight', 'font-light', 'font-medium', 'font-bold'],
+    FONT_SIZES: ['fontSize', 'text-xs', 'text-sm', 'text-lg', 'text-xl'],
+    LINE_HEIGHT: ['lineHeight', 'leading-*'],
+    LETTER_SPACING: ['letterSpacing', 'tracking-*'],
+    TEXT_DECORATION: ['textDecoration', 'underline', 'line-through']
+  },
   
-  // 3. CARD ELEMENTS - All card components and containers
-  CARD_SELECTORS: [
-    '.card', '.panel', '.widget', '.dashboard-card', '.stats-card',
-    '.progress-card', '.task-card', '.accommodation-card'
-  ],
+  // 📏 3. SPACING & SIZING - Padding, margin, gaps
+  SPACING: {
+    PADDING: ['padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'p-*', 'px-*', 'py-*'],
+    MARGIN: ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'm-*', 'mx-*', 'my-*'],
+    GAPS: ['gap', 'rowGap', 'columnGap', 'gap-*'],
+    WIDTHS: ['width', 'maxWidth', 'minWidth', 'w-*', 'max-w-*'],
+    HEIGHTS: ['height', 'maxHeight', 'minHeight', 'h-*', 'max-h-*']
+  },
   
-  // 4. FORM ELEMENTS - All input and form components
-  FORM_SELECTORS: [
-    'input', 'select', 'textarea', '.form-control', '.input',
-    '.select', '.checkbox', '.radio', '.form-group', 'label'
-  ],
+  // ⭕ 4. BORDERS & RADII - Border properties and radius
+  BORDERS: {
+    BORDER_WIDTH: ['borderWidth', 'border', 'border-*'],
+    BORDER_STYLE: ['borderStyle', 'border-solid', 'border-dashed'],
+    BORDER_RADIUS: ['borderRadius', 'rounded-*'],
+    BORDER_COLORS: ['borderColor', 'border-accent', 'border-primary']
+  },
   
-  // 5. STATUS INDICATORS - All status and state elements
-  STATUS_SELECTORS: [
-    '.status', '.badge', '.chip', '.pill', '.tag',
-    '.pending', '.confirmed', '.declined', '.success', '.error', '.warning'
-  ],
+  // 🌫 5. SHADOWS & ELEVATION - Box shadows and glassmorphism
+  ELEVATION: {
+    BOX_SHADOWS: ['boxShadow', 'shadow-*'],
+    TEXT_SHADOWS: ['textShadow'],
+    BACKDROP_FILTERS: ['backdropFilter', 'backdrop-blur-*'],
+    GLASSMORPHISM: ['.glass', '.glass-light']
+  },
   
-  // 6. COMMUNICATION ELEMENTS - Email providers, templates, etc.
-  COMMUNICATION_SELECTORS: [
-    '.email-provider', '.sms-provider', '.template-card',
-    '.provider-card', '.communication-step', '.wizard-step'
-  ],
+  // ✨ 6. INTERACTIVE STATES - Hover, focus, active, disabled
+  INTERACTIVE: {
+    HOVER_STATES: [':hover', '.hover\\:*'],
+    FOCUS_STATES: [':focus', '.focus\\:*', 'focus-visible'],
+    ACTIVE_STATES: [':active', '.active'],
+    DISABLED_STATES: [':disabled', '.disabled'],
+    SELECTED_STATES: ['.selected', '[aria-selected="true"]']
+  },
   
-  // 7. HOVER STATES - All elements with hover interactions
-  HOVER_STATES: [
-    ':hover', '.hover\\:', 'button:hover', '.btn:hover',
-    '.card:hover', '.nav-item:hover', '.template:hover'
-  ]
+  // 🧩 7. BUTTONS - All button variants and states
+  BUTTONS: {
+    SELECTORS: ['button', '.btn', '.button', '[role="button"]'],
+    VARIANTS: ['.btn-primary', '.btn-secondary', '.btn-ghost', '.btn-destructive'],
+    SIZES: ['.btn-sm', '.btn-md', '.btn-lg'],
+    STATES: ['button:hover', 'button:focus', 'button:disabled']
+  },
+  
+  // 🧭 8. NAVIGATION - Nav bars, sidebars, tabs
+  NAVIGATION: {
+    TOP_NAV: ['nav', '.navbar', 'header'],
+    SIDEBARS: ['.sidebar', '.nav-sidebar'],
+    TABS: ['.tabs', '.tab', '[role="tab"]'],
+    BREADCRUMBS: ['.breadcrumb', '.breadcrumb-item'],
+    ACTIVE_INDICATORS: ['.active', '.current', '[aria-current]']
+  },
+  
+  // 🗂 9. FORMS & INPUTS - All form elements
+  FORMS: {
+    INPUTS: ['input', 'textarea', 'select'],
+    LABELS: ['label', '.label'],
+    PLACEHOLDERS: ['::placeholder', '.placeholder'],
+    VALIDATION: ['.error', '.invalid', '[aria-invalid]'],
+    FOCUS_RINGS: ['input:focus', 'select:focus', 'textarea:focus']
+  },
+  
+  // 🗃 10. TABLES & LISTS - Data presentation
+  TABLES: {
+    TABLE_ELEMENTS: ['table', 'thead', 'tbody', 'tr', 'td', 'th'],
+    ROW_STATES: ['tr:hover', '.table-row-selected'],
+    CELL_BORDERS: ['td', 'th'],
+    STRIPED_ROWS: ['.table-striped', 'tr:nth-child(even)']
+  },
+  
+  // 🗄 11. MODALS & DIALOGS - Overlays and popups
+  MODALS: {
+    BACKDROP: ['.modal-backdrop', '.overlay'],
+    CONTENT: ['.modal', '.dialog', '[role="dialog"]'],
+    ANIMATIONS: ['.modal-enter', '.modal-exit']
+  },
+  
+  // 🔔 12. FEEDBACK & STATUS - Toasts, alerts, badges
+  FEEDBACK: {
+    TOASTS: ['.toast', '.notification'],
+    ALERTS: ['.alert', '.alert-success', '.alert-warning', '.alert-error'],
+    BADGES: ['.badge', '.pill', '.chip'],
+    PROGRESS: ['.progress', '.loading', '.skeleton']
+  }
+};
+
+// COMPREHENSIVE VIOLATION DEFINITIONS
+// What constitutes a violation for each UI category
+const VIOLATION_DEFINITIONS = {
+  // 🎨 COLORS - Hardcoded colors, wrong design tokens
+  COLORS: {
+    violations: [
+      'Hardcoded hex colors (#ffffff, #000000, #1e1e1e)',
+      'RGB/RGBA values instead of design tokens',
+      'Named colors (white, black, blue, green, red)',
+      'Tailwind color classes with numbers (bg-gray-500, text-blue-600)',
+      'Non-design-system colors in hover states',
+      'Wrong status colors (using blue for success instead of green tokens)'
+    ],
+    correct: 'Use design tokens: var(--background), var(--foreground), var(--accent), var(--primary), var(--destructive), var(--success), var(--warning)'
+  },
+  
+  // 🖋 TYPOGRAPHY - Font family violations, improper sizing
+  TYPOGRAPHY: {
+    violations: [
+      'Using fonts other than Inter or Cormorant Garamond',
+      'System fonts (Arial, Helvetica, Times, Georgia)',
+      'Hardcoded font sizes in px instead of design tokens',
+      'Inconsistent font weights not matching design system',
+      'Missing font-family declarations'
+    ],
+    correct: 'Use only Inter (UI text) or Cormorant Garamond (decorative). Use design system font sizes and weights.'
+  },
+  
+  // 📏 SPACING - Inconsistent spacing, hardcoded values
+  SPACING: {
+    violations: [
+      'Hardcoded padding/margin values instead of design tokens',
+      'Inconsistent spacing not following 4px grid system',
+      'Using non-standard spacing values',
+      'Missing responsive spacing adjustments'
+    ],
+    correct: 'Use design system spacing scale (4px grid): 0.25rem, 0.5rem, 1rem, 1.5rem, 2rem, etc.'
+  },
+  
+  // ⭕ BORDERS - Improper border usage, radius violations
+  BORDERS: {
+    violations: [
+      'Border radius on flat design elements (should be 0 except glassmorphism)',
+      'Inconsistent border colors not using design tokens',
+      'Wrong border widths not matching design system',
+      'Missing borders on focus states'
+    ],
+    correct: 'Flat design requires 0 border radius. Use design token border colors. Consistent border widths.'
+  },
+  
+  // 🌫 ELEVATION - Shadows in flat design, improper glassmorphism
+  ELEVATION: {
+    violations: [
+      'Box shadows in flat design (prohibited except glassmorphism)',
+      'Text shadows (prohibited in flat design)',
+      'Incorrect glassmorphism implementation',
+      'Wrong backdrop-blur values'
+    ],
+    correct: 'No shadows in flat design. Glassmorphism only with proper backdrop-blur and transparency.'
+  },
+  
+  // ✨ INTERACTIVE STATES - Missing hover/focus, wrong colors
+  INTERACTIVE: {
+    violations: [
+      'Missing hover states on interactive elements',
+      'Wrong hover colors (using white instead of design tokens)',
+      'Missing focus rings for accessibility',
+      'Inconsistent active/pressed states',
+      'Disabled elements without proper styling'
+    ],
+    correct: 'All interactive elements need hover/focus states using design tokens. Proper accessibility indicators.'
+  },
+  
+  // 🧩 BUTTONS - Wrong variants, inconsistent styling
+  BUTTONS: {
+    violations: [
+      'Buttons not using design system variants',
+      'Hardcoded button colors instead of design tokens',
+      'Inconsistent button sizing and padding',
+      'Missing hover/focus states',
+      'Wrong button types for context'
+    ],
+    correct: 'Use design system button variants: primary, secondary, ghost, destructive. Consistent sizing and states.'
+  },
+  
+  // 🧭 NAVIGATION - Inconsistent nav styling, wrong active states
+  NAVIGATION: {
+    violations: [
+      'Navigation elements not using design system colors',
+      'Inconsistent active/current state indicators',
+      'Missing accessibility attributes (aria-current)',
+      'Wrong sidebar/header background colors',
+      'Inconsistent navigation item spacing'
+    ],
+    correct: 'Navigation uses design tokens. Clear active states. Proper accessibility. Consistent spacing.'
+  },
+  
+  // 🗂 FORMS - Poor form styling, missing validation states
+  FORMS: {
+    violations: [
+      'Form elements not using design system styling',
+      'Missing focus rings on inputs',
+      'Inconsistent placeholder styling',
+      'Poor validation error display',
+      'Wrong label associations'
+    ],
+    correct: 'Form elements use design tokens. Clear focus states. Proper validation styling. Accessible labels.'
+  },
+  
+  // 🗃 TABLES - Inconsistent table styling
+  TABLES: {
+    violations: [
+      'Table elements not following design system',
+      'Inconsistent row hover states',
+      'Poor cell padding and spacing',
+      'Missing responsive table behavior'
+    ],
+    correct: 'Tables use design system colors and spacing. Consistent hover states. Responsive design.'
+  },
+  
+  // 🗄 MODALS - Poor modal implementation
+  MODALS: {
+    violations: [
+      'Modal backdrops not using design system',
+      'Inconsistent modal styling',
+      'Missing proper animations',
+      'Poor accessibility implementation'
+    ],
+    correct: 'Modals use design system styling. Proper backdrop. Smooth animations. Full accessibility.'
+  },
+  
+  // 🔔 FEEDBACK - Inconsistent status indicators
+  FEEDBACK: {
+    violations: [
+      'Status elements not using design system colors',
+      'Inconsistent toast/alert styling',
+      'Wrong status color usage',
+      'Missing proper feedback states'
+    ],
+    correct: 'Status indicators use design system colors. Consistent styling. Proper semantic colors.'
+  }
 };
 
 // CRITICAL DESIGN VIOLATIONS TO CATCH
@@ -649,10 +853,33 @@ export function validateEntireDocument(): ValidationResult {
 }
 
 /**
+ * VALIDATION FRAMEWORK SUMMARY
+ * Lists all UI categories and their violation definitions
+ */
+export function logValidationFramework(): void {
+  console.group('📋 COMPREHENSIVE UI VALIDATION FRAMEWORK');
+  console.log(`🎯 Total Categories: ${Object.keys(VIOLATION_DEFINITIONS).length}`);
+  console.log('🔍 Checking ALL professional UI design aspects:');
+  
+  Object.entries(VIOLATION_DEFINITIONS).forEach(([category, definition]) => {
+    console.group(`${category} Validation`);
+    console.log('🚫 Common Violations:');
+    definition.violations.forEach(violation => console.log(`   • ${violation}`));
+    console.log('✅ Correct Approach:', definition.correct);
+    console.groupEnd();
+  });
+  
+  console.groupEnd();
+}
+
+/**
  * ENHANCED VALIDATION RUNNER WITH DETAILED REPORTING
  */
 export function runDesignSystemValidation(): void {
   if (typeof window === 'undefined') return;
+
+  // First show the comprehensive framework
+  logValidationFramework();
 
   const result = validateEntireDocument();
   
