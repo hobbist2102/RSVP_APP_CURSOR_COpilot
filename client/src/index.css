@@ -456,14 +456,30 @@ body {
    =========================================== */
 
 /* Force flat design on all elements */
-* {
+*,
+*::before,
+*::after {
   border-radius: 0px !important;
   box-shadow: none !important;
 }
 
 /* Remove all transform effects */
-*:hover {
+*:hover,
+*:focus,
+*:active {
   transform: none !important;
+}
+
+/* Specific overrides for common UI libraries */
+.radix-themes *,
+.chakra-ui *,
+.ant-design *,
+[class*="rounded"],
+[class*="shadow"],
+[class*="blur"] {
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 /* Chart component styling - FLAT DESIGN */
@@ -497,6 +513,23 @@ body {
 .progress-track {
   background-color: var(--muted) !important;
   border-radius: 0px !important;
+}
+
+/* GSAP Animation Targets - Create placeholders to prevent errors */
+.hero-title,
+.hero-subtitle,
+.bg-element-1,
+.bg-element-2,
+.floating-paper,
+.cta-content {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.hero-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 /* Modal and dialog overrides - FLAT DESIGN */

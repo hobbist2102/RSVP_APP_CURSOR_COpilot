@@ -32,13 +32,13 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   const { user, logout } = useAuth();
   const [notifications] = useState(2); // Example notification count
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  
+
   useEffect(() => {
     // Check system preference on mount
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const initialTheme = mediaQuery.matches ? 'dark' : 'light';
     setTheme(initialTheme);
-    
+
     // Apply initial theme
     if (initialTheme === 'dark') {
       document.documentElement.classList.remove('light');
@@ -49,11 +49,11 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
       document.documentElement.classList.add('light');
       document.documentElement.style.colorScheme = 'light';
     }
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       const newTheme = e.matches ? 'dark' : 'light';
       setTheme(newTheme);
-      
+
       if (newTheme === 'dark') {
         document.documentElement.classList.remove('light');
         document.documentElement.classList.add('dark');
@@ -64,15 +64,15 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         document.documentElement.style.colorScheme = 'light';
       }
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-  
+
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    
+
     // Apply theme classes to the entire document
     if (newTheme === 'dark') {
       document.documentElement.classList.remove('light');
@@ -86,7 +86,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="glass border-b border-border">
+    <header className="border-b bg-background border-border sticky top-0 z-50 flat shadow-none">
       <div className="flex justify-between items-center px-6 py-4 mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
@@ -104,7 +104,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
             <h1 className="font-serif text-2xl font-semibold text-secondary">Eternally Yours</h1>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {/* Theme Toggle */}
           <Button
@@ -119,7 +119,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
               <Sun className="h-5 w-5 transition-transform duration-200" />
             )}
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -140,7 +140,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center space-x-2 cursor-pointer">
@@ -169,7 +169,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
           </DropdownMenu>
         </div>
       </div>
-      
+
       <div className="glass border-y border-border px-4 py-2 flex items-center justify-end">
         {/* EventSelector loads here */}
         <div className="flex-1 max-w-sm ml-auto">

@@ -29,6 +29,11 @@ const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New
 const MessageSection = lazy(() => import("@/pages/message-section")); // Multichannel engagement section
 const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from "@/components/theme-provider";
+import '@/design-system/validation'; // Auto-run validation in development
+
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (

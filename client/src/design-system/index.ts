@@ -31,7 +31,14 @@ export {
   getNavItemClasses 
 } from './components';
 
-// Re-export commonly used utilities for convenience (already exported above)
+// Export validation utilities
+export { 
+  validateFlatDesign,
+  validateColorUsage,
+  validateEntireDocument,
+  enforceFlatDesign,
+  runDesignSystemValidation
+} from './validation';
 
 /**
  * Design system usage examples:

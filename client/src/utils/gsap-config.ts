@@ -1,73 +1,63 @@
-/**
- * Centralized GSAP configuration to ensure plugins are properly registered
- * before any components try to use them.
- */
+
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
-// Register all GSAP plugins here
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+// Register plugins
+gsap.registerPlugin(ScrollTrigger);
 
-// Configure ScrollTrigger defaults
-ScrollTrigger.config({
-  ignoreMobileResize: true,
-  autoRefreshEvents: "visibilitychange,DOMContentLoaded,load,resize"
+// Default GSAP configuration
+gsap.config({
+  nullTargetWarn: false, // Suppress warnings for missing targets
+  trialWarn: false
 });
 
-// Helper for creating scroll-triggered animations
-export const createScrollTrigger = (
-  trigger: string | Element,
-  animation: gsap.core.Timeline | gsap.core.Tween,
-  options: Partial<ScrollTrigger.Vars> = {}
-) => {
-  try {
-    return ScrollTrigger.create({
-      trigger,
-      animation,
-      start: options.start || "top bottom",
-      end: options.end || "bottom top",
-      scrub: options.scrub ?? true,
-      markers: options.markers ?? false,
-      toggleActions: options.toggleActions || "play none none reverse",
-      ...options
-    });
-  } catch (error) {
-    // Silent failure in production
-    return null;
-  }
+// Set default ease and duration
+gsap.defaults({
+  ease: "power2.out",
+  duration: 0.8
+});
+
+// Animation utility functions
+export const fadeIn = (element: string | Element, delay: number = 0) => {
+  const target = typeof element === 'string' ? document.querySelector(element) : element;
+  if (!target) return null;
+  
+  return gsap.fromTo(target, 
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, delay, duration: 0.8, ease: "power2.out" }
+  );
 };
 
-// Helper for creating section transitions
-export const createSectionTransition = (
-  section: Element,
-  elements: Element | Element[],
-  fromVars: gsap.TweenVars,
-  toVars: gsap.TweenVars,
-  options: Partial<ScrollTrigger.Vars> = {}
-) => {
-  try {
-    gsap.set(elements, fromVars);
-    
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: options.start || "top bottom",
-        end: options.end || "top center",
-        scrub: options.scrub ?? 0.5,
-        markers: options.markers ?? false,
-        ...options
-      }
-    });
-    
-    tl.to(elements, { ...toVars, stagger: 0.05 });
-    
-    return tl;
-  } catch (error) {
-    // Silent failure in production
-    return null;
-  }
+export const staggerAnimation = (elements: string, delay: number = 0.1) => {
+  const targets = document.querySelectorAll(elements);
+  if (targets.length === 0) return null;
+  
+  return gsap.fromTo(targets,
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, stagger: delay, duration: 0.6, ease: "power2.out" }
+  );
 };
 
-// Export configured gsap instance
-export { gsap, ScrollTrigger, ScrollToPlugin };
+export const createScrollAnimation = (trigger: string, animation: () => gsap.core.Timeline) => {
+  const triggerElement = document.querySelector(trigger);
+  if (!triggerElement) return null;
+  
+  return ScrollTrigger.create({
+    trigger: triggerElement,
+    start: "top 80%",
+    animation: animation(),
+    toggleActions: "play none none reverse"
+  });
+};
+
+// Safe animation runner that checks for element existence
+export const safeAnimate = (selector: string, fromVars: gsap.TweenVars, toVars: gsap.TweenVars) => {
+  const elements = document.querySelectorAll(selector);
+  if (elements.length === 0) {
+    console.warn(`GSAP: No elements found for selector "${selector}"`);
+    return null;
+  }
+  return gsap.fromTo(elements, fromVars, toVars);
+};
+
+export default gsap;
