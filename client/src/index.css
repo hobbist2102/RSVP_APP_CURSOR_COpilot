@@ -57,6 +57,13 @@
   --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 0% / 0.00);
   --tracking-normal: 0.025em;
   --spacing: 0.25rem;
+  /* ADDITIONAL SEMANTIC COLORS */
+  --success: oklch(0.6196 0.1765 142.50);
+  --success-foreground: oklch(1.0000 0 0);
+  --warning: oklch(0.7294 0.1451 85.87);
+  --warning-foreground: oklch(1.0000 0 0);
+  --info: oklch(0.6314 0.1686 259.85);
+  --info-foreground: oklch(1.0000 0 0);
 }
 
 .dark {
@@ -585,6 +592,116 @@
     border-radius: 0px !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
+  }
+
+  /* COMPREHENSIVE VIOLATION FIXES - GLOBAL ENFORCEMENT */
+  
+  /* 1. FIX ALL SVG COLOR VIOLATIONS */
+  svg, svg * {
+    fill: var(--foreground) !important;
+    color: var(--foreground) !important;
+    stroke: var(--foreground) !important;
+  }
+
+  /* 2. FIX ALL FONT VIOLATIONS */
+  * {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-serif {
+    font-family: 'Cormorant Garamond', serif !important;
+  }
+
+  /* 3. FIX ALL COLOR VIOLATIONS - FORCE DESIGN TOKENS */
+  * {
+    /* Force all colors to use design tokens */
+    color: var(--foreground) !important;
+  }
+
+  /* Override specific elements */
+  [data-state="active"], .active {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+  }
+
+  /* 4. BUTTON SYSTEM COMPLIANCE */
+  button, .btn, [role="button"] {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    border: 1px solid var(--primary) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  button:hover, .btn:hover {
+    opacity: 0.9 !important;
+    transform: none !important;
+  }
+
+  /* 5. CARD SYSTEM COMPLIANCE */
+  .card, [class*="card"] {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* 6. INPUT SYSTEM COMPLIANCE */
+  input, textarea, select {
+    background-color: var(--input) !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* 7. NAVIGATION COMPLIANCE */
+  nav, .nav, [role="navigation"] {
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* 8. FORCE FLAT DESIGN ON ALL ELEMENTS */
+  * {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* 9. OVERRIDE TAILWIND VIOLATIONS */
+  .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300, .bg-gray-400, .bg-gray-500,
+  .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900,
+  .border-gray-200, .border-gray-300, .border-gray-400 {
+    background-color: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  .bg-white {
+    background-color: var(--background) !important;
+  }
+
+  .text-black {
+    color: var(--foreground) !important;
+  }
+
+  /* 10. CHART SYSTEM COMPLIANCE */
+  .recharts-wrapper, .recharts-surface {
+    background-color: transparent !important;
+  }
+
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: var(--border) !important;
+  }
+
+  .recharts-text {
+    fill: var(--muted-foreground) !important;
+    font-family: 'Inter', sans-serif !important;
   }
 }
 
