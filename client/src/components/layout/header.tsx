@@ -86,23 +86,11 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
   };
 
   return (
-    <header className="border-b bg-background border-border sticky top-0 z-50 flat shadow-none">
-      <div className="flex justify-between items-center px-6 py-4 mx-auto">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="p-2 rounded-md text-muted-foreground hover:bg-muted lg:hidden"
-          >
-            <span className="sr-only">Open sidebar</span>
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </Button>
-          <div>
-            <h1 className="font-serif text-2xl font-semibold text-secondary">Eternally Yours</h1>
-          </div>
+    <header className="bg-background border-b border-border text-foreground sticky top-0 z-50 flat">
+      <div className="flex h-16 items-center px-4">
+        <div className="flex items-center space-x-2">
+          <Calendar className="h-6 w-6 text-primary" />
+          <span className="font-semibold text-lg text-foreground">Eternally Yours</span>
         </div>
 
         <div className="flex items-center space-x-4">

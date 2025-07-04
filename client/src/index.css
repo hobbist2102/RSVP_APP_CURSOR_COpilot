@@ -522,14 +522,42 @@ body {
 .bg-element-2,
 .floating-paper,
 .cta-content {
-  opacity: 0;
-  transform: translateY(20px);
+  opacity: 1;
+  transform: translateY(0px);
+  transition: none;
 }
 
 .hero-title .char {
   display: inline-block;
+  opacity: 1;
+  transform: translateY(0px);
+  transition: none;
+}
+
+/* Additional safety selectors for GSAP targets */
+body::after {
+  content: "";
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
   opacity: 0;
-  transform: translateY(20px);
+}
+
+body::after {
+  content: "";
+}
+
+/* Ensure all potential GSAP targets exist */
+.hero-title .char,
+.hero-subtitle,
+.bg-element-1,
+.bg-element-2,
+.floating-paper,
+.cta-content {
+  display: block;
+  visibility: visible;
 }
 
 /* Modal and dialog overrides - FLAT DESIGN */

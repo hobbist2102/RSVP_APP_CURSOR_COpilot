@@ -23,7 +23,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen }: SidebarProps) {
   const [location] = useLocation();
   const { logout } = useAuth();
-  
+
   const menuItems = [
     {
       name: "Dashboard",
@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           </Link>
         ))}
       </nav>
-      
+
       <div className="px-4 mt-6">
         <div className="pt-4 border-t border-border">
           <button
