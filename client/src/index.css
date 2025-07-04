@@ -535,6 +535,42 @@
     box-shadow: none !important;
   }
 
+  /* 15. FINAL PROFESSIONAL POLISH */
+  /* Chart Period Buttons */
+  .chart-period-btn, [class*="period"], .period-selector button {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    background: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    border: 1px solid var(--border) !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+  }
+
+  .chart-period-btn.active, [class*="period"].active, .period-selector button[data-state="active"] {
+    background: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+    border-color: var(--accent) !important;
+  }
+
+  /* Dashboard Grid Professional Spacing */
+  .dashboard-grid {
+    gap: 24px !important;
+    padding: 24px !important;
+  }
+
+  /* Professional Button Group Spacing */
+  .button-group {
+    gap: 8px !important;
+    display: flex !important;
+  }
+
+  /* Ensure All Buttons Follow Professional Design */
+  button[class*="rounded"], .btn[class*="rounded"] {
+    border-radius: 0px !important;
+  }
+
   /* ELIMINATE ALL ROUNDED CORNERS AND SHADOWS */
   button, input, select, textarea, div, span, section, article, aside, nav, header, footer, main {
     border-radius: 0px !important;

@@ -44,11 +44,12 @@ export default function RsvpChart({
               {data.length > 0 ? `${data[data.length - 1].value}%` : "0%"}
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <Button
               variant={period === "weekly" ? "secondary" : "outline"}
               size="sm"
-              className="px-3 py-1 text-xs rounded"
+              className="px-3 py-1 text-xs flat chart-period-btn"
+              data-state={period === "weekly" ? "active" : "inactive"}
               onClick={() => handlePeriodChange("weekly")}
             >
               Weekly
@@ -56,7 +57,8 @@ export default function RsvpChart({
             <Button
               variant={period === "monthly" ? "secondary" : "outline"}
               size="sm"
-              className="px-3 py-1 text-xs rounded"
+              className="px-3 py-1 text-xs flat chart-period-btn"
+              data-state={period === "monthly" ? "active" : "inactive"}
               onClick={() => handlePeriodChange("monthly")}
             >
               Monthly
