@@ -160,10 +160,10 @@ export function EventSelector() {
           value={selectedEventId || undefined}
           onValueChange={handleEventChange}
         >
-          <SelectTrigger className="glass border-border hover:border-accent text-sm h-8 overflow-hidden">
+          <SelectTrigger className="bg-background border-border hover:border-accent text-sm h-8 overflow-hidden flat">
             <SelectValue placeholder="Select Event" className="truncate" />
           </SelectTrigger>
-          <SelectContent className="glass border-border">
+          <SelectContent className="bg-background border-border flat">
             {events.map((event) => (
               <SelectItem 
                 key={event.id} 

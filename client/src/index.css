@@ -227,6 +227,64 @@
     border-radius: 0px !important;
     box-shadow: none !important;
   }
+
+  /* COMPLETE GLASSMORPHISM ELIMINATION - FLAT DESIGN ONLY */
+  .glass, .glass-light, [class*="glass"] {
+    background: var(--background) !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* DIALOG AND POPUP OVERRIDES */
+  [role="dialog"], [role="menu"], [role="listbox"], [role="combobox"] {
+    background: var(--background) !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* SELECT AND DROPDOWN OVERRIDES */
+  [cmdk-overlay], [cmdk-dialog], .select-content, .dropdown-content, .context-menu-content {
+    background: var(--background) !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* COMMUNICATION SECTION OVERRIDES */
+  .communication-section, .template-section, .provider-section {
+    background: var(--background) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  /* UNIVERSAL FLAT DESIGN ENFORCEMENT */
+  * {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ELIMINATE ALL ROUNDED CORNERS AND SHADOWS */
+  button, input, select, textarea, div, span, section, article, aside, nav, header, footer, main {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* SIDEBAR FLAT ENFORCEMENT */
+  .sidebar, [role="navigation"], aside {
+    background: var(--background) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
 }
 
 @theme inline {

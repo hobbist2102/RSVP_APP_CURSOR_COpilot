@@ -159,7 +159,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         </div>
       </div>
 
-      <div className="glass border-y border-border px-4 py-2 flex items-center justify-end">
+      <div className="bg-background border-y border-border px-4 py-2 flex items-center justify-end">
         {/* EventSelector loads here */}
         <div className="flex-1 max-w-sm ml-auto">
           <EventSelector />

@@ -686,7 +686,7 @@ SO EXCITED to celebrate with you! 💕🎉`,
 
     return (
       <div className="space-y-6">
-        <div className="flat glass border border-border p-6">
+        <div className="flat bg-background border border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 flat bg-accent border border-accent flex items-center justify-center">
               <CheckCircle className="h-5 w-5 text-background" />
