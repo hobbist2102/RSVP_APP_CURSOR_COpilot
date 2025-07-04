@@ -1,174 +1,192 @@
-
 /**
- * MASTER DESIGN SYSTEM TOKENS - FLAT DESIGN WITH OKLCH
- * Single source of truth for all styling in the application
- * Using OKLCH color space for precise color representation
- * UPDATED TO MATCH EXACT SPECIFICATION - COMPLETELY FLAT DESIGN
+ * ENTERPRISE-GRADE DESIGN SYSTEM TOKENS
+ * Tailwind 4 Compatible with Hex-Based Color System
+ * 
+ * Implements luxury iOS 18 flat design with enterprise-grade consistency
+ * Zero shadows, zero border-radius, beautiful typography, 4px grid system
+ * 
+ * Architecture:
+ * - Hex-based color definitions for precise control
+ * - CSS custom properties for seamless theme switching
+ * - Professional typography with Inter + Cormorant Garamond
+ * - Flat design enforcement (zero radius, zero shadows)
+ * - Enterprise-grade spacing system
  */
 
-// ============================================================================
-// COLOR PALETTE - Exact Specification Match
-// ============================================================================
-export const colors = {
-  // Primary Brand Colors - EXACT OKLCH VALUES FROM SPEC
-  primary: {
-    light: 'oklch(0.4664 0.1906 298.6874)',    // Exact match
-    dark: 'oklch(0.4145 0.1828 300.3155)',     // Exact match
-    foreground: {
-      light: 'oklch(1.0000 0 0)',              // Pure white
-      dark: 'oklch(0.9940 0 0)',               // Near white for dark
-    }
-  },
-  
-  // Secondary Brand Colors - EXACT OKLCH VALUES FROM SPEC
-  secondary: {
-    light: 'oklch(0.7932 0.0782 87.3519)',    // Exact match
-    dark: 'oklch(0.7364 0.0790 87.2521)',     // Exact match
-    foreground: {
-      light: 'oklch(1.0000 0 0)',              // White on secondary
-      dark: 'oklch(0.1822 0 0)',               // Dark on secondary
-    }
-  },
-  
-  // Accent Colors - EXACT OKLCH VALUES FROM SPEC
-  accent: {
-    light: 'oklch(0.6565 0.1922 293.8621)',   // Exact match
-    dark: 'oklch(0.6056 0.2189 292.7172)',    // Exact match
-    foreground: {
-      light: 'oklch(1.0000 0 0)',              // White on accent
-      dark: 'oklch(0.9940 0 0)',               // Near white on accent
-    }
-  },
-  
-  // Background & Surface Colors - EXACT MATCH
-  background: {
-    light: 'oklch(1.0000 0 0)',               // Pure white
-    dark: 'oklch(0.1822 0 0)',                // Exact dark background
-  },
-  
-  // Card & Surface Colors - EXACT MATCH
-  card: {
-    light: 'oklch(0.9851 0 0)',               // Exact light card
-    dark: 'oklch(0.2350 0 0)',                // Exact dark card
-  },
-  
-  // Text Colors - EXACT MATCH
-  foreground: {
-    light: 'oklch(0.3211 0 0)',               // Exact text color
-    dark: 'oklch(0.9370 0 0)',                // Exact dark text
-  },
-  
-  // Border & Input Colors - EXACT MATCH
-  border: {
-    light: 'oklch(0.8975 0 0)',              // Exact border
-    dark: 'oklch(0.3211 0 0)',               // Exact dark border
-  },
-  
-  // Input Colors - EXACT MATCH
-  input: {
-    light: 'oklch(1.0000 0 0)',              // Pure white input
-    dark: 'oklch(0.2350 0 0)',               // Exact dark input
-  },
-  
-  // Muted Colors - EXACT MATCH
-  muted: {
-    light: 'oklch(0.5103 0 0)',              // Exact muted
-    dark: 'oklch(0.5103 0 0)',               // Same for both
-    foreground: {
-      light: 'oklch(0.5103 0 0)',            // Exact muted text
-      dark: 'oklch(0.7380 0 0)',             // Exact dark muted text
-    }
-  },
-  
-  // Status & System Colors - EXACT MATCH
-  destructive: {
-    light: 'oklch(0.6368 0.2078 25.3313)',   // Exact destructive
-    dark: 'oklch(0.5771 0.2152 27.3250)',    // Exact dark destructive
-    foreground: {
-      light: 'oklch(1.0000 0 0)',            // White on destructive
-      dark: 'oklch(0.9940 0 0)',             // Near white on destructive
-    }
-  },
+// =============================================================================
+// HEX COLOR SYSTEM - TAILWIND 4 COMPATIBLE
+// =============================================================================
 
-  // Success Colors
-  success: {
-    light: 'oklch(0.6196 0.1765 142.50)', // Success green
-    dark: 'oklch(0.7196 0.1765 142.50)',
-    foreground: {
-      light: 'oklch(1.0000 0 0)',
-      dark: 'oklch(0.9940 0 0)',
-    }
-  },
-
-  // Warning Colors
-  warning: {
-    light: 'oklch(0.7294 0.1451 85.87)', // Warning amber
-    dark: 'oklch(0.8294 0.1451 85.87)',
-    foreground: {
-      light: 'oklch(1.0000 0 0)',
-      dark: 'oklch(0.9940 0 0)',
-    }
-  },
-
-  // Info Colors
-  info: {
-    light: 'oklch(0.6314 0.1686 259.85)', // Info blue
-    dark: 'oklch(0.7314 0.1686 259.85)',
-    foreground: {
-      light: 'oklch(1.0000 0 0)',
-      dark: 'oklch(0.9940 0 0)',
-    }
-  },
-
-  // Popover Colors
-  popover: {
-    light: 'oklch(1.0000 0 0)', // Pure white
-    dark: 'oklch(0.2350 0 0)',
-    foreground: {
-      light: 'oklch(0.3211 0 0)',
-      dark: 'oklch(0.9370 0 0)',
-    }
+export const hexColors = {
+  light: {
+    // === CORE COLORS ===
+    background: '#ffffff',
+    foreground: '#333333',
+    
+    // === SURFACE COLORS ===
+    card: '#fafafa',
+    cardForeground: '#333333',
+    popover: '#ffffff',
+    popoverForeground: '#111111',
+    
+    // === BRAND COLORS ===
+    primary: '#6b33b3',
+    primaryForeground: '#ffffff',
+    secondary: '#d1b981',
+    secondaryForeground: '#ffffff',
+    
+    // === ACCENT SYSTEM ===
+    accent: '#9a73f9',
+    accentForeground: '#ffffff',
+    
+    // === STATUS COLORS ===
+    destructive: '#ef4444',
+    destructiveForeground: '#ffffff',
+    muted: '#666666',
+    mutedForeground: '#666666',
+    
+    // === INTERFACE COLORS ===
+    border: '#dddddd',
+    input: '#ffffff',
+    ring: '#5e239d',
+    
+    // === SIDEBAR SYSTEM ===
+    sidebar: '#f4f4f4',
+    sidebarForeground: '#111111',
+    sidebarPrimary: '#5e239d',
+    sidebarPrimaryForeground: '#ffffff',
+    sidebarAccent: '#6b7280',
+    sidebarAccentForeground: '#111111',
+    sidebarBorder: '#000000',
+    sidebarRing: '#5e239d',
+    
+    // === CHART COLORS ===
+    chart1: '#5e239d',
+    chart2: '#8b5cf6',
+    chart3: '#bfa76f',
+    chart4: '#713f12',
+    chart5: '#1e3a8a',
   },
   
-  // Chart Colors - EXACT MATCH
-  chart: {
-    1: 'oklch(0.4145 0.1828 300.3155)',      // Exact chart-1
-    2: 'oklch(0.6056 0.2189 292.7172)',      // Exact chart-2
-    3: 'oklch(0.7364 0.0790 87.2521)',       // Exact chart-3
-    4: 'oklch(0.4210 0.0897 57.7077)',       // Exact chart-4
-    5: 'oklch(0.3791 0.1378 265.5222)',      // Exact chart-5
-  },
-  
-  // Sidebar Colors - EXACT MATCH FROM SPEC
-  sidebar: {
-    light: 'oklch(0.9672 0 0)',              // Exact sidebar background
-    dark: 'oklch(0.2350 0 0)',               // Exact dark sidebar
-    foreground: {
-      light: 'oklch(0.1776 0 0)',            // Exact sidebar text
-      dark: 'oklch(0.9940 0 0)',             // Exact dark sidebar text
-    },
-    primary: 'oklch(0.4145 0.1828 300.3155)', // Exact sidebar primary
-    accent: 'oklch(0.5510 0.0234 264.3637)',  // Exact sidebar accent
-    border: {
-      light: 'oklch(0 0 0)',                 // Black border light
-      dark: 'oklch(1.0000 0 0)',             // White border dark
-    }
-  },
+  dark: {
+    // === CORE COLORS ===
+    background: '#121212',
+    foreground: '#eaeaea',
+    
+    // === SURFACE COLORS ===
+    card: '#1e1e1e',
+    cardForeground: '#eaeaea',
+    popover: '#1e1e1e',
+    popoverForeground: '#eaeaea',
+    
+    // === BRAND COLORS ===
+    primary: '#5e239d',
+    primaryForeground: '#fdfdfd',
+    secondary: '#bfa76f',
+    secondaryForeground: '#121212',
+    
+    // === ACCENT SYSTEM ===
+    accent: '#8b5cf6',
+    accentForeground: '#fdfdfd',
+    
+    // === STATUS COLORS ===
+    destructive: '#dc2626',
+    destructiveForeground: '#fdfdfd',
+    muted: '#666666',
+    mutedForeground: '#aaaaaa',
+    
+    // === INTERFACE COLORS ===
+    border: '#333333',
+    input: '#1e1e1e',
+    ring: '#5e239d',
+    
+    // === SIDEBAR SYSTEM ===
+    sidebar: '#1e1e1e',
+    sidebarForeground: '#fdfdfd',
+    sidebarPrimary: '#5e239d',
+    sidebarPrimaryForeground: '#fdfdfd',
+    sidebarAccent: '#6b7280',
+    sidebarAccentForeground: '#fdfdfd',
+    sidebarBorder: '#ffffff',
+    sidebarRing: '#5e239d',
+    
+    // === CHART COLORS ===
+    chart1: '#5e239d',
+    chart2: '#8b5cf6',
+    chart3: '#bfa76f',
+    chart4: '#713f12',
+    chart5: '#1e3a8a',
+  }
 } as const;
 
-// ============================================================================
-// TYPOGRAPHY SYSTEM - EXACT SPECIFICATION
-// ============================================================================
+// =============================================================================
+// CSS CUSTOM PROPERTIES TOKENS
+// =============================================================================
+
+export const colorTokens = {
+  // === CORE SEMANTIC COLORS ===
+  background: 'var(--background)',
+  foreground: 'var(--foreground)',
+  
+  // === SURFACE COLORS ===
+  card: 'var(--card)',
+  cardForeground: 'var(--card-foreground)',
+  popover: 'var(--popover)',
+  popoverForeground: 'var(--popover-foreground)',
+  
+  // === BRAND COLORS ===
+  primary: 'var(--primary)',
+  primaryForeground: 'var(--primary-foreground)',
+  secondary: 'var(--secondary)',
+  secondaryForeground: 'var(--secondary-foreground)',
+  
+  // === ACCENT SYSTEM ===
+  accent: 'var(--accent)',
+  accentForeground: 'var(--accent-foreground)',
+  
+  // === STATUS COLORS ===
+  destructive: 'var(--destructive)',
+  destructiveForeground: 'var(--destructive-foreground)',
+  muted: 'var(--muted)',
+  mutedForeground: 'var(--muted-foreground)',
+  
+  // === INTERFACE COLORS ===
+  border: 'var(--border)',
+  input: 'var(--input)',
+  ring: 'var(--ring)',
+  
+  // === SIDEBAR SYSTEM ===
+  sidebar: 'var(--sidebar)',
+  sidebarForeground: 'var(--sidebar-foreground)',
+  sidebarPrimary: 'var(--sidebar-primary)',
+  sidebarPrimaryForeground: 'var(--sidebar-primary-foreground)',
+  sidebarAccent: 'var(--sidebar-accent)',
+  sidebarAccentForeground: 'var(--sidebar-accent-foreground)',
+  sidebarBorder: 'var(--sidebar-border)',
+  sidebarRing: 'var(--sidebar-ring)',
+  
+  // === CHART COLORS ===
+  chart1: 'var(--chart-1)',
+  chart2: 'var(--chart-2)',
+  chart3: 'var(--chart-3)',
+  chart4: 'var(--chart-4)',
+  chart5: 'var(--chart-5)',
+} as const;
+
+// =============================================================================
+// TYPOGRAPHY SYSTEM - ENTERPRISE GRADE
+// =============================================================================
+
 export const typography = {
-  // Font Families - EXACT MATCH
-  fontFamily: {
-    sans: ['Inter UI', 'sans-serif'],              // Exact match
-    serif: ['Cormorant', 'serif'],                 // Exact match
-    mono: ['Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+  // === FONT FAMILIES ===
+  fontFamilies: {
+    sans: ['Inter', 'system-ui', 'sans-serif'],
+    serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+    mono: ['JetBrains Mono', 'Consolas', 'monospace'],
   },
   
-  // Font Sizes (rem units for scalability)
-  fontSize: {
+  // === FONT SIZES ===
+  fontSizes: {
     xs: '0.75rem',    // 12px
     sm: '0.875rem',   // 14px
     base: '1rem',     // 16px
@@ -177,281 +195,230 @@ export const typography = {
     '2xl': '1.5rem',  // 24px
     '3xl': '1.875rem', // 30px
     '4xl': '2.25rem', // 36px
+    '5xl': '3rem',    // 48px
+    '6xl': '3.75rem', // 60px
   },
   
-  // Font Weights
-  fontWeight: {
+  // === FONT WEIGHTS ===
+  fontWeights: {
+    thin: '100',
+    extralight: '200',
     light: '300',
     normal: '400',
     medium: '500',
     semibold: '600',
     bold: '700',
+    extrabold: '800',
+    black: '900',
   },
   
-  // Line Heights
-  lineHeight: {
-    tight: '1.1',
+  // === LINE HEIGHTS ===
+  lineHeights: {
+    none: '1',
+    tight: '1.25',
+    snug: '1.375',
     normal: '1.5',
-    relaxed: '1.75',
+    relaxed: '1.625',
+    loose: '2',
   },
   
-  // Letter Spacing - EXACT MATCH
+  // === LETTER SPACING ===
   letterSpacing: {
-    tighter: 'calc(0.025em - 0.05em)',
-    tight: 'calc(0.025em - 0.025em)',
-    normal: '0.025em',                  // EXACT MATCH FROM SPEC
-    wide: 'calc(0.025em + 0.025em)',
-    wider: 'calc(0.025em + 0.05em)',
-    widest: 'calc(0.025em + 0.1em)',
-  }
+    tighter: '-0.05em',
+    tight: '-0.025em',
+    normal: '0.025em',
+    wide: '0.025em',
+    wider: '0.05em',
+    widest: '0.1em',
+  },
 } as const;
 
-// ============================================================================
-// SPACING SYSTEM (0.25rem base unit)
-// ============================================================================
+// =============================================================================
+// SPACING SYSTEM - 4PX GRID
+// =============================================================================
+
 export const spacing = {
-  0: '0',
-  1: '0.25rem',  // 4px - EXACT BASE UNIT FROM SPEC
-  2: '0.5rem',   // 8px
-  3: '0.75rem',  // 12px
-  4: '1rem',     // 16px
-  5: '1.25rem',  // 20px
-  6: '1.5rem',   // 24px
-  8: '2rem',     // 32px
-  10: '2.5rem',  // 40px
-  12: '3rem',    // 48px
-  16: '4rem',    // 64px
-  20: '5rem',    // 80px
-  24: '6rem',    // 96px
+  px: '1px',
+  0: '0px',
+  0.5: '2px',
+  1: '4px',
+  1.5: '6px',
+  2: '8px',
+  2.5: '10px',
+  3: '12px',
+  3.5: '14px',
+  4: '16px',
+  5: '20px',
+  6: '24px',
+  7: '28px',
+  8: '32px',
+  9: '36px',
+  10: '40px',
+  11: '44px',
+  12: '48px',
+  14: '56px',
+  16: '64px',
+  20: '80px',
+  24: '96px',
+  28: '112px',
+  32: '128px',
+  36: '144px',
+  40: '160px',
+  44: '176px',
+  48: '192px',
+  52: '208px',
+  56: '224px',
+  60: '240px',
+  64: '256px',
+  72: '288px',
+  80: '320px',
+  96: '384px',
 } as const;
 
-// ============================================================================
-// SHADOW SYSTEM - COMPLETELY FLAT (ALL ZEROS)
-// ============================================================================
-export const shadows = {
-  // ALL SHADOWS ARE 0px - COMPLETELY FLAT DESIGN
-  light: {
-    sm: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
-    md: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
-    lg: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
-    xl: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)',
+// =============================================================================
+// FLAT DESIGN SYSTEM
+// =============================================================================
+
+export const flatDesign = {
+  // === RADIUS - ALL ZERO FOR FLAT DESIGN ===
+  borderRadius: {
+    none: '0px',
+    sm: '0px',
+    md: '0px',
+    lg: '0px',
+    xl: '0px',
+    '2xl': '0px',
+    '3xl': '0px',
+    full: '0px',
   },
   
-  // ALL SHADOWS ARE 0px - COMPLETELY FLAT DESIGN
-  dark: {
-    sm: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
-    md: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
-    lg: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
-    xl: '0px 0px 0px 0px hsl(0 0% 100% / 0.00)',
-  }
-} as const;
-
-// ============================================================================
-// BORDER RADIUS SYSTEM - COMPLETELY FLAT (ALL ZEROS)
-// ============================================================================
-export const borderRadius = {
-  none: '0px',      // EXACT MATCH - NO RADIUS
-  sm: '0px',        // EXACT MATCH - NO RADIUS
-  md: '0px',        // EXACT MATCH - NO RADIUS
-  lg: '0px',        // EXACT MATCH - NO RADIUS
-  xl: '0px',        // EXACT MATCH - NO RADIUS
-  full: '0px',      // EXACT MATCH - NO RADIUS (FLAT DESIGN)
-} as const;
-
-// ============================================================================
-// COMPONENT-SPECIFIC TOKENS - FLAT DESIGN
-// ============================================================================
-export const components = {
-  // Button Styles - FLAT DESIGN
-  button: {
-    height: {
-      sm: '2rem',      // 32px
-      md: '2.5rem',    // 40px
-      lg: '3rem',      // 48px
-    },
-    padding: {
-      sm: '0.5rem 0.75rem',
-      md: '0.75rem 1rem',
-      lg: '1rem 1.5rem',
-    },
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    fontWeight: typography.fontWeight.medium,
-    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
+  // === SHADOWS - ALL TRANSPARENT FOR FLAT DESIGN ===
+  boxShadow: {
+    sm: '0 0 0 0 transparent',
+    md: '0 0 0 0 transparent',
+    lg: '0 0 0 0 transparent',
+    xl: '0 0 0 0 transparent',
+    '2xl': '0 0 0 0 transparent',
+    inner: '0 0 0 0 transparent',
+    none: 'none',
   },
   
-  // Card Styles - FLAT DESIGN
-  card: {
-    padding: spacing[6],           // 24px
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    borderWidth: '1px',
-    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
+  // === BORDERS ===
+  borderWidth: {
+    0: '0px',
+    1: '1px',
+    2: '2px',
+    3: '3px',
+    4: '4px',
   },
-  
-  // Input Styles - FLAT DESIGN
-  input: {
-    height: '2.5rem',              // 40px
-    padding: '0.5rem 0.75rem',     // 8px 12px
-    borderRadius: '0px',           // FLAT - NO RADIUS
-    borderWidth: '1px',
-  }
 } as const;
 
-// ============================================================================
-// ANIMATION & TRANSITIONS - MINIMAL FOR FLAT DESIGN
-// ============================================================================
+// =============================================================================
+// ANIMATION & TRANSITIONS
+// =============================================================================
+
 export const animations = {
-  // Transition Durations
-  duration: {
-    fast: '150ms',
-    normal: '300ms',
-    slow: '500ms',
-    hover: '200ms',
-    modal: '300ms',
-    focus: '150ms',
+  // === TRANSITION DURATIONS ===
+  transitionDuration: {
+    75: '75ms',
+    100: '100ms',
+    150: '150ms',
+    200: '200ms',
+    300: '300ms',
+    500: '500ms',
+    700: '700ms',
+    1000: '1000ms',
   },
   
-  // Easing Functions
-  easing: {
-    ease: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  // === TRANSITION TIMING FUNCTIONS ===
+  transitionTimingFunction: {
+    linear: 'linear',
     in: 'cubic-bezier(0.4, 0, 1, 1)',
     out: 'cubic-bezier(0, 0, 0.2, 1)',
-    easeOut: 'ease-out',
+    'in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
   },
   
-  // NO TRANSFORM EFFECTS FOR FLAT DESIGN
-  transforms: {
-    hoverScale: 'scale(1)',        // NO SCALE
-    activeScale: 'scale(1)',       // NO SCALE
-    hoverTranslate: 'translateY(0)', // NO TRANSLATE
+  // === TRANSFORM SCALES ===
+  scale: {
+    0: '0',
+    50: '.5',
+    75: '.75',
+    90: '.9',
+    95: '.95',
+    100: '1',
+    105: '1.05',
+    110: '1.1',
+    125: '1.25',
+    150: '1.5',
   },
-  
-  // NO HOVER EFFECTS FOR FLAT DESIGN
-  hover: {
-    scale: 'scale(1)',             // NO SCALE
-    shadow: '0px 0px 0px 0px hsl(0 0% 0% / 0.00)', // NO SHADOW
-    translate: 'translateY(0)',    // NO TRANSLATE
-  }
 } as const;
 
-// ============================================================================
-// FOCUS & INTERACTION STATES - FLAT DESIGN
-// ============================================================================
-export const focusStates = {
-  // Focus Ring Configuration - EXACT BRAND COLORS, NO SHADOWS
-  focusRing: {
-    width: '2px',
-    color: 'oklch(0.4145 0.1828 300.3155)', // Exact primary color
-    offset: '2px',
-    shadow: 'none',                          // NO SHADOW
-    style: 'solid',
-  },
-  
-  // Ring Colors and Thickness - NO SHADOWS
-  rings: {
+// =============================================================================
+// COMPONENT VARIANTS
+// =============================================================================
+
+export const componentVariants = {
+  // === BUTTON VARIANTS ===
+  button: {
     primary: {
-      width: '2px',
-      color: 'oklch(0.4145 0.1828 300.3155)',  // Exact primary
-      opacity: '1',                            // Full opacity, no blur
+      background: colorTokens.primary,
+      color: colorTokens.primaryForeground,
+      border: `2px solid ${colorTokens.primary}`,
     },
     secondary: {
-      width: '2px', 
-      color: 'oklch(0.7364 0.0790 87.2521)',   // Exact secondary
-      opacity: '1',                            // Full opacity, no blur
+      background: colorTokens.secondary,
+      color: colorTokens.secondaryForeground,
+      border: `2px solid ${colorTokens.secondary}`,
+    },
+    outline: {
+      background: 'transparent',
+      color: colorTokens.primary,
+      border: `2px solid ${colorTokens.border}`,
+    },
+    ghost: {
+      background: 'transparent',
+      color: colorTokens.foreground,
+      border: '2px solid transparent',
+    },
+    destructive: {
+      background: colorTokens.destructive,
+      color: colorTokens.destructiveForeground,
+      border: `2px solid ${colorTokens.destructive}`,
     },
   },
   
-  // Interactive States - FLAT DESIGN (NO TRANSFORMS/SHADOWS)
-  states: {
-    hover: {
-      transform: 'none',                      // NO TRANSFORM
-      transition: 'all 200ms ease',
-      shadowStep: 'none',                     // NO SHADOW
+  // === CARD VARIANTS ===
+  card: {
+    default: {
+      background: colorTokens.card,
+      color: colorTokens.cardForeground,
+      border: `1px solid ${colorTokens.border}`,
     },
-    focus: {
-      outline: '2px solid var(--primary)', // Use design token
-      outlineOffset: '2px',
-      boxShadow: 'none',                      // NO SHADOW
-      transition: 'all 150ms ease-out',
+    elevated: {
+      background: colorTokens.card,
+      color: colorTokens.cardForeground,
+      border: `2px solid ${colorTokens.accent}`,
     },
-    active: {
-      transform: 'none',                      // NO TRANSFORM
-      transition: 'all 150ms ease',
-    },
-  }
+  },
 } as const;
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
+// =============================================================================
+// EXPORT UNIFIED DESIGN SYSTEM
+// =============================================================================
 
-/**
- * Get color value by theme and path
- */
-export function getColor(theme: 'light' | 'dark', colorPath: string): string {
-  const paths = colorPath.split('.');
-  let value: any = colors;
-  
-  for (const path of paths) {
-    value = value?.[path];
-  }
-  
-  return value || colorPath;
-}
-
-/**
- * Generate CSS custom properties for the design system
- */
-export function generateCSSCustomProperties(theme: 'light' | 'dark'): Record<string, string> {
-  return {
-    // Color properties - EXACT OKLCH VALUES
-    '--color-background': colors.background[theme],
-    '--color-foreground': colors.foreground[theme],
-    '--color-card': colors.card[theme],
-    '--color-border': colors.border[theme],
-    '--color-muted': colors.muted[theme],
-    '--color-muted-foreground': colors.muted.foreground[theme],
-    '--color-primary': colors.primary[theme],
-    '--color-secondary': colors.secondary[theme],
-    '--color-accent': colors.accent[theme],
-    '--color-destructive': colors.destructive[theme],
-    
-    // Typography properties - EXACT MATCH
-    '--font-family-sans': typography.fontFamily.sans.join(', '),
-    '--font-family-serif': typography.fontFamily.serif.join(', '),
-    '--font-family-mono': typography.fontFamily.mono.join(', '),
-    
-    // Spacing properties
-    '--spacing-unit': '0.25rem', // EXACT BASE UNIT
-    
-    // Shadow properties - ALL ZERO
-    '--shadow-sm': shadows[theme].sm,
-    '--shadow-md': shadows[theme].md,
-    '--shadow-lg': shadows[theme].lg,
-    '--shadow-xl': shadows[theme].xl,
-    
-    // Border radius properties - ALL ZERO
-    '--border-radius-sm': borderRadius.sm,
-    '--border-radius-md': borderRadius.md,
-    '--border-radius-lg': borderRadius.lg,
-    '--border-radius-xl': borderRadius.xl,
-    
-    // Letter spacing - EXACT MATCH
-    '--letter-spacing-normal': typography.letterSpacing.normal,
-  };
-}
-
-// Export design system as default
 export const designSystem = {
-  colors,
+  colors: colorTokens,
+  hexColors,
   typography,
   spacing,
-  shadows,
-  borderRadius,
-  components,
+  flatDesign,
   animations,
-  focusStates,
-  getColor,
-  generateCSSCustomProperties,
+  componentVariants,
 } as const;
 
-export default designSystem;
+// Type exports for TypeScript
+export type ColorToken = keyof typeof colorTokens;
+export type HexColor = keyof typeof hexColors.light;
+export type Spacing = keyof typeof spacing;
+export type FontSize = keyof typeof typography.fontSizes;
+export type FontWeight = keyof typeof typography.fontWeights;
