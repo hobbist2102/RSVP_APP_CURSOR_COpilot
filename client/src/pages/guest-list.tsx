@@ -6,7 +6,7 @@ import DataTable from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useCurrentEvent } from "@/hooks/use-current-event";
+import { useOptimizedCurrentEvent, useOptimizedGuests } from "@/hooks/use-optimized-queries";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { get, post, put, del } from "@/lib/api-utils";
 import { queryClient } from "@/lib/queryClient";

@@ -91,13 +91,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize authentication system on startup
   await ensureAdminUserExists();
   
-  // Performance monitoring middleware
+  // Performance monitoring middleware - optimized
   app.use((req, res, next) => {
     const start = Date.now();
     
     res.on('finish', () => {
       const duration = Date.now() - start;
-      if (duration > 1000) { // Log only slow requests (>1s)
+      if (duration > 500) { // Log slower requests (>500ms)
         console.log(`SLOW: ${req.method} ${req.path} took ${duration}ms`);
       }
     });
@@ -578,6 +578,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Optimized batch endpoint for dashboard data
+  app.get('/api/events/:id/dashboard-batch', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      // Fetch all dashboard data in parallel for maximum performance
+      const [event, guests, stats, ceremonies] = await Promise.all([
+        storage.getEvent(eventId),
+        storage.getGuestsByEvent(eventId),
+        storage.getEventStats(eventId),
+        storage.getCeremoniesByEvent(eventId)
+      ]);
+      
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      res.json({
+        event,
+        guests: guests || [],
+        stats: stats || { total: 0, confirmed: 0, pending: 0, declined: 0 },
+        ceremonies: ceremonies || []
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch dashboard data' });
+    }
+  });
+
   app.get('/api/events/:id', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);

@@ -14,7 +14,7 @@ import { formatDateForDisplay } from "@/lib/date-utils";
 import { useEventStats } from "@/hooks/use-stats";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
 import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
-import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useOptimizedDashboard, useOptimizedCurrentEvent } from "@/hooks/use-optimized-queries";
 import { DeploymentErrorBoundary } from "@/components/deployment-error-boundary";
 import { EventLoadingState } from "@/components/deployment-loading-state";
 
@@ -25,15 +25,17 @@ export default function Dashboard() {
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
   const [showGuestDetailDialog, setShowGuestDetailDialog] = useState(false);
   
-  // Use dashboard data hook
-  const { 
-    event: currentEvent, 
-    guests, 
-    accommodations, 
-    statistics: stats,
-    ceremonies,
-    isLoading: isLoadingStats 
-  } = useDashboardData();
+  // Get current event with aggressive caching
+  const { data: currentEvent } = useOptimizedCurrentEvent();
+  
+  // Use optimized dashboard data hook
+  const { data: dashboardData, isLoading: isLoadingStats } = useOptimizedDashboard(currentEvent?.data?.id);
+  
+  // Extract data from batch response
+  const guests = dashboardData?.guests || [];
+  const stats = dashboardData?.stats;
+  const ceremonies = dashboardData?.ceremonies || [];
+  const accommodations = [];
   
   // Helper function to generate RSVP progress data from statistics
   const generateRsvpProgressData = () => {
@@ -56,7 +58,7 @@ export default function Dashboard() {
   };
   
   // Use the current event ID from the batch data
-  const eventId = currentEvent?.id || 1;
+  const eventId = currentEvent?.data?.id || dashboardData?.event?.id || 1;
   
   // Tasks will be loaded from database - no hardcoded sample data
   const tasks: any[] = [];
