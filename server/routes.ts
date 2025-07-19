@@ -22,6 +22,8 @@ import registerStatisticsRoutes from "./routes/statistics";
 import registerRelationshipTypeRoutes from "./routes/relationship-types";
 import registerEventRoutes from "./routes/events";
 import registerGuestRoutes from "./routes/guests";
+import registerAdminRoutes from "./routes/admin";
+import registerPasswordResetRoutes from "./routes/password-reset";
 
 // Import existing domain routes
 import { registerRSVPRoutes } from "./routes/rsvp";
@@ -240,6 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerRelationshipTypeRoutes(app, isAuthenticated);
   registerEventRoutes(app, isAuthenticated);
   registerGuestRoutes(app, isAuthenticated);
+  registerAdminRoutes(app, isAuthenticated);
   
   // Register existing domain routes
   registerRSVPRoutes(app, isAuthenticated, isAdmin);
