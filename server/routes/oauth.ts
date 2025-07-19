@@ -75,12 +75,7 @@ router.get("/gmail/authorize", isAuthenticated, isAdmin, async (req: Request, re
     // Force the redirect URI to be the Replit URL regardless of what's stored
     const redirectUri = REPLIT_URL + "/api/oauth/gmail/callback";
 
-    console.log(`[OAuth] Gmail credentials check:
-      - Event gmailClientId exists: ${!!event.gmailClientId}
-      - Using fallback env GMAIL_CLIENT_ID: ${!event.gmailClientId && !!process.env.GMAIL_CLIENT_ID}
-      - Final clientId exists: ${!!clientId}
-      - Redirect URI: ${redirectUri}
-    `);
+    // Gmail OAuth credentials verification completed
 
     // Validate required credentials
     if (!clientId) {
@@ -162,11 +157,7 @@ router.get("/gmail/callback", isAuthenticated, isAdmin, async (req: Request, res
     // Force the redirect URI to be the Replit URL regardless of what's stored
     const redirectUri = REPLIT_URL + "/api/oauth/gmail/callback";
     
-    console.log(`[OAuth] Gmail callback using:
-      - Client ID: ${clientId ? '✓' : '✗'}
-      - Client Secret: ${clientSecret ? '✓' : '✗'}
-      - Redirect URI: ${redirectUri}
-    `);
+    // Gmail OAuth callback processing started
     
     if (!clientId || !clientSecret) {
       
@@ -329,12 +320,7 @@ router.get("/outlook/authorize", isAuthenticated, isAdmin, async (req: Request, 
     // Force the redirect URI to be the Replit URL regardless of what's stored
     const redirectUri = REPLIT_URL + "/api/oauth/outlook/callback";
 
-    console.log(`[OAuth] Outlook credentials check:
-      - Event outlookClientId exists: ${!!event.outlookClientId}
-      - Using fallback env OUTLOOK_CLIENT_ID: ${!event.outlookClientId && !!process.env.OUTLOOK_CLIENT_ID}
-      - Final clientId exists: ${!!clientId}
-      - Redirect URI: ${redirectUri}
-    `);
+    // Outlook OAuth credentials verification completed
 
     // Validate required credentials
     if (!clientId) {
@@ -414,11 +400,7 @@ router.get("/outlook/callback", isAuthenticated, isAdmin, async (req: Request, r
     // Force the redirect URI to be the Replit URL regardless of what's stored
     const redirectUri = REPLIT_URL + "/api/oauth/outlook/callback";
     
-    console.log(`[OAuth] Outlook callback using:
-      - Client ID: ${clientId ? '✓' : '✗'}
-      - Client Secret: ${clientSecret ? '✓' : '✗'}
-      - Redirect URI: ${redirectUri}
-    `);
+    // Outlook OAuth callback processing started
     
     if (!clientId || !clientSecret) {
       

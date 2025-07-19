@@ -4,7 +4,7 @@ import { useQueryParams } from "../hooks/use-query-params";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TwoStageRsvpForm from "@/components/rsvp/two-stage-rsvp-form";
-import { apiRequest } from "@/lib/queryClient";
+import { get, post } from "@/lib/api-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { extractRsvpToken } from "@/lib/rsvp-token-handler";

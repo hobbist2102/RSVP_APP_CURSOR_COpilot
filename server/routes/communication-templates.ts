@@ -744,15 +744,7 @@ router.get('/events/:eventId/communication-providers', isAuthenticated, async (r
     }
     
     
-    console.log('Provider status debug - Event data:', {
-      useGmail: event.useGmail,
-      gmailAccount: event.gmailAccount,
-      useOutlook: event.useOutlook,
-      outlookAccount: event.outlookAccount,
-      whatsappConfigured: event.whatsappConfigured,
-      brevoApiKey: !!event.brevoApiKey,
-      emailConfigured: event.emailConfigured
-    });
+    // Provider status verification completed
     
     // Check WhatsApp Web.js actual connection status
     let whatsappWebjsConnected = false;
