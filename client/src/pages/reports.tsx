@@ -32,6 +32,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import ComprehensiveAnalytics from "@/components/analytics/comprehensive-analytics";
 import { get } from "@/lib/api";
 
 interface EventReport {
@@ -105,7 +106,7 @@ const RESPONSE_COLORS = {
 
 export default function Reports() {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [dateRange, setDateRange] = useState("all");
 
   // Fetch events for selection
@@ -301,12 +302,18 @@ export default function Reports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="rsvp">RSVP Analytics</TabsTrigger>
             <TabsTrigger value="guests">Guest Insights</TabsTrigger>
             <TabsTrigger value="financial">Financial</TabsTrigger>
           </TabsList>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <ComprehensiveAnalytics />
+          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">

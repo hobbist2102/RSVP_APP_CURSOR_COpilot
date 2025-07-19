@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { get, put, post } from "@/lib/api";
 import { useNotification } from "@/lib/notification-utils";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import TwoFactorAuth from "@/components/security/two-factor-auth";
 
 interface UserProfile {
   id: number;
@@ -432,6 +433,9 @@ export default function Settings() {
                 </form>
               </CardContent>
             </Card>
+
+            {/* Two-Factor Authentication */}
+            <TwoFactorAuth />
 
             {/* Security Status */}
             <Card>

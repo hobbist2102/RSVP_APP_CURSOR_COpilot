@@ -105,6 +105,7 @@
     "resend": "^4.2.0",
     "scrolltrigger": "^1.0.1",
     "sheetjs-style": "^0.15.8",
+    "sonner": "^2.0.6",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",

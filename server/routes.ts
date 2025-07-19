@@ -39,6 +39,8 @@ import communicationTemplatesRoutes from "./routes/communication-templates";
 import transportRoutes from "./routes/transport";
 import flightCoordinationRoutes from "./routes/flight-coordination";
 import vehicleManagementRoutes from "./routes/vehicle-management";
+import otpRoutes from "./routes/otp";
+import analyticsRoutes from "./routes/analytics";
 
 // Auth utilities
 import { ensureAdminUserExists, getDefaultCredentials } from './auth/production-auth';
@@ -266,6 +268,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', communicationTemplatesRoutes);
   app.use('/api', flightCoordinationRoutes);
   app.use('/api', vehicleManagementRoutes);
+  app.use('/api/otp', otpRoutes);
+  app.use('/api/analytics', analyticsRoutes);
   
   // Register integration routes
   registerIntegrationRoutes(app, isAuthenticated);
