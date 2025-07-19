@@ -15,7 +15,7 @@ import {
   Wand2,
   ChevronLeft,
   ChevronRight,
-  Activity
+  Hotel
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -65,6 +65,11 @@ export default function Sidebar({ isOpen, isCollapsed = false, onToggleCollapse 
       name: "Transport Groups",
       icon: <Car className="mr-3 h-5 w-5" />,
       path: "/transport"
+    },
+    {
+      name: "Accommodations",
+      icon: <Hotel className="mr-3 h-5 w-5" />,
+      path: "/accommodations"
     },
     {
       name: "Meal Planning",

@@ -37,11 +37,11 @@ export function useDashboardData() {
       }
 
       try {
-        // Use Promise.all to fetch all data concurrently
+        // Use Promise.all to fetch all data concurrently with correct endpoints
         const [guestsResponse, accommodationsResponse, ceremoniesResponse] = await Promise.all([
-          get(`/api/guests?eventId=${eventId}`),
-          get(`/api/accommodations?eventId=${eventId}`),
-          get(`/api/ceremonies?eventId=${eventId}`)
+          get(`/api/events/${eventId}/guests`),
+          get(`/api/hotels/by-event/${eventId}`),
+          get(`/api/events/${eventId}/ceremonies`)
         ]);
 
         return {
@@ -69,15 +69,15 @@ export function useDashboardData() {
   const accommodations = dashboardData?.accommodations || [];
   const ceremonies = dashboardData?.ceremonies || [];
 
-  // Calculate statistics from guests data
+  // Calculate statistics from guests data with proper RSVP mapping
   const statistics = {
     total: guests.length,
-    confirmed: guests.filter((g: any) => g.rsvpStatus === 'confirmed').length,
-    pending: guests.filter((g: any) => g.rsvpStatus === 'pending').length,
-    declined: guests.filter((g: any) => g.rsvpStatus === 'declined').length,
+    confirmed: guests.filter((g: any) => g.rsvpStatus === 'confirmed' || g.rsvpStatus === 'yes').length,
+    pending: guests.filter((g: any) => g.rsvpStatus === 'pending' || !g.rsvpStatus).length,
+    declined: guests.filter((g: any) => g.rsvpStatus === 'declined' || g.rsvpStatus === 'no').length,
     totalGuests: guests.length,
-    confirmedGuests: guests.filter((g: any) => g.rsvpStatus === 'confirmed').length,
-    pendingGuests: guests.filter((g: any) => g.rsvpStatus === 'pending').length,
+    confirmedGuests: guests.filter((g: any) => g.rsvpStatus === 'confirmed' || g.rsvpStatus === 'yes').length,
+    pendingGuests: guests.filter((g: any) => g.rsvpStatus === 'pending' || !g.rsvpStatus).length,
     accommodationCount: accommodations.length,
     ceremonyCount: ceremonies.length,
   };

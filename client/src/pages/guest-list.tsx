@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { GuestListErrorBoundary } from "./guest-list-error-boundary";
 import DataTable from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -243,15 +244,15 @@ function GuestList() {
     enabled: !!eventId,
   });
 
-  // Master guest data fetching with complete bi-directional data flow
+  // Master guest data fetching with simplified reliable data flow
   const { data: masterGuestResponse = {}, isLoading, refetch } = useQuery({
-    queryKey: ['/api/events', eventId, 'master-guest-data'],
+    queryKey: ['/api/events', eventId, 'guests'],
     queryFn: async () => {
       try {
-        const response = await get('/api/events/' + eventId + '/master-guest-data');
-        return response.data || { guests: [], totalGuests: 0 };
+        const response = await get(`/api/events/${eventId}/guests`);
+        const guestsData = response.data || response || [];
+        return { guests: Array.isArray(guestsData) ? guestsData : [], totalGuests: guestsData.length || 0 };
       } catch (error) {
-        console.error('Failed to fetch master guest data:', error);
         return { guests: [], totalGuests: 0 };
       }
     },
@@ -384,10 +385,10 @@ function GuestList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'master-guest-data']
+        queryKey: ['/api/events', eventId, 'guests']
       });
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'guest-stats-integrated']
+        queryKey: ['/api/events', eventId, 'guest-stats-comprehensive']
       });
       refetch();
       setShowAddDialog(false);
@@ -414,10 +415,10 @@ function GuestList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'master-guest-data']
+        queryKey: ['/api/events', eventId, 'guests']
       });
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'guest-stats-integrated']
+        queryKey: ['/api/events', eventId, 'guest-stats-comprehensive']
       });
       refetch();
       setShowEditDialog(false);
@@ -445,10 +446,10 @@ function GuestList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'master-guest-data']
+        queryKey: ['/api/events', eventId, 'guests']
       });
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/events', eventId, 'guest-stats-integrated']
+        queryKey: ['/api/events', eventId, 'guest-stats-comprehensive']
       });
       refetch();
       setShowDeleteDialog(false);
@@ -1399,6 +1400,7 @@ function GuestList() {
         </DialogContent>
       </Dialog>
     </DashboardLayout>
+    </GuestListErrorBoundary>
   );
 }
 
