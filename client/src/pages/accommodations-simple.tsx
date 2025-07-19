@@ -107,10 +107,10 @@ export default function AccommodationsSimple() {
               <Building className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No Hotels Set Up</h3>
               <p className="text-muted-foreground max-w-md mb-4">
-                Hotels need to be configured in Event Settings before managing accommodations.
+                Hotels need to be configured in the Event Setup Wizard before managing accommodations.
               </p>
-              <Button onClick={() => window.location.href = "/event-settings"}>
-                Configure Hotels
+              <Button onClick={() => window.location.href = `/event-setup-wizard/${eventId}?step=4`}>
+                Go to Hotels & Accommodations Setup
               </Button>
             </div>
           </CardContent>

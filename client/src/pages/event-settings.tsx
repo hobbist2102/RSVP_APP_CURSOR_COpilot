@@ -114,10 +114,10 @@ export default function EventSettings() {
             </p>
             <Button
               variant="outline"
-              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}?step=6`)}
               className="w-full"
             >
-              Configure in Wizard
+              Configure Communication
             </Button>
           </div>
           
@@ -128,10 +128,10 @@ export default function EventSettings() {
             </p>
             <Button
               variant="outline"
-              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}?step=3`)}
               className="w-full"
             >
-              Configure in Wizard
+              Configure RSVP Settings
             </Button>
           </div>
           
@@ -142,10 +142,10 @@ export default function EventSettings() {
             </p>
             <Button
               variant="outline"
-              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}`)}
+              onClick={() => setLocation(`/event-setup-wizard/${currentEvent?.id}?step=4`)}
               className="w-full"
             >
-              Configure in Wizard
+              Configure Hotels & Accommodations
             </Button>
           </div>
         </div>

@@ -101,9 +101,29 @@ export default function EventSetupWizard({ initialStep }: EventSetupWizardProps 
 
 
 
-  // Handle initial step from URL parameter
+  // Handle step from URL parameters (both props and search params)
   useEffect(() => {
-    if (initialStep) {
+    // Check URL search params for ?step=4
+    const urlParams = new URLSearchParams(window.location.search);
+    const stepParam = urlParams.get('step');
+    
+    let targetStep = initialStep;
+    
+    // Map step numbers to step constants
+    if (stepParam) {
+      const stepNumberMap: Record<string, string> = {
+        '1': WIZARD_STEPS.BASIC_INFO,
+        '2': WIZARD_STEPS.VENUES,
+        '3': WIZARD_STEPS.RSVP_CONFIG,
+        '4': WIZARD_STEPS.HOTELS,
+        '5': WIZARD_STEPS.TRANSPORT,
+        '6': WIZARD_STEPS.COMMUNICATION,
+        '7': WIZARD_STEPS.AI_ASSISTANT,
+      };
+      targetStep = stepNumberMap[stepParam];
+    }
+    
+    if (targetStep || initialStep) {
       // Map URL step names to step constants
       const stepMap: Record<string, string> = {
         'communication': WIZARD_STEPS.COMMUNICATION,
@@ -115,7 +135,7 @@ export default function EventSetupWizard({ initialStep }: EventSetupWizardProps 
         'ai-assistant': WIZARD_STEPS.AI_ASSISTANT,
       };
       
-      const mappedStep = stepMap[initialStep] || WIZARD_STEPS.BASIC_INFO;
+      const mappedStep = targetStep || stepMap[initialStep] || WIZARD_STEPS.BASIC_INFO;
       setActiveStep(mappedStep);
       setCurrentStep(mappedStep);
     }
