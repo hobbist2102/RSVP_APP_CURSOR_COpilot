@@ -72,6 +72,9 @@ export interface IStorage {
   getWizardProgress(eventId: number): Promise<any>;
   getEvents(): Promise<WeddingEvent[]>;
   
+  // Transaction support for atomic operations
+  transaction<T>(callback: () => Promise<T>): Promise<T>;
+  
   // Standard database operations
 
   // Guest operations
@@ -781,6 +784,18 @@ export class DatabaseStorage implements IStorage {
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
     const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
+  }
+  
+  // Transaction support for atomic operations
+  async transaction<T>(callback: () => Promise<T>): Promise<T> {
+    return await db.transaction(async (tx) => {
+      // Create a new storage instance using the transaction
+      const txStorage = new DatabaseStorage();
+      (txStorage as any).db = tx; // Override db with transaction
+      
+      // Execute callback with transaction-aware storage
+      return await callback.call(txStorage);
+    });
   }
 }
 

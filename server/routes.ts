@@ -160,6 +160,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
   } catch (sessionError) {
     // Fallback to memory store if PostgreSQL session store fails
+    console.warn('⚠️ WARNING: PostgreSQL session store failed, falling back to memory store. Sessions will not persist across server restarts.');
+    console.warn('Session error:', sessionError instanceof Error ? sessionError.message : String(sessionError));
+    
     app.use(session({
       secret: process.env.SESSION_SECRET || 'wedding-rsvp-secret-key-production',
       resave: false,

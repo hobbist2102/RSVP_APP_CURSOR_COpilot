@@ -122,7 +122,7 @@ export const accommodationPreferenceSchema = z.enum(['provided', 'self_managed',
 /**
  * Transportation Preference Schema
  */
-export const transportationPreferenceSchema = z.enum(['provided', 'self_managed', 'special_arrangement']);
+export const transportationTypeSchema = z.enum(['provided', 'self_managed', 'special_arrangement']);
 
 /**
  * Meal Selection Schema
@@ -146,7 +146,7 @@ export const rsvpStage2Schema = z.object({
   hotelPreference: z.string().optional(),
   // Transportation details
   needsTransportation: z.boolean().optional(),
-  transportationPreference: transportationPreferenceSchema.optional(),
+  transportationType: transportationTypeSchema.optional(),
   transportationNotes: z.string().max(500, "Notes is too long").optional(),
   // Travel details
   travelMode: travelModeSchema.optional(),

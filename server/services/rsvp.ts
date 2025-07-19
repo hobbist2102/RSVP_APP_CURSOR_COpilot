@@ -106,12 +106,12 @@ export class RSVPService {
   }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuest(response.guestId);
+      const guest = await this.getGuest(response.guestId);
       if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
-      const event = await storage.getEvent(response.eventId);
+      const event = await this.getEvent(response.eventId);
       if (!event) {
         return { success: false, message: 'Event not found' };
       }
@@ -154,22 +154,22 @@ export class RSVPService {
       }
       
       // Update the guest record
-      await storage.updateGuest(guest.id, updatedGuest);
+      await this.updateGuest(guest.id, updatedGuest);
       
       // Process ceremony selections if provided
       if (response.ceremonies && response.ceremonies.length > 0) {
         for (const ceremony of response.ceremonies) {
           // Check if guest-ceremony relation already exists
-          const existingRelation = await storage.getGuestCeremony(guest.id, ceremony.ceremonyId);
+          const existingRelation = await this.getGuestCeremony(guest.id, ceremony.ceremonyId);
           
           if (existingRelation) {
             // Update existing relation
-            await storage.updateGuestCeremony(existingRelation.id, {
+            await this.updateGuestCeremony(existingRelation.id, {
               attending: ceremony.attending
             });
           } else {
             // Create new relation
-            await storage.createGuestCeremony({
+            await this.createGuestCeremony({
               guestId: guest.id,
               ceremonyId: ceremony.ceremonyId,
               attending: ceremony.attending
@@ -180,7 +180,7 @@ export class RSVPService {
       
       // Record message if provided
       if (response.message) {
-        await storage.createCoupleMessage({
+        await this.createCoupleMessage({
           guestId: guest.id,
           eventId: event.id,
           message: response.message
@@ -201,7 +201,7 @@ export class RSVPService {
       
       return { 
         success: true, 
-        guest: await storage.getGuest(guest.id), // Return updated guest data
+        guest: await this.getGuest(guest.id), // Return updated guest data
         requiresStage2
       };
     } catch (error) {
@@ -223,12 +223,12 @@ export class RSVPService {
   }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuest(response.guestId);
+      const guest = await this.getGuest(response.guestId);
       if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
-      const event = await storage.getEvent(response.eventId);
+      const event = await this.getEvent(response.eventId);
       if (!event) {
         return { success: false, message: 'Event not found' };
       }
@@ -240,10 +240,13 @@ export class RSVPService {
           message: 'Cannot process detailed information for guests who have not confirmed attendance' 
         };
       }
+
+      // Wrap all Stage 2 operations in a database transaction for atomicity
+      return await this.transaction(async function(this: typeof storage) {
       
-      // Process accommodation needs
-      if (response.needsAccommodation) {
-        await storage.updateGuest(guest.id, {
+        // Process accommodation needs
+        if (response.needsAccommodation) {
+          await this.updateGuest(guest.id, {
           needsAccommodation: true,
           accommodationPreference: response.accommodationPreference,
           notes: (guest.notes || '') + 
@@ -260,7 +263,7 @@ export class RSVPService {
             if (roomAssignmentResult.success) {
               
               // Add note about the auto-assignment
-              await storage.updateGuest(guest.id, {
+              await this.updateGuest(guest.id, {
                 notes: (guest.notes || '') + 
                   `\nAuto room assignment: Room automatically assigned for review by planner.` +
                   (roomAssignmentResult.earlyCheckIn ? ' Early check-in may be needed.' : '')
@@ -268,7 +271,7 @@ export class RSVPService {
             } else {
               
               // Update guest notes with the failure info so planner can follow up
-              await storage.updateGuest(guest.id, {
+              await this.updateGuest(guest.id, {
                 notes: (guest.notes || '') + 
                   `\nAuto room assignment: Failed - ${roomAssignmentResult.message}. Manual assignment needed.`
               });
@@ -283,7 +286,7 @@ export class RSVPService {
       // Process transportation needs
       if (response.needsTransportation) {
         // Check if travel info already exists
-        const existingTravelInfo = await storage.getTravelInfoByGuest(guest.id);
+        const existingTravelInfo = await this.getTravelInfoByGuest(guest.id);
         
         const travelInfoData: any = {
           needsTransportation: true,
@@ -311,11 +314,11 @@ export class RSVPService {
         
         if (existingTravelInfo) {
           // Update existing travel info
-          await storage.updateTravelInfo(existingTravelInfo.id, travelInfoData);
+          await this.updateTravelInfo(existingTravelInfo.id, travelInfoData);
         } else {
           // Create new travel info
           travelInfoData.guestId = guest.id;
-          await storage.createTravelInfo(travelInfoData);
+          await this.createTravelInfo(travelInfoData);
         }
       }
       
@@ -325,7 +328,7 @@ export class RSVPService {
         const childrenDetailsJson = JSON.stringify(response.childrenDetails);
         
         // Update guest record with children information
-        await storage.updateGuest(guest.id, {
+        await this.updateGuest(guest.id, {
           childrenDetails: childrenDetailsJson,
           numberOfChildren: response.childrenDetails.length
         });
@@ -335,7 +338,7 @@ export class RSVPService {
       if (response.mealSelections && response.mealSelections.length > 0) {
         for (const mealSelection of response.mealSelections) {
           // Check if meal selection already exists
-          const existingMealSelections = await storage.getGuestMealSelectionsByGuest(guest.id);
+          const existingMealSelections = await this.getGuestMealSelectionsByGuest(guest.id);
           const existingForCeremony = existingMealSelections.find(ms => 
             ms.ceremonyId === mealSelection.ceremonyId
           );
@@ -351,12 +354,12 @@ export class RSVPService {
           
           if (existingForCeremony) {
             // Update existing meal selection
-            await storage.updateGuestMealSelection(existingForCeremony.id, mealData);
+            await this.updateGuestMealSelection(existingForCeremony.id, mealData);
           } else {
             // Create new meal selection
             mealData.guestId = guest.id;
             mealData.ceremonyId = mealSelection.ceremonyId;
-            await storage.createGuestMealSelection(mealData);
+            await this.createGuestMealSelection(mealData);
           }
         }
       }
@@ -369,10 +372,11 @@ export class RSVPService {
         // Continue with the response even if follow-up fails
       }
       
-      return { 
-        success: true, 
-        guest: await storage.getGuest(guest.id) // Return updated guest data
-      };
+          return { 
+            success: true, 
+            guest: await this.getGuest(guest.id) // Return updated guest data
+          };
+        }); // End transaction
     } catch (error) {
       
       return { 
@@ -435,7 +439,7 @@ export class RSVPService {
         accommodationPreference: response.accommodationPreference,
         accommodationNotes: response.accommodationNotes,
         needsTransportation: response.needsTransportation,
-        transportationPreference: response.transportationPreference,
+        transportationType: response.transportationType,
         transportationNotes: response.transportationNotes,
         travelMode: response.travelMode,
         flightDetails: response.flightDetails,
@@ -463,12 +467,12 @@ export class RSVPService {
   static async processRSVPResponse(response: RSVPResponse): Promise<{ success: boolean; message?: string }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuest(response.guestId);
+      const guest = await this.getGuest(response.guestId);
       if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
-      const event = await storage.getEvent(response.eventId);
+      const event = await this.getEvent(response.eventId);
       if (!event) {
         return { success: false, message: 'Event not found' };
       }
@@ -497,22 +501,22 @@ export class RSVPService {
         (updatedGuest as any).childrenDetails = childrenDetailsJson;
       }
       
-      await storage.updateGuest(guest.id, updatedGuest);
+      await this.updateGuest(guest.id, updatedGuest);
       
       // Process ceremony selections if provided
       if (response.ceremonies && response.ceremonies.length > 0) {
         for (const ceremony of response.ceremonies) {
           // Check if guest-ceremony relation already exists
-          const existingRelation = await storage.getGuestCeremony(guest.id, ceremony.ceremonyId);
+          const existingRelation = await this.getGuestCeremony(guest.id, ceremony.ceremonyId);
           
           if (existingRelation) {
             // Update existing relation
-            await storage.updateGuestCeremony(existingRelation.id, {
+            await this.updateGuestCeremony(existingRelation.id, {
               attending: ceremony.attending
             });
           } else {
             // Create new relation
-            await storage.createGuestCeremony({
+            await this.createGuestCeremony({
               guestId: guest.id,
               ceremonyId: ceremony.ceremonyId,
               attending: ceremony.attending
@@ -522,19 +526,19 @@ export class RSVPService {
           // Handle meal selection if provided and attending
           if (ceremony.attending && ceremony.mealOptionId) {
             // Check if meal selection already exists
-            const existingMealSelections = await storage.getGuestMealSelectionsByGuest(guest.id);
+            const existingMealSelections = await this.getGuestMealSelectionsByGuest(guest.id);
             const existingForCeremony = existingMealSelections.find(ms => 
               ms.ceremonyId === ceremony.ceremonyId
             );
             
             if (existingForCeremony) {
               // Update existing meal selection
-              await storage.updateGuestMealSelection(existingForCeremony.id, {
+              await this.updateGuestMealSelection(existingForCeremony.id, {
                 mealOptionId: ceremony.mealOptionId
               });
             } else {
               // Create new meal selection
-              await storage.createGuestMealSelection({
+              await this.createGuestMealSelection({
                 guestId: guest.id,
                 ceremonyId: ceremony.ceremonyId,
                 mealOptionId: ceremony.mealOptionId
@@ -548,7 +552,7 @@ export class RSVPService {
       if (response.accommodationNeeded) {
         // For now, just record this in the guest record as notes
         // In a future enhancement, we would allocate a room based on available inventory
-        await storage.updateGuest(guest.id, {
+        await this.updateGuest(guest.id, {
           needsAccommodation: true,
           notes: (guest.notes || '') + `\nAccommodation needed: Arrival: ${response.arrivalDate || 'TBD'}, Departure: ${response.departureDate || 'TBD'}`
         });
@@ -557,18 +561,18 @@ export class RSVPService {
       // Handle transportation needs
       if (response.transportationNeeded) {
         // Check if travel info already exists
-        const existingTravelInfo = await storage.getTravelInfoByGuest(guest.id);
+        const existingTravelInfo = await this.getTravelInfoByGuest(guest.id);
         
         if (existingTravelInfo) {
           // Update existing travel info
-          await storage.updateTravelInfo(existingTravelInfo.id, {
+          await this.updateTravelInfo(existingTravelInfo.id, {
             needsTransportation: true,
             arrivalDate: response.arrivalDate,
             departureDate: response.departureDate
           });
         } else {
           // Create new travel info
-          await storage.createTravelInfo({
+          await this.createTravelInfo({
             guestId: guest.id,
             needsTransportation: true,
             arrivalDate: response.arrivalDate,
@@ -579,7 +583,7 @@ export class RSVPService {
       
       // Record message if provided
       if (response.message) {
-        await storage.createCoupleMessage({
+        await this.createCoupleMessage({
           guestId: guest.id,
           eventId: event.id,
           message: response.message
