@@ -76,6 +76,11 @@ import transportRoutes from "./routes/transport";
 import flightCoordinationRoutes from "./routes/flight-coordination";
 import vehicleManagementRoutes from "./routes/vehicle-management";
 
+// Import New Domain Routes
+import registerAuthRoutes, { isAuthenticated, isAdmin } from "./routes/auth";
+import registerStatisticsRoutes from "./routes/statistics";
+import registerRelationshipTypeRoutes from "./routes/relationship-types";
+
 // Integration routes now handled via registerIntegrationRoutes function
 
 // Standard API routes handle all operations
@@ -203,209 +208,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return crypto.randomBytes(32).toString('hex');
   };
 
-  // CSRF token endpoint for client-side requests
-  app.get('/api/csrf-token', (req, res) => {
-    const token = generateCSRFToken();
-    req.session.csrfToken = token;
-    res.json({ csrfToken: token });
-  });
+  // CSRF token endpoint moved to auth.ts
   
-  // Optimized middleware - removed excessive debug logging for performance
+  // Passport configuration moved to auth.ts
   
-  passport.use(new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      
-      // Handle both hashed passwords and plain text passwords (for backward compatibility)
-      let passwordMatch = false;
-      
-      if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
-        // Password is already hashed, use bcrypt comparison
-        passwordMatch = await bcrypt.compare(password, user.password);
-      } else {
-        // Legacy plain-text password - direct comparison with automatic upgrade
-        passwordMatch = user.password === password;
-        
-        if (passwordMatch) {
-          // Upgrade the plain-text password to a hashed one
-          try {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            await storage.updateUserPassword(user.id, hashedPassword);
-            // Password successfully upgraded to hashed format
-          } catch (hashError) {
-            
-          }
-        }
-      }
-      
-      if (!passwordMatch) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }));
-  
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-  
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      if (!user) {
-        return done(null, false);
-      }
-      
-      // Create a safe version of the user without the password
-      const { password, ...safeUser } = user;
-      return done(null, safeUser);
-    } catch (error) {
-      
-      return done(error, false);
-    }
-  });
-  
-  // Optimized authentication middleware without excessive logging
-  
-  // Auth routes
-  app.post('/api/auth/register', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      
-      // Hash the password before storing
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const secureUserData = {
-        ...userData,
-        password: hashedPassword
-      };
-      
-      // Create new user with hashed password
-      const user = await storage.createUser(secureUserData);
-      
-      // Log the user in automatically
-      req.login(user, (err) => {
-        if (err) {
-          
-          return res.status(500).json({ message: 'Registration successful but login failed' });
-        }
-        
-        // Registration and login successful
-        
-        // Save the session explicitly before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            
-            return res.status(500).json({ message: 'Registration successful but session save failed' });
-          }
-          
-          // Session saved after registration
-          
-          // Create a safe user object without the password
-          const { password, ...safeUser } = user;
-          res.status(201).json({ user: safeUser });
-        });
-      });
-    } catch (error) {
-      
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to register user' });
-    }
-  });
-  
-  app.post('/api/auth/login', (req, res, next) => {
-    passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
-      if (err) {
-        
-        return next(err);
-      }
-      
-      if (!user) {
-        return res.status(401).json({ message: info?.message || 'Invalid credentials' });
-      }
-      
-      req.login(user, (loginErr: Error | null) => {
-        if (loginErr) {
-          
-          return next(loginErr);
-        }
-        
-        // Create a safe user object without the password
-        const safeUser: { [key: string]: unknown } = { ...user };
-        if ('password' in safeUser) {
-          delete safeUser.password;
-        }
-          
-        // Force immediate session save and wait for completion
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            
-            return next(saveErr);
-          }
-          
-          // Session saved and login successful
-          
-          return res.json({ user: safeUser });
-        });
-      });
-    })(req, res, next);
-  });
-  
-  app.post('/api/auth/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Logout failed' });
-      }
-      res.json({ message: 'Logged out successfully' });
-    });
-  });
-  
-  app.get('/api/auth/status', (req, res) => {
-    if (req.isAuthenticated() && req.user) {
-      // Ensure we return a consistent user object
-      const userObj = req.user as Record<string, unknown>;
-      const user = {
-        id: userObj.id,
-        username: userObj.username,
-        name: userObj.name || 'User',
-        email: userObj.email || '',
-        role: userObj.role || 'couple',
-      };
-      return res.json({ user, authenticated: true });
-    } else {
-      return res.status(401).json({ message: 'Not authenticated', authenticated: false });
-    }
-  });
-
-  app.get('/api/auth/user', (req, res) => {
-    if (req.isAuthenticated() && req.user) {
-      // Ensure we return a consistent user object
-      const userObj = req.user as Record<string, unknown>;
-      const user = {
-        id: userObj.id,
-        username: userObj.username,
-        name: userObj.name || 'User',
-        email: userObj.email || '',
-        role: userObj.role || 'couple',
-      };
-      return res.json({ user });
-    } else {
-      return res.status(401).json({ message: 'Not authenticated' });
-    }
-  });
+  // Auth routes moved to auth.ts
   
   // System info route for deployment debugging
   app.get('/api/system/info', async (req, res) => {
@@ -433,30 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // User routes
-  app.post('/api/users', isAdmin, async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Hash the password before storing
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const secureUserData = {
-        ...userData,
-        password: hashedPassword
-      };
-      
-      const user = await storage.createUser(secureUserData);
-      
-      // Don't return the password in the response
-      const { password, ...safeUserData } = user;
-      res.status(201).json(safeUserData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to create user' });
-    }
-  });
+  // User management route moved to auth.ts
   
   // Wedding Event routes
   // Special route for events with role-based access control
@@ -2624,97 +2408,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Statistics
-  app.get('/api/events/:eventId/statistics', isAuthenticated, async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.eventId);
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: "Invalid event ID" });
-      }
-      const guests = await storage.getGuestsByEvent(eventId);
-      
-      const stats = {
-        total: guests.length,
-        confirmed: guests.filter(g => g.rsvpStatus === 'confirmed').length,
-        declined: guests.filter(g => g.rsvpStatus === 'declined').length,
-        pending: guests.filter(g => g.rsvpStatus === 'pending').length,
-        plusOnes: guests.filter(g => g.plusOneName).length,
-        children: guests.reduce((acc, g) => acc + (g.childrenDetails && Array.isArray(g.childrenDetails) ? g.childrenDetails.length : 0), 0),
-        rsvpRate: guests.length > 0 ? 
-          (guests.filter(g => g.rsvpStatus !== 'pending').length / guests.length) * 100 : 0
-      };
-      
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch statistics' });
-    }
-  });
+  // Statistics route moved to statistics.ts
   
-  // Relationship Type routes
-  app.get('/api/relationship-types', isAuthenticated, async (req, res) => {
-    try {
-      const relationshipTypes = await storage.getAllRelationshipTypes();
-      res.json(relationshipTypes);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch relationship types' });
-    }
-  });
-  
-  app.get('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const relationshipType = await storage.getRelationshipType(id);
-      if (!relationshipType) {
-        return res.status(404).json({ message: 'Relationship type not found' });
-      }
-      res.json(relationshipType);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch relationship type' });
-    }
-  });
-  
-  app.post('/api/relationship-types', isAuthenticated, async (req, res) => {
-    try {
-      const data = insertRelationshipTypeSchema.parse(req.body);
-      const relationshipType = await storage.createRelationshipType(data);
-      res.status(201).json(relationshipType);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to create relationship type' });
-    }
-  });
-  
-  app.put('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const data = insertRelationshipTypeSchema.partial().parse(req.body);
-      const relationshipType = await storage.updateRelationshipType(id, data);
-      if (!relationshipType) {
-        return res.status(404).json({ message: 'Relationship type not found' });
-      }
-      res.json(relationshipType);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to update relationship type' });
-    }
-  });
-  
-  app.delete('/api/relationship-types/:id', isAuthenticated, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteRelationshipType(id);
-      if (!success) {
-        return res.status(404).json({ message: 'Relationship type not found' });
-      }
-      res.json({ message: 'Relationship type deleted successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to delete relationship type' });
-    }
-  });
+  // Relationship Type routes moved to relationship-types.ts
   
   // WhatsApp Template routes
   app.get('/api/events/:eventId/whatsapp-templates', isAuthenticated, async (req, res) => {
@@ -2860,6 +2556,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register New Domain Routes (extracted from monolithic file)
+  registerAuthRoutes(app);
+  registerStatisticsRoutes(app, isAuthenticated);
+  registerRelationshipTypeRoutes(app, isAuthenticated);
+  
   // Register RSVP routes
   // These handle verification of RSVP tokens, submission of RSVP responses, 
   // and generation of RSVP links for guests
@@ -3389,8 +3090,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Register transport routes
-  app.use('/api/transport', transportRoutes);
+  // NOTE: Transport routes are already registered above (line ~2888)
+  // Removed duplicate registration: app.use('/api/transport', transportRoutes);
   
   // Register Flight Coordination routes
   app.use('/api', flightCoordinationRoutes);
@@ -3400,10 +3101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Standard API endpoints handle all operations
   
-
-
-  // Register WhatsApp routes
-  registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
+  // NOTE: WhatsApp routes are already registered above (line ~2873)
+  // Removed duplicate registration: registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
   
   // Register Integration routes for comprehensive guest data filtering
   registerIntegrationRoutes(app, isAuthenticated);
