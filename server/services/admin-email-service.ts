@@ -81,7 +81,7 @@ class AdminEmailService {
   private createSMTPTransporter() {
     if (!this.config) throw new Error('No email configuration loaded');
 
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       host: this.config.smtpHost,
       port: this.config.smtpPort,
       secure: this.config.smtpSecure,
@@ -95,7 +95,7 @@ class AdminEmailService {
   private createGmailTransporter() {
     if (!this.config) throw new Error('No email configuration loaded');
 
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       service: 'gmail',
       auth: {
         type: 'OAuth2',
@@ -111,7 +111,7 @@ class AdminEmailService {
   private createOutlookTransporter() {
     if (!this.config) throw new Error('No email configuration loaded');
 
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       host: 'smtp-mail.outlook.com',
       port: 587,
       secure: false,
@@ -129,7 +129,7 @@ class AdminEmailService {
   private createSendGridTransporter() {
     if (!this.config) throw new Error('No email configuration loaded');
 
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       service: 'SendGrid',
       auth: {
         user: 'apikey',

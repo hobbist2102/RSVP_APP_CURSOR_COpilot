@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, Link, useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Users, 
   Building2, 

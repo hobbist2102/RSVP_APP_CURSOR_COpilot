@@ -1,5 +1,5 @@
 import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
-import qrcode from 'qrcode';
+import qrcode from 'qrcode-terminal';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs';

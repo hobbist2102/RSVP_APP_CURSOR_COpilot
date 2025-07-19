@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { users } from '../../shared/schema';
 import { otpCodes, userSecuritySettings } from '../schema';
@@ -104,7 +104,13 @@ export class OTPService {
       message: customMessage || `Your verification code is: ${code}`
     };
 
-    const emailService = new UnifiedEmailService();
+    const emailService = new UnifiedEmailService(
+      0, // eventId - using 0 for system-level emails
+      'resend', // provider
+      'noreply@rsvp-platform.com', // fromEmail
+      'RSVP Platform', // eventName
+      null // fallbackProvider
+    );
     await emailService.sendEmail({
       to: user[0].email,
       subject: messageData.subject,

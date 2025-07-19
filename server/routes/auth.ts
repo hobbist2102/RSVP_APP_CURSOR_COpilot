@@ -1,5 +1,5 @@
 import { Express, Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import { storage } from '../storage';
 import { insertUserSchema } from '../../shared/schema';
 import { getDefaultCredentials } from '../auth/production-auth';
 import crypto from 'crypto';
-import { passwordResetTokens } from '../db/schema.js';
+import { passwordResetTokens } from '../../shared/schema';
 import { and, lte } from 'drizzle-orm';
 
 // CSRF token generation utility
