@@ -248,6 +248,61 @@ initialize_schema() {
     print_success "Database schema initialized successfully"
 }
 
+# Create admin user
+create_admin_user() {
+    print_step "Creating default admin user..."
+    
+    # Create a temporary script to add admin user
+    cat > create-admin.js << 'EOF'
+const bcrypt = require('bcryptjs');
+const { storage } = require('./server/storage');
+
+async function createAdminUser() {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await storage.getUserByUsername('admin');
+    if (existingAdmin) {
+      console.log('✅ Admin user already exists');
+      return;
+    }
+    
+    // Create admin user with hashed password
+    const hashedPassword = await bcrypt.hash('password1234', 10);
+    await storage.createUser({
+      username: 'admin',
+      name: 'Administrator',
+      email: 'admin@example.com',
+      password: hashedPassword,
+      role: 'admin'
+    });
+    
+    console.log('✅ Admin user created successfully');
+    console.log('   Username: admin');
+    console.log('   Password: password1234');
+    console.log('   Role: admin');
+    
+  } catch (error) {
+    console.error('❌ Failed to create admin user:', error.message);
+  } finally {
+    process.exit(0);
+  }
+}
+
+createAdminUser();
+EOF
+
+    # Run the script to create admin user
+    node create-admin.js
+    
+    # Clean up the temporary script
+    rm create-admin.js
+    
+    print_success "Default admin user created"
+    echo "   👤 Username: admin"
+    echo "   🔑 Password: password1234"
+    echo "   🛡️  Role: admin"
+}
+
 # Build application
 build_application() {
     print_step "Building application..."
@@ -299,7 +354,13 @@ show_final_instructions() {
     echo "2. Open your browser and go to:"
     echo "   ${YELLOW}http://localhost:5000${NC}"
     echo
-    echo "3. Create your admin account and start planning weddings!"
+    echo "3. Login with the default admin account:"
+    echo "   👤 Username: ${YELLOW}admin${NC}"
+    echo "   🔑 Password: ${YELLOW}password1234${NC}"
+    echo
+    echo "4. Change the admin password from the settings page!"
+    echo
+    echo "5. Start planning weddings!"
     echo
     echo -e "${CYAN}📁 Important Files:${NC}"
     echo "• ${YELLOW}.env${NC} - Environment configuration"
@@ -329,6 +390,7 @@ main() {
     install_dependencies
     test_database_connection
     initialize_schema
+    create_admin_user
     build_application
     create_startup_script
     create_production_script

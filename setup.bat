@@ -142,6 +142,59 @@ if %errorlevel% neq 0 (
 )
 echo ✅ Database schema initialized successfully
 
+REM Create admin user
+echo 🔹 Creating default admin user...
+
+REM Create temporary script to add admin user
+(
+echo const bcrypt = require('bcryptjs'^);
+echo const { storage } = require('./server/storage'^);
+echo.
+echo async function createAdminUser(^) {
+echo   try {
+echo     // Check if admin already exists
+echo     const existingAdmin = await storage.getUserByUsername('admin'^);
+echo     if (existingAdmin^) {
+echo       console.log('✅ Admin user already exists'^);
+echo       return;
+echo     }
+echo.
+echo     // Create admin user with hashed password
+echo     const hashedPassword = await bcrypt.hash('password1234', 10^);
+echo     await storage.createUser({
+echo       username: 'admin',
+echo       name: 'Administrator',
+echo       email: 'admin@example.com',
+echo       password: hashedPassword,
+echo       role: 'admin'
+echo     }^);
+echo.
+echo     console.log('✅ Admin user created successfully'^);
+echo     console.log('   Username: admin'^);
+echo     console.log('   Password: password1234'^);
+echo     console.log('   Role: admin'^);
+echo.
+echo   } catch (error^) {
+echo     console.error('❌ Failed to create admin user:', error.message^);
+echo   } finally {
+echo     process.exit(0^);
+echo   }
+echo }
+echo.
+echo createAdminUser(^);
+) > create-admin.js
+
+REM Run the script to create admin user
+node create-admin.js
+
+REM Clean up the temporary script
+del create-admin.js
+
+echo ✅ Default admin user created
+echo    👤 Username: admin
+echo    🔑 Password: password1234
+echo    🛡️  Role: admin
+
 REM Build application
 echo 🔹 Building application...
 npm run build
@@ -187,7 +240,13 @@ echo.
 echo 2. Open your browser and go to:
 echo    http://localhost:5000
 echo.
-echo 3. Create your admin account and start planning weddings!
+echo 3. Login with the default admin account:
+echo    👤 Username: admin
+echo    🔑 Password: password1234
+echo.
+echo 4. Change the admin password from the settings page!
+echo.
+echo 5. Start planning weddings!
 echo.
 echo 📁 Important Files:
 echo • .env - Environment configuration
