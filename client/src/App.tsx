@@ -19,6 +19,9 @@ const RsvpManagement = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages
 const RsvpPage = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-page"));
 const RsvpDemo = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-demo"));
 
+// Communication module - separate chunk
+const Communications = lazy(() => import(/* webpackChunkName: "communication" */ "@/pages/communications"));
+
 // Travel and accommodation - separate chunk  
 const Travel = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/travel"));
 const TravelManagement = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/travel-management"));
@@ -82,6 +85,13 @@ function App() {
           {() => (
             
               <RsvpManagement />
+            
+          )}
+        </Route>
+        <Route path="/communications">
+          {() => (
+            
+              <Communications />
             
           )}
         </Route>
