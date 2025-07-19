@@ -62,7 +62,7 @@ const stage2Schema = z.object({
   
   // Transportation details
   needsTransportation: z.boolean().optional(),
-  transportationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  transportationType: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
   transportationNotes: z.string().optional(),
   
   // Travel mode
@@ -217,7 +217,7 @@ export default function TwoStageRsvpForm({ eventId, ceremonies, mealOptions, onS
         accommodationPreference: values.accommodationPreference,
         accommodationNotes: values.accommodationNotes,
         needsTransportation: values.needsTransportation,
-        transportationPreference: values.transportationPreference,
+        transportationType: values.transportationType,
         transportationNotes: values.transportationNotes,
         
         // Travel details
@@ -687,7 +687,7 @@ export default function TwoStageRsvpForm({ eventId, ceremonies, mealOptions, onS
                   <div className="mt-4">
                     <FormField
                       control={stage2Form.control}
-                      name="transportationPreference"
+                      name="transportationType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Transportation Preference</FormLabel>

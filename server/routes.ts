@@ -315,8 +315,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Create a safe user object without the password
-        const safeUser = { ...user } as any;
-        if (safeUser.password) {
+        const safeUser: { [key: string]: unknown } = { ...user };
+        if ('password' in safeUser) {
           delete safeUser.password;
         }
           
@@ -347,12 +347,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/status', (req, res) => {
     if (req.isAuthenticated() && req.user) {
       // Ensure we return a consistent user object
+      const userObj = req.user as Record<string, unknown>;
       const user = {
-        id: (req.user as any).id,
-        username: (req.user as any).username,
-        name: (req.user as any).name || 'User',
-        email: (req.user as any).email || '',
-        role: (req.user as any).role || 'couple',
+        id: userObj.id,
+        username: userObj.username,
+        name: userObj.name || 'User',
+        email: userObj.email || '',
+        role: userObj.role || 'couple',
       };
       return res.json({ user, authenticated: true });
     } else {
@@ -363,12 +364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', (req, res) => {
     if (req.isAuthenticated() && req.user) {
       // Ensure we return a consistent user object
+      const userObj = req.user as Record<string, unknown>;
       const user = {
-        id: (req.user as any).id,
-        username: (req.user as any).username,
-        name: (req.user as any).name || 'User',
-        email: (req.user as any).email || '',
-        role: (req.user as any).role || 'couple',
+        id: userObj.id,
+        username: userObj.username,
+        name: userObj.name || 'User',
+        email: userObj.email || '',
+        role: userObj.role || 'couple',
       };
       return res.json({ user });
     } else {
@@ -390,9 +392,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authentication: {
           isAuthenticated: req.isAuthenticated(),
           user: req.user ? {
-            id: (req.user as any).id,
-            username: (req.user as any).username,
-            role: (req.user as any).role
+            id: (req.user as Record<string, unknown>).id,
+            username: (req.user as Record<string, unknown>).username,
+            role: (req.user as Record<string, unknown>).role
           } : null
         }
       });
@@ -543,6 +545,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const event = await storage.getEvent(eventId);
       if (!event) {
         return res.status(404).json({ message: 'Event not found' });
@@ -610,6 +615,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/events/:id', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       
       
@@ -647,6 +655,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/events/:id', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify the event exists first
       const event = await storage.getEvent(eventId);
@@ -861,6 +872,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/guests-comprehensive-legacy', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       
       // Verify event exists and user has access
@@ -937,6 +951,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify that the event exists
       const event = await storage.getEvent(eventId);
@@ -1141,6 +1158,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify that the event exists before creating a guest
       
@@ -1168,6 +1188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
+      if (isNaN(guestId)) {
+        return res.status(400).json({ message: "Invalid guest ID" });
+      }
       
       
       // First try to get event context from query parameters
@@ -1368,6 +1391,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/guests/:id/contact-preference', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
+      if (isNaN(guestId)) {
+        return res.status(400).json({ message: "Invalid guest ID" });
+      }
       const { plusOneRsvpContact } = req.body;
       
       // Validate input
@@ -1422,6 +1448,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify that the event exists before creating any guests
       
@@ -1492,6 +1521,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/guests/export', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const guests = await storage.getGuestsByEvent(eventId);
       const event = await storage.getEvent(eventId);
       
@@ -1535,6 +1567,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/ceremonies', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const ceremonies = await storage.getCeremoniesByEvent(eventId);
       res.json(ceremonies);
     } catch (error) {
@@ -1546,6 +1581,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/ceremonies/by-event/:eventId', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const ceremonies = await storage.getCeremoniesByEvent(eventId);
       res.json(ceremonies);
     } catch (error) {
@@ -1556,6 +1594,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/ceremonies', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify that the event exists before creating a ceremony
       
@@ -1891,6 +1932,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/accommodations', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       
       // First check if event exists
@@ -1939,6 +1983,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/accommodations', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Verify that the event exists before creating an accommodation
       
@@ -2434,6 +2481,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/messages', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const messages = await storage.getCoupleMessagesByEvent(eventId);
       res.json(messages);
     } catch (error) {
@@ -2444,6 +2494,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/messages', async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
 
       // Verify that the event exists before creating a message
       
@@ -2515,6 +2568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/statistics', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const guests = await storage.getGuestsByEvent(eventId);
       
       const stats = {
@@ -2604,6 +2660,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/whatsapp-templates', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const templates = await storage.getWhatsappTemplatesByEvent(eventId);
       res.json(templates);
     } catch (error) {
@@ -2614,6 +2673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/whatsapp-templates/category/:category', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const { category } = req.params;
       const templates = await storage.getWhatsappTemplatesByCategory(eventId, category);
       res.json(templates);
@@ -2642,6 +2704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/whatsapp-templates', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       const data = insertWhatsappTemplateSchema.parse({ ...req.body, eventId });
       const template = await storage.createWhatsappTemplate(data);
       res.status(201).json(template);
@@ -2780,6 +2845,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id/wizard-data', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
       
       // Get event data
       const event = await storage.getEvent(eventId);

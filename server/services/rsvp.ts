@@ -287,7 +287,7 @@ export class RSVPService {
         
         const travelInfoData: any = {
           needsTransportation: true,
-          transportationType: response.transportationPreference,
+          transportationType: response.transportationType,
           travelMode: response.travelMode,
           arrivalDate: response.arrivalDate,
           arrivalTime: response.arrivalTime,

@@ -9,7 +9,7 @@ import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { get, post, put, del } from "@/lib/api-utils";
 import { queryClient } from "@/lib/queryClient";
-import GuestFormSinglePage from "@/components/ui/guest-form-single-page";
+import GuestFormSinglePage from "@/components/ui/guest-form";
 import GuestImportDialog from "@/components/guest/guest-import-dialog";
 import GuestDetailDialog from "@/components/guest/guest-detail-dialog";
 import { getRsvpStatusColor, getInitials, cn } from "@/lib/utils";

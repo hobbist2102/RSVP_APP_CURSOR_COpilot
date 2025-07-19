@@ -39,7 +39,7 @@ export const RSVPStage2Schema = z.object({
   accommodationNotes: z.string().optional(),
   // Transportation details
   needsTransportation: z.boolean().optional(),
-  transportationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  transportationType: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
   transportationNotes: z.string().optional(),
   // Travel details
   travelMode: z.enum(['air', 'train', 'bus', 'car']).optional(),

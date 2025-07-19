@@ -58,7 +58,8 @@ app.use((req, res, next) => {
     registerFallbackRoutes(app);
     log('Registered fallback route handlers for client-side routing');
   } catch (error) {
-    
+    console.error('Failed to register fallback routes:', error);
+    // Continue without fallback routes - the app can still function
   }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

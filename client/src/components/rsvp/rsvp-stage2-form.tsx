@@ -55,7 +55,7 @@ const formSchema = z.object({
   accommodationNotes: z.string().optional(),
   // Transportation details
   needsTransportation: z.boolean().optional(),
-  transportationPreference: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
+  transportationType: z.enum(['provided', 'self_managed', 'special_arrangement']).optional(),
   transportationNotes: z.string().optional(),
   // Travel details
   travelMode: z.enum(['air', 'train', 'bus', 'car']).optional(),
@@ -110,7 +110,7 @@ export default function RsvpStage2Form({
       accommodationPreference: defaultValues?.accommodationPreference || 'provided',
       accommodationNotes: defaultValues?.accommodationNotes || "",
       needsTransportation: defaultValues?.needsTransportation || false,
-      transportationPreference: defaultValues?.transportationPreference || 'provided',
+      transportationType: defaultValues?.transportationType || 'provided',
       transportationNotes: defaultValues?.transportationNotes || "",
       travelMode: defaultValues?.travelMode || 'air',
       flightDetails: defaultValues?.flightDetails || {
@@ -138,7 +138,7 @@ export default function RsvpStage2Form({
         accommodationPreference: defaultValues.accommodationPreference || 'provided',
         accommodationNotes: defaultValues.accommodationNotes || "",
         needsTransportation: defaultValues.needsTransportation || false,
-        transportationPreference: defaultValues.transportationPreference || 'provided',
+        transportationType: defaultValues.transportationType || 'provided',
         transportationNotes: defaultValues.transportationNotes || "",
         travelMode: defaultValues.travelMode || 'air',
         flightDetails: defaultValues.flightDetails || {
@@ -394,7 +394,7 @@ export default function RsvpStage2Form({
                   <div className="mt-4 space-y-4">
                     <FormField
                       control={form.control}
-                      name="transportationPreference"
+                      name="transportationType"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
                           <FormLabel>Transportation Preference</FormLabel>

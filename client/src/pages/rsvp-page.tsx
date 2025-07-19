@@ -209,7 +209,7 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
                     <div className="grid grid-cols-3">
                       <dt className="font-medium text-muted-foreground">Transportation:</dt>
                       <dd className="col-span-2">
-                        {getTransportationText(stageData.guest?.transportationPreference || stageData.transportationPreference)}
+                        {getTransportationText(stageData.guest?.transportationType || stageData.transportationType)}
                       </dd>
                     </div>
                   )}

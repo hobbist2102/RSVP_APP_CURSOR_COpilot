@@ -92,7 +92,7 @@ export function calculateStage2Progress(guest: any): number {
   // Check transportation details
   if (guest.needsTransportation !== undefined) {
     fieldsCompleted += 1;
-    if (guest.needsTransportation && guest.transportationPreference) {
+    if (guest.needsTransportation && guest.transportationType) {
       fieldsCompleted += 1;
     }
   }
