@@ -54,6 +54,7 @@ export interface IStorage {
 
   // Event operations
   getEvent(id: number): Promise<WeddingEvent | undefined>;
+  getWeddingEvent(id: number): Promise<WeddingEvent | undefined>;
   eventExists(id: number): Promise<boolean>;
   getAllEvents(): Promise<WeddingEvent[]>;
   getEventsByUser(userId: number): Promise<WeddingEvent[]>;
@@ -237,6 +238,10 @@ export class DatabaseStorage implements IStorage {
   async getEvent(id: number): Promise<WeddingEvent | undefined> {
     const result = await db.select().from(weddingEvents).where(eq(weddingEvents.id, id));
     return result[0];
+  }
+
+  async getWeddingEvent(id: number): Promise<WeddingEvent | undefined> {
+    return this.getEvent(id);
   }
 
   async eventExists(id: number): Promise<boolean> {
@@ -862,6 +867,42 @@ export class DatabaseStorage implements IStorage {
   async deleteTransportAllocation(id: number): Promise<boolean> {
     const result = await db.delete(transportAllocations).where(eq(transportAllocations.id, id));
     return !!result;
+  }
+
+  // Missing methods for compatibility
+  async getCoupleMessagesByEvent(eventId: number): Promise<CoupleMessage[]> {
+    return await db.select().from(coupleMessages).where(eq(coupleMessages.eventId, eventId));
+  }
+
+  async getGuestByEmail(email: string): Promise<Guest | undefined> {
+    const result = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
+    return result[0];
+  }
+
+  async getCeremonies(eventId: number): Promise<Ceremony[]> {
+    return await this.getCeremoniesByEvent(eventId);
+  }
+
+  async getAccommodations(eventId: number): Promise<Accommodation[]> {
+    return await db.select().from(accommodations).where(eq(accommodations.eventId, eventId));
+  }
+
+  async getRoomAllocationsByEvent(eventId: number): Promise<RoomAllocation[]> {
+    return await db.select().from(roomAllocations)
+      .innerJoin(guests, eq(roomAllocations.guestId, guests.id))
+      .where(eq(guests.eventId, eventId));
+  }
+
+  async getHotel(id: number): Promise<Hotel | undefined> {
+    const result = await db.select().from(hotels).where(eq(hotels.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getGuestCeremony(guestId: number, ceremonyId: number): Promise<GuestCeremony | undefined> {
+    const result = await db.select().from(guestCeremonies)
+      .where(and(eq(guestCeremonies.guestId, guestId), eq(guestCeremonies.ceremonyId, ceremonyId)))
+      .limit(1);
+    return result[0];
   }
   
   // Transaction support for atomic operations

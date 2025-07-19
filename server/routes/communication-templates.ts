@@ -12,7 +12,7 @@ import {
   insertBrandAssetSchema,
   insertBrandSettingSchema
 } from '../../shared/schema';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, isNull } from 'drizzle-orm';
 import { weddingEvents } from '../../shared/schema';
 import { isAuthenticated } from '../middleware';
 import { substituteVariables, generatePreviewContent, TEMPLATE_VARIABLES } from '../services/variable-substitution';
@@ -66,7 +66,7 @@ router.get('/communication-templates/global', async (req: Request, res: Response
     const globalTemplates = await db
       .select()
       .from(communicationTemplates)
-      .where(eq(communicationTemplates.eventId, null))
+      .where(isNull(communicationTemplates.eventId))
       .orderBy(communicationTemplates.categoryId, communicationTemplates.sortOrder);
     
     // Group templates by category
@@ -158,7 +158,7 @@ router.get('/events/:eventId/communication-templates', async (req: Request, res:
       if (template.conditionalOn) {
         switch (template.conditionalOn) {
           case 'allowPlusOne':
-            return event.allowPlusOne === true;
+            return event.allowPlusOnes === true;
           case 'allowChildren':
             return event.allowChildren === true;
           case 'transportEnabled':
@@ -728,7 +728,7 @@ router.get('/events/:eventId/communication-providers', isAuthenticated, async (r
         useSendGrid: true,
         whatsappConfigured: true,
         emailConfigured: true,
-        sendgridApiKey: true,
+        sendGridApiKey: true,
         brevoApiKey: true,
         twilioAccountSid: true,
         twilioAuthToken: true,
@@ -908,7 +908,7 @@ router.post('/events/:eventId/communication/sendgrid', isAuthenticated, async (r
     await db.update(weddingEvents)
       .set({
         useSendGrid: true,
-        sendgridApiKey: apiKey,
+        sendGridApiKey: apiKey,
         emailConfigured: true
       })
       .where(eq(weddingEvents.id, eventId));

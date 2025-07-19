@@ -139,6 +139,41 @@ export const weddingEvents = pgTable("wedding_events", {
   secondaryColor: text("secondary_color").default("#E3C76F"),
   whatsappFrom: text("whatsapp_from"),
   
+  // Missing fields for communication and integration
+  allowPlusOne: boolean("allow_plus_one").default(true),
+  allowChildren: boolean("allow_children").default(true),
+  hasMehendi: boolean("has_mehendi").default(false),
+  hasSangam: boolean("has_sangam").default(false),
+  hasOutdoorVenue: boolean("has_outdoor_venue").default(false),
+  hasEngagement: boolean("has_engagement").default(false),
+  
+  // Email service fields
+  sendGridApiKey: text("sendgrid_api_key"),
+  smtpHost: text("smtp_host"),
+  smtpPort: integer("smtp_port"),
+  emailFromName: text("email_from_name"),
+  gmailAccessToken: text("gmail_access_token"),
+  gmailTokenExpiry: timestamp("gmail_token_expiry"),
+  outlookAccessToken: text("outlook_access_token"),
+  outlookTokenExpiry: timestamp("outlook_token_expiry"),
+  gmailAccount: text("gmail_account"),
+  outlookAccount: text("outlook_account"),
+  
+  // WhatsApp Business API fields
+  whatsappPhoneNumberId: text("whatsapp_phone_number_id"),
+  twilioAccountSid: text("twilio_account_sid"),
+  twilioAuthToken: text("twilio_auth_token"),
+  twilioPhoneNumber: text("twilio_phone_number"),
+  
+  // Flight coordination fields
+  flightListExported: boolean("flight_list_exported").default(false),
+  flightNotificationsSent: integer("flight_notifications_sent").default(0),
+  flightListExportDate: timestamp("flight_list_export_date"),
+  
+  // Communication and RSVP settings
+  sendRsvpConfirmations: boolean("send_rsvp_confirmations").default(true),
+  fontFamily: text("font_family").default("Inter"),
+  
   createdBy: integer("created_by").notNull(),
 });
 
@@ -197,6 +232,10 @@ export const guests = pgTable("guests", {
   // Computed/derived fields
   plusOneAttending: boolean("plus_one_attending").default(false), // Whether plus one is actually attending
   plusOneDietary: text("plus_one_dietary"), // Plus one dietary restrictions
+  // Travel and transportation fields
+  travelMode: text("travel_mode"), // flight, train, car, bus
+  specialRequests: text("special_requests"), // Special accommodation requests
+  flightStatus: text("flight_status"), // confirmed, pending, cancelled
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -698,6 +737,10 @@ export const guestTravelInfo = pgTable("guest_travel_info", {
   terminalGate: text("terminal_gate"),
   luggageCount: integer("luggage_count"),
   specialAssistance: boolean("special_assistance").default(false),
+  // Additional flight coordination fields
+  originAirport: text("origin_airport"),
+  destinationAirport: text("destination_airport"),
+  needsTransportation: boolean("needs_transportation").default(false),
   lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -730,6 +773,7 @@ export const transportGroups = pgTable("transport_groups", {
   pickupStatus: text("pickup_status").default("pending"),
   guestsPickedUp: integer("guests_picked_up").default(0),
   totalGuests: integer("total_guests").default(0),
+  guestCount: integer("guest_count").default(0), // Total number of guests in group
   delayNotifications: jsonb("delay_notifications"),
   realTimeUpdates: jsonb("real_time_updates"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -755,6 +799,7 @@ export const transportAllocations = pgTable("transport_allocations", {
   confirmedByGuest: boolean("confirmed_by_guest").default(false), // If the guest has confirmed
   flightDelayed: boolean("flight_delayed").default(false), // Flag for delayed flights
   delayInformation: text("delay_information"), // Details about the delay
+  assignedAt: timestamp("assigned_at"), // When the allocation was made
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -877,6 +922,8 @@ export const brandSettings = pgTable("brand_settings", {
   accentColor: text("accent_color").default("#FEF3C7"), // Hex color code
   primaryFont: text("primary_font").default("serif"), // Font family for headings
   secondaryFont: text("secondary_font").default("sans-serif"), // Font family for body
+  headingFont: text("heading_font").default("serif"), // Alternative heading font
+  bodyFont: text("body_font").default("sans-serif"), // Body text font
   logoUrl: text("logo_url"), // Logo asset URL
   emailBannerUrl: text("email_banner_url"), // Email header banner URL
   whatsappProfileUrl: text("whatsapp_profile_url"), // WhatsApp profile picture URL
