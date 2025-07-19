@@ -108,7 +108,7 @@ export class UnifiedEmailService {
         this.transport = await this.createTransport(this.provider, event);
         primarySuccess = !!this.transport;
       } catch (error) {
-        this.lastError = `Failed to create primary transport (${this.provider}): ${error.message}`;
+        this.lastError = `Failed to create primary transport (${this.provider}): ${(error as Error).message}`;
         
       }
 
@@ -124,7 +124,7 @@ export class UnifiedEmailService {
       this.initialized = primarySuccess || !!this.fallbackTransport;
       return this.initialized;
     } catch (error) {
-      this.lastError = `Error initializing email service: ${error.message}`;
+      this.lastError = `Error initializing email service: ${(error as Error).message}`;
       
       return false;
     }
@@ -232,7 +232,7 @@ export class UnifiedEmailService {
         
         
       } catch (error) {
-        throw new Error(`Error refreshing Gmail access token: ${error.message}`);
+        throw new Error(`Error refreshing Gmail access token: ${(error as Error).message}`);
       }
     }
     
@@ -308,7 +308,7 @@ export class UnifiedEmailService {
         
         
       } catch (error) {
-        throw new Error(`Error refreshing Outlook access token: ${error.message}`);
+        throw new Error(`Error refreshing Outlook access token: ${(error as Error).message}`);
       }
     }
     
@@ -372,7 +372,7 @@ export class UnifiedEmailService {
       } catch (error) {
         return {
           success: false,
-          error: `Failed to initialize email service: ${error.message}`
+          error: `Failed to initialize email service: ${(error as Error).message}`
         };
       }
     }
@@ -404,7 +404,7 @@ export class UnifiedEmailService {
         if (!this.fallbackTransport) {
           return {
             success: false,
-            error: `Failed to send email: ${error.message}`
+            error: `Failed to send email: ${(error as Error).message}`
           };
         }
       }
@@ -432,7 +432,7 @@ export class UnifiedEmailService {
       } catch (error) {
         return {
           success: false,
-          error: `Failed to send email with fallback transport (${this.fallbackProvider}): ${error.message}`
+          error: `Failed to send email with fallback transport (${this.fallbackProvider}): ${(error as Error).message}`
         };
       }
     }

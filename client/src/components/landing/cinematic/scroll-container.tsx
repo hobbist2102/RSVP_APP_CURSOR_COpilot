@@ -20,7 +20,7 @@ const loadGsapPlugins = async () => {
     ScrollToPlugin = ScrollToPluginModule.ScrollToPlugin;
     
     // Register only once
-    if (!gsap.plugins?.scrollTo) {
+    if (!(gsap.plugins as any)?.scrollTo) {
       gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
     }
     

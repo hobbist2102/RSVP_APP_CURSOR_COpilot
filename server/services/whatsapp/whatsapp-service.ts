@@ -101,10 +101,10 @@ export class WhatsAppService {
       // Add media if provided
       if (message.mediaUrl && message.mediaType) {
         payload.type = message.mediaType;
-        payload[message.mediaType] = {
+        (payload as any)[message.mediaType] = {
           link: message.mediaUrl
         };
-        delete payload.text;
+        delete (payload as any).text;
       }
 
       const response = await fetch(url, {

@@ -189,7 +189,7 @@ const ActivityTable = memo(function ActivityTable({
   ), [onViewGuest, onEditGuest]);
 
   // Memoized columns with stable definitions
-  const columns = useMemo(() => [
+  const columns = useMemo((): any[] => [
     {
       header: "Guest",
       accessor: (row: RsvpActivity) => row.guest.name, // Used for sorting
@@ -251,7 +251,7 @@ const ActivityTable = memo(function ActivityTable({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <DataTable
+        <DataTable<RsvpActivity>
           data={filteredActivities}
           columns={columns}
           keyField="id"

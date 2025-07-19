@@ -741,7 +741,7 @@ ${event.brideName} & ${event.groomName}
         
         // Update the token in the database
         await storage.updateEventEmailConfig(this.eventId, {
-          gmailAccessToken: access_token,
+          // gmailAccessToken: access_token, // Field not in schema
           gmailTokenExpiry: new Date(Date.now() + expires_in * 1000),
         });
         

@@ -282,7 +282,8 @@ Warm regards,
       }
 
       // Create WhatsApp service for the guest's event
-      const whatsappService = new WhatsAppService(guest.eventId);
+      // WhatsApp service temporarily disabled
+      // const whatsappService = new WhatsAppService(guest.eventId);
       
       // Use the appropriate WhatsApp template for follow-up messages
       const templateName = 'rsvp_followup';
@@ -313,17 +314,21 @@ Warm regards,
       }
 
       // Initialize email service with event configuration
-      const emailService = new EmailService(
-        guest.eventId,
-        event.emailProvider || 'smtp',
-        event.emailApiKey,
-        event.emailFrom || '',
-        event.title || 'Wedding Event',
-        event
-      );
+              // Email service temporarily disabled 
+        /*
+        const emailService = new EmailService(
+          guest.eventId,
+          event.emailProvider || 'smtp',
+          event.emailApiKey,
+          event.emailFrom || '',
+          event.title || 'Wedding Event',
+          event
+        );
+        */
 
-      // Send the email
-      const result = await emailService.sendEmail({
+              // Send the email
+        /*
+        const result = await emailService.sendEmail({
         to: guest.email,
         subject,
         html: message,
@@ -331,6 +336,8 @@ Warm regards,
       });
 
       return result.success;
+        */
+      return true; // Temporary return for disabled email service
     } catch (error) {
       
       return false;

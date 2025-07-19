@@ -51,7 +51,7 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
 
   // Set default style when data is loaded
   useEffect(() => {
-    if (stylesData?.styles?.length > 0) {
+    if (stylesData && 'styles' in stylesData && Array.isArray(stylesData.styles) && stylesData.styles.length > 0) {
       // Find default style or use the first one
       const defaultStyle = stylesData.styles.find((style: any) => style.isDefault) || stylesData.styles[0];
       setSelectedStyle(defaultStyle.id);
@@ -60,9 +60,9 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
 
   // Generate preview when template and style are selected
   useEffect(() => {
-    if (templateData?.template && selectedStyle && stylesData?.styles) {
-      const template = templateData.template;
-      const style = stylesData.styles.find((s: any) => s.id === selectedStyle);
+    if (templateData && 'template' in templateData && selectedStyle && stylesData && 'styles' in stylesData) {
+      const template = templateData.template as any;
+      const style = (stylesData.styles as any[]).find((s: any) => s.id === selectedStyle);
       
       if (!style) return;
       
@@ -158,7 +158,7 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
-            {templateLoading ? 'Loading Email Template...' : `Preview: ${templateData?.template?.name}`}
+            {templateLoading ? 'Loading Email Template...' : `Preview: ${templateData && 'template' in templateData ? (templateData.template as any)?.name : 'Template'}`}
           </DialogTitle>
         </DialogHeader>
 
@@ -181,14 +181,14 @@ export default function EmailTemplatePreview({ eventId, templateId, onClose }: E
                         <SelectValue placeholder="Select a style" />
                       </SelectTrigger>
                       <SelectContent>
-                        {stylesData?.styles?.map((style: any) => (
+                        {stylesData && 'styles' in stylesData ? (stylesData.styles as any[])?.map((style: any) => (
                           <SelectItem 
                             key={style.id} 
                             value={style.id.toString()}
                           >
                             {style.name}{style.isDefault ? ' (Default)' : ''}
                           </SelectItem>
-                        ))}
+                        )) : null}
                       </SelectContent>
                     </Select>
                   </div>
