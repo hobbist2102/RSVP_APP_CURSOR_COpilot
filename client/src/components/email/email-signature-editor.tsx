@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { put } from "@/lib/api-utils";
+import { put, post, del } from "@/lib/api-utils";
 import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { useForm } from "react-hook-form";

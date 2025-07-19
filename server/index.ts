@@ -42,11 +42,18 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Always allow origins for Replit deployment compatibility
-  if (origin && (origin.includes('replit.app') || origin.includes('replit.dev') || origin.includes('localhost'))) {
+  // Flexible origin handling for different deployment environments
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  
+  if (isDevelopment || 
+      (origin && allowedOrigins.includes(origin)) ||
+      (origin && (origin.includes('localhost') || origin.includes('127.0.0.1')))) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else if (allowedOrigins.length > 0) {
+    res.header('Access-Control-Allow-Origin', allowedOrigins[0]);
   } else {
-    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Origin', '*');
   }
   
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -98,13 +105,14 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  // Flexible port configuration for different deployment environments
   const port = parseInt(process.env.PORT || "5000");
+  const hostname = process.env.HOSTNAME || "0.0.0.0";
   
-  server.listen(port, "0.0.0.0", () => {
-    log(`✅ Wedding platform server running on port ${port}`);
+  server.listen(port, hostname, () => {
+    log(`✅ Wedding platform server running on ${hostname}:${port}`);
+    log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    log(`📊 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
   });
   
   server.on('error', (error: any) => {

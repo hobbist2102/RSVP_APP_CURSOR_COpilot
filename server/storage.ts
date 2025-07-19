@@ -5,18 +5,21 @@ import {
   travelInfo, accommodations, roomAllocations, mealOptions, 
   guestMealSelections, coupleMessages, relationshipTypes,
   whatsappTemplates, rsvpFollowupTemplates, rsvpFollowupLogs,
-  hotels, globalRoomTypes, type User, type WeddingEvent, type Guest,
+  hotels, globalRoomTypes, transportVendors, transportGroups, 
+  transportAllocations, type User, type WeddingEvent, type Guest,
   type Ceremony, type GuestCeremony, type TravelInfo, type Accommodation,
   type RoomAllocation, type MealOption, type GuestMealSelection,
   type CoupleMessage, type RelationshipType, type WhatsappTemplate,
   type RsvpFollowupTemplate, type RsvpFollowupLog, type Hotel,
-  type GlobalRoomType, type InsertUser, type InsertWeddingEvent,
+  type GlobalRoomType, type TransportVendor, type TransportGroup,
+  type TransportAllocation, type InsertUser, type InsertWeddingEvent,
   type InsertGuest, type InsertCeremony, type InsertGuestCeremony,
   type InsertTravelInfo, type InsertAccommodation, type InsertRoomAllocation,
   type InsertMealOption, type InsertGuestMealSelection, type InsertCoupleMessage,
   type InsertRelationshipType, type InsertWhatsappTemplate,
   type InsertRsvpFollowupTemplate, type InsertRsvpFollowupLog,
-  type InsertHotel, type InsertGlobalRoomType
+  type InsertHotel, type InsertGlobalRoomType, type InsertTransportVendor,
+  type InsertTransportGroup, type InsertTransportAllocation
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 

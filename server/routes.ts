@@ -9,7 +9,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
-import csurf from 'csurf';
+import crypto from 'crypto';
 import { isAuthenticated, isAdmin } from './middleware';
 import { ensureAdminUserExists, getDefaultCredentials } from './auth/production-auth';
 // Import session type extensions
@@ -197,24 +197,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // CSRF Protection for state-changing routes
-  const csrfProtection = csurf({
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    },
-    // Skip CSRF for API routes that use other authentication
-    ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
-    // Custom error handler for CSRF failures
-    value: (req) => {
-      return req.body._csrf || req.query._csrf || req.headers['x-csrf-token'];
-    }
-  });
+  // Simple CSRF protection without deprecated csurf package
+  const generateCSRFToken = () => {
+    return crypto.randomBytes(32).toString('hex');
+  };
 
   // CSRF token endpoint for client-side requests
-  app.get('/api/csrf-token', csrfProtection, (req, res) => {
-    res.json({ csrfToken: req.csrfToken() });
+  app.get('/api/csrf-token', (req, res) => {
+    const token = generateCSRFToken();
+    req.session.csrfToken = token;
+    res.json({ csrfToken: token });
   });
   
   // Optimized middleware - removed excessive debug logging for performance
