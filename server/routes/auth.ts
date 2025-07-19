@@ -362,7 +362,7 @@ export default function registerAuthRoutes(app: Express) {
       }
       
       // Check if user exists
-      const [user] = await storage.getUserByEmail(email);
+      const user = await storage.getUserByEmail(email);
       
       if (!user) {
         // Don't reveal whether email exists - security best practice
@@ -402,7 +402,7 @@ export default function registerAuthRoutes(app: Express) {
       const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
       
       // Find valid token
-      const [resetRecord] = await storage.getPasswordResetTokenByToken(hashedToken);
+      const resetRecord = await storage.getPasswordResetTokenByToken(hashedToken);
       
       if (!resetRecord) {
         return res.status(400).json({ error: 'Invalid or expired reset token' });
@@ -432,7 +432,7 @@ export default function registerAuthRoutes(app: Express) {
       const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
       
       // Find valid token
-      const [resetRecord] = await storage.getPasswordResetTokenByToken(hashedToken);
+      const resetRecord = await storage.getPasswordResetTokenByToken(hashedToken);
       
       if (!resetRecord) {
         return res.status(400).json({ error: 'Invalid or expired reset token' });

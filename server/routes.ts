@@ -5,7 +5,7 @@ import path from 'path';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import XLSX from 'xlsx';
 import crypto from 'crypto';

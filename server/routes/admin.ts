@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
 import { z } from 'zod';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { storage } from '../storage';
 import { users, weddingEvents, guests } from '../../shared/schema';
 import { count, desc, eq, and, gte, sql } from 'drizzle-orm';

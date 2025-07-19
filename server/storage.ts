@@ -6,13 +6,14 @@ import {
   guestMealSelections, coupleMessages, relationshipTypes,
   whatsappTemplates, rsvpFollowupTemplates, rsvpFollowupLogs,
   hotels, globalRoomTypes, transportVendors, transportGroups, 
-  transportAllocations, type User, type WeddingEvent, type Guest,
+  transportAllocations, passwordResetTokens, type User, type WeddingEvent, type Guest,
   type Ceremony, type GuestCeremony, type TravelInfo, type Accommodation,
   type RoomAllocation, type MealOption, type GuestMealSelection,
   type CoupleMessage, type RelationshipType, type WhatsappTemplate,
   type RsvpFollowupTemplate, type RsvpFollowupLog, type Hotel,
   type GlobalRoomType, type TransportVendor, type TransportGroup,
-  type TransportAllocation, type InsertUser, type InsertWeddingEvent,
+  type TransportAllocation, type PasswordResetToken, type InsertPasswordResetToken,
+  type InsertUser, type InsertWeddingEvent,
   type InsertGuest, type InsertCeremony, type InsertGuestCeremony,
   type InsertTravelInfo, type InsertAccommodation, type InsertRoomAllocation,
   type InsertMealOption, type InsertGuestMealSelection, type InsertCoupleMessage,
@@ -21,7 +22,7 @@ import {
   type InsertHotel, type InsertGlobalRoomType, type InsertTransportVendor,
   type InsertTransportGroup, type InsertTransportAllocation
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 
 // Email configuration interface
 interface EmailConfig {
@@ -893,6 +894,53 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(roomAllocations)
       .innerJoin(guests, eq(roomAllocations.guestId, guests.id))
       .where(eq(guests.eventId, eventId));
+  }
+
+  // User management methods
+  async getUserById(id: number): Promise<User | undefined> {
+    const userList = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return userList[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(userId: number, token: string, expiresAt: Date): Promise<void> {
+    await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt
+    });
+  }
+
+  async getPasswordResetTokenByToken(token: string): Promise<PasswordResetToken | undefined> {
+    const tokenList = await db.select().from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+    return tokenList[0];
+  }
+
+  async deletePasswordResetTokensByUserId(userId: number): Promise<void> {
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, userId));
+  }
+
+  async deleteExpiredPasswordResetTokens(): Promise<{ deletedCount: number }> {
+    try {
+      const result = await db.delete(passwordResetTokens)
+        .where(lt(passwordResetTokens.expiresAt, new Date()));
+      return { deletedCount: 1 }; // Simplified return
+    } catch (error) {
+      console.error('Error deleting expired tokens:', error);
+      return { deletedCount: 0 };
+    }
   }
   
   // Transaction support for atomic operations
