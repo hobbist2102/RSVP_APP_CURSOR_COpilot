@@ -15,7 +15,7 @@ const RsvpPage = lazy(() => import("@/pages/rsvp-page"));
 const Events = lazy(() => import("@/pages/events"));
 const Travel = lazy(() => import("@/pages/travel"));
 const TravelManagement = lazy(() => import("@/pages/travel-management"));
-const Accommodations = lazy(() => import("@/pages/accommodations"));
+const Accommodations = lazy(() => import("@/pages/accommodations-simple"));
 const Hotels = lazy(() => import("@/pages/hotels"));
 const Meals = lazy(() => import("@/pages/meals"));
 const Reports = lazy(() => import("@/pages/reports"));

@@ -11,9 +11,10 @@ import { AutoAssignmentDashboard } from "@/components/room/auto-assignment-dashb
 import { AccommodationReports } from "@/components/room/accommodation-reports";
 import { exportToExcel, formatHotelAssignmentsForExport } from "@/lib/xlsx-utils";
 import { useCurrentEvent } from "@/hooks/use-current-event";
-import { ApiEndpoints } from "@/lib/api-utils";
+import { get, ApiEndpoints } from "@/lib/api-utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { AccommodationsErrorBoundary } from "./accommodations-error-boundary";
 
 // Types for accommodations and hotels
 type Hotel = {
@@ -60,14 +61,11 @@ export default function Accommodations() {
     isLoading: isHotelsLoading,
     error: hotelsError
   } = useQuery({
-    queryKey: [`${ApiEndpoints.HOTELS.BY_EVENT}/${eventId}`],
+    queryKey: ['hotels', 'by-event', eventId],
     queryFn: async () => {
       if (!eventId) return [];
-      const response = await fetch(`${ApiEndpoints.HOTELS.BY_EVENT}/${eventId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch hotels");
-      }
-      return response.json();
+      const response = await get(`${ApiEndpoints.HOTELS.BY_EVENT}/${eventId}`);
+      return response.data || [];
     },
     enabled: !!eventId,
   });
@@ -78,14 +76,11 @@ export default function Accommodations() {
     isLoading: isAccommodationsLoading,
     error: accommodationsError
   } = useQuery({
-    queryKey: [`${ApiEndpoints.EVENTS.BASE}/${eventId}/accommodations`],
+    queryKey: ['accommodations', 'by-event', eventId],
     queryFn: async () => {
       if (!eventId) return [];
-      const response = await fetch(`${ApiEndpoints.EVENTS.BASE}/${eventId}/accommodations`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch accommodations");
-      }
-      return response.json();
+      const response = await get(`${ApiEndpoints.EVENTS.BASE}/${eventId}/accommodations`);
+      return response.data || [];
     },
     enabled: !!eventId,
   });
@@ -94,11 +89,8 @@ export default function Accommodations() {
   const handleExportAssignments = async () => {
     try {
       // Fetch room allocations for this event
-      const response = await fetch(ApiEndpoints.ROOM_ALLOCATIONS.BY_EVENT(eventId));
-      if (!response.ok) {
-        throw new Error("Failed to fetch room allocations");
-      }
-      const allocations = await response.json();
+      const response = await get(ApiEndpoints.ROOM_ALLOCATIONS.BY_EVENT(eventId));
+      const allocations = response.data || [];
       
       // Format data and export
       const data = formatHotelAssignmentsForExport(allocations, hotels, accommodations);
@@ -121,10 +113,11 @@ export default function Accommodations() {
   const error = hotelsError || accommodationsError;
 
   return (
-    <DashboardLayout>
+    <AccommodationsErrorBoundary>
+      <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">Accommodations</h2>
+          <h2 className="text-3xl font-bold text-foreground">Accommodations</h2>
           <p className="text-sm text-gray-500">
             Manage hotel accommodations and room allocations
           </p>
@@ -226,6 +219,7 @@ export default function Accommodations() {
           </TabsContent>
         </Tabs>
       )}
-    </DashboardLayout>
+      </DashboardLayout>
+    </AccommodationsErrorBoundary>
   );
 }

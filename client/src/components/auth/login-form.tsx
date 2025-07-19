@@ -60,7 +60,7 @@ export default function LoginForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="username" className="block text-neutral text-sm font-medium mb-2">Username</Label>
+              <Label htmlFor="username" className="block text-foreground text-sm font-medium mb-2">Username</Label>
               <FormControl>
                 <Input
                   id="username"
@@ -79,7 +79,7 @@ export default function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="password" className="block text-neutral text-sm font-medium mb-2">Password</Label>
+              <Label htmlFor="password" className="block text-foreground text-sm font-medium mb-2">Password</Label>
               <FormControl>
                 <Input
                   id="password"
@@ -110,7 +110,7 @@ export default function LoginForm() {
                 </FormControl>
                 <Label
                   htmlFor="remember-me"
-                  className="text-sm text-neutral"
+                  className="text-sm text-foreground"
                 >
                   Remember me
                 </Label>
