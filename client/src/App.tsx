@@ -5,26 +5,26 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Suspense, lazy } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
-// Lazy load components to reduce initial bundle size
+// Lazy load components with preloading for high-traffic pages
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
-const Dashboard = lazy(() => import("@/pages/dashboard"));
-const GuestList = lazy(() => import("@/pages/guest-list"));
-const RsvpManagement = lazy(() => import("@/pages/rsvp-management"));
+const Dashboard = lazy(() => import(/* @vite-preload */ "@/pages/dashboard"));
+const GuestList = lazy(() => import(/* @vite-preload */ "@/pages/guest-list"));
+const RsvpManagement = lazy(() => import(/* @vite-preload */ "@/pages/rsvp-management"));
 const RsvpPage = lazy(() => import("@/pages/rsvp-page"));
-const Events = lazy(() => import("@/pages/events"));
+const Events = lazy(() => import(/* @vite-preload */ "@/pages/events"));
 const Travel = lazy(() => import("@/pages/travel"));
 const TravelManagement = lazy(() => import("@/pages/travel-management"));
-const Accommodations = lazy(() => import("@/pages/accommodations-simple"));
+const Accommodations = lazy(() => import(/* @vite-preload */ "@/pages/accommodations-simple"));
 const Hotels = lazy(() => import("@/pages/hotels"));
 const Meals = lazy(() => import("@/pages/meals"));
 const Reports = lazy(() => import("@/pages/reports"));
 const Settings = lazy(() => import("@/pages/settings"));
 const EventSettings = lazy(() => import("@/pages/event-settings"));
 
-const TransportPage = lazy(() => import("@/pages/transport"));
+const TransportPage = lazy(() => import(/* @vite-preload */ "@/pages/transport"));
 const TransportAssignmentsPage = lazy(() => import("@/pages/transport-assignments"));
-const EventSetupWizard = lazy(() => import("@/pages/event-setup-wizard"));
+const EventSetupWizard = lazy(() => import(/* @vite-preload */ "@/pages/event-setup-wizard"));
 const RsvpDemo = lazy(() => import("@/pages/rsvp-demo"));
 // Removed immersive-storytelling import as it's no longer used
 const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New cinematic landing page

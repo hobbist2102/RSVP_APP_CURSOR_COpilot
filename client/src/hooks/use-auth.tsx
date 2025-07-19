@@ -40,6 +40,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        // First check sessionStorage for cached user
+        const cachedUser = sessionStorage.getItem('auth_user');
+        if (cachedUser) {
+          try {
+            const user = JSON.parse(cachedUser);
+            setUser(user);
+            setIsLoading(false);
+            // Still verify with server in background but don't block UI
+            verifyUserInBackground();
+            return;
+          } catch (e) {
+            // Clear invalid cache
+            sessionStorage.removeItem('auth_user');
+          }
+        }
+
         // Add session ID manually to requests if available
         const sessionCookie = document.cookie
           .split('; ')
@@ -58,10 +74,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const data = await response.json();
           if (data.user) {
             setUser(data.user);
+            // Cache user in sessionStorage
+            sessionStorage.setItem('auth_user', JSON.stringify(data.user));
           }
         }
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    const verifyUserInBackground = async () => {
+      try {
+        const response = await fetch("/api/auth/user", {
+          credentials: "include",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache"
+          }
+        });
+
+        if (!response.ok) {
+          // Session expired, clear cache and redirect
+          sessionStorage.removeItem('auth_user');
+          setUser(null);
+        }
+      } catch (e) {
+        // Network error, keep cached user for now
       }
     };
 
@@ -75,6 +114,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const response = await post("/api/auth/login", { username, password });
       
       setUser(response.data.user);
+      
+      // Cache user in sessionStorage
+      sessionStorage.setItem('auth_user', JSON.stringify(response.data.user));
       
       // Force a page reload to ensure cookies are properly set
       window.location.href = "/dashboard";
@@ -96,6 +138,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       await post("/api/auth/logout", {});
       setUser(null);
+      
+      // Clear cached user
+      sessionStorage.removeItem('auth_user');
       
       // Redirect to auth page
       setLocation("/auth");
