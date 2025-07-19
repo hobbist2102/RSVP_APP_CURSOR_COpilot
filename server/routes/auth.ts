@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { insertUserSchema } from '../../shared/schema';
 import { getDefaultCredentials } from '../auth/production-auth';
+import crypto from 'crypto';
+import { passwordResetTokens } from '../db/schema.js';
+import { and, lte } from 'drizzle-orm';
 
 // CSRF token generation utility
 function generateCSRFToken(): string {
@@ -346,6 +349,120 @@ export default function registerAuthRoutes(app: Express) {
       }
       console.error('Change password error:', error);
       res.status(500).json({ error: 'Failed to change password' });
+    }
+  });
+
+  // Password reset request
+  app.post('/api/auth/password-reset/request', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+      
+      // Check if user exists
+      const [user] = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal whether email exists - security best practice
+        return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+      }
+      
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      
+      // Store token in database
+      await storage.createPasswordResetToken(user.id, hashedToken, expiresAt);
+      
+      // TODO: Send email with reset token
+      // In production, you would use an email service here
+      console.log(`Password reset token for ${email}: ${resetToken}`);
+      console.log(`Reset URL: ${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`);
+      
+      res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ error: 'Failed to process password reset request' });
+    }
+  });
+
+  // Verify reset token
+  app.post('/api/auth/password-reset/verify', async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ error: 'Token is required' });
+      }
+      
+      // Hash the provided token to compare with stored hash
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+      
+      // Find valid token
+      const [resetRecord] = await storage.getPasswordResetTokenByToken(hashedToken);
+      
+      if (!resetRecord) {
+        return res.status(400).json({ error: 'Invalid or expired reset token' });
+      }
+      
+      res.json({ message: 'Token is valid', userId: resetRecord.userId });
+    } catch (error) {
+      console.error('Password reset verify error:', error);
+      res.status(500).json({ error: 'Failed to verify reset token' });
+    }
+  });
+
+  // Reset password
+  app.post('/api/auth/password-reset/reset', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: 'Token and new password are required' });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      }
+      
+      // Hash the provided token to compare with stored hash
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+      
+      // Find valid token
+      const [resetRecord] = await storage.getPasswordResetTokenByToken(hashedToken);
+      
+      if (!resetRecord) {
+        return res.status(400).json({ error: 'Invalid or expired reset token' });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      
+      // Update user password
+      await storage.updateUserPassword(resetRecord.userId, hashedPassword);
+      
+      // Delete the used token and any other tokens for this user
+      await storage.deletePasswordResetTokensByUserId(resetRecord.userId);
+      
+      res.json({ message: 'Password has been reset successfully' });
+    } catch (error) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ error: 'Failed to reset password' });
+    }
+  });
+
+  // Clean up expired tokens (utility endpoint for admin or cron job)
+  app.post('/api/auth/password-reset/cleanup', isAdmin, async (req, res) => {
+    try {
+      const result = await storage.deleteExpiredPasswordResetTokens();
+      
+      res.json({ message: 'Expired tokens cleaned up successfully' });
+    } catch (error) {
+      console.error('Token cleanup error:', error);
+      res.status(500).json({ error: 'Failed to clean up expired tokens' });
     }
   });
 

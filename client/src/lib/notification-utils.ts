@@ -4,7 +4,7 @@
  * This file provides standardized notification functions to ensure consistent
  * user feedback throughout the application.
  */
-import { useToast, type Toast } from "@/hooks/use-toast";
+import { useToast, toast, type Toast } from "@/hooks/use-toast";
 
 // Common notification types
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -161,6 +161,59 @@ export function useNotification() {
     createOperation,
   };
 }
+
+/**
+ * Standalone toast functions that can be used outside of React components
+ * These are convenient wrappers around the toast function
+ */
+
+/**
+ * Show a success toast notification
+ */
+export const showSuccessToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 3000,
+  });
+};
+
+/**
+ * Show an error toast notification
+ */
+export const showErrorToast = (title: string, description?: string) => {
+  toast({
+    variant: "destructive", 
+    title,
+    description: description || "An error occurred. Please try again.",
+    duration: 5000,
+  });
+};
+
+/**
+ * Show a warning toast notification
+ */
+export const showWarningToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 4000,
+  });
+};
+
+/**
+ * Show an info toast notification
+ */
+export const showInfoToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 3000,
+  });
+};
 
 /**
  * Constants for standard notification messages

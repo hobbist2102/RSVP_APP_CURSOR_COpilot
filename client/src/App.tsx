@@ -10,7 +10,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 
 // Auth flows - separate chunk
-const ForgotPassword = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/forgot-password"));
+const PasswordReset = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/password-reset"));
 const ResetPassword = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/reset-password"));
 
 // Admin portal - separate chunk
@@ -74,7 +74,7 @@ function App() {
           <Route path="/rsvp-demo" component={RsvpDemo} />
           
           {/* Auth Routes */}
-          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/password-reset" component={PasswordReset} />
           <Route path="/reset-password" component={ResetPassword} />
           
           {/* Admin Routes */}

@@ -1045,3 +1045,20 @@ export const adminEmailConfigTable = pgTable("admin_email_config", {
 
 export const insertAdminEmailConfigSchema = createInsertSchema(adminEmailConfigTable);
 export const selectAdminEmailConfigSchema = createSelectSchema(adminEmailConfigTable);
+
+// Password Reset Tokens - for secure password reset functionality
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  token: text("token").notNull().unique(), // Hashed token
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

@@ -120,7 +120,7 @@ export default function LoginForm() {
           />
 
           <div className="text-sm">
-            <Link href="/forgot-password" className="font-medium text-primary hover:text-opacity-80">
+            <Link href="/password-reset" className="font-medium text-primary hover:text-opacity-80">
               Forgot password?
             </Link>
           </div>
