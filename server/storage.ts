@@ -181,6 +181,21 @@ export interface IStorage {
   // RSVP Follow-up Log operations
   getRsvpFollowupLogsByGuest(guestId: number): Promise<RsvpFollowupLog[]>;
   createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog>;
+
+  // Transport operations (missing from interface)
+  getTransportGroup(id: number): Promise<TransportGroup | undefined>;
+  getTransportGroupsByEvent(eventId: number): Promise<TransportGroup[]>;
+  createTransportGroup(group: InsertTransportGroup): Promise<TransportGroup>;
+  updateTransportGroup(id: number, group: Partial<InsertTransportGroup>): Promise<TransportGroup | undefined>;
+  deleteTransportGroup(id: number): Promise<boolean>;
+
+  // Transport Allocation operations
+  getTransportAllocation(id: number): Promise<TransportAllocation | undefined>;
+  getTransportAllocationsByGroup(groupId: number): Promise<TransportAllocation[]>;
+  getTransportAllocationsByGuest(guestId: number): Promise<TransportAllocation[]>;
+  createTransportAllocation(allocation: InsertTransportAllocation): Promise<TransportAllocation>;
+  updateTransportAllocation(id: number, allocation: Partial<InsertTransportAllocation>): Promise<TransportAllocation | undefined>;
+  deleteTransportAllocation(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -784,6 +799,66 @@ export class DatabaseStorage implements IStorage {
   async createRsvpFollowupLog(log: InsertRsvpFollowupLog): Promise<RsvpFollowupLog> {
     const result = await db.insert(rsvpFollowupLogs).values(log).returning();
     return result[0];
+  }
+
+  // Transport Group operations
+  async getTransportGroup(id: number): Promise<TransportGroup | undefined> {
+    const result = await db.select().from(transportGroups).where(eq(transportGroups.id, id));
+    return result[0];
+  }
+
+  async getTransportGroupsByEvent(eventId: number): Promise<TransportGroup[]> {
+    return await db.select().from(transportGroups).where(eq(transportGroups.eventId, eventId));
+  }
+
+  async createTransportGroup(group: InsertTransportGroup): Promise<TransportGroup> {
+    const result = await db.insert(transportGroups).values(group).returning();
+    return result[0];
+  }
+
+  async updateTransportGroup(id: number, group: Partial<InsertTransportGroup>): Promise<TransportGroup | undefined> {
+    const result = await db.update(transportGroups)
+      .set(group)
+      .where(eq(transportGroups.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTransportGroup(id: number): Promise<boolean> {
+    const result = await db.delete(transportGroups).where(eq(transportGroups.id, id));
+    return !!result;
+  }
+
+  // Transport Allocation operations
+  async getTransportAllocation(id: number): Promise<TransportAllocation | undefined> {
+    const result = await db.select().from(transportAllocations).where(eq(transportAllocations.id, id));
+    return result[0];
+  }
+
+  async getTransportAllocationsByGroup(groupId: number): Promise<TransportAllocation[]> {
+    return await db.select().from(transportAllocations).where(eq(transportAllocations.transportGroupId, groupId));
+  }
+
+  async getTransportAllocationsByGuest(guestId: number): Promise<TransportAllocation[]> {
+    return await db.select().from(transportAllocations).where(eq(transportAllocations.guestId, guestId));
+  }
+
+  async createTransportAllocation(allocation: InsertTransportAllocation): Promise<TransportAllocation> {
+    const result = await db.insert(transportAllocations).values(allocation).returning();
+    return result[0];
+  }
+
+  async updateTransportAllocation(id: number, allocation: Partial<InsertTransportAllocation>): Promise<TransportAllocation | undefined> {
+    const result = await db.update(transportAllocations)
+      .set(allocation)
+      .where(eq(transportAllocations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTransportAllocation(id: number): Promise<boolean> {
+    const result = await db.delete(transportAllocations).where(eq(transportAllocations.id, id));
+    return !!result;
   }
   
   // Transaction support for atomic operations

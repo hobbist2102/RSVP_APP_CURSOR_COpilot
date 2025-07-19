@@ -134,9 +134,8 @@ router.get('/events/:eventId/master-guest-data', isAuthenticated, async (req, re
           // Meal selections
           meals: meals.map(meal => ({
             ceremonyName: meal.ceremonyName,
-            mealType: meal.mealType,
-            selectedOption: meal.selectedOption,
-            dietaryNotes: meal.dietaryNotes
+            mealOptionName: meal.mealOptionName,
+            notes: meal.notes
           })),
           
           // Communication preferences (from guest form)
@@ -227,9 +226,9 @@ async function getTransportAllocationForGuest(guestId: number) {
     const transport = await db
       .select({
         groupId: transportGroups.id,
-        groupName: transportGroups.groupName,
-        vehicleType: eventVehicles.vehicleType,
-        vehicleCapacity: eventVehicles.capacity,
+        groupName: transportGroups.name,
+        vehicleType: transportGroups.vehicleType,
+        vehicleCapacity: transportGroups.vehicleCapacity,
         pickupLocation: transportGroups.pickupLocation,
         pickupTime: transportGroups.pickupTimeSlot,
         dropoffLocation: transportGroups.dropoffLocation,
@@ -241,7 +240,6 @@ async function getTransportAllocationForGuest(guestId: number) {
       })
       .from(transportAllocations)
       .leftJoin(transportGroups, eq(transportAllocations.transportGroupId, transportGroups.id))
-      .leftJoin(eventVehicles, eq(transportGroups.vehicleId, eventVehicles.id))
       .where(eq(transportAllocations.guestId, guestId))
       .limit(1);
     
@@ -285,9 +283,8 @@ async function getMealSelectionsForGuest(guestId: number) {
     const meals = await db
       .select({
         ceremonyName: ceremonies.name,
-        mealType: mealOptions.mealType,
-        selectedOption: guestMealSelections.selectedOption,
-        dietaryNotes: guestMealSelections.dietaryNotes
+        mealOptionName: mealOptions.name,
+        notes: guestMealSelections.notes
       })
       .from(guestMealSelections)
       .leftJoin(mealOptions, eq(guestMealSelections.mealOptionId, mealOptions.id))

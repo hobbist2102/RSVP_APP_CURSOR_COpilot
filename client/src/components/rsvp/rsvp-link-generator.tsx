@@ -32,6 +32,7 @@ import RsvpStatusDisplay from "./rsvp-status-display";
 import { Loader2, Copy, Send, Check, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { post } from "@/lib/api-utils";
+import { queryKeys } from "@/lib/query-keys";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 
 interface RsvpLinkGeneratorProps {
@@ -151,7 +152,7 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
       });
       
       // Invalidate guests query to refresh status
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/guests`] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.guests.all(eventId) });
       
       if (onSuccess) onSuccess();
     },

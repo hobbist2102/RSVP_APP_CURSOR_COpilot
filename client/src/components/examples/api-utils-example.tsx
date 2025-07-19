@@ -26,13 +26,12 @@ import { useToast } from "@/hooks/use-toast";
 
 // Import the consolidated API utilities
 import { 
-  apiRequest, 
   post, 
   get, 
-  apiOperations, 
-  ApiEndpoints,
-  invalidateRelatedQueries 
+  put,
+  del
 } from "@/lib/api-utils";
+import { queryKeys } from "@/lib/query-keys";
 
 // Example schema for an event
 const eventSchema = z.object({

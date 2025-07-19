@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { get, post, put, del } from "@/lib/api-utils"; // Using the consolidated API utilities
+import { queryKeys, invalidateRelatedQueries } from "@/lib/query-keys";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import { useToast } from "@/hooks/use-toast";
 
@@ -270,7 +271,7 @@ export default function RsvpFollowupConfiguration() {
     isLoading: isLoadingTemplates,
     error: templatesError,
   } = useQuery({
-    queryKey: [`/api/events/${currentEventId}/rsvp-followup-templates`],
+    queryKey: queryKeys.rsvp.templates(currentEventId),
     enabled: !!currentEventId,
   });
 
@@ -310,7 +311,7 @@ export default function RsvpFollowupConfiguration() {
       
       // Refetch templates
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/events/${currentEventId}/rsvp-followup-templates`] 
+        queryKey: queryKeys.rsvp.templates(currentEventId)
       });
     },
     onError: (error) => {
@@ -337,7 +338,7 @@ export default function RsvpFollowupConfiguration() {
       });
       
       // Refetch event data to update current event
-      queryClient.invalidateQueries({ queryKey: [`/api/current-event`] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.current });
     },
     onError: (error) => {
       toast({
@@ -364,7 +365,7 @@ export default function RsvpFollowupConfiguration() {
       
       // Refetch templates
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/events/${currentEventId}/rsvp-followup-templates`] 
+        queryKey: queryKeys.rsvp.templates(currentEventId)
       });
     },
     onError: (error) => {

@@ -270,14 +270,14 @@ Warm regards,
     try {
       // **CRITICAL INTEGRATION FIX**: Check if guest is available on WhatsApp before sending
       if (!guest.whatsappAvailable) {
-        console.log(`Skipping WhatsApp message to ${guest.firstName} ${guest.lastName} - not available on WhatsApp`);
+        // Guest not available on WhatsApp
         return false;
       }
 
       // Verify guest has WhatsApp number (either same as phone or separate)
       const whatsappNumber = guest.whatsappSame ? guest.phone : guest.whatsappNumber;
       if (!whatsappNumber) {
-        console.log(`Skipping WhatsApp message to ${guest.firstName} ${guest.lastName} - no WhatsApp number available`);
+        // No WhatsApp number available for guest
         return false;
       }
 
@@ -293,7 +293,7 @@ Warm regards,
       
       // Send the message
       const result = await whatsappService.sendMessage(guest, templateName, parameters);
-      console.log(`WhatsApp message sent to ${guest.firstName} ${guest.lastName}: ${result.success}`);
+      // WhatsApp message processing completed
       return result.success;
     } catch (error) {
       console.error(`Failed to send WhatsApp message to ${guest.firstName} ${guest.lastName}:`, error);

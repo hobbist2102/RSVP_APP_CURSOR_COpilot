@@ -5,14 +5,13 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
-  apiRequest, 
   get, 
   post, 
   patch, 
-  apiOperations, 
-  ApiEndpoints, 
-  invalidateRelatedQueries 
+  put,
+  del
 } from "@/lib/api-utils";
+import { queryKeys } from "@/lib/query-keys";
 import { useNotification } from "@/lib/notification-utils";
 
 // Example type for event data

@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "@/lib/api-utils";
+import { queryKeys } from "@/lib/query-keys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Heart, Users } from "lucide-react";
@@ -39,7 +40,7 @@ export default function BrandedRsvpLayout({
 }: BrandedRsvpLayoutProps) {
   // Fetch brand assets and event branding from communication step
   const { data: brandAssets } = useQuery({
-    queryKey: [`/api/events/${eventId}/brand-assets`],
+    queryKey: queryKeys.communication.providers(eventId),
     queryFn: async () => {
       const response = await get(`/api/events/${eventId}/brand-assets`);
       return response.data;
@@ -48,7 +49,7 @@ export default function BrandedRsvpLayout({
   });
 
   const { data: eventSettings } = useQuery({
-    queryKey: [`/api/events/${eventId}`],
+    queryKey: queryKeys.events.byId(eventId),
     queryFn: async () => {
       const response = await get(`/api/events/${eventId}`);
       return response.data;

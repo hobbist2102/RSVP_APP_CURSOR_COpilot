@@ -1,70 +1,156 @@
-import { format, parseISO, differenceInDays, formatDistanceToNow } from "date-fns";
+/**
+ * Timezone-safe Date Utilities
+ * Centralized date handling to prevent timezone mismatches between frontend and backend
+ */
 
-// Standard date formats
-export const DATE_FORMATS = {
-  FULL_DATE: 'MMMM do, yyyy',           // December 25th, 2025
-  SHORT_DATE: 'MMM d, yyyy',            // Dec 25, 2025
-  DAY_MONTH: 'MMMM d',                  // December 25
-  YEAR_MONTH: 'MMMM yyyy',              // December 2025
-  WEEKDAY_DATE: 'EEEE, MMMM do, yyyy',  // Friday, December 25th, 2025
-  INPUT_DATE: 'yyyy-MM-dd',             // 2025-12-25 (HTML date input format)
-  TIME_12H: 'h:mm a',                   // 3:30 PM
-  TIME_24H: 'HH:mm',                    // 15:30
-  DATE_TIME_12H: 'MMM d, yyyy h:mm a',  // Dec 25, 2025 3:30 PM
-  DATE_TIME_24H: 'MMM d, yyyy HH:mm',   // Dec 25, 2025 15:30
-};
-
-// Format any date for display with specified format
-export function formatDate(date: string | Date | null | undefined, formatString: string = DATE_FORMATS.FULL_DATE): string {
-  if (!date) return 'No date set';
+/**
+ * Formats a date string/object for display in user's timezone
+ * Ensures consistent date formatting across the application
+ */
+export function formatDateForDisplay(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
   
   try {
-    const parsedDate = typeof date === 'string' ? parseISO(date) : date;
-    return format(parsedDate, formatString);
-  } catch (error) {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
-    return 'Invalid date';
-  }
-}
-
-// Format date for general display
-export function formatDateForDisplay(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.FULL_DATE);
-}
-
-// Format date and time for display
-export function formatDateTimeForDisplay(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.DATE_TIME_12H);
-}
-
-// Format for HTML date input fields
-export function formatForDateInput(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.INPUT_DATE);
-}
-
-// Get relative time from now
-export function getRelativeTimeFromNow(date: string | Date | null | undefined): string {
-  if (!date) return '';
-  
-  try {
-    const parsedDate = typeof date === 'string' ? parseISO(date) : date;
-    return formatDistanceToNow(parsedDate, { addSuffix: true });
-  } catch (error) {
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date provided to formatDateForDisplay:', dateInput);
+      return '';
+    }
     
+    // Format in user's local timezone for display
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (error) {
+    console.warn('Error formatting date for display:', error);
     return '';
   }
 }
 
-// Calculate days difference between a date and today
-export function getDaysDifference(dateString: string | null | undefined): number {
-  if (!dateString) return 0;
+/**
+ * Formats a date for API submission (ISO string)
+ * Ensures consistent date format for backend storage
+ */
+export function formatDateForAPI(dateInput: string | Date | null | undefined): string | null {
+  if (!dateInput) return null;
   
   try {
-    const eventDate = typeof dateString === 'string' ? parseISO(dateString) : dateString;
-    const today = new Date();
-    return differenceInDays(eventDate, today);
-  } catch (error) {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
-    return 0;
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date provided to formatDateForAPI:', dateInput);
+      return null;
+    }
+    
+    // Return ISO string for consistent API storage
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  } catch (error) {
+    console.warn('Error formatting date for API:', error);
+    return null;
+  }
+}
+
+/**
+ * Parses a date string/object safely
+ * Returns null for invalid dates to prevent crashes
+ */
+export function safeParseDate(dateInput: string | Date | null | undefined): Date | null {
+  if (!dateInput) return null;
+  
+  try {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    
+    return date;
+  } catch (error) {
+    console.warn('Error parsing date:', error);
+    return null;
+  }
+}
+
+/**
+ * Checks if a date is in the future
+ */
+export function isFutureDate(dateInput: string | Date | null | undefined): boolean {
+  const date = safeParseDate(dateInput);
+  if (!date) return false;
+  
+  const now = new Date();
+  return date > now;
+}
+
+/**
+ * Calculates days between two dates
+ */
+export function daysBetween(startDate: string | Date | null | undefined, endDate: string | Date | null | undefined): number {
+  const start = safeParseDate(startDate);
+  const end = safeParseDate(endDate);
+  
+  if (!start || !end) return 0;
+  
+  const timeDiff = end.getTime() - start.getTime();
+  return Math.ceil(timeDiff / (1000 * 3600 * 24));
+}
+
+/**
+ * Formats a date with time for display
+ * Includes both date and time in user's timezone
+ */
+export function formatDateTimeForDisplay(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+  
+  try {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date provided to formatDateTimeForDisplay:', dateInput);
+      return '';
+    }
+    
+    // Format in user's local timezone with time
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.warn('Error formatting datetime for display:', error);
+    return '';
+  }
+}
+
+/**
+ * Formats a date for HTML input elements (YYYY-MM-DD)
+ * Required format for HTML date inputs
+ */
+export function formatForDateInput(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+  
+  try {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date provided to formatForDateInput:', dateInput);
+      return '';
+    }
+    
+    // Return YYYY-MM-DD format for HTML inputs
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.warn('Error formatting date for input:', error);
+    return '';
   }
 }

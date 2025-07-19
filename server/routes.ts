@@ -9,6 +9,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
+import csurf from 'csurf';
 import { isAuthenticated, isAdmin } from './middleware';
 import { ensureAdminUserExists, getDefaultCredentials } from './auth/production-auth';
 // Import session type extensions
@@ -160,8 +161,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
   } catch (sessionError) {
     // Fallback to memory store if PostgreSQL session store fails
-    console.warn('⚠️ WARNING: PostgreSQL session store failed, falling back to memory store. Sessions will not persist across server restarts.');
-    console.warn('Session error:', sessionError instanceof Error ? sessionError.message : String(sessionError));
+    console.warn('⚠️ CRITICAL: PostgreSQL session store failed - falling back to in-memory sessions');
+    console.warn('⚠️ WARNING: Sessions will not persist across server restarts');
+    console.warn('⚠️ SESSION ERROR:', sessionError instanceof Error ? sessionError.message : String(sessionError));
+    console.warn('⚠️ Action needed: Verify DATABASE_URL and PostgreSQL connection');
     
     app.use(session({
       secret: process.env.SESSION_SECRET || 'wedding-rsvp-secret-key-production',
@@ -183,6 +186,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Passport setup with enhanced session handling
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // CSRF Protection for state-changing routes
+  const csrfProtection = csurf({
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    },
+    // Skip CSRF for API routes that use other authentication
+    ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
+    // Custom error handler for CSRF failures
+    value: (req) => {
+      return req.body._csrf || req.query._csrf || req.headers['x-csrf-token'];
+    }
+  });
+
+  // CSRF token endpoint for client-side requests
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
   
   // Optimized middleware - removed excessive debug logging for performance
   
@@ -916,7 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get meal selections
             let mealSelections = [];
             try {
-              mealSelections = await storage.getMealSelectionsByGuest(guest.id);
+              mealSelections = await storage.getGuestMealSelectionsByGuest(guest.id);
             } catch (mealError) {
               
             }

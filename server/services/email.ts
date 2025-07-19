@@ -535,20 +535,11 @@ export class EmailService {
             html: html
           };
           
-          console.log(`Attempting to send ${this.provider} email with options:`, {
-            from: mailOptions.from,
-            to: mailOptions.to,
-            subject: mailOptions.subject
-          });
+          // Attempting to send email via OAuth provider
           
           try {
             const info = await this.nodemailerTransport.sendMail(mailOptions);
-            console.log(`${this.provider} email sent successfully:`, {
-              messageId: info.messageId,
-              response: info.response,
-              accepted: info.accepted,
-              rejected: info.rejected
-            });
+            // Email sent successfully via OAuth provider
             
             return {
               success: true,
@@ -576,10 +567,7 @@ export class EmailService {
                   
                   // Retry sending the email with the refreshed token
                   const retryInfo = await this.nodemailerTransport.sendMail(mailOptions);
-                  console.log(`${this.provider} email sent successfully after token refresh:`, {
-                    messageId: retryInfo.messageId,
-                    response: retryInfo.response
-                  });
+                  // Email sent successfully after token refresh
                   
                   return {
                     success: true,
@@ -929,11 +917,7 @@ ${event.brideName} & ${event.groomName}
       configMethod = "Direct SMTP";
     }
 
-    console.log(`Email service configuration for event ${event.id}:
-      - Provider: ${emailProvider}
-      - From: ${formattedFromEmail}
-      - Configuration Method: ${configMethod}
-    `);
+    // Email service configured for event
 
     return new EmailService(
       event.id,
