@@ -225,6 +225,130 @@ export default function registerAuthRoutes(app: Express) {
     }
   });
 
+  // Get current user profile
+  app.get('/api/auth/profile', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Don't send password in response
+      const { password, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({ error: 'Failed to get profile' });
+    }
+  });
+
+  // Update user profile
+  app.put('/api/auth/profile', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const updateData = req.body;
+
+      // Validate update data
+      const profileUpdateSchema = z.object({
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        bio: z.string().max(500).optional(),
+        phone: z.string().optional(),
+        company: z.string().optional(),
+        website: z.string().url().optional().or(z.literal('')),
+        location: z.string().optional(),
+      });
+
+      const validatedData = profileUpdateSchema.parse(updateData);
+
+      // Check if email is already taken by another user
+      if (validatedData.email) {
+        const existingUser = await storage.getUserByEmail(validatedData.email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ error: 'Email already in use' });
+        }
+      }
+
+      // Update user profile
+      await storage.updateUser(userId, validatedData);
+
+      // Get updated user data
+      const updatedUser = await storage.getUserById(userId);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Don't send password in response
+      const { password, ...userProfile } = updatedUser;
+      res.json(userProfile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: error.errors 
+        });
+      }
+      console.error('Update profile error:', error);
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
+  // Change password
+  app.post('/api/auth/change-password', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { currentPassword, newPassword } = req.body;
+
+      // Validate input
+      const passwordChangeSchema = z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(6),
+      });
+
+      const validatedData = passwordChangeSchema.parse({ currentPassword, newPassword });
+
+      // Get current user
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Verify current password
+      let currentPasswordMatch = false;
+      
+      if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+        // Password is already hashed, use bcrypt comparison
+        currentPasswordMatch = await bcrypt.compare(validatedData.currentPassword, user.password);
+      } else {
+        // Legacy plain-text password - direct comparison
+        currentPasswordMatch = user.password === validatedData.currentPassword;
+      }
+
+      if (!currentPasswordMatch) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(validatedData.newPassword, 10);
+
+      // Update password
+      await storage.updateUser(userId, { password: hashedNewPassword });
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: error.errors 
+        });
+      }
+      console.error('Change password error:', error);
+      res.status(500).json({ error: 'Failed to change password' });
+    }
+  });
+
   // System info endpoint (for deployment debugging)
   app.get('/api/system/info', async (req, res) => {
     try {
