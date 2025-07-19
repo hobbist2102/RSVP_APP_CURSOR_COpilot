@@ -31,7 +31,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
             <h1 className="font-script text-5xl text-primary mb-2">Eternally Yours</h1>
-            <p className="font-playfair text-neutral text-xl">Wedding Management Suite</p>
+            <p className="font-serif text-foreground text-xl">Wedding Management Suite</p>
           </div>
           
           <LoginForm />

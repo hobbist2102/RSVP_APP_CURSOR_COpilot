@@ -243,7 +243,7 @@ export default function RsvpManagement() {
     <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">RSVP Management</h2>
+          <h1 className="text-4xl font-serif font-bold text-foreground">RSVP Management</h1>
           <p className="text-sm text-gray-500">
             Manage guest responses and send reminders
           </p>

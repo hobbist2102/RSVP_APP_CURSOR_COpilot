@@ -455,7 +455,7 @@ export default function Events() {
       <DeploymentErrorBoundary>
         <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">Events & Ceremonies</h2>
+          <h1 className="text-4xl font-serif font-bold text-foreground">Events & Ceremonies</h1>
           <p className="text-sm text-gray-500">
             Manage your wedding events and ceremonies
           </p>
