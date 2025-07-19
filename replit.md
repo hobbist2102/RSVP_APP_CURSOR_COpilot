@@ -627,6 +627,14 @@ Changelog:
   - **PREPARED STATEMENTS DISABLED**: Disabled prepared statements for better deployment compatibility with Replit environment
   - **CONNECTION LIFECYCLE OPTIMIZATION**: Reduced connection lifetime and idle timeouts for more responsive database operations
   - **STATUS**: ✅ COMPLETE - Event creation performance optimized for deployment environment with detailed monitoring
+- July 19, 2025. **ACCOMMODATION MODULE QUOTE ERROR RESOLUTION AND ARCHITECTURAL FIXES**:
+  - **CRITICAL QUOTE ERROR ROOT CAUSE IDENTIFIED AND FIXED**: Resolved TypeScript casting issue in server/routes/hotels.ts where "as any" cast was causing SQL query malformation
+  - **HOTELS STEP FORM INITIALIZATION ERROR FIXED**: Moved form declaration before useEffect to prevent "Cannot access 'form' before initialization" runtime error
+  - **IMPROVED NAVIGATION FLOW**: Updated "Configure Hotels" button to navigate directly to Event Setup Wizard Step 4 with proper URL parameters (?step=4)
+  - **TEMPLATE LITERAL FIXES**: Corrected template literals in xlsx-utils.ts to use proper backtick syntax instead of string concatenation
+  - **ARCHITECTURAL ACCURACY MAINTAINED**: Used proper ApiEndpoints constants with get() utility functions throughout accommodation module
+  - **TYPE-SAFE DATABASE QUERIES**: Replaced problematic "as any" cast with proper Drizzle ORM "not(eq())" function for hotel deletion queries
+  - **COMPREHENSIVE ERROR HANDLING**: Added proper error boundaries and simplified accommodation page to prevent complex module failures
 - July 19, 2025. **COMPREHENSIVE CODEBASE AUDIT & REPAIR SESSION - PHASE 2 COMPLETION**:
   - **CRITICAL DATABASE SCHEMA ERRORS RESOLVED**: Added missing transport operations (getTransportAllocationsByGroup) to IStorage interface and DatabaseStorage class implementation
   - **SYSTEMATIC REACT QUERY STANDARDIZATION**: Created centralized query-keys.ts registry with consistent patterns for all event, guest, RSVP, communication, accommodation, transport, ceremony, and travel queries

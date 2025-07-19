@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, not } from 'drizzle-orm';
 import { 
   hotels, 
   insertHotelSchema, 
@@ -177,7 +177,7 @@ export function registerHotelRoutes(
         const otherHotels = await db.select().from(hotels)
           .where(and(
             eq(hotels.eventId, existingHotel.eventId),
-            eq(hotels.id, hotelId) as any // Need to handle TypeScript expecting different type
+            not(eq(hotels.id, hotelId))
           ));
         
         if (otherHotels.length === 0) {
