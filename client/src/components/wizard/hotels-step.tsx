@@ -166,6 +166,19 @@ export default function HotelsStep({
   const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  // Set up form with default values - MUST be declared before useEffect
+  const form = useForm<AccommodationSettingsData>({
+    resolver: zodResolver(accommodationSettingsSchema),
+    defaultValues: {
+      accommodationMode: PROVISION_MODES.BLOCK,
+      enableAutoAllocation: true,
+      enableGuestRoomPreferences: true,
+      allocationStrategy: "family",
+      hotels: [],
+      roomTypes: [],
+    },
+  });
+
   // Fetch existing hotels from database
   const { data: existingHotels, isLoading: hotelsLoading } = useQuery({
     queryKey: ['hotels', eventId],
@@ -244,19 +257,6 @@ export default function HotelsStep({
       });
     }
   }, [currentEvent, hotelsLoading, accommodationsLoading, hotels, roomTypes, form]);
-  
-  // Set up form with default values 
-  const form = useForm<AccommodationSettingsData>({
-    resolver: zodResolver(accommodationSettingsSchema),
-    defaultValues: {
-      accommodationMode: PROVISION_MODES.BLOCK,
-      enableAutoAllocation: true,
-      enableGuestRoomPreferences: true,
-      allocationStrategy: "family",
-      hotels: [],
-      roomTypes: [],
-    },
-  });
 
   // Hotel form
   const hotelForm = useForm<Hotel>({
