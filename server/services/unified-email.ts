@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from 'nodemailer';
 import { google } from 'googleapis';
 import { storage } from '../storage';
 import { db } from '../db';
-import { events } from '@shared/schema';
+import { weddingEvents } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 
@@ -135,7 +135,7 @@ export class UnifiedEmailService {
    */
   private async getEventData() {
     try {
-      const [event] = await db.select().from(events).where(eq(events.id, this.eventId));
+      const [event] = await db.select().from(weddingEvents).where(eq(weddingEvents.id, this.eventId));
       return event;
     } catch (error) {
       
@@ -223,12 +223,12 @@ export class UnifiedEmailService {
         
         // Update token in database
         const expiryTime = oauth2Client.credentials.expiry_date;
-        await db.update(events)
+        await db.update(weddingEvents)
           .set({
             gmailAccessToken: accessToken,
             gmailTokenExpiry: expiryTime ? new Date(expiryTime) : null
           })
-          .where(eq(events.id, this.eventId));
+          .where(eq(weddingEvents.id, this.eventId));
         
         
       } catch (error) {
@@ -299,12 +299,12 @@ export class UnifiedEmailService {
         const expiryTime = Date.now() + (tokenData.expires_in * 1000);
         
         // Update token in database
-        await db.update(events)
+        await db.update(weddingEvents)
           .set({
             outlookAccessToken: accessToken,
             outlookTokenExpiry: new Date(expiryTime)
           })
-          .where(eq(events.id, this.eventId));
+          .where(eq(weddingEvents.id, this.eventId));
         
         
       } catch (error) {
@@ -502,7 +502,7 @@ export class UnifiedEmailService {
   public static async fromEvent(eventId: number): Promise<UnifiedEmailService | null> {
     try {
       // Get event data
-      const [event] = await db.select().from(events).where(eq(events.id, eventId));
+      const [event] = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId));
       if (!event) {
         
         return null;

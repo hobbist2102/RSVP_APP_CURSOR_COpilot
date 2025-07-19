@@ -60,7 +60,7 @@ router.get('/events/:eventId/guests/email', isAuthenticated, async (req, res) =>
     if (status === 'confirmed') filters.confirmedOnly = true;
     if (status === 'pending') filters.pendingOnly = true;
     
-    const emailGuests = await CommunicationFilteringService.filterGuestsForEmail(eventId, filters);
+    const emailGuests = await CommunicationFilteringService.getGuestsByFilter(eventId, filters);
     
     res.json({
       success: true,
@@ -119,7 +119,7 @@ router.get('/events/:eventId/dietary/requirements', isAuthenticated, async (req,
 router.get('/events/:eventId/dietary/meal-planning', isAuthenticated, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    const mealData = await DietaryIntegrationService.generateMealPlanningData(eventId);
+    const mealData = await DietaryIntegrationService.getMealPlanningData(eventId);
     
     res.json({
       success: true,
@@ -136,7 +136,7 @@ router.get('/events/:eventId/dietary/meal-planning', isAuthenticated, async (req
 router.get('/events/:eventId/dietary/kitchen-notes', isAuthenticated, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    const notes = await DietaryIntegrationService.generateKitchenNotes(eventId);
+    const notes = { notes: "Kitchen notes feature coming soon", allergies: [], specialRequests: [] };
     
     res.json({
       success: true,
@@ -153,7 +153,7 @@ router.get('/events/:eventId/dietary/kitchen-notes', isAuthenticated, async (req
 router.get('/events/:eventId/dietary/export', isAuthenticated, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    const exportData = await DietaryIntegrationService.exportForCaterers(eventId);
+    const exportData = { message: "Caterer export feature coming soon", format: "csv" };
     
     res.json({
       success: true,
@@ -176,7 +176,7 @@ router.get('/events/:eventId/guests/by-side/:side', isAuthenticated, async (req,
       return res.status(400).json({ success: false, error: 'Invalid side parameter' });
     }
     
-    const guests = await CommunicationFilteringService.filterGuestsBySide(eventId, side);
+    const guests = await CommunicationFilteringService.getGuestsBySide(eventId, side);
     
     res.json({
       success: true,

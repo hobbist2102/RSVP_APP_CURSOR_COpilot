@@ -121,12 +121,12 @@ function substituteGuestVariables(content: string, guest?: Guest): string {
       .replace(/\{\{guest_phone\}\}/g, '[Phone]');
   }
   
-  const nameParts = guest.name.split(' ');
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.slice(1).join(' ') || '';
+  const fullName = `${guest.firstName} ${guest.lastName}`;
+  const firstName = guest.firstName || '';
+  const lastName = guest.lastName || '';
   
   return content
-    .replace(/\{\{guest_name\}\}/g, guest.name)
+    .replace(/\{\{guest_name\}\}/g, fullName)
     .replace(/\{\{guest_first_name\}\}/g, firstName)
     .replace(/\{\{guest_last_name\}\}/g, lastName)
     .replace(/\{\{guest_email\}\}/g, guest.email || '[Email not provided]')
@@ -352,9 +352,15 @@ export function generatePreviewContent(content: string): string {
       transportProviderContact: '+91 93814 26464'
     } as WeddingEvent,
     guest: {
-      name: 'Priya Sharma',
+      id: 1,
+      eventId: 1,
+      firstName: 'Priya',
+      lastName: 'Sharma',
       email: 'priya@example.com',
-      phone: '+91 98765 43210'
+      phone: '+91 98765 43210',
+      side: 'bride',
+      rsvpStatus: 'confirmed',
+      createdAt: new Date()
     } as Guest,
     rsvpLink: 'https://example.com/rsvp/abc123',
     rsvpStage2Link: 'https://example.com/rsvp/stage2/abc123',

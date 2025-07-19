@@ -61,7 +61,7 @@ router.get('/verify', async (req: Request, res: Response) => {
     }
     
     // Get ceremonies for this event
-    const ceremonies = await storage.getCeremonies(tokenData.eventId);
+    const ceremonies = await storage.getCeremoniesByEvent(tokenData.eventId);
     
     return res.json({
       success: true,

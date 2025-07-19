@@ -184,8 +184,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
               startDate: stepData.startDate,
               endDate: stepData.endDate,
               location: stepData.location,
-              description: stepData.description || null,
-              updatedAt: new Date()
+              description: stepData.description || null
             })
             .where(eq(weddingEvents.id, eventId));
         }

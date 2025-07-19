@@ -518,7 +518,7 @@ export class DatabaseStorage implements IStorage {
         stats.plusOnes++;
       }
       
-      if (guest.numberOfChildren > 0) {
+      if (guest.numberOfChildren && guest.numberOfChildren > 0) {
         stats.children += guest.numberOfChildren;
       }
     }

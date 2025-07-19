@@ -131,7 +131,14 @@ export const weddingEvents = pgTable("wedding_events", {
   defaultHotelWebsite: text("default_hotel_website"),
   specialHotelRates: text("special_hotel_rates"),
   bookingInstructions: text("booking_instructions"),
-  // General metadata
+  // General metadata  
+  // Wizard completion tracking
+  sendRsvpReminders: boolean("send_rsvp_reminders").default(true),
+  whatsappEnabled: boolean("whatsapp_enabled").default(false), 
+  primaryColor: text("primary_color").default("#7A51E1"),
+  secondaryColor: text("secondary_color").default("#E3C76F"),
+  whatsappFrom: text("whatsapp_from"),
+  
   createdBy: integer("created_by").notNull(),
 });
 
@@ -181,6 +188,15 @@ export const guests = pgTable("guests", {
   giftTracking: text("gift_tracking"),
   needsAccommodation: boolean("needs_accommodation").default(false),
   accommodationPreference: text("accommodation_preference"), // Guest's preference for accommodation type
+  // Travel and arrival information
+  arrivalDate: date("arrival_date"),
+  arrivalTime: text("arrival_time"),
+  departureDate: date("departure_date"),
+  departureTime: text("departure_time"),
+  needsFlightAssistance: boolean("needs_flight_assistance").default(false),
+  // Computed/derived fields
+  plusOneAttending: boolean("plus_one_attending").default(false), // Whether plus one is actually attending
+  plusOneDietary: text("plus_one_dietary"), // Plus one dietary restrictions
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -201,6 +217,7 @@ export const ceremonies = pgTable("ceremonies", {
   location: text("location").notNull(),
   description: text("description"),
   attireCode: text("attire_code"),
+  ceremonyType: text("ceremony_type"), // Additional ceremony type information
 });
 
 export const insertCeremonySchema = createInsertSchema(ceremonies).omit({
@@ -655,6 +672,12 @@ export const eventVehicles = pgTable("event_vehicles", {
   availableCount: integer("available_count").notNull(),
   hourlyRate: text("hourly_rate"), // Store as text for now
   features: text("features").array(), // ['ac', 'luggage_space', 'wheelchair_accessible']
+  plateNumber: text("plate_number"),
+  driverName: text("driver_name"),
+  driverPhone: text("driver_phone"),
+  currentLocation: text("current_location"),
+  route: text("route"),
+  notes: text("notes"),
   status: text("status").default("available").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

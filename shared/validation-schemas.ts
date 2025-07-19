@@ -236,7 +236,8 @@ export const eventBasicInfoSchema = z.object({
   coupleNames: z.string().min(1, "Couple names are required").max(100, "Couple names are too long"),
   brideName: z.string().min(1, "Bride name is required").max(100, "Bride name is too long"),
   groomName: z.string().min(1, "Groom name is required").max(100, "Groom name is too long"),
-  ...dateRangeSchema.shape,
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
   location: z.string().min(1, "Location is required").max(200, "Location is too long"),
   description: z.string().max(500, "Description is too long").optional(),
 });
