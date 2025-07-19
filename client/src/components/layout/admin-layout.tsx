@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
+import { getCardClasses, getNavItemClasses } from "@/design-system";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -73,14 +74,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Check if user is admin
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className={getCardClasses('elevated')}>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center space-y-4">
-              <Shield className="h-12 w-12 text-red-500" />
+              <Shield className="h-12 w-12 text-destructive" />
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Access Denied</h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold text-foreground">Access Denied</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   Administrator privileges required to access this area.
                 </p>
               </div>
@@ -95,35 +96,35 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Admin Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header className="bg-card border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Crown className="h-8 w-8 text-amber-500" />
+              <Crown className="h-8 w-8 text-secondary" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Admin Portal</h1>
-                <p className="text-xs text-gray-500">System Administration</p>
+                <h1 className="text-xl font-bold text-foreground">Admin Portal</h1>
+                <p className="text-xs text-muted-foreground">System Administration</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+              <Badge variant="secondary" className="bg-secondary/10 text-secondary">
                 <UserCog className="h-3 w-3 mr-1" />
                 Administrator
               </Badge>
               
               <div className="flex items-center space-x-2">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={logout}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -137,9 +138,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Admin Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className={getCardClasses('default')}>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Navigation</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Admin Navigation</h3>
                 <nav className="space-y-2">
                   {adminNavItems.map((item) => {
                     const Icon = item.icon;
@@ -150,22 +151,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`group flex items-start space-x-3 p-3 rounded-lg transition-colors ${
-                          isActive 
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                            : 'hover:bg-gray-50 text-gray-700'
-                        }`}
+                        className={getNavItemClasses(isActive)}
                       >
-                        <Icon className={`h-5 w-5 mt-0.5 ${
-                          isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                        }`} />
-                        <div>
-                          <p className={`text-sm font-medium ${
-                            isActive ? 'text-blue-700' : 'text-gray-900'
-                          }`}>
+                        <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
                             {item.label}
                           </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-muted-foreground truncate">
                             {item.description}
                           </p>
                         </div>
@@ -173,20 +166,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     );
                   })}
                 </nav>
-                
-                {/* Quick Return to Main App */}
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/dashboard">
-                      ← Return to Main App
-                    </Link>
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Admin Content Area */}
+          {/* Main Content Area */}
           <div className="lg:col-span-3">
             {children}
           </div>

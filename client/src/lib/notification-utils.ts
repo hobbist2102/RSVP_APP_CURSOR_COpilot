@@ -4,7 +4,7 @@
  * This file provides standardized notification functions to ensure consistent
  * user feedback throughout the application.
  */
-import { useToast, toast, type Toast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
 
 // Common notification types
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -61,7 +61,7 @@ export function useNotification() {
       title: config.title || "Warning",
       description: config.description,
       duration: config.duration || 4000,
-      className: "bg-amber-50 border-amber-300 text-amber-900",
+      className: "bg-amber-50 border-amber-300 text-amber-900 dark:bg-amber-900/20 dark:border-amber-500 dark:text-amber-300",
     });
   };
 
@@ -74,7 +74,7 @@ export function useNotification() {
       title: config.title || "Information",
       description: config.description,
       duration: config.duration || 3000,
-      className: "bg-blue-50 border-blue-300 text-blue-900",
+      className: "bg-blue-50 border-blue-300 text-blue-900 dark:bg-blue-900/20 dark:border-blue-500 dark:text-blue-300",
     });
   };
 

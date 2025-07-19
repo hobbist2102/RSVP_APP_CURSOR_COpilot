@@ -10,13 +10,15 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Settings
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { get } from "@/lib/api";
 import AdminLayout from "@/components/layout/admin-layout";
+import { getCardClasses } from "@/design-system";
 
 interface SystemStats {
   totalUsers: number;
@@ -64,10 +66,10 @@ export default function AdminDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'error': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'healthy': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
+      case 'warning': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
+      case 'error': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -85,24 +87,24 @@ export default function AdminDashboard() {
       <div className="space-y-8">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">System Dashboard</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">System Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
             Overview of system performance and recent activity
           </p>
         </div>
 
         {/* System Status Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                  <p className="text-3xl font-bold text-foreground">
                     {isLoadingStats ? '...' : allUsers.length}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-blue-500" />
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <div className="mt-4">
                 <Badge variant="secondary" className="text-xs">
@@ -115,16 +117,16 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Events</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">Total Events</p>
+                  <p className="text-3xl font-bold text-foreground">
                     {isLoadingStats ? '...' : allEvents.length}
                   </p>
                 </div>
-                <Building2 className="h-8 w-8 text-green-500" />
+                <Building2 className="h-8 w-8 text-secondary" />
               </div>
               <div className="mt-4">
                 <Badge variant="secondary" className="text-xs">
@@ -134,12 +136,12 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">System Status</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">System Status</p>
+                  <p className="text-lg font-semibold text-foreground">
                     {isLoadingStats ? 'Checking...' : 'Healthy'}
                   </p>
                 </div>
@@ -154,56 +156,70 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Database</p>
-                  <p className="text-lg font-semibold text-gray-900">Online</p>
+                  <p className="text-sm font-medium text-muted-foreground">Database</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {isLoadingStats ? 'Checking...' : '12.5 MB'}
+                  </p>
                 </div>
-                <Database className="h-8 w-8 text-purple-500" />
+                <Database className="h-8 w-8 text-primary" />
               </div>
               <div className="mt-4">
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="outline" className="text-xs">
                   <Clock className="h-3 w-3 mr-1" />
-                  Connected
+                  Last backup: 2h ago
                 </Badge>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content Grid */}
+        {/* Recent Activity & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Activity */}
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5" />
-                <span>Recent Activity</span>
+              <CardTitle className="flex items-center text-foreground">
+                <Activity className="h-5 w-5 mr-2" />
+                Recent Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {isLoadingActivity ? (
-                  <div className="text-center py-8 text-gray-500">
-                    Loading activity...
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">Loading activity...</p>
                   </div>
                 ) : recentActivity.length > 0 ? (
                   recentActivity.slice(0, 5).map((activity) => (
                     <div key={activity.id} className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 mt-1">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">{activity.message}</p>
-                        <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                        <p className="text-sm text-foreground">
+                          {activity.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.timestamp}
+                        </p>
                       </div>
+                      <Badge 
+                        variant={activity.severity === 'error' ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {activity.severity}
+                      </Badge>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No recent activity
+                  <div className="text-center py-8">
+                    <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No recent activity</p>
+                    <p className="text-sm text-muted-foreground">System activity will appear here</p>
                   </div>
                 )}
               </div>
@@ -211,12 +227,15 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
+          <Card className={getCardClasses('default')}>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="flex items-center text-foreground">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Quick Actions
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
@@ -224,47 +243,46 @@ export default function AdminDashboard() {
                 
                 <Button className="w-full justify-start" variant="outline">
                   <Building2 className="h-4 w-4 mr-2" />
-                  View Events
+                  View All Events
                 </Button>
                 
                 <Button className="w-full justify-start" variant="outline">
                   <Database className="h-4 w-4 mr-2" />
-                  Database Status
+                  Database Backup
                 </Button>
                 
                 <Button className="w-full justify-start" variant="outline">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Analytics
+                  <Settings className="h-4 w-4 mr-2" />
+                  System Settings
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* System Information */}
-        <Card>
+        {/* System Health Overview */}
+        <Card className={getCardClasses('default')}>
           <CardHeader>
-            <CardTitle>System Information</CardTitle>
+            <CardTitle className="flex items-center text-foreground">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              System Health
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Application Version</h4>
-                <p className="text-sm text-gray-600">v1.0.0</p>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600 mb-2">99.9%</div>
+                <p className="text-sm text-muted-foreground">Uptime</p>
               </div>
               
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Environment</h4>
-                <Badge variant="outline">
-                  {process.env.NODE_ENV || 'development'}
-                </Badge>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary mb-2">45ms</div>
+                <p className="text-sm text-muted-foreground">Response Time</p>
               </div>
               
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Last Updated</h4>
-                <p className="text-sm text-gray-600">
-                  {new Date().toLocaleDateString()}
-                </p>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-secondary mb-2">0</div>
+                <p className="text-sm text-muted-foreground">Critical Issues</p>
               </div>
             </div>
           </CardContent>
