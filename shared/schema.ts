@@ -175,17 +175,10 @@ export const weddingEvents = pgTable("wedding_events", {
   hasOutdoorVenue: boolean("has_outdoor_venue").default(false),
   hasEngagement: boolean("has_engagement").default(false),
   
-  // Email service fields
-  sendGridApiKey: text("sendgrid_api_key"),
+  // Email service fields (additional fields)
   smtpHost: text("smtp_host"),
   smtpPort: integer("smtp_port"),
   emailFromName: text("email_from_name"),
-  gmailAccessToken: text("gmail_access_token"),
-  gmailTokenExpiry: timestamp("gmail_token_expiry"),
-  outlookAccessToken: text("outlook_access_token"),
-  outlookTokenExpiry: timestamp("outlook_token_expiry"),
-  gmailAccount: text("gmail_account"),
-  outlookAccount: text("outlook_account"),
   
   // WhatsApp Business API fields
   whatsappPhoneNumberId: text("whatsapp_phone_number_id"),

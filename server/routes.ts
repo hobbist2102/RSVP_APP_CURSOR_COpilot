@@ -32,12 +32,13 @@ import {
   insertCoupleMessageSchema,
   insertRelationshipTypeSchema,
   insertWhatsappTemplateSchema,
-  guests
+  guests,
+  weddingEvents
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 // Wizard functionality handled by standard API endpoints
-import { eq } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 // Import RSVP service and routes
 import { RSVPService } from "./services/rsvp";
 import { registerRSVPRoutes } from "./routes/rsvp";
@@ -3043,19 +3044,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const accommodationStatus = {
-        assigned: allGuests.filter(g => g.accommodationStatus === 'assigned' || g.accommodationStatus === 'confirmed').length,
-        pending: allGuests.filter(g => g.needsAccommodation && (!g.accommodationStatus || g.accommodationStatus === 'pending')).length
+        assigned: allGuests.filter(g => g.needsAccommodation && g.accommodationAssigned).length,
+        pending: allGuests.filter(g => g.needsAccommodation && !g.accommodationAssigned).length
       };
 
       const transportStatus = {
-        assigned: allGuests.filter(g => g.transportAssigned === true).length,
-        pending: allGuests.filter(g => g.needsTransport && !g.transportAssigned).length
+        assigned: allGuests.filter(g => g.needsTransportation && g.transportGroupId).length,
+        pending: allGuests.filter(g => g.needsTransportation && !g.transportGroupId).length
       };
 
       const communicationStatus = {
         emailAvailable: allGuests.filter(g => g.email && g.email.includes('@')).length,
-        whatsappAvailable: allGuests.filter(g => g.whatsappNumber && g.isWhatsAppAvailable).length,
-        unreachable: allGuests.filter(g => (!g.email || !g.email.includes('@')) && (!g.whatsappNumber || !g.isWhatsAppAvailable)).length
+        whatsappAvailable: allGuests.filter(g => g.whatsappNumber && g.whatsappAvailable).length,
+        unreachable: allGuests.filter(g => (!g.email || !g.email.includes('@')) && (!g.whatsappNumber || !g.whatsappAvailable)).length
       };
 
       const stats = {
@@ -3166,9 +3167,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
            case 'accommodation-needed':
              targetGuests = targetGuests.filter(g => g.needsAccommodation);
              break;
-           case 'transport-needed':
-             targetGuests = targetGuests.filter(g => g.needsTransport);
-             break;
+                       case 'transport-needed':
+              targetGuests = targetGuests.filter(g => g.needsTransportation);
+              break;
            default:
              // 'all' - no additional filtering
              break;
@@ -3194,36 +3195,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
            const useEmail = channel === 'email' || channel === 'smart';
            const useWhatsApp = channel === 'whatsapp' || channel === 'smart';
 
-           // Try WhatsApp first if enabled and available
-           if (useWhatsApp && guest.whatsappNumber && guest.isWhatsAppAvailable) {
-             try {
-               // Use existing WhatsApp service
-               const whatsappManager = (await import('../services/whatsapp/whatsapp-manager')).default;
-               const manager = whatsappManager.getInstance();
-               await manager.sendTextMessage(eventId, guest.whatsappNumber, message);
-               sent = true;
-             } catch (whatsappError) {
-               console.error(`WhatsApp failed for guest ${guest.id}:`, whatsappError);
-               // Continue to try email if smart mode
-             }
+                       // Try WhatsApp first if enabled and available
+            if (useWhatsApp && guest.whatsappNumber && guest.whatsappAvailable) {
+                           try {
+                // Use existing WhatsApp service
+                const WhatsAppManager = (await import('./services/whatsapp/whatsapp-manager')).default;
+                const manager = WhatsAppManager.getInstance();
+                await manager.sendTextMessage(eventId, guest.whatsappNumber, message);
+                sent = true;
+              } catch (whatsappError) {
+                console.error(`WhatsApp failed for guest ${guest.id}:`, whatsappError);
+                // Continue to try email if smart mode
+              }
            }
 
            // Try email if WhatsApp failed or not available (in smart mode) or if email mode
            if (!sent && useEmail && guest.email && guest.email.includes('@')) {
-             try {
-               // Use existing email service
-               const { emailService } = await import('../services/email/email-service');
-               await emailService.sendEmail({
-                 to: guest.email,
-                 from: 'wedding@example.com', // TODO: Use event's configured from address
-                 subject: subject || 'Wedding Update',
-                 text: message,
-                 html: message.replace(/\n/g, '<br>')
-               });
-               sent = true;
-             } catch (emailError) {
-               console.error(`Email failed for guest ${guest.id}:`, emailError);
-             }
+                           try {
+                // Use existing email service
+                const { emailService } = await import('./services/email/email-service');
+                await emailService.sendEmail({
+                  to: guest.email,
+                  from: 'wedding@example.com', // TODO: Use event's configured from address
+                  subject: subject || 'Wedding Update',
+                  text: message,
+                  html: message.replace(/\n/g, '<br>')
+                });
+                sent = true;
+              } catch (emailError) {
+                console.error(`Email failed for guest ${guest.id}:`, emailError);
+              }
            }
 
            if (sent) {
