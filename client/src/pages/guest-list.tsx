@@ -217,7 +217,8 @@ function GuestStatsCards({ stats, eventConfig }: GuestStatsCardsProps) {
 function GuestList() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
-  const { currentEventId } = useCurrentEvent();
+  const { data: currentEvent } = useOptimizedCurrentEvent();
+  const currentEventId = currentEvent?.data?.id;
   
   // Dialog states
   const [showAddDialog, setShowAddDialog] = useState(false);
