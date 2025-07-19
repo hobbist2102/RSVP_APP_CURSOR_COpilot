@@ -1111,10 +1111,11 @@ function GuestList() {
   ];
 
   return (
-    <DashboardLayout
-      currentPage="guest-list"
-      title="Guest Management"
-    >
+    <GuestListErrorBoundary>
+      <DashboardLayout
+        currentPage="guest-list"
+        title="Guest Management"
+      >
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex justify-between items-center">
