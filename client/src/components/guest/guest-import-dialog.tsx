@@ -12,7 +12,7 @@ import FileInput from "@/components/ui/file-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, FileText, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 
 interface GuestImportDialogProps {
   isOpen: boolean;
@@ -59,14 +59,14 @@ export default function GuestImportDialog({
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const response = await fetch(`/api/events/${eventId}/guests/import`, {
+      const response = await fetch('/api/events/' + eventId + '/guests/import', {
         method: "POST",
         body: formData,
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error(`Import failed: ${response.statusText}`);
+        throw new Error('Import failed: ' + response.statusText);
       }
 
       const data = await response.json();
@@ -85,7 +85,8 @@ export default function GuestImportDialog({
       // Notify parent component of success
       onSuccess();
     } catch (error) {
-      console.error("Import error:", error);
+      // Import error - handled silently
+      console.error('Import error:', error);
       
       setImportResult({
         success: false,

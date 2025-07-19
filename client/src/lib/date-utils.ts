@@ -22,7 +22,7 @@ export function formatDate(date: string | Date | null | undefined, formatString:
     const parsedDate = typeof date === 'string' ? parseISO(date) : date;
     return format(parsedDate, formatString);
   } catch (error) {
-    console.error('Error formatting date:', error);
+    
     return 'Invalid date';
   }
 }
@@ -50,7 +50,7 @@ export function getRelativeTimeFromNow(date: string | Date | null | undefined): 
     const parsedDate = typeof date === 'string' ? parseISO(date) : date;
     return formatDistanceToNow(parsedDate, { addSuffix: true });
   } catch (error) {
-    console.error('Error getting relative time:', error);
+    
     return '';
   }
 }
@@ -64,7 +64,7 @@ export function getDaysDifference(dateString: string | null | undefined): number
     const today = new Date();
     return differenceInDays(eventDate, today);
   } catch (error) {
-    console.error('Error calculating days difference:', error);
+    
     return 0;
   }
 }

@@ -32,7 +32,7 @@ export default function OAuthCallbackSuccess() {
       }
     } catch (err) {
       setError("Failed to parse response data");
-      console.error("Error parsing OAuth callback response:", err);
+      // OAuth callback response error - handled silently
     }
   }, []);
 

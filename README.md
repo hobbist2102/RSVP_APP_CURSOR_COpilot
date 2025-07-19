@@ -1,185 +1,131 @@
-# Indian Wedding RSVP Platform
+# Wedding RSVP Platform
 
-![Platform Banner](https://img.shields.io/badge/Wedding%20RSVP-Platform-purple)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![React](https://img.shields.io/badge/React-18.2-blue)
-![Express](https://img.shields.io/badge/Express-4.18-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.2-blue)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-4.18-green)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-blue)](https://tailwindcss.com/)
 
-A comprehensive wedding RSVP platform tailored for Indian weddings, providing robust event-specific management with isolated data storage, dynamic RSVP tracking, and integrated communication tools.
+A luxury wedding management platform featuring comprehensive RSVP tracking, multi-tenant architecture, and Apple iOS 18-inspired design system for Indian wedding professionals.
 
-## 🎯 Project Purpose
+## 🎯 Quick Start
 
-The Indian Wedding RSVP Platform is designed to help wedding agencies and planners manage complex Indian wedding events efficiently. Indian weddings often involve multiple ceremonies, large guest lists, and intricate logistics spanning several days. This platform provides a centralized system for managing:
-
-- Guest lists with multi-stage RSVP tracking
-- Multiple ceremony scheduling
-- Accommodation and travel logistics
-- Multi-channel communication (Email, WhatsApp)
-- Reporting and analytics
-
-The platform supports both client-facing (couple) and backend (agency staff) interfaces, ensuring all stakeholders can access the information they need.
-
-## 🏗️ System Architecture
-
-### Backend
-- **TypeScript/Node.js**: Strong typing with Express framework
-- **PostgreSQL Database**: Relational database with tenant-based isolation
-- **Drizzle ORM**: Type-safe database queries and schema management
-- **RESTful API**: Clean API architecture for frontend communication
-- **Multi-Provider Email Integration**: Gmail, Outlook, and SendGrid support
-
-### Frontend
-- **React**: Component-based UI library
-- **TanStack Query (React Query)**: Data fetching and cache management
-- **shadcn/ui & Tailwind CSS**: Component library and utility-first CSS
-- **TypeScript**: Type-safe client-side code
-- **Multi-step Wizard Forms**: Intuitive user experience for complex data entry
-
-### Security & Authentication
-- **Session-based Authentication**: Secure session management
-- **Event-level Data Isolation**: Multi-tenant architecture with strict data boundaries
-- **OAuth Token Management**: Secure integration with third-party email providers
-
-## 🚀 Key Features & Implementation Status
-
-### Multi-Event Management ✅
-- Support for multiple concurrent wedding projects
-- Complete data isolation between different wedding events
-- Event context switching with proper cache invalidation
-- Multi-step event creation wizard
-
-### Comprehensive Guest Management ✅
-- Excel import/export functionality
-- RSVP tracking and reporting
-- Relationship management (plus-ones, children)
-- Guest categorization ("Bride's Side" or "Groom's Side")
-- Enhanced child tracking with detailed information
-
-### Hotel & Accommodation Management ✅
-- Multiple hotel support for venues with limited inventory
-- Room type and capacity tracking
-- Guest accommodation assignment
-- Check-in/check-out tracking
-
-### Travel & Transportation 🔄
-- Travel detail collection in RSVP forms
-- Transportation arrangements tracking
-- Airport pickup coordination
-- Guest arrival and departure management
-
-### Communication System 🔄
-- OAuth integration with Gmail and Outlook
-- SendGrid API support
-- Template-based messaging
-- Dynamic follow-up communication based on RSVP responses
-- WhatsApp Business API integration (in progress)
-
-### Ceremony & Scheduling 🔄
-- Multi-ceremony support within events
-- Ceremony-specific guest invitations
-- Automated ceremony calendar management
-- Meal selection and dietary requirements tracking
-
-## 🛠️ Project Setup
-
-### Prerequisites
-- Node.js (v16+)
-- PostgreSQL database
-- npm or yarn package manager
-
-### Installation
-1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/indian-wedding-management.git
-cd indian-wedding-management
-```
-
-2. Install dependencies
-```bash
+# Install dependencies
 npm install
-```
 
-3. Set up environment variables
-```
-DATABASE_URL=postgresql://username:password@localhost:5432/wedding_management
-SESSION_SECRET=your_session_secret
-```
-
-4. Run database migrations
-```bash
-npm run db:push
-```
-
-5. Start development server
-```bash
+# Start development server
 npm run dev
+
+# Access the application
+open http://localhost:5000
 ```
 
-## 💾 Data Model
+## 📋 Core Features
 
-The platform uses a multi-tenant data architecture with the following key models:
+- **Two-Stage RSVP System** - Basic attendance + detailed logistics collection
+- **Multi-Tenant Architecture** - Complete event isolation and data security
+- **Comprehensive Guest Management** - Family relationships, preferences, special requirements
+- **Accommodation Management** - Hotel booking, room allocation, group management
+- **Transport Coordination** - Flight tracking, airport pickup, group transportation
+- **Multi-Channel Communication** - Email (Gmail/Outlook/SMTP), WhatsApp, SMS integration
+- **Event Setup Wizard** - 7-step guided configuration for complete event planning
+- **Luxury Design System** - Apple iOS 18-inspired glassmorphism with brand consistency
 
-- **Users**: Agency staff and system administrators
-- **Events**: Wedding events with metadata
-- **Guests**: Comprehensive guest information with event association
-- **Ceremonies**: Individual ceremonies within a wedding event
-- **Accommodations**: Lodging options for guests
-- **Travel**: Transportation details for guests
-- **WhatsApp Templates**: Message templates for guest communication
+## 🏗️ Architecture
 
-### Data Isolation Strategy
+**Frontend**: React + TypeScript + TanStack Query + shadcn/ui + Tailwind CSS  
+**Backend**: Node.js + Express + TypeScript + Drizzle ORM  
+**Database**: PostgreSQL with multi-tenant isolation  
+**Authentication**: Session-based with OAuth2 integration  
+**Design**: Apple iOS 18 luxury minimal aesthetic with heavy glassmorphism
 
-All data is isolated at the event level using an event ID as a tenant identifier. This approach ensures complete data separation between different wedding projects while maintaining a single database.
+## 📚 Documentation
 
-## 🛣️ Development Roadmap
+Our comprehensive documentation is organized for different audiences:
 
-### Phase 1: Core Functionality ✅
-- Authentication and user management
-- Multi-event management with data isolation
-- Guest list management and import/export
-- Basic email integration
-- Hotel and accommodation management
+### 📖 **[Complete Documentation →](docs/README.md)**
+Central hub with navigation to all documentation areas
 
-### Phase 2: Enhanced Features 🔄
-- Ceremony management and scheduling
-- Travel logistics and transportation
-- Dynamic RSVP follow-up communication
-- WhatsApp Business API integration
-- Event-specific email provider configuration
+### 🎨 **[Design System →](docs/design-system/README.md)**
+- [Colors & Themes](docs/design-system/colors.md)
+- [Typography](docs/design-system/typography.md)
+- Component patterns and implementation guides
 
-### Phase 3: Advanced Features 📅
-- Reporting and analytics dashboard
-- Guest self-service RSVP portal
-- Mobile optimization
-- Performance enhancements for large guest lists
-- Template customization and personalization
+### 🏛️ **[System Architecture →](docs/architecture/README.md)**
+- Multi-tenant design patterns
+- Database architecture
+- Security and performance considerations
 
-## 🔧 Technical Implementation
+### 🔧 **[Development Guide →](docs/development/README.md)**
+- Quick start and setup
+- Project structure
+- Frontend and backend patterns
+- Testing strategy
 
-### Query Caching Strategy
-The application implements a sophisticated caching strategy using TanStack Query to ensure proper data isolation between events:
+### 🚀 **[API Reference →](docs/api/README.md)**
+- Complete endpoint documentation
+- Authentication flows
+- Request/response schemas
 
-- Cache is completely cleared when switching between events
-- Reduced staleTime to ensure fresh data when switching contexts
-- Comprehensive query invalidation for related data
-- Event context included in query keys for proper isolation
+### 💡 **[Features →](docs/features/)**
+- [Event Management](docs/features/event-management.md)
+- [Guest Management](docs/features/guest-management.md)
 
-### Event Context Management
-The platform uses session-based event context tracking with validation at both client and server:
+### ⚙️ **[Implementation →](docs/implementation/)**
+- [Multi-tenant Architecture](docs/implementation/multi-tenant.md)
+- [Authentication & Security](docs/implementation/auth-security.md)
+- [Database Schema](docs/implementation/database.md)
 
-- Server-side verification of event context on all API requests
-- Client-side hooks for consistent access to the current event
-- Defensive programming to prevent cross-event data leakage
+## 🚀 Tech Stack
+
+**Core Technologies:**
+- **Frontend**: React 18, TypeScript, TanStack Query, Vite
+- **Backend**: Node.js, Express, TypeScript, Drizzle ORM
+- **Database**: PostgreSQL 16 with connection pooling
+- **Styling**: Tailwind CSS, shadcn/ui, Radix UI primitives
+
+**Design System:**
+- Apple iOS 18-inspired luxury aesthetics
+- Heavy glassmorphism with backdrop blur effects
+- Brand colors: Purple (#7A51E1) and Gold (#E3C76F)
+- Typography: Inter (UI) + Cormorant Garamond (decorative)
+
+**Integrations:**
+- **Email**: Gmail OAuth2, Outlook OAuth2, SMTP, SendGrid
+- **WhatsApp**: Business API and Web.js
+- **Authentication**: Passport.js with session storage
+- **Animations**: GSAP, Framer Motion
+
+## 🔐 Security & Compliance
+
+- **Multi-tenant data isolation** with event-scoped access control
+- **HMAC-signed RSVP tokens** with expiration and validation
+- **OAuth2 integration** with secure token management and refresh
+- **Session-based authentication** with PostgreSQL session store
+- **Input validation** using Zod schemas throughout
+- **CSRF protection** and comprehensive security headers
+
+## 📊 Project Status
+
+✅ **Complete Implementation**: Design system, multi-tenant architecture, RSVP system  
+✅ **Production Ready**: Authentication, database schema, API endpoints  
+✅ **Luxury UI**: Apple iOS 18 glassmorphism design system  
+✅ **Comprehensive Documentation**: Organized professional documentation structure  
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This project follows enterprise-grade development practices:
 
-## 📝 License
+1. **Design System First** - All UI changes use design tokens from `/client/src/design-system/`
+2. **Type Safety** - TypeScript throughout with Drizzle ORM schemas
+3. **Multi-tenant Awareness** - All database operations include event context
+4. **Documentation Updates** - Update relevant docs for architectural changes
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📄 License
+
+Copyright © 2025 Wedding RSVP Platform. All rights reserved.
 
 ---
 
-© 2025 Indian Wedding Management Platform. All rights reserved.
+**Documentation**: [docs/README.md](docs/README.md) | **Architecture**: [docs/architecture/README.md](docs/architecture/README.md) | **API**: [docs/api/README.md](docs/api/README.md)

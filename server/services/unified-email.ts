@@ -5,6 +5,7 @@ import { db } from '../db';
 import { events } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
+
 /**
  * Email provider types supported by the application
  */
@@ -97,7 +98,7 @@ export class UnifiedEmailService {
       const event = await this.getEventData();
       if (!event) {
         this.lastError = `Event not found: ${this.eventId}`;
-        console.error(this.lastError);
+        
         return false;
       }
 
@@ -108,7 +109,7 @@ export class UnifiedEmailService {
         primarySuccess = !!this.transport;
       } catch (error) {
         this.lastError = `Failed to create primary transport (${this.provider}): ${error.message}`;
-        console.error(this.lastError);
+        
       }
 
       // Initialize fallback transport if needed and configured
@@ -116,7 +117,7 @@ export class UnifiedEmailService {
         try {
           this.fallbackTransport = await this.createTransport(this.fallbackProvider, event);
         } catch (error) {
-          console.warn(`Failed to create fallback transport (${this.fallbackProvider}): ${error.message}`);
+          
         }
       }
 
@@ -124,7 +125,7 @@ export class UnifiedEmailService {
       return this.initialized;
     } catch (error) {
       this.lastError = `Error initializing email service: ${error.message}`;
-      console.error(this.lastError);
+      
       return false;
     }
   }
@@ -137,7 +138,7 @@ export class UnifiedEmailService {
       const [event] = await db.select().from(events).where(eq(events.id, this.eventId));
       return event;
     } catch (error) {
-      console.error(`Error fetching event data for email service: ${error.message}`);
+      
       return null;
     }
   }
@@ -229,7 +230,7 @@ export class UnifiedEmailService {
           })
           .where(eq(events.id, this.eventId));
         
-        console.log(`Refreshed Gmail access token for event ${this.eventId}`);
+        
       } catch (error) {
         throw new Error(`Error refreshing Gmail access token: ${error.message}`);
       }
@@ -305,7 +306,7 @@ export class UnifiedEmailService {
           })
           .where(eq(events.id, this.eventId));
         
-        console.log(`Refreshed Outlook access token for event ${this.eventId}`);
+        
       } catch (error) {
         throw new Error(`Error refreshing Outlook access token: ${error.message}`);
       }
@@ -397,7 +398,7 @@ export class UnifiedEmailService {
         };
       } catch (error) {
         // Log error but try fallback if available
-        console.error(`Email send error with primary transport (${this.provider}): ${error.message}`);
+        
         
         // Only try fallback if it exists
         if (!this.fallbackTransport) {
@@ -503,7 +504,7 @@ export class UnifiedEmailService {
       // Get event data
       const [event] = await db.select().from(events).where(eq(events.id, eventId));
       if (!event) {
-        console.error(`Event not found: ${eventId}`);
+        
         return null;
       }
       
@@ -529,7 +530,7 @@ export class UnifiedEmailService {
       }
       
       if (!primaryProvider) {
-        console.error(`No email provider configured for event: ${eventId}`);
+        
         return null;
       }
       
@@ -552,7 +553,7 @@ export class UnifiedEmailService {
       
       return service;
     } catch (error) {
-      console.error(`Error creating email service: ${error.message}`);
+      
       return null;
     }
   }

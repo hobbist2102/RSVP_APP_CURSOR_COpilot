@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -38,7 +38,7 @@ type BasicInfoData = z.infer<typeof basicInfoSchema>;
 
 interface BasicInfoStepProps {
   eventId: string;
-  currentEvent: WeddingEvent | undefined;
+  currentEvent: any; // Can be WeddingEvent or basicInfo from wizard endpoint
   onComplete: (data: BasicInfoData) => void;
   isCompleted: boolean;
 }
@@ -55,16 +55,46 @@ export default function BasicInfoStep({
   const form = useForm<BasicInfoData>({
     resolver: zodResolver(basicInfoSchema),
     defaultValues: {
-      title: currentEvent?.title || "",
-      coupleNames: currentEvent?.coupleNames || "",
-      brideName: currentEvent?.brideName || "",
-      groomName: currentEvent?.groomName || "",
-      startDate: currentEvent?.startDate ? new Date(currentEvent.startDate) : undefined,
-      endDate: currentEvent?.endDate ? new Date(currentEvent.endDate) : undefined,
-      location: currentEvent?.location || "",
-      description: currentEvent?.description || "",
+      title: "",
+      coupleNames: "",
+      brideName: "",
+      groomName: "",
+      startDate: undefined,
+      endDate: undefined,
+      location: "",
+      description: "",
     },
   });
+
+  // RELIABLE form pre-population - fixed setTimeout anti-pattern
+  useEffect(() => {
+    if (currentEvent && Object.keys(currentEvent).length > 0) {
+      // Handle multiple possible date formats from API
+      const parseDate = (dateValue: any) => {
+        if (!dateValue) return undefined;
+        if (dateValue instanceof Date) return dateValue;
+        if (typeof dateValue === 'string') {
+          const parsed = new Date(dateValue);
+          return isNaN(parsed.getTime()) ? undefined : parsed;
+        }
+        return undefined;
+      };
+      
+      const formData = {
+        title: currentEvent.title || "",
+        coupleNames: currentEvent.coupleNames || "",
+        brideName: currentEvent.brideName || "",
+        groomName: currentEvent.groomName || "",
+        startDate: parseDate(currentEvent.startDate),
+        endDate: parseDate(currentEvent.endDate),
+        location: currentEvent.location || "",
+        description: currentEvent.description || "",
+      };
+      
+      // Use form.reset() to properly update all form fields
+      form.reset(formData);
+    }
+  }, [currentEvent, form]);
 
   function onSubmit(data: BasicInfoData) {
     onComplete(data);
@@ -133,11 +163,8 @@ export default function BasicInfoStep({
               <FormItem>
                 <FormLabel>Event Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Wedding of..." {...field} />
+                  <Input placeholder="Enter the main title for this wedding event" {...field} />
                 </FormControl>
-                <FormDescription>
-                  The main title for this wedding event.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -150,11 +177,8 @@ export default function BasicInfoStep({
               <FormItem>
                 <FormLabel>Couple Names</FormLabel>
                 <FormControl>
-                  <Input placeholder="Raj & Priya" {...field} />
+                  <Input placeholder="How you want the couple to be referred to" {...field} />
                 </FormControl>
-                <FormDescription>
-                  How you want the couple to be referred to.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

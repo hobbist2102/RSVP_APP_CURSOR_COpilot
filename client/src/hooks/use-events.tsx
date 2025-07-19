@@ -17,7 +17,7 @@ export function useEvents() {
     staleTime: 5000, // Cache for 5 seconds
     refetchOnWindowFocus: false, // Prevent excessive refetches
     onError: (error) => {
-      console.error('Failed to load events:', error);
+      // Silent error handling - no console logging
     }
   });
 

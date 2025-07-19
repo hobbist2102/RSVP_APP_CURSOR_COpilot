@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Header from "./header";
 import Sidebar from "./sidebar";
 import { formatDateForDisplay } from "@/lib/date-utils";
-import EventSelector from "../event/event-selector";
+import EventDropdownSelector from "../event/event-dropdown-selector";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import Footer from "./footer";
 
@@ -10,8 +10,9 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Use our custom hook to get the current event
   const { currentEvent } = useCurrentEvent();
@@ -25,6 +26,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   // Create an overlay that closes the sidebar when clicked (on mobile)
   const handleOverlayClick = () => {
     setSidebarOpen(false);
@@ -32,10 +37,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header toggleSidebar={toggleSidebar} currentEvent={eventData} />
+      <Header 
+        toggleSidebar={toggleSidebar} 
+        toggleSidebarCollapse={toggleSidebarCollapse}
+        sidebarCollapsed={sidebarCollapsed}
+        currentEvent={eventData} 
+      />
 
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+        />
 
         {/* Overlay for mobile */}
         {sidebarOpen && (
@@ -45,9 +59,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        <main className="flex-1 overflow-y-auto bg-background p-6">
-          <div className="max-w-7xl mx-auto">
-            {children}
+        <main className="flex-1 overflow-y-auto bg-background">
+          <div className="p-3 md:p-4 lg:p-6">
+            <div className="w-full">
+              {children}
+            </div>
           </div>
         </main>
       </div>
@@ -55,3 +71,5 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
+export default DashboardLayout;

@@ -73,7 +73,7 @@ router.get('/:eventId/progress', isAuthenticated, async (req: Request, res: Resp
       }
     });
   } catch (error) {
-    console.error('Error fetching setup progress:', error);
+    
     return res.status(500).json({ error: 'Failed to fetch setup progress' });
   }
 });
@@ -139,7 +139,7 @@ router.get('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res:
       lastUpdated: progressData.updatedAt
     });
   } catch (error) {
-    console.error('Error fetching step data:', error);
+    
     return res.status(500).json({ error: 'Failed to fetch step data' });
   }
 });
@@ -471,7 +471,7 @@ router.post('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, res
       message: 'Step data saved successfully',
     });
   } catch (error) {
-    console.error('Error saving step data:', error);
+    
     return res.status(500).json({ error: 'Failed to save step data' });
   }
 });
@@ -514,18 +514,14 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
     
     // Update transport settings in the event record
     if (stepData && typeof stepData === 'object') {
-      console.log('=== TRANSPORT SAVE DEBUG ===');
-      console.log('Event ID:', eventId);
-      console.log('Full stepData received:', JSON.stringify(stepData, null, 2));
+      // Transport save operation
+      // Transport step data processing
       
       // Get existing event data to preserve transportMode if not provided
       const existingEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
       const currentTransportMode = existingEvent[0]?.transportMode || 'none';
       
-      console.log('Current transport mode in DB:', currentTransportMode);
-      console.log('Transport mode from form:', stepData.transportMode);
-      console.log('Transport mode type:', typeof stepData.transportMode);
-      console.log('Will set transport mode to:', stepData.transportMode || currentTransportMode);
+      // Transport mode configuration
       
       // Separate transaction for transport update to prevent rollback
       const updateResult = await db.update(weddingEvents)
@@ -557,10 +553,8 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
         })
         .where(eq(weddingEvents.id, eventId));
 
-      console.log('=== DATABASE UPDATE DEBUG ===');
-      console.log('Update result:', updateResult);
-      console.log('Event ID for WHERE clause:', eventId);
-      console.log('Event ID type:', typeof eventId);
+      // Database update operation
+      // Database update verification
       
       // Immediately verify the update by fetching the record
       const verificationQuery = await db.select({ 
@@ -571,24 +565,21 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
       .from(weddingEvents)
       .where(eq(weddingEvents.id, eventId));
       
-      console.log('Post-update verification:', verificationQuery);
-      console.log('=== END DATABASE UPDATE DEBUG ===');
+      // Post-update verification completed
+      // Database update completed
     }
     
-    console.log('=== PROGRESS OPERATIONS DEBUG ===');
-    console.log('Step:', step);
-    console.log('Update values:', updateValues);
-    console.log('Progress data exists:', progressData && progressData.length > 0);
+    // Progress operations starting
+    // Progress operations processing
     
     try {
       if (progressData && progressData.length > 0) {
-        console.log('Updating existing progress data...');
+        // Updating existing progress data
         const progressResult = await db.update(eventSetupProgress)
           .set(updateValues)
           .where(eq(eventSetupProgress.eventId, eventId));
-        console.log('Progress update result:', progressResult);
       } else {
-        console.log('Inserting new progress data...');
+        // Inserting new progress data
         const initialValues = {
           eventId,
           currentStep: step,
@@ -602,41 +593,39 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
           createdAt: new Date(),
           updatedAt: new Date()
         };
-        console.log('Initial progress values:', initialValues);
         
         const insertResult = await db.insert(eventSetupProgress).values(initialValues);
-        console.log('Progress insert result:', insertResult);
       }
-      console.log('Progress operations completed successfully');
+      // Progress operations completed successfully
     } catch (progressError) {
-      console.error('PROGRESS OPERATION FAILED:', progressError);
+      
       throw progressError; // This will cause transaction rollback
     }
     
-    console.log('=== SESSION UPDATE DEBUG ===');
+    // Session update operation
     try {
       // Update session with new event data
       if (req.session && req.session.currentEvent && req.session.currentEvent.id === eventId) {
-        console.log('Updating session with fresh event data...');
+        // Updating session with fresh event data
         const updatedEvent = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
         if (updatedEvent && updatedEvent.length > 0) {
           req.session.currentEvent = updatedEvent[0];
-          console.log(`Session updated with transport data for event ${eventId}`);
+          // Session updated with transport data
         }
       }
-      console.log('Session operations completed successfully');
+      
     } catch (sessionError) {
-      console.error('SESSION OPERATION FAILED:', sessionError);
+      
       throw sessionError; // This will cause transaction rollback
     }
-    console.log('=== ALL OPERATIONS DEBUG COMPLETE ===');
+    // All operations completed successfully
     
     return res.status(200).json({
       success: true,
       message: 'Transport settings saved successfully',
     });
   } catch (error) {
-    console.error('Error saving transport data:', error);
+    
     return res.status(500).json({ error: 'Failed to save transport settings' });
   }
 });
@@ -702,7 +691,7 @@ router.delete('/:eventId/steps/:stepId', isAuthenticated, async (req: Request, r
       message: 'Step data reset successfully',
     });
   } catch (error) {
-    console.error('Error resetting step data:', error);
+    
     return res.status(500).json({ error: 'Failed to reset step data' });
   }
 });

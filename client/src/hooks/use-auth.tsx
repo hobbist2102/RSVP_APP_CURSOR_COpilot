@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
+
 
 interface User {
   id: number;
@@ -39,6 +40,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        // Add session ID manually to requests if available
+        const sessionCookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('connect.sid='));
+        
         const response = await fetch("/api/auth/user", {
           credentials: "include",
           headers: {
@@ -54,8 +60,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(data.user);
           }
         }
-      } catch (error) {
-        // Silent fail on auth check - user will need to log in
       } finally {
         setIsLoading(false);
       }
@@ -68,23 +72,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      const response = await apiRequest("POST", "/api/auth/login", {
-        username,
-        password,
-      });
+      const response = await post("/api/auth/login", { username, password });
       
-      const data = await response.json();
-      setUser(data.user);
+      setUser(response.data.user);
       
-      // Redirect to dashboard
-      setLocation("/dashboard");
+      // Force a page reload to ensure cookies are properly set
+      window.location.href = "/dashboard";
       
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${data.user.name}!`,
+        description: `Welcome back, ${response.data.user.name}!`,
       });
     } catch (error) {
-      // Let the error bubble up to the form for display
       throw error;
     } finally {
       setIsLoading(false);
@@ -95,7 +94,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      await apiRequest("POST", "/api/auth/logout", {});
+      await post("/api/auth/logout", {});
       setUser(null);
       
       // Redirect to auth page

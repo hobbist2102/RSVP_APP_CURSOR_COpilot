@@ -35,12 +35,17 @@ export const weddingEvents = pgTable("wedding_events", {
   allowPlusOnes: boolean("allow_plus_ones").default(true),
   allowChildrenDetails: boolean("allow_children_details").default(true),
   customRsvpUrl: text("custom_rsvp_url"),
+  rsvpWelcomeTitle: text("rsvp_welcome_title"),
+  rsvpWelcomeMessage: text("rsvp_welcome_message"),
+  rsvpCustomBranding: text("rsvp_custom_branding"),
+  rsvpShowSelectAll: boolean("rsvp_show_select_all").default(true),
   // Email Configuration
   emailProvider: text("email_provider").default("resend"), // 'resend', 'sendgrid', etc.
   emailApiKey: text("email_api_key"),                      // API key for the email provider
   emailFromAddress: text("email_from_address"),            // The "from" email address
   emailFromDomain: text("email_from_domain"),              // Domain for the email
   emailConfigured: boolean("email_configured").default(false),
+  communicationConfigured: boolean("communication_configured").default(false),
   // WhatsApp Business API Integration
   whatsappBusinessPhoneId: text("whatsapp_business_phone_id"),
   whatsappBusinessNumber: text("whatsapp_business_number"),
@@ -77,6 +82,8 @@ export const weddingEvents = pgTable("wedding_events", {
   outlookTokenExpiry: timestamp("outlook_token_expiry"),
   // SendGrid settings
   sendGridApiKey: text("sendgrid_api_key"),
+  // Brevo settings
+  brevoApiKey: text("brevo_api_key"),
   // Travel & Accommodation Settings
   
   // Accommodation Settings
@@ -224,8 +231,15 @@ export const travelInfo = pgTable("travel_info", {
   departureTime: text("departure_time"),
   departureLocation: text("departure_location"),
   flightNumber: text("flight_number"),
+  airline: text("airline"), // Airline name
+  terminal: text("terminal"), // Terminal information
+  gate: text("gate"), // Gate information
+  flightStatus: text("flight_status").default("scheduled"), // scheduled, confirmed, delayed, cancelled
   needsTransportation: boolean("needs_transportation").default(false),
   transportationType: text("transportation_type"), // pickup, drop, both
+  specialRequirements: text("special_requirements"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertTravelInfoSchema = createInsertSchema(travelInfo).omit({
@@ -437,7 +451,7 @@ export const insertRsvpFollowupLogSchema = createInsertSchema(rsvpFollowupLogs).
 // Communication Templates - Comprehensive template management for all communication types
 export const communicationTemplates = pgTable("communication_templates", {
   id: serial("id").primaryKey(),
-  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }).notNull(),
+  eventId: integer("event_id").references(() => weddingEvents.id, { onDelete: "cascade" }), // NULL for global templates
   categoryId: text("category_id").notNull(), // initial_invitations, formal_invitations, etc.
   templateId: text("template_id").notNull(), // save_the_date_email, formal_invitation_email, etc.
   channel: text("channel").notNull(), // email, whatsapp, sms
@@ -445,7 +459,9 @@ export const communicationTemplates = pgTable("communication_templates", {
   description: text("description"),
   subject: text("subject"), // Email subject line (null for WhatsApp/SMS)
   content: text("content").notNull(), // Template content with variables
-  variables: jsonb("variables").default('{}'), // Available variables for this template
+  variables: jsonb("variables").default('[]'), // JSON array of variable placeholders
+  tags: jsonb("tags").default('[]'), // JSON array of template tags for filtering
+  conditionalOn: text("conditional_on"), // Condition for dynamic activation
   enabled: boolean("enabled").default(true),
   sortOrder: integer("sort_order").default(0),
   isSystem: boolean("is_system").default(false), // System templates can't be deleted

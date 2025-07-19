@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,16 +25,24 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+
+interface MealOption {
+  id: number;
+  name: string;
+  description?: string;
+  eventId: number;
+  ceremonyId?: number;
+}
 
 interface RsvpStage2FormProps {
   eventId: number;
   guestId: number;
   defaultValues?: Partial<FormValues>;
-  mealOptions: any[];
-  onSuccess?: (data: any) => void;
+  mealOptions: MealOption[];
+  onSuccess?: (data: FormValues) => void;
   onBack?: () => void;
 }
 
@@ -119,6 +127,38 @@ export default function RsvpStage2Form({
       mealSelections: defaultValues?.mealSelections || [],
     },
   });
+
+  // Enhanced form pre-population for deployment stability (critical for pre-filling Stage 2 RSVP data)
+  useEffect(() => {
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      const formData = {
+        guestId,
+        eventId,
+        needsAccommodation: defaultValues.needsAccommodation || false,
+        accommodationPreference: defaultValues.accommodationPreference || 'provided',
+        accommodationNotes: defaultValues.accommodationNotes || "",
+        needsTransportation: defaultValues.needsTransportation || false,
+        transportationPreference: defaultValues.transportationPreference || 'provided',
+        transportationNotes: defaultValues.transportationNotes || "",
+        travelMode: defaultValues.travelMode || 'air',
+        flightDetails: defaultValues.flightDetails || {
+          flightNumber: "",
+          airline: "",
+          arrivalAirport: "",
+          departureAirport: ""
+        },
+        arrivalDate: defaultValues.arrivalDate || "",
+        arrivalTime: defaultValues.arrivalTime || "",
+        departureDate: defaultValues.departureDate || "",
+        departureTime: defaultValues.departureTime || "",
+        childrenDetails: defaultValues.childrenDetails || [],
+        mealSelections: defaultValues.mealSelections || [],
+      };
+      
+      // IMMEDIATE form reset - no setTimeout needed
+      form.reset(formData);
+    }
+  }, [defaultValues, form, guestId, eventId]);
   
   const { fields: childrenFields, append: appendChild, remove: removeChild } = useFieldArray({
     control: form.control,
@@ -134,9 +174,9 @@ export default function RsvpStage2Form({
     
     try {
       // Submit RSVP Stage 2
-      const rsvpResponse = await apiRequest("POST", "/api/rsvp/stage2", values);
+      const rsvpResponse = await post("/api/rsvp/stage2", values);
       
-      const data = await rsvpResponse.json();
+      const data = rsvpResponse.data;
       
       if (!data.success) {
         throw new Error(data.message || "Failed to submit travel details");
@@ -151,7 +191,7 @@ export default function RsvpStage2Form({
         onSuccess(data);
       }
     } catch (error) {
-      console.error("RSVP stage 2 submission error:", error);
+      // Silent error handling
       toast({
         variant: "destructive",
         title: "Submission Failed",

@@ -114,7 +114,7 @@ export default function NotificationExample() {
 {`// Example of API operation with automatic notification
 const { mutate, isPending } = useMutation({
   mutationFn: async (data) => {
-    return await apiRequest("POST", "/api/resource", data);
+    return await post("/api/resource", data);
   },
   onSuccess: () => {
     // Notification automatically shown

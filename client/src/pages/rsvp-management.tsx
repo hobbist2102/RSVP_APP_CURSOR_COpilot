@@ -25,7 +25,6 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { queryClient } from "@/lib/queryClient";
-import RsvpForm from "@/components/rsvp/rsvp-form";
 import RsvpStage1Form from "@/components/rsvp/rsvp-stage1-form";
 import RsvpStage2Form from "@/components/rsvp/rsvp-stage2-form";
 import RsvpLinkGenerator from "@/components/rsvp/rsvp-link-generator";

@@ -1,7 +1,8 @@
 import { useCurrentEvent } from './use-current-event';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from './use-toast';
-import { queryClient, apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { get, put, post, del } from '@/lib/api-utils';
 
 export interface Guest {
   id: number;
@@ -31,13 +32,11 @@ export function useGuestWithContext(guestId: number | undefined) {
     mutationFn: async (guestData: Partial<Guest>) => {
       if (!guestId) throw new Error('No guest ID provided');
       
-      const res = await apiRequest(
-        'PUT',
-        `/api/guests/${guestId}`,
-        guestData,
-        { eventId: currentEvent?.id ? currentEvent.id : 0 }
-      );
-      return await res.json();
+      const res = await put(`/api/guests/${guestId}`, {
+        ...guestData,
+        eventId: currentEvent?.id ? currentEvent.id : 0
+      });
+      return res.data;
     },
     onSuccess: (updatedGuest) => {
       // Invalidate all guest-related queries for this event
@@ -73,12 +72,7 @@ export function useGuestWithContext(guestId: number | undefined) {
     mutationFn: async () => {
       if (!guestId) throw new Error('No guest ID provided');
       
-      await apiRequest(
-        'DELETE',
-        `/api/guests/${guestId}`,
-        undefined,
-        { eventId: currentEvent?.id ? currentEvent.id : 0 }
-      );
+      await del(`/api/guests/${guestId}?eventId=${currentEvent?.id ? currentEvent.id : 0}`);
     },
     onSuccess: () => {
       // Invalidate all guest-related queries for this event

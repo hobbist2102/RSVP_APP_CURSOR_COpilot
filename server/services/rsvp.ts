@@ -55,14 +55,14 @@ export class RSVPService {
       const timestamp = parseInt(timestampStr);
       
       if (isNaN(guestId) || isNaN(eventId) || isNaN(timestamp)) {
-        console.warn('Invalid token format');
+        
         return null;
       }
       
       // Check if token is expired
       const expiryTime = timestamp + (this.TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
       if (Date.now() > expiryTime) {
-        console.warn('Token expired');
+        
         return null;
       }
       
@@ -73,13 +73,13 @@ export class RSVPService {
       const expectedSignature = hmac.digest('hex');
       
       if (signature !== expectedSignature) {
-        console.warn('Invalid token signature');
+        
         return null;
       }
       
       return { guestId, eventId, timestamp };
     } catch (error) {
-      console.error('Token verification error:', error);
+      
       return null;
     }
   }
@@ -106,8 +106,8 @@ export class RSVPService {
   }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
-      if (!guest) {
+      const guest = await storage.getGuest(response.guestId);
+      if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
@@ -195,7 +195,7 @@ export class RSVPService {
       try {
         await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
       } catch (followupError) {
-        console.error('Error sending RSVP follow-up:', followupError);
+        
         // Continue with the response even if follow-up fails
       }
       
@@ -205,7 +205,7 @@ export class RSVPService {
         requiresStage2
       };
     } catch (error) {
-      console.error('Error processing RSVP stage 1:', error);
+      
       return { 
         success: false, 
         message: 'An error occurred while processing your RSVP. Please try again later.'
@@ -223,8 +223,8 @@ export class RSVPService {
   }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
-      if (!guest) {
+      const guest = await storage.getGuest(response.guestId);
+      if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
@@ -254,11 +254,11 @@ export class RSVPService {
         // If guest selected "provided" accommodation, trigger auto room assignment
         if (response.accommodationPreference === 'provided') {
           try {
-            console.log(`Guest ${guest.id} selected provided accommodation - triggering auto room assignment`);
+            
             const roomAssignmentResult = await AutoRoomAssignmentService.processForGuest(guest.id, response.eventId);
             
             if (roomAssignmentResult.success) {
-              console.log(`Auto room assignment successful for guest ${guest.id}`);
+              
               // Add note about the auto-assignment
               await storage.updateGuest(guest.id, {
                 notes: (guest.notes || '') + 
@@ -266,7 +266,7 @@ export class RSVPService {
                   (roomAssignmentResult.earlyCheckIn ? ' Early check-in may be needed.' : '')
               });
             } else {
-              console.warn(`Auto room assignment failed for guest ${guest.id}: ${roomAssignmentResult.message}`);
+              
               // Update guest notes with the failure info so planner can follow up
               await storage.updateGuest(guest.id, {
                 notes: (guest.notes || '') + 
@@ -274,7 +274,7 @@ export class RSVPService {
               });
             }
           } catch (assignmentError) {
-            console.error('Error in auto room assignment:', assignmentError);
+            
             // Continue with RSVP processing even if room assignment fails
           }
         }
@@ -365,7 +365,7 @@ export class RSVPService {
       try {
         await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
       } catch (followupError) {
-        console.error('Error sending Stage 2 RSVP follow-up:', followupError);
+        
         // Continue with the response even if follow-up fails
       }
       
@@ -374,7 +374,7 @@ export class RSVPService {
         guest: await storage.getGuest(guest.id) // Return updated guest data
       };
     } catch (error) {
-      console.error('Error processing RSVP stage 2:', error);
+      
       return { 
         success: false, 
         message: 'An error occurred while processing your detailed information. Please try again later.'
@@ -449,7 +449,7 @@ export class RSVPService {
       
       return stage2Result;
     } catch (error) {
-      console.error('Error processing combined RSVP:', error);
+      
       return { 
         success: false, 
         message: 'An error occurred while processing your RSVP. Please try again later.'
@@ -463,8 +463,8 @@ export class RSVPService {
   static async processRSVPResponse(response: RSVPResponse): Promise<{ success: boolean; message?: string }> {
     try {
       // Validate guest and event exist with proper context validation
-      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
-      if (!guest) {
+      const guest = await storage.getGuest(response.guestId);
+      if (!guest || guest.eventId !== response.eventId) {
         return { success: false, message: 'Guest not found or does not belong to this event' };
       }
       
@@ -590,13 +590,13 @@ export class RSVPService {
       try {
         await rsvpFollowupService.processRsvpFollowup(guest.id, event.id);
       } catch (followupError) {
-        console.error('Error sending legacy RSVP follow-up:', followupError);
+        
         // Continue with the response even if follow-up fails
       }
       
       return { success: true };
     } catch (error) {
-      console.error('Error processing RSVP response:', error);
+      
       return { 
         success: false, 
         message: 'An error occurred while processing your RSVP. Please try again later.'

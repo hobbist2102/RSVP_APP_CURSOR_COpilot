@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { post, del } from "@/lib/api-utils";
+import { queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, UploadCloud, Image, Trash2, Copy } from "lucide-react";
 
@@ -60,7 +61,7 @@ export default function EmailAssetManager({ eventId }: EmailAssetManagerProps) {
   // Delete asset mutation
   const deleteAssetMutation = useMutation({
     mutationFn: (assetId: number) => 
-      apiRequest('DELETE', `/api/events/${eventId}/email-assets/${assetId}`),
+      del(`/api/events/${eventId}/email-assets/${assetId}`).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Asset deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-assets'] });

@@ -51,7 +51,7 @@ export function registerWhatsAppRoutes(
       
       next();
     } catch (error) {
-      console.error('Error checking WhatsApp service readiness:', error);
+      
       res.status(500).json({ message: 'Failed to check WhatsApp service readiness' });
     }
   };
@@ -62,7 +62,7 @@ export function registerWhatsAppRoutes(
       const provider = whatsappManager.getPreferredProvider();
       res.json({ provider });
     } catch (error) {
-      console.error('Error getting WhatsApp provider:', error);
+      
       res.status(500).json({ message: 'Failed to get WhatsApp provider' });
     }
   });
@@ -95,7 +95,7 @@ export function registerWhatsAppRoutes(
       
       res.json({ message: 'WhatsApp provider updated successfully', provider });
     } catch (error) {
-      console.error('Error setting WhatsApp provider:', error);
+      
       res.status(500).json({ message: 'Failed to set WhatsApp provider' });
     }
   });
@@ -156,7 +156,7 @@ export function registerWhatsAppRoutes(
         }
       }
     } catch (error) {
-      console.error('Error initializing WhatsApp service:', error);
+      
       res.status(500).json({ message: 'Failed to initialize WhatsApp service' });
     }
   });
@@ -184,7 +184,7 @@ export function registerWhatsAppRoutes(
         res.json({ message: 'QR code not available yet', status: 'initializing' });
       }
     } catch (error) {
-      console.error('Error getting WhatsApp QR code:', error);
+      
       res.status(500).json({ message: 'Failed to get WhatsApp QR code' });
     }
   });
@@ -207,7 +207,7 @@ export function registerWhatsAppRoutes(
       
       res.json({ message: 'Message sent successfully', messageId });
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp message';
       res.status(500).json({ message: errorMessage });
     }
@@ -231,7 +231,7 @@ export function registerWhatsAppRoutes(
       
       res.json({ message: 'Media message sent successfully', messageId });
     } catch (error) {
-      console.error('Error sending WhatsApp media message:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp media message';
       res.status(500).json({ message: errorMessage });
     }
@@ -265,7 +265,7 @@ export function registerWhatsAppRoutes(
       
       res.json({ message: 'Template message sent successfully', messageId });
     } catch (error) {
-      console.error('Error sending WhatsApp template message:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to send WhatsApp template message';
       res.status(500).json({ message: errorMessage });
     }
@@ -335,7 +335,7 @@ export function registerWhatsAppRoutes(
             };
           } catch (err) {
             const error = err as Error;
-            console.error(`Error sending to guest ${guest.id}:`, error);
+            
             
             return {
               guestId: guest.id,
@@ -352,7 +352,14 @@ export function registerWhatsAppRoutes(
         
         // Add a small delay between batches to prevent rate limiting
         if (i + batchSize < guestsWithPhones.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(resolve, 1000);
+            // Add cleanup for request cancellation
+            req.on('close', () => {
+              clearTimeout(timeoutId);
+              reject(new Error('Request cancelled'));
+            });
+          });
         }
       }
       
@@ -368,7 +375,7 @@ export function registerWhatsAppRoutes(
         results
       });
     } catch (error) {
-      console.error('Error sending bulk WhatsApp messages:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to send bulk WhatsApp messages';
       res.status(500).json({ message: errorMessage });
     }
@@ -403,7 +410,7 @@ export function registerWhatsAppRoutes(
         res.json({ status: 'not_connected', error: error.message, provider: whatsappManager.getPreferredProvider() });
       }
     } catch (error) {
-      console.error('Error checking WhatsApp status:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to check WhatsApp status';
       res.status(500).json({ message: errorMessage });
     }
@@ -421,7 +428,7 @@ export function registerWhatsAppRoutes(
       
       res.json({ message: 'WhatsApp service disconnected successfully' });
     } catch (error) {
-      console.error('Error disconnecting WhatsApp service:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to disconnect WhatsApp service';
       res.status(500).json({ message: errorMessage });
     }
@@ -486,7 +493,7 @@ export function registerWhatsAppRoutes(
         provider: whatsappManager.getPreferredProvider()
       });
     } catch (error) {
-      console.error('Error updating WhatsApp configuration:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to update WhatsApp configuration';
       res.status(500).json({ message: errorMessage });
     }

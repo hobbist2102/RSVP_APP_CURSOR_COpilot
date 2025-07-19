@@ -32,14 +32,14 @@
   }
 }
 
-/* Color variables for immersive sections */
+/* Color variables for immersive sections - using design system tokens */
 :root {
-  --color-primary-light: rgba(94, 35, 157, 0.1);
-  --color-primary-medium: rgba(94, 35, 157, 0.3);
-  --color-primary-dark: rgba(94, 35, 157, 0.8);
-  --color-accent-light: rgba(191, 167, 111, 0.1);
-  --color-accent-medium: rgba(191, 167, 111, 0.3);
-  --color-accent-dark: rgba(191, 167, 111, 0.8);
+  --color-primary-light: hsla(var(--primary), 0.1);
+  --color-primary-medium: hsla(var(--primary), 0.3);
+  --color-primary-dark: hsla(var(--primary), 0.8);
+  --color-accent-light: hsla(var(--secondary), 0.1);
+  --color-accent-medium: hsla(var(--secondary), 0.3);
+  --color-accent-dark: hsla(var(--secondary), 0.8);
 }
 
 /* Custom button styles */

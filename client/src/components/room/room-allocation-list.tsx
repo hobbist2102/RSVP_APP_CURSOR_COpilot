@@ -27,7 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoomAssignmentDialog } from "./room-assignment-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 
 // Function to get initials from name
 const getInitials = (name: string) => {
@@ -116,7 +116,7 @@ export function RoomAllocationList({
   // Delete allocation mutation
   const deleteAllocationMutation = useMutation({
     mutationFn: async (allocationId: number) => {
-      return apiRequest("DELETE", `/api/allocations/${allocationId}`, {});
+      return del(`/api/allocations/${allocationId}`);
     },
     onSuccess: () => {
       toast({

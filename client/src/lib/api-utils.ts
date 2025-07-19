@@ -132,13 +132,21 @@ export async function apiRequest<T = any>(
   }
   
   try {
-    // Make the fetch request
+    // Create timeout controller for deployment stability
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for deployment
+    
+    // Make the fetch request with timeout
     const response = await fetch(url, {
       method,
       headers: requestHeaders,
       body: data ? JSON.stringify(data) : undefined,
-      credentials
+      credentials: "include", // Force include credentials for all requests
+      signal: controller.signal
     });
+    
+    // Clear timeout on successful response
+    clearTimeout(timeoutId);
     
     // Handle unauthorized response based on the option
     if (unauthorized === "returnNull" && response.status === 401) {
@@ -163,23 +171,40 @@ export async function apiRequest<T = any>(
       headers: Object.fromEntries(response.headers.entries())
     };
   } catch (error) {
+    // Handle timeout and network errors
+    if (error instanceof Error && error.name === 'AbortError') {
+      const timeoutError: ApiError = new Error('Request timeout - deployment network may be slow') as ApiError;
+      timeoutError.name = 'TimeoutError';
+      timeoutError.isTimeoutError = true;
+      timeoutError.isNetworkError = true;
+      throw timeoutError;
+    }
+    
+    // Handle network connection errors
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      const networkError: ApiError = new Error('Network connection failed - deployment server may be unreachable') as ApiError;
+      networkError.name = 'NetworkError';
+      networkError.isNetworkError = true;
+      throw networkError;
+    }
+    
     // Handle specific error cases
     if ((error as ApiError).status === 401) {
       // Authentication error
-      console.warn("Authentication error:", error);
+      
       // Invalidate auth state
       queryClient.invalidateQueries(["/api/auth/user"]);
     } else if ((error as ApiError).status === 403) {
       // Authorization error
-      console.warn("Authorization error:", error);
+      
     } else if ((error as ApiError).isServerError) {
       // Server error (5xx)
-      console.error("Server error:", error);
+      
     } else if (error instanceof TypeError && error.message.includes('fetch')) {
       // Network error
       const networkError = error as ApiError;
       networkError.isNetworkError = true;
-      console.error("Network error:", error);
+      
     }
     
     throw error;
@@ -372,34 +397,7 @@ export function getQueryFn<T>({ on401 = "throw" }: { on401?: "returnNull" | "thr
  * ========================================================
  */
 
-/**
- * @deprecated Use the signature from api-utils.ts instead: apiRequest(url, { method, data, params })
- */
-export function legacyApiRequest(
-  method: string, 
-  url: string, 
-  data?: unknown, 
-  params?: Record<string, string | number>
-): Promise<Response> {
-  return apiRequest(url, {
-    method: method as any,
-    data,
-    params
-  }).then(async res => {
-    // Convert our ApiResponse to a fetch Response for backwards compatibility
-    const response = new Response(JSON.stringify(res.data), {
-      status: res.status,
-      statusText: res.statusText,
-      headers: new Headers(res.headers)
-    });
-    
-    // Add json method to mimic fetch Response
-    const originalJson = response.json;
-    response.json = async () => res.data;
-    
-    return response;
-  });
-}
+
 
 /**
  * Constants for common API endpoints

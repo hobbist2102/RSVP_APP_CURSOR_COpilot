@@ -76,7 +76,7 @@ export function registerAutoAssignmentRoutes(
       
       return res.json(enrichedAllocations);
     } catch (error) {
-      console.error(`Error fetching auto-assigned rooms for event ${req.params.eventId}:`, error);
+      
       return res.status(500).json({
         message: 'Failed to fetch auto-assigned rooms',
         details: error instanceof Error ? error.message : String(error)
@@ -105,11 +105,11 @@ export function registerAutoAssignmentRoutes(
         specialRequests: allocation.specialRequests?.replace('AUTO-FLAGGED: ', '') || ''
       });
       
-      console.log(`Room allocation ${allocationId} approved by planner`);
+      
       
       return res.json(updatedAllocation);
     } catch (error) {
-      console.error(`Error approving room allocation ${req.params.id}:`, error);
+      
       return res.status(500).json({
         message: 'Failed to approve room allocation',
         details: error instanceof Error ? error.message : String(error)
@@ -136,11 +136,11 @@ export function registerAutoAssignmentRoutes(
         additionalGuestsInfo: (allocation.additionalGuestsInfo || '') + ' [reassigned]'
       });
       
-      console.log(`Room allocation ${allocationId} marked as reassigned`);
+      
       
       return res.json(updatedAllocation);
     } catch (error) {
-      console.error(`Error marking room allocation ${req.params.id} as reassigned:`, error);
+      
       return res.status(500).json({
         message: 'Failed to mark room allocation as reassigned',
         details: error instanceof Error ? error.message : String(error)

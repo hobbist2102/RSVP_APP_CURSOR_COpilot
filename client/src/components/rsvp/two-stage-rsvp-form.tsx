@@ -177,7 +177,7 @@ export default function TwoStageRsvpForm({ eventId, ceremonies, mealOptions, onS
       setCurrentStage("stage2");
       
     } catch (error) {
-      console.error("RSVP Stage 1 submission error:", error);
+      // RSVP Stage 1 submission error - handled silently
       toast({
         variant: "destructive",
         title: "RSVP Submission Failed",
@@ -258,7 +258,7 @@ export default function TwoStageRsvpForm({ eventId, ceremonies, mealOptions, onS
         onSuccess(combinedData);
       }
     } catch (error) {
-      console.error("RSVP Stage 2 submission error:", error);
+      // RSVP Stage 2 submission error - handled silently
       toast({
         variant: "destructive",
         title: "Details Submission Failed",

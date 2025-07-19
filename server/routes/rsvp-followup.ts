@@ -25,7 +25,7 @@ router.get('/events/:eventId/rsvp-followup-templates', async (req: Request, res:
     const templates = await storage.getRsvpFollowupTemplatesByEvent(eventId);
     res.json(templates);
   } catch (error) {
-    console.error('Error fetching RSVP follow-up templates:', error);
+    
     res.status(500).json({ message: 'Failed to fetch RSVP follow-up templates' });
   }
 });
@@ -46,7 +46,7 @@ router.get('/events/:eventId/rsvp-followup-templates/:templateId', async (req: R
     }
     res.json(template);
   } catch (error) {
-    console.error('Error fetching RSVP follow-up template:', error);
+    
     res.status(500).json({ message: 'Failed to fetch RSVP follow-up template' });
   }
 });
@@ -77,7 +77,7 @@ router.post('/events/:eventId/rsvp-followup-templates', async (req: Request, res
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: error.errors });
     }
-    console.error('Error creating RSVP follow-up template:', error);
+    
     res.status(500).json({ message: 'Failed to create RSVP follow-up template' });
   }
 });
@@ -108,7 +108,7 @@ router.put('/events/:eventId/rsvp-followup-templates/:templateId', async (req: R
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: error.errors });
     }
-    console.error('Error updating RSVP follow-up template:', error);
+    
     res.status(500).json({ message: 'Failed to update RSVP follow-up template' });
   }
 });
@@ -129,7 +129,7 @@ router.delete('/events/:eventId/rsvp-followup-templates/:templateId', async (req
     }
     res.json({ message: 'Template successfully deleted' });
   } catch (error) {
-    console.error('Error deleting RSVP follow-up template:', error);
+    
     res.status(500).json({ message: 'Failed to delete RSVP follow-up template' });
   }
 });
@@ -175,7 +175,7 @@ router.put('/events/:eventId/communication-settings', async (req: Request, res: 
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: error.errors });
     }
-    console.error('Error updating communication settings:', error);
+    
     res.status(500).json({ message: 'Failed to update communication settings' });
   }
 });

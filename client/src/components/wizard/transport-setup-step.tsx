@@ -3,8 +3,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { put } from "@/lib/api-utils";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+// Removed useWizardData - using direct API query instead
 
 import {
   Card,
@@ -129,20 +131,10 @@ export default function TransportSetupStep({
     capacity: 4
   });
   
-  // Get the current event
-  const { data: currentEvent, isLoading: isLoadingEvent, error: eventError } = useQuery({
-    queryKey: ['/api/events', eventId],
-    queryFn: async () => {
-      if (!eventId || eventId === 'new') return null;
-      const res = await apiRequest('GET', `/api/events/${eventId}`);
-      const data = await res.json();
-      console.log('Transport step - loaded event data:', data);
-      return data;
-    },
-    enabled: !!eventId && eventId !== 'new',
-    retry: 1,
-    staleTime: 0, // No cache - always refetch
-    refetchOnWindowFocus: true
+  // Load current event data directly from API
+  const { data: currentEvent, isLoading: isLoadingEvent } = useQuery({
+    queryKey: [`/api/events/${eventId}`],
+    enabled: !!eventId,
   });
 
   // Form setup
@@ -174,10 +166,11 @@ export default function TransportSetupStep({
     },
   });
 
-  // Populate form with existing data when available
+  // Populate form with existing data when available - consistent with other wizard steps
   useEffect(() => {
     if (currentEvent && !isLoadingEvent) {
-      const formData = {
+      console.log('Loading existing transport config:', currentEvent);
+      form.reset({
         transportMode: currentEvent.transportMode || PROVISION_MODES.NONE,
         transportProviderName: currentEvent.transportProviderName || '',
         transportProviderPhone: currentEvent.transportProviderContact || '',
@@ -202,9 +195,7 @@ export default function TransportSetupStep({
           (currentEvent.departureBufferHours ? `${String(currentEvent.departureBufferHours).padStart(2, '0')}:00` : "03:00"),
         arrivalBufferTime: currentEvent.arrivalBufferTime || 
           (currentEvent.arrivalBufferHours ? `${String(currentEvent.arrivalBufferHours).padStart(2, '0')}:00` : "00:30"),
-      };
-      
-      form.reset(formData);
+      });
       
       // Load vehicles if any saved
       if (currentEvent.transportVehicles) {
@@ -214,11 +205,11 @@ export default function TransportSetupStep({
             setVehicles(savedVehicles);
           }
         } catch (error) {
-          console.error("Error parsing saved vehicles:", error);
+          console.log('Error parsing saved vehicles:', error);
         }
       }
     }
-  }, [currentEvent?.id, isLoadingEvent]); // Only depend on event ID and loading state
+  }, [currentEvent, isLoadingEvent, form]);
 
   // Submit handler - follows same pattern as other wizard steps
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
@@ -297,18 +288,7 @@ export default function TransportSetupStep({
     );
   }
 
-  if (eventError) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center p-12">
-          <p className="text-muted-foreground mb-4">Unable to load event data for transport configuration.</p>
-          <Button onClick={() => window.location.reload()} variant="outline">
-            Retry
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Remove error handling since we removed eventError variable
 
   return (
     <div className="space-y-6">

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { post, put } from "@/lib/api-utils";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -367,8 +367,8 @@ export default function EventWizard({
         : '/api/events';
       const method = existingEvent ? 'PUT' : 'POST';
       
-      const response = await apiRequest(method, endpoint, data);
-      return response.json();
+      const response = method === 'POST' ? await post(endpoint, data) : await put(endpoint, data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
@@ -490,7 +490,7 @@ export default function EventWizard({
         form.reset(currentStepData);
       }
     }
-  }, [existingEvent, currentStep, form, steps]);
+  }, [existingEvent, currentStep, steps]);
   
   // When step changes after the initial load, reset the form with the current values
   useEffect(() => {
@@ -501,7 +501,7 @@ export default function EventWizard({
         form.reset(currentValues);
       }
     }
-  }, [currentStep, wizardData, form, existingEvent]);
+  }, [currentStep, wizardData, existingEvent]);
   
   // Helper function to get data for the current step with proper type casting
   function getStepData(stepIndex: number): Record<string, any> {

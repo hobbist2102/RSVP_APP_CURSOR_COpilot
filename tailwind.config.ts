@@ -5,6 +5,10 @@ const config: Config = {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      gridTemplateColumns: {
+        '14': 'repeat(14, minmax(0, 1fr))',
+        '16': 'repeat(16, minmax(0, 1fr))',
+      },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         serif: ['Cormorant Garamond', 'serif'],

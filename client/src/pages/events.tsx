@@ -70,7 +70,9 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { post, put, del } from "@/lib/api-utils"; // Using the consolidated API utilities
 import DataTable from "@/components/ui/data-table";
-import EventWizard from "@/components/event/event-wizard";
+
+import { DeploymentErrorBoundary } from "@/components/deployment-error-boundary";
+import { EventLoadingState } from "@/components/deployment-loading-state";
 
 // Define form schemas
 const eventFormSchema = z.object({
@@ -110,8 +112,6 @@ export default function Events() {
   } = useEvents();
   
   // State for modals
-  const [showAddEventDialog, setShowAddEventDialog] = useState(false);
-  const [showEditEventDialog, setShowEditEventDialog] = useState(false);
   const [showDeleteEventDialog, setShowDeleteEventDialog] = useState(false);
   const [showAddCeremonyDialog, setShowAddCeremonyDialog] = useState(false);
   const [showEditCeremonyDialog, setShowEditCeremonyDialog] = useState(false);
@@ -262,9 +262,7 @@ export default function Events() {
         endDate: data.endDate,
         date: data.startDate // For backward compatibility 
       });
-      
-      // Close the dialog
-      setShowAddEventDialog(false);
+
     }
   };
   
@@ -443,9 +441,19 @@ export default function Events() {
     },
   ];
 
+  // Show loading state for deployment
+  if (isLoadingEvents && !events?.length) {
+    return (
+      <DashboardLayout>
+        <EventLoadingState />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="mb-6 flex justify-between items-center">
+      <DeploymentErrorBoundary>
+        <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-playfair font-bold text-neutral">Events & Ceremonies</h2>
           <p className="text-sm text-gray-500">
@@ -571,18 +579,7 @@ export default function Events() {
             </p>
             <Button 
               onClick={() => {
-                setCurrentEvent(null);
-                eventForm.reset({
-                  title: "",
-                  coupleNames: "",
-                  brideName: "",
-                  groomName: "",
-                  startDate: "",
-                  endDate: "",
-                  location: "",
-                  description: "",
-                });
-                setShowAddEventDialog(true);
+                setLocation('/event-setup-wizard/new');
               }}
               className="gold-gradient"
             >
@@ -714,16 +711,6 @@ export default function Events() {
         </Dialog>
       )}
       
-      {/* Event Wizard for multi-step event creation */}
-      <EventWizard 
-        isOpen={showAddEventDialog || showEditEventDialog}
-        onClose={() => {
-          setShowAddEventDialog(false);
-          setShowEditEventDialog(false);
-          setCurrentEvent(null);
-        }}
-        existingEvent={currentEvent}
-      />
       
       {/* Add/Edit Ceremony Dialog */}
       <Dialog 
@@ -955,10 +942,18 @@ export default function Events() {
             </Button>
             <Button 
               variant="destructive" 
-              onClick={() => {
+              onClick={async () => {
                 if (currentEvent) {
-                  deleteEvent(currentEvent.id);
-                  setShowDeleteEventDialog(false);
+                  try {
+                    await deleteEvent(currentEvent.id);
+                    setShowDeleteEventDialog(false);
+                    // Force page refresh after successful deletion
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Failed to delete event:', error);
+                    // Still close dialog even if delete fails
+                    setShowDeleteEventDialog(false);
+                  }
                 }
               }}
               disabled={isDeletingEvent}
@@ -968,6 +963,7 @@ export default function Events() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </DeploymentErrorBoundary>
     </DashboardLayout>
   );
 }

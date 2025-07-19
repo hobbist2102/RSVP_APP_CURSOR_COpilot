@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { put } from "@/lib/api-utils";
+import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -66,7 +67,7 @@ export default function EmailSignatureEditor({ eventId }: EmailSignatureEditorPr
 
   const createSignatureMutation = useMutation({
     mutationFn: (data: EmailSignatureFormValues) => 
-      apiRequest('POST', `/api/events/${eventId}/email-signatures`, data),
+      post(`/api/events/${eventId}/email-signatures`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Signature created successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });
@@ -83,7 +84,7 @@ export default function EmailSignatureEditor({ eventId }: EmailSignatureEditorPr
 
   const updateSignatureMutation = useMutation({
     mutationFn: (data: EmailSignatureFormValues & { id: number }) => 
-      apiRequest('PUT', `/api/events/${eventId}/email-signatures/${data.id}`, data),
+      put(`/api/events/${eventId}/email-signatures/${data.id}`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Signature updated successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });
@@ -100,7 +101,7 @@ export default function EmailSignatureEditor({ eventId }: EmailSignatureEditorPr
 
   const deleteSignatureMutation = useMutation({
     mutationFn: (id: number) => 
-      apiRequest('DELETE', `/api/events/${eventId}/email-signatures/${id}`),
+      del(`/api/events/${eventId}/email-signatures/${id}`).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Signature deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-signatures'] });

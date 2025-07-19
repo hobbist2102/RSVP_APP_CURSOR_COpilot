@@ -6,13 +6,14 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not defined in environment variables');
 }
 
-// Create postgres connection with optimized configuration for stability
+// Create postgres connection with deployment-optimized configuration
 const connectionString = process.env.DATABASE_URL;
 const client = postgres(connectionString, {
-  max: 20, // Increased connection pool size
-  idle_timeout: 300, // 5 minutes before closing idle connections
-  connect_timeout: 30, // 30 seconds connection timeout
-  max_lifetime: 3600, // 1 hour max connection lifetime
+  max: 5, // Smaller pool for deployment efficiency
+  idle_timeout: 30, // Shorter idle timeout for deployment
+  connect_timeout: 10, // Faster connection timeout
+  max_lifetime: 900, // 15 minutes max connection lifetime
+  prepare: false, // Disable prepared statements for deployment compatibility
   onnotice: () => {}, // Silence notice messages
   onparameter: () => {}, // Silence parameter messages
   debug: false, // Disable debug logging for performance
@@ -21,13 +22,32 @@ const client = postgres(connectionString, {
   },
 });
 
+
+
 // Add error handling for the client
 process.on('SIGINT', () => {
-  console.log('Closing postgres connection due to app termination');
+  
   client.end({ timeout: 5 }).catch(err => {
-    console.error('Error closing postgres connections', err);
+    
   });
   process.exit(0);
+});
+
+// Add database connection test and error handling
+async function testConnection() {
+  try {
+    
+    await client`SELECT 1`;
+    
+  } catch (error) {
+    
+    throw error;
+  }
+}
+
+// Test connection immediately
+testConnection().catch(err => {
+  
 });
 
 // Create drizzle instance

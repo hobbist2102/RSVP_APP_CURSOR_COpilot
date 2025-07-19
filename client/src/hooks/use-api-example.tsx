@@ -51,11 +51,8 @@ export function useEventManagement(eventId?: number) {
   } = useQuery({
     queryKey: [ApiEndpoints.EVENTS.BASE],
     queryFn: async () => {
-      const response = await apiRequest({
-        url: ApiEndpoints.EVENTS.BASE,
-        method: "GET"
-      });
-      return response.data as Event[];
+      const response = await get<Event[]>(ApiEndpoints.EVENTS.BASE);
+      return response.data;
     }
   });
   

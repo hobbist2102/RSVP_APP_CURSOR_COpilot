@@ -19,8 +19,8 @@ export class EmailService {
   private provider: string;
   private apiKey: string | null;
   private resendClient: Resend | null = null;
-  private sendGridClient: any = null;
-  private nodemailerTransport: any = null;
+  private sendGridClient: typeof SendGrid | null = null;
+  private nodemailerTransport: nodemailer.Transporter | null = null;
   private eventId: number;
   private defaultFromEmail: string;
   private eventName: string;
@@ -38,18 +38,18 @@ export class EmailService {
     try {
       if (this.provider === EmailService.PROVIDER_RESEND && this.apiKey) {
         this.resendClient = new Resend(this.apiKey);
-        console.log(`Initialized Resend client for event ${eventId}`);
+        // Resend client initialized successfully
       } 
       else if (this.provider === EmailService.PROVIDER_SENDGRID && this.apiKey) {
         this.sendGridClient = SendGrid;
         this.sendGridClient.setApiKey(this.apiKey);
-        console.log(`Initialized SendGrid client for event ${eventId}`);
+        // SendGrid client initialized successfully
       }
       else if (this.provider === EmailService.PROVIDER_GMAIL) {
         try {
           // Use the stored event data for OAuth2 configuration
           if (!this.event) {
-            console.warn(`No event data available for Gmail OAuth2 configuration`);
+            throw new Error('No event data available for Gmail OAuth2 configuration');
             return;
           }
 
@@ -77,14 +77,14 @@ export class EmailService {
                 rejectUnauthorized: false
               }
             };
-            console.log(`Using direct SMTP access for Gmail: ${transport.host}:${transport.port} (secure: ${transport.secure}) with account ${transport.auth.user}`);
+
             
             // Extra debugging for SMTP configuration
             if (!transport.auth.user) {
-              console.warn("Missing Gmail account email for SMTP configuration");
+              
             }
             if (!transport.auth.pass) {
-              console.warn("Missing Gmail password for SMTP configuration");
+              
             }
           } else {
             // Use OAuth2 (more secure but requires proper OAuth setup)
@@ -92,7 +92,7 @@ export class EmailService {
             const clientSecret = this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
             
             if (!clientId || !clientSecret) {
-              console.error("Missing Gmail OAuth credentials. Please check event settings.");
+              
               throw new Error("Gmail OAuth credentials not properly configured");
             }
             
@@ -110,7 +110,7 @@ export class EmailService {
                 : undefined
             };
             
-            console.log(`Using OAuth2 authentication for Gmail with account ${userEmail}`);
+
             
             transport = {
               service: 'gmail',
@@ -123,24 +123,24 @@ export class EmailService {
             
             // Extra debugging for OAuth2 configuration
             if (!oauth2Client.user) {
-              console.warn("Missing Gmail account email for OAuth2 configuration");
+              
             }
             if (!oauth2Client.refreshToken) {
-              console.warn("Missing Gmail refresh token for OAuth2 configuration");
+              
             }
           }
           
           this.nodemailerTransport = nodemailer.createTransport(transport as any);
-          console.log(`Initialized Gmail client for event ${eventId}`);
+
         } catch (err) {
-          console.error(`Failed to initialize Gmail client:`, err);
+          
         }
       }
       else if (this.provider === EmailService.PROVIDER_OUTLOOK && this.apiKey) {
         try {
           // Use the stored event data for Outlook OAuth2 configuration
           if (!this.event) {
-            console.warn(`No event data available for Outlook OAuth2 configuration`);
+            
             return;
           }
           
@@ -163,13 +163,13 @@ export class EmailService {
           };
           
           this.nodemailerTransport = nodemailer.createTransport(transport as any);
-          console.log(`Initialized Outlook client for event ${eventId}`);
+
         } catch (err) {
-          console.error(`Failed to initialize Outlook client:`, err);
+          
         }
       }
     } catch (error) {
-      console.error(`Failed to initialize email client for provider ${provider}:`, error);
+      
     }
   }
 
@@ -179,7 +179,7 @@ export class EmailService {
   public isConfigured(): boolean {
     // Check if we have a from email address
     if (!this.defaultFromEmail) {
-      console.warn(`No from email address configured for event ${this.eventId}`);
+      
       return false;
     }
 
@@ -194,7 +194,7 @@ export class EmailService {
       // The transport might be initialized but with incorrect credentials
       // Check if the event data is available
       if (!this.event) {
-        console.warn('Gmail email service is not properly configured - missing event data');
+        
         return false;
       }
       
@@ -202,14 +202,14 @@ export class EmailService {
       if (this.event.useGmailDirectSMTP) {
         // Direct SMTP requires a password and gmailAccount (email address)
         if (!this.event.gmailPassword) {
-          console.warn('Gmail direct SMTP is enabled but no password is configured');
+          
           return false;
         }
         
         // Extract the email address from the defaultFromEmail if no gmailAccount is configured
         const userEmail = this.event.gmailAccount || this.extractEmailAddress(this.defaultFromEmail);
         if (!userEmail) {
-          console.warn('Gmail direct SMTP is enabled but no account email is configured');
+          
           return false;
         }
       } else {
@@ -219,14 +219,14 @@ export class EmailService {
         const hasRefreshToken = !!this.event.gmailRefreshToken;
         
         if (!hasClientId || !hasClientSecret || !hasRefreshToken) {
-          console.warn(`Gmail OAuth not properly configured - missing credentials: ${!hasClientId ? 'clientId ' : ''}${!hasClientSecret ? 'clientSecret ' : ''}${!hasRefreshToken ? 'refreshToken' : ''}`);
+          
           return false;
         }
       }
       
       // Check if transport is initialized
       if (!this.nodemailerTransport) {
-        console.warn('Gmail transport is not initialized');
+        
         return false;
       }
       
@@ -235,7 +235,7 @@ export class EmailService {
     else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
       // Check similar configuration requirements for Outlook
       if (!this.event) {
-        console.warn('Outlook email service is not properly configured - missing event data');
+        
         return false;
       }
       
@@ -245,20 +245,20 @@ export class EmailService {
       const hasRefreshToken = !!this.event.outlookRefreshToken;
       
       if (!hasClientId || !hasClientSecret || !hasRefreshToken) {
-        console.warn(`Outlook OAuth not properly configured - missing credentials: ${!hasClientId ? 'clientId ' : ''}${!hasClientSecret ? 'clientSecret ' : ''}${!hasRefreshToken ? 'refreshToken' : ''}`);
+        
         return false;
       }
       
       // Check if transport is initialized
       if (!this.nodemailerTransport) {
-        console.warn('Outlook transport is not initialized');
+        
         return false;
       }
       
       return true;
     }
     
-    console.warn(`Unknown email provider: ${this.provider} for event ${this.eventId}`);
+    
     return false;
   }
   
@@ -284,7 +284,7 @@ export class EmailService {
       return formattedEmail;
     }
     
-    console.warn(`Could not extract valid email address from: ${formattedEmail}`);
+    
     return '';
   }
   
@@ -314,7 +314,8 @@ export class EmailService {
           // Test connection using nodemailer's verify method with a timeout
           const verifyPromise = this.nodemailerTransport.verify();
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000);
+            const timeoutId = setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000);
+            // No cleanup needed here as Promise.race will handle resolution
           });
           
           await Promise.race([verifyPromise, timeoutPromise]);
@@ -324,7 +325,7 @@ export class EmailService {
             message: `${this.provider} connection verified successfully` 
           };
         } catch (err: any) {
-          console.error(`Nodemailer verification error:`, err);
+          
           return {
             success: false,
             message: `Connection test failed: ${err.message}`
@@ -347,7 +348,7 @@ export class EmailService {
             message: 'Resend API connection verified successfully'
           };
         } catch (err: any) {
-          console.error(`Resend verification error:`, err);
+          
           return {
             success: false,
             message: `Resend API test failed: ${err.message}`
@@ -395,7 +396,7 @@ export class EmailService {
             };
           }
         } catch (err: any) {
-          console.error(`SendGrid verification error:`, err);
+          
           return {
             success: false,
             message: `SendGrid API test failed: ${err.message}`
@@ -408,7 +409,7 @@ export class EmailService {
         message: `Unknown provider: ${this.provider}` 
       };
     } catch (error: any) {
-      console.error(`Email test connection unexpected error:`, error);
+      
       return {
         success: false,
         message: `Connection test failed: ${error.message || 'Unknown error'}`
@@ -455,7 +456,7 @@ export class EmailService {
         });
 
         if (response.error) {
-          console.error(`Resend email sending failed: ${response.error.message}`);
+          
           return {
             success: false,
             error: response.error.message
@@ -483,14 +484,14 @@ export class EmailService {
         
         try {
           const response = await this.sendGridClient.send(msg);
-          console.log('SendGrid email sent successfully:', response);
+
           
           return {
             success: true,
             id: response?.[0]?.headers['x-message-id'] || 'unknown'
           };
         } catch (error: any) {
-          console.error('SendGrid email error:', error);
+          
           
           if (error.response) {
             // Extract more detailed error information
@@ -554,7 +555,7 @@ export class EmailService {
               id: info.messageId
             };
           } catch (error) {
-            console.error(`${this.provider} email sending failed with detailed error:`, error);
+            
             
             // Check for common OAuth errors
             const errorMessage = (error as any)?.message || '';
@@ -567,11 +568,11 @@ export class EmailService {
               errorCode === 'EAUTH';
             
             if (needsTokenRefresh && this.event) {
-              console.log(`Attempting to refresh OAuth token for ${this.provider}...`);
+              
               try {
                 const refreshed = await this.refreshOAuthToken();
                 if (refreshed) {
-                  console.log(`Successfully refreshed ${this.provider} OAuth token, retrying email send`);
+                  
                   
                   // Retry sending the email with the refreshed token
                   const retryInfo = await this.nodemailerTransport.sendMail(mailOptions);
@@ -586,22 +587,22 @@ export class EmailService {
                   };
                 }
               } catch (refreshError) {
-                console.error(`Failed to refresh OAuth token for ${this.provider}:`, refreshError);
+                
               }
             }
             
             if (errorMessage.includes('invalid_grant')) {
-              console.error(`OAuth token for ${this.provider} may have expired or been revoked`);
+              
             }
             
             if (errorCode === 'EAUTH') {
-              console.error(`Authentication error with ${this.provider}. Check credentials and OAuth permissions.`);
+              
             }
             
             throw error;
           }
         } catch (error: any) {
-          console.error(`${this.provider} email error:`, error);
+          
           
           return {
             success: false,
@@ -616,7 +617,7 @@ export class EmailService {
         error: `Unsupported email provider: ${this.provider}`
       };
     } catch (error: any) {
-      console.error('Failed to send email:', error);
+      
       return {
         success: false,
         error: error.message || 'Unknown error sending email'
@@ -705,7 +706,7 @@ ${event.brideName} & ${event.groomName}
    */
   private async refreshOAuthToken(): Promise<boolean> {
     if (!this.event) {
-      console.error('Cannot refresh OAuth token: No event data available');
+      
       return false;
     }
 
@@ -713,7 +714,7 @@ ${event.brideName} & ${event.groomName}
       if (this.provider === EmailService.PROVIDER_GMAIL) {
         // Refresh Gmail token
         if (!this.event.gmailRefreshToken) {
-          console.error('Cannot refresh Gmail token: No refresh token available');
+          
           return false;
         }
         
@@ -722,11 +723,11 @@ ${event.brideName} & ${event.groomName}
         const clientSecret = this.event.gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
         
         if (!clientId || !clientSecret) {
-          console.error('Cannot refresh Gmail token: OAuth credentials not configured properly');
+          
           return false;
         }
         
-        console.log(`Refreshing Gmail token for event ${this.eventId}...`);
+        
         
         const response = await axios.post(
           "https://oauth2.googleapis.com/token",
@@ -746,7 +747,7 @@ ${event.brideName} & ${event.groomName}
         const { access_token, expires_in } = response.data;
         
         if (!access_token) {
-          console.error('Failed to retrieve access token from Google');
+          
           return false;
         }
         
@@ -774,13 +775,13 @@ ${event.brideName} & ${event.groomName}
         
         this.nodemailerTransport = nodemailer.createTransport(transport as any);
         
-        console.log(`Successfully refreshed Gmail token for event ${this.eventId}`);
+        
         return true;
       }
       else if (this.provider === EmailService.PROVIDER_OUTLOOK) {
         // Refresh Outlook token
         if (!this.event.outlookRefreshToken) {
-          console.error('Cannot refresh Outlook token: No refresh token available');
+          
           return false;
         }
         
@@ -789,11 +790,11 @@ ${event.brideName} & ${event.groomName}
         const clientSecret = this.event.outlookClientSecret || process.env.OUTLOOK_CLIENT_SECRET;
         
         if (!clientId || !clientSecret) {
-          console.error('Cannot refresh Outlook token: OAuth credentials not configured properly');
+          
           return false;
         }
         
-        console.log(`Refreshing Outlook token for event ${this.eventId}...`);
+        
         
         const response = await axios.post(
           "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -814,7 +815,7 @@ ${event.brideName} & ${event.groomName}
         const { access_token, expires_in, refresh_token } = response.data;
         
         if (!access_token) {
-          console.error('Failed to retrieve access token from Microsoft');
+          
           return false;
         }
         
@@ -849,14 +850,14 @@ ${event.brideName} & ${event.groomName}
         
         this.nodemailerTransport = nodemailer.createTransport(transport as any);
         
-        console.log(`Successfully refreshed Outlook token for event ${this.eventId}`);
+        
         return true;
       }
       
-      console.error(`Token refresh not implemented for provider: ${this.provider}`);
+      
       return false;
     } catch (error) {
-      console.error(`Failed to refresh ${this.provider} token:`, error);
+      
       return false;
     }
   }
@@ -878,7 +879,7 @@ ${event.brideName} & ${event.groomName}
     // First try the direct API key in the event object
     if (event.emailApiKey) {
       emailApiKey = event.emailApiKey;
-      console.log(`Using direct email API key for event ${event.id}`);
+      
     }
     // If Gmail is configured and selected as provider
     else if (event.useGmail && emailProvider === 'gmail') {
@@ -886,33 +887,33 @@ ${event.brideName} & ${event.groomName}
       if (event.useGmailDirectSMTP) {
         // For direct SMTP, the API key is still null, but we'll use the password stored in the event
         emailApiKey = null; // Not used for direct SMTP
-        console.log(`Using Gmail Direct SMTP for event ${event.id}`);
+        
       } 
       // If using OAuth, use the access token
       else if (event.gmailAccessToken) {
         emailApiKey = event.gmailAccessToken;
-        console.log(`Using Gmail OAuth token for event ${event.id}`);
+        
       }
     }
     // If Outlook is configured and selected as provider, use Outlook OAuth tokens
     else if (event.useOutlook && emailProvider === 'outlook' && event.outlookAccessToken) {
       emailApiKey = event.outlookAccessToken;
-      console.log(`Using Outlook OAuth token for event ${event.id}`);
+      
     }
     // If SendGrid is configured and selected as provider, use SendGrid API key
     else if (event.useSendGrid && emailProvider === 'sendgrid' && event.sendGridApiKey) {
       emailApiKey = event.sendGridApiKey;
-      console.log(`Using SendGrid API key for event ${event.id}`);
+      
     }
     // Fallback to environment variables if available
     else if (process.env.RESEND_API_KEY && emailProvider === 'resend') {
       emailApiKey = process.env.RESEND_API_KEY;
-      console.log(`Using environment RESEND_API_KEY for event ${event.id}`);
+      
     }
     
     // Special handling for Gmail Direct SMTP - we don't have an API key but it's still valid
     if (!emailApiKey && !(emailProvider === 'gmail' && event.useGmailDirectSMTP)) {
-      console.warn(`No email API key found for event ${event.id} with provider ${emailProvider}`);
+      
     }
     
     // Determine from email address

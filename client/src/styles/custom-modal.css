@@ -23,13 +23,13 @@
 
 /* Gold gradient buttons should remain purple */
 .gold-gradient {
-  background: #5E239D !important;
+  background: hsl(var(--primary)) !important;
   background-image: none !important;
   color: white !important;
 }
 
 /* Back button - keep outline style */
 button[type="button"][variant="outline"] {
-  border-color: #5E239D !important;
-  color: #5E239D !important;
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
 }

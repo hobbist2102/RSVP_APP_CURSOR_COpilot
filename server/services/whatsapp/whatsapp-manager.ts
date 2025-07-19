@@ -1,117 +1,128 @@
-import { IWhatsAppService } from './whatsapp-interface';
-import WhatsAppFactory, { WhatsAppProvider, WhatsAppConfig } from './whatsapp-factory';
+/**
+ * WhatsApp Manager
+ * Manages WhatsApp service instances across different events and providers
+ */
+
+import { WhatsAppFactory, WhatsAppProvider, WhatsAppConfig, WhatsAppServiceInterface } from './whatsapp-factory';
 import { db } from '../../db';
-import { weddingEvents as events } from '@shared/schema';
+import { weddingEvents } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
-/**
- * Singleton manager for WhatsApp services
- */
 export default class WhatsAppManager {
-  private static instance: WhatsAppManager;
-  private services: Map<number, IWhatsAppService> = new Map();
+  private static instance: WhatsAppManager | null = null;
+  private services: Map<number, WhatsAppServiceInterface> = new Map();
   private preferredProvider: WhatsAppProvider = WhatsAppProvider.WebJS;
-  private businessApiKey: string = '';
-  private businessPhoneNumberId: string = '';
+  private businessAPICredentials: { apiKey: string; phoneNumberId: string } | null = null;
 
   private constructor() {}
 
-  /**
-   * Get the singleton instance
-   */
-  public static getInstance(): WhatsAppManager {
+  static getInstance(): WhatsAppManager {
     if (!WhatsAppManager.instance) {
       WhatsAppManager.instance = new WhatsAppManager();
     }
     return WhatsAppManager.instance;
   }
 
-  /**
-   * Get the preferred WhatsApp provider
-   */
-  public getPreferredProvider(): WhatsAppProvider {
-    return this.preferredProvider;
-  }
-
-  /**
-   * Set the preferred WhatsApp provider
-   * @param provider The provider to use
-   */
-  public setPreferredProvider(provider: WhatsAppProvider): void {
+  setPreferredProvider(provider: WhatsAppProvider): void {
     this.preferredProvider = provider;
   }
 
-  /**
-   * Set Business API credentials
-   * @param apiKey WhatsApp Business API key
-   * @param phoneNumberId WhatsApp Business phone number ID
-   */
-  public setBusinessAPICredentials(apiKey: string, phoneNumberId: string): void {
-    this.businessApiKey = apiKey;
-    this.businessPhoneNumberId = phoneNumberId;
+  getPreferredProvider(): WhatsAppProvider {
+    return this.preferredProvider;
   }
 
-  /**
-   * Get a WhatsApp service for a specific event
-   * @param eventId Event ID
-   * @returns Promise resolving to a WhatsApp service
-   */
-  public async getService(eventId: number): Promise<IWhatsAppService> {
-    // Check if a service instance already exists
+  setBusinessAPICredentials(apiKey: string, phoneNumberId: string): void {
+    this.businessAPICredentials = { apiKey, phoneNumberId };
+  }
+
+  async getService(eventId: number): Promise<WhatsAppServiceInterface> {
+    // Return existing service if available
     if (this.services.has(eventId)) {
       return this.services.get(eventId)!;
     }
 
-    // Get event details from the database
-    const [event] = await db.select({
-      whatsappConfigured: events.whatsappConfigured,
-      whatsappAccessToken: events.whatsappAccessToken,
-      whatsappBusinessPhoneId: events.whatsappBusinessPhoneId,
-      whatsappBusinessNumber: events.whatsappBusinessNumber,
-      whatsappBusinessAccountId: events.whatsappBusinessAccountId
-    })
-    .from(events)
-    .where(eq(events.id, eventId));
-
-    if (!event) {
-      throw new Error(`Event with ID ${eventId} not found`);
-    }
-
-    // Determine which provider to use
-    let provider = this.preferredProvider;
-    let config: WhatsAppConfig = {
-      eventId
-    };
-
-    // Configure based on provider
-    if (provider === WhatsAppProvider.BusinessAPI) {
-      config.accessToken = event.whatsappAccessToken || this.businessApiKey;
-      config.phoneNumberId = event.whatsappBusinessPhoneId || this.businessPhoneNumberId;
-      config.phoneNumber = event.whatsappBusinessNumber || '';
-      config.businessAccountId = event.whatsappBusinessAccountId || '';
-
-      // Validate required credentials
-      if (!config.accessToken || !config.phoneNumberId) {
-        throw new Error('WhatsApp Business API requires an access token and phone number ID');
-      }
-    }
-
-    // Create the service
-    const service = await WhatsAppFactory.createService(provider, config);
+    // Create new service based on preferred provider
+    const config = await this.createConfig(eventId);
+    const service = await WhatsAppFactory.createService(config);
     
-    // Initialize the service
-    await service.initialize();
-    
-    // Store and return the service
     this.services.set(eventId, service);
     return service;
   }
 
-  /**
-   * Disconnect a WhatsApp service for a specific event
-   * @param eventId Event ID
-   */
-  public async disconnectService(eventId: number): Promise<void> {
+  private async createConfig(eventId: number): Promise<WhatsAppConfig> {
+    const config: WhatsAppConfig = {
+      provider: this.preferredProvider
+    };
+
+    if (this.preferredProvider === WhatsAppProvider.BusinessAPI) {
+      // Try to get credentials from database first
+      try {
+        const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+        
+        if (event[0]?.whatsappAccessToken && event[0]?.whatsappBusinessPhoneId) {
+          config.businessAPI = {
+            accessToken: event[0].whatsappAccessToken,
+            phoneNumberId: event[0].whatsappBusinessPhoneId,
+            accountId: event[0].whatsappBusinessAccountId || undefined
+          };
+        } else if (this.businessAPICredentials) {
+          // Fall back to manager credentials
+          config.businessAPI = {
+            accessToken: this.businessAPICredentials.apiKey,
+            phoneNumberId: this.businessAPICredentials.phoneNumberId
+          };
+        } else {
+          throw new Error('WhatsApp Business API credentials not configured');
+        }
+      } catch (error) {
+        if (this.businessAPICredentials) {
+          config.businessAPI = {
+            accessToken: this.businessAPICredentials.apiKey,
+            phoneNumberId: this.businessAPICredentials.phoneNumberId
+          };
+        } else {
+          throw new Error('WhatsApp Business API credentials not available');
+        }
+      }
+    } else {
+      // WebJS configuration
+      config.webJS = {
+        session: `event_${eventId}`,
+        puppeteer: {
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+          ]
+        }
+      };
+    }
+
+    return config;
+  }
+
+  async sendTextMessage(eventId: number, to: string, message: string): Promise<string> {
+    const service = await this.getService(eventId);
+    return await service.sendTextMessage(to, message);
+  }
+
+  async sendMediaMessage(eventId: number, to: string, mediaPath: string, caption?: string): Promise<string> {
+    const service = await this.getService(eventId);
+    return await service.sendMediaMessage(to, mediaPath, caption);
+  }
+
+  async sendTemplateMessage(eventId: number, to: string, templateName: string, languageCode: string, components: any[]): Promise<string> {
+    const service = await this.getService(eventId);
+    return await service.sendTemplateMessage(to, templateName, languageCode, components);
+  }
+
+  async disconnectService(eventId: number): Promise<void> {
     const service = this.services.get(eventId);
     if (service) {
       await service.disconnect();
@@ -119,65 +130,47 @@ export default class WhatsAppManager {
     }
   }
 
-  /**
-   * Disconnect all WhatsApp services
-   */
-  public async disconnectAll(): Promise<void> {
+  async disconnectAll(): Promise<void> {
     const disconnectPromises = Array.from(this.services.entries()).map(async ([eventId, service]) => {
-      await service.disconnect();
-      this.services.delete(eventId);
+      try {
+        await service.disconnect();
+      } catch (error) {
+        
+      }
     });
-    
+
     await Promise.all(disconnectPromises);
+    this.services.clear();
   }
 
-  /**
-   * Send a text message
-   * @param eventId Event ID
-   * @param to Recipient phone number
-   * @param message Text message
-   * @returns Promise resolving to message ID
-   */
-  public async sendTextMessage(eventId: number, to: string, message: string): Promise<string> {
-    const service = await this.getService(eventId);
-    return service.sendTextMessage(to, message);
-  }
-
-  /**
-   * Send a media message
-   * @param eventId Event ID
-   * @param to Recipient phone number
-   * @param mediaPath Path to media file
-   * @param caption Optional caption
-   * @returns Promise resolving to message ID
-   */
-  public async sendMediaMessage(eventId: number, to: string, mediaPath: string, caption?: string): Promise<string> {
-    const service = await this.getService(eventId);
-    return service.sendMediaMessage(to, mediaPath, caption);
-  }
-
-  /**
-   * Send a template message (Business API only)
-   * @param eventId Event ID
-   * @param to Recipient phone number
-   * @param templateName Template name
-   * @param languageCode Language code
-   * @param components Template components
-   * @returns Promise resolving to message ID
-   */
-  public async sendTemplateMessage(
-    eventId: number,
-    to: string,
-    templateName: string,
-    languageCode: string,
-    components: any[]
-  ): Promise<string> {
-    const service = await this.getService(eventId);
-    
-    if (!service.sendTemplateMessage) {
-      throw new Error('Template messages are not supported by this WhatsApp provider');
+  getServiceStatus(eventId: number): { connected: boolean; qrCode?: string | null } {
+    const service = this.services.get(eventId);
+    if (!service) {
+      return { connected: false };
     }
-    
-    return service.sendTemplateMessage(to, templateName, languageCode, components);
+
+    return {
+      connected: service.isClientReady(),
+      qrCode: service.getQRCode?.() || null
+    };
+  }
+
+  async testConnection(eventId?: number): Promise<boolean> {
+    try {
+      if (eventId) {
+        const service = await this.getService(eventId);
+        return service.isClientReady();
+      } else {
+        // Test if we can create a service with current configuration
+        const testConfig = await this.createConfig(1); // Use dummy event ID
+        const testService = await WhatsAppFactory.createService(testConfig);
+        const isReady = testService.isClientReady();
+        await testService.disconnect();
+        return isReady;
+      }
+    } catch (error) {
+      
+      return false;
+    }
   }
 }

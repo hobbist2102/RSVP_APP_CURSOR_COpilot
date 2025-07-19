@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { post, apiRequest } from "@/lib/api-utils";
+import { post } from "@/lib/api-utils";
 import { useNotification } from "@/lib/notification-utils";
 
 // Example validation schema for an event form
@@ -73,7 +73,7 @@ export default function ApiExample() {
   // Example mutation for updating an existing event
   const updateEventMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: EventFormValues }) => {
-      const response = await apiRequest({
+      const response = await post("/api/events/manage", {
         url: `/api/events/${id}`,
         method: "PUT",
         data

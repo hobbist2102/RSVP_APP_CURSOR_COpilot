@@ -198,13 +198,21 @@ const VirtualizedTableBody = memo(function VirtualizedTableBody<T>({
   return (
     <TableBody>
       {visibleRows.map((row) => (
-        <MemoizedTableRow
+        <TableRow
           key={String(row[keyField])}
-          row={row}
-          columns={columns}
-          keyField={keyField}
-          onRowClick={onRowClick}
-        />
+          onClick={() => onRowClick && onRowClick(row)}
+          className={onRowClick ? "cursor-pointer hover:bg-muted" : ""}
+        >
+          {columns.map((column, index) => (
+            <TableCell key={index}>
+              {column.cell
+                ? column.cell(row)
+                : typeof column.accessor === "function"
+                ? column.accessor(row)
+                : String(row[column.accessor] ?? "")}
+            </TableCell>
+          ))}
+        </TableRow>
       ))}
     </TableBody>
   );

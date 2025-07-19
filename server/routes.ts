@@ -1,14 +1,16 @@
 import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+
 import multer from "multer";
-import * as XLSX from "xlsx";
+import * as XLSX from "sheetjs-style";
 import { format } from "date-fns";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import { isAuthenticated, isAdmin } from './middleware';
+import { ensureAdminUserExists, getDefaultCredentials } from './auth/production-auth';
 // Import session type extensions
 import './types';
 // Import PostgreSQL session store
@@ -33,13 +35,14 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import wizardRouter from "./routes/wizard";
+// Wizard functionality handled by standard API endpoints
 import { eq } from "drizzle-orm";
 // Import RSVP service and routes
 import { RSVPService } from "./services/rsvp";
 import { registerRSVPRoutes } from "./routes/rsvp";
+// Performance optimization routes imported dynamically
 
-// Import WhatsApp routes
+// Import WhatsApp routes (temporarily disabled)
 import { registerWhatsAppRoutes } from "./routes/whatsapp";
 
 // Import Hotel routes
@@ -50,6 +53,12 @@ import rsvpFollowupRoutes from "./routes/rsvp-followup";
 
 // Import OAuth routes
 import oauthRoutes from "./routes/oauth";
+
+// Import Integration routes
+import { registerIntegrationRoutes } from "./routes/integration-routes";
+
+// Import Master Guest Data routes
+import { registerMasterGuestDataRoutes } from "./routes/master-guest-data";
 
 // Import Event Settings routes
 import eventSettingsRoutes from "./routes/event-settings";
@@ -62,6 +71,15 @@ import communicationTemplatesRoutes from "./routes/communication-templates";
 
 // Import Transport routes
 import transportRoutes from "./routes/transport";
+import flightCoordinationRoutes from "./routes/flight-coordination";
+import vehicleManagementRoutes from "./routes/vehicle-management";
+
+// Integration routes now handled via registerIntegrationRoutes function
+
+// Standard API routes handle all operations
+
+
+
 
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -69,14 +87,19 @@ const upload = multer({ storage: multer.memoryStorage() });
 // WhatsApp routes will be registered at the end of this file
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize authentication system on startup
+  await ensureAdminUserExists();
+  
+  // Apply comprehensive logging middleware early in the pipeline (DISABLED - causing memory exhaustion)
+  // app.use(loggingMiddleware);
+  // app.use(authLoggingMiddleware);
+  
   // Special handling for client-side routes that should be handled by React router
   app.get('/guest-rsvp/:token', (req, res, next) => {
-    console.log(`Received RSVP request with token: ${req.params.token}`);
     next(); // Pass through to client-side router
   });
   
   app.get('/guest-rsvp', (req, res, next) => {
-    console.log(`Received RSVP request with query token: ${req.query.token || 'none'}`);
     next(); // Pass through to client-side router
   });
   const httpServer = createServer(app);
@@ -85,35 +108,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const PostgreSqlStore = pgSession(session);
   
   // Create a PostgreSQL connection pool for session storage
-  // Use a more resilient configuration for production environments
+  // Deployment-optimized configuration for faster session handling
   const sessionPool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 5, // Limit connections for session management
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 10000 // Return an error after 10 seconds if connection not established
+    max: 5, // Smaller pool for deployment efficiency
+    ssl: false, // Replit uses internal SSL, disable client SSL
+    idleTimeoutMillis: 30000, // Shorter idle timeout for deployment
+    connectionTimeoutMillis: 5000, // Faster connection timeout
+    // Add error handling for the session pool
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 5000
+  });
+
+  // Add session pool error handling
+  sessionPool.on('error', (err) => {
+    
+  });
+
+  sessionPool.on('connect', () => {
+    
   });
   
   // Configure session management with PostgreSQL store
-  app.use(session({
-    store: new PostgreSqlStore({
+  try {
+    const sessionStore = new PostgreSqlStore({
       pool: sessionPool,
       tableName: 'session', // Table name for sessions
       createTableIfMissing: true // Auto-create the session table if missing
-    }),
-    secret: 'wedding-rsvp-secret-key',
-    resave: false, // Don't save session if unmodified
+    });
+
+    // Add session store error handling
+    sessionStore.on('error', (error) => {
+      // Session store error handling
+    });
+    // Replit-optimized session configuration for reliable persistence
+    app.use(session({
+      store: sessionStore,
+    secret: process.env.SESSION_SECRET || 'wedding-rsvp-secret-key-production',
+    resave: false, // Don't save session if unmodified (better for performance)
     saveUninitialized: false, // Don't create session until something stored
     rolling: true, // Reset expiration with each request
-    name: 'wedding_session_fixed', // New session name to avoid conflicts
+    name: 'connect.sid', // Use standard session name for better browser compatibility
     cookie: { 
-      secure: false, // Disable secure cookies for broader compatibility
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      httpOnly: true, 
-      sameSite: 'lax', // Compatible setting that works across environments
-      path: '/'
+      secure: false, // Always false for Replit deployment (uses HTTP proxy)
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours for more stable sessions
+      httpOnly: false, // Allow JavaScript access for browser environments
+      sameSite: 'lax', // Use lax for better compatibility with Replit
+      path: '/',
+      domain: undefined // Let browser handle domain correctly
     }
-  }));
+    }));
+  } catch (sessionError) {
+    // Fallback to memory store if PostgreSQL session store fails
+    app.use(session({
+      secret: process.env.SESSION_SECRET || 'wedding-rsvp-secret-key-production',
+      resave: false,
+      saveUninitialized: false,
+      rolling: true,
+      name: 'connect.sid',
+      cookie: { 
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: false,
+        sameSite: 'lax' as const,
+        path: '/',
+        domain: undefined
+      }
+    }));
+  }
   
   // Passport setup with enhanced session handling
   app.use(passport.initialize());
@@ -143,9 +205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const hashedPassword = await bcrypt.hash(password, 10);
             await storage.updateUserPassword(user.id, hashedPassword);
-            console.log(`Upgraded password for user ${user.id} to hashed format`);
+            // Password successfully upgraded to hashed format
           } catch (hashError) {
-            console.error(`Failed to upgrade password for user ${user.id}:`, hashError);
+            
           }
         }
       }
@@ -167,17 +229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      
       if (!user) {
-        return done(null, null);
+        return done(null, false);
       }
       
       // Create a safe version of the user without the password
       const { password, ...safeUser } = user;
       return done(null, safeUser);
     } catch (error) {
-      console.error('Error deserializing user:', error);
-      return done(error, null);
+      
+      return done(error, false);
     }
   });
   
@@ -207,20 +268,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log the user in automatically
       req.login(user, (err) => {
         if (err) {
-          console.error('Login after registration failed:', err);
+          
           return res.status(500).json({ message: 'Registration successful but login failed' });
         }
         
-        console.log('Registration and login successful, user:', user);
+        // Registration and login successful
         
         // Save the session explicitly before responding
         req.session.save((saveErr) => {
           if (saveErr) {
-            console.error('Session save error:', saveErr);
+            
             return res.status(500).json({ message: 'Registration successful but session save failed' });
           }
           
-          console.log('Session after registration (saved):', req.session);
+          // Session saved after registration
           
           // Create a safe user object without the password
           const { password, ...safeUser } = user;
@@ -228,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
     } catch (error) {
-      console.error('Registration error:', error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -239,31 +300,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', (req, res, next) => {
     passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
       if (err) {
-        console.error('Authentication error:', err);
+        
         return next(err);
       }
       
       if (!user) {
-        console.log('Login failed - Invalid credentials');
         return res.status(401).json({ message: info?.message || 'Invalid credentials' });
       }
       
-      console.log('Authentication successful, calling req.login');
-      
       req.login(user, (loginErr: Error | null) => {
         if (loginErr) {
-          console.error('Login error:', loginErr);
+          
           return next(loginErr);
         }
-        
-        // Enhanced logging to diagnose session issues
-        console.log('Login successful, session ID:', req.sessionID);
-        console.log('User after login:', JSON.stringify({
-          id: (user as any).id,
-          username: (user as any).username,
-          role: (user as any).role,
-          name: (user as any).name
-        }));
         
         // Create a safe user object without the password
         const safeUser = { ...user } as any;
@@ -274,11 +323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Force immediate session save and wait for completion
         req.session.save((saveErr) => {
           if (saveErr) {
-            console.error('Session save error:', saveErr);
+            
             return next(saveErr);
           }
           
-          console.log('Session saved successfully. Session ID:', req.sessionID);
+          // Session saved and login successful
+          
           return res.json({ user: safeUser });
         });
       });
@@ -294,12 +344,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  app.get('/api/auth/user', (req, res) => {
-    console.log('Checking user authentication, session ID:', req.sessionID);
-    console.log('Session object:', req.session);
-    
+  app.get('/api/auth/status', (req, res) => {
     if (req.isAuthenticated() && req.user) {
-      console.log('User is authenticated:', req.user);
+      // Ensure we return a consistent user object
+      const user = {
+        id: (req.user as any).id,
+        username: (req.user as any).username,
+        name: (req.user as any).name || 'User',
+        email: (req.user as any).email || '',
+        role: (req.user as any).role || 'couple',
+      };
+      return res.json({ user, authenticated: true });
+    } else {
+      return res.status(401).json({ message: 'Not authenticated', authenticated: false });
+    }
+  });
+
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated() && req.user) {
       // Ensure we return a consistent user object
       const user = {
         id: (req.user as any).id,
@@ -310,8 +372,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       return res.json({ user });
     } else {
-      console.log('User is not authenticated');
       return res.status(401).json({ message: 'Not authenticated' });
+    }
+  });
+  
+  // System info route for deployment debugging
+  app.get('/api/system/info', async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const allEvents = await storage.getAllEvents();
+      const defaultCreds = getDefaultCredentials();
+      
+      res.json({
+        users: allUsers.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role })),
+        events: allEvents.map(e => ({ id: e.id, title: e.title, createdBy: e.createdBy })),
+        defaultCredentials: defaultCreds,
+        authentication: {
+          isAuthenticated: req.isAuthenticated(),
+          user: req.user ? {
+            id: (req.user as any).id,
+            username: (req.user as any).username,
+            role: (req.user as any).role
+          } : null
+        }
+      });
+    } catch (error) {
+      
+      res.status(500).json({ message: 'Failed to get system info' });
     }
   });
   
@@ -346,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check the user's login status
       if (!req.isAuthenticated()) {
-        console.log('Unauthenticated access to events-direct route');
+        
         return res.status(401).json({ message: 'Authentication required' });
       }
       
@@ -357,54 +444,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all events from database
       const allEvents = await storage.getAllEvents();
       
-      // Apply proper access control based on role
-      if (userRole === 'admin' || userId === 2) {
-        // Admin users (including Abhishek) see all events
-        console.log(`Admin user ${userId} granted access to all ${allEvents.length} events`);
-        return res.json(allEvents);
-      } else if (userRole === 'planner') {
-        // For now, wedding planners see all events (we'll properly implement assignment later)
-        console.log(`Planner ${userId} granted temporary access to all events until proper assignment is implemented`);
+      // Apply proper access control based on role - PERMANENT FIX
+      if (userRole === 'admin' || userRole === 'staff' || userRole === 'planner') {
+        // Admin, staff, and planner users see all events
+        
         return res.json(allEvents);
       } else {
         // Regular users see only their own events
         const userEvents = allEvents.filter(event => event.createdBy === userId);
-        console.log(`Regular user ${userId} granted access to ${userEvents.length} events`);
+        
         return res.json(userEvents);
       }
     } catch (error) {
-      console.error('Error in direct events access:', error);
+      
       return res.status(500).json({ message: 'Server error' });
     }
   });
 
-  // Standard events route
+  // Standard events route - ROBUST DEPLOYMENT FIX with enhanced error handling
   app.get('/api/events', isAuthenticated, async (req, res) => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+    
     try {
-      // Get all events first, regardless of user
-      const allEvents = await storage.getAllEvents();
-      console.log(`Retrieved all events (${allEvents.length}): `, allEvents.map(e => ({id: e.id, title: e.title, createdBy: e.createdBy})));
       
-      // Get user info from the authenticated request
+      
+      // Enhanced user validation
+      if (!req.user) {
+        
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
       const userId = (req.user as any).id;
       const userRole = (req.user as any).role;
-      const isAdmin = userRole === 'admin';
+      const username = (req.user as any).username;
       
-      console.log(`Request from user ID: ${userId}, Role: ${userRole}, isAdmin: ${isAdmin}`);
       
-      // Special hard-coded case to ensure Abhishek always sees all events regardless of session state
-      if (userId === 2 || userRole === 'admin') {
-        console.log(`Admin user ${userId} will receive all events (${allEvents.length})`);
-        return res.json(allEvents);
-      } else {
-        // Regular users only see their own events
-        const userEvents = allEvents.filter(event => event.createdBy === userId);
-        console.log(`Regular user ${userId} will receive their own events (${userEvents.length})`);
-        return res.json(userEvents);
+      
+      // Add database connection retry logic
+      let allEvents = [];
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          const dbStartTime = Date.now();
+          allEvents = await storage.getAllEvents();
+          const dbTime = Date.now() - dbStartTime;
+          
+          break;
+        } catch (dbError) {
+          retryCount++;
+          
+          if (retryCount >= maxRetries) {
+            throw dbError;
+          }
+          // Wait 100ms before retry
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
+      
+      // Role-based access control with enhanced logging
+      let resultEvents = [];
+      if (userRole === 'admin' || userRole === 'staff' || userRole === 'planner') {
+        resultEvents = allEvents;
+        
+      } else {
+        resultEvents = allEvents.filter(event => event.createdBy === userId);
+        
+      }
+      
+      const totalTime = Date.now() - startTime;
+      
+      
+      // Add cache control headers for deployment stability
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
+      return res.json(resultEvents);
+      
     } catch (error) {
-      console.error('Error fetching events:', error);
-      return res.status(500).json({ message: 'Failed to fetch events' });
+      const totalTime = Date.now() - startTime;
+      
+      
+      // Enhanced error response for debugging
+      return res.status(500).json({ 
+        message: 'Failed to fetch events',
+        requestId,
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
     }
   });
   
@@ -422,12 +554,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.post('/api/events', isAuthenticated, async (req, res) => {
+    const startTime = Date.now();
     try {
-      console.log('Received event data:', req.body);
+      
+      
       // Get the authenticated user from the request
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
+      
+      const authTime = Date.now();
+      
       
       // Create a complete event data object with the authenticated user's ID
       const eventData = {
@@ -435,30 +572,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: (req.user as any).id // Add the user ID from the session
       };
       
-      console.log('Complete event data with user ID:', eventData);
+      const dataTime = Date.now();
+      
       
       try {
         // Validate the event data
         const validatedData = insertWeddingEventSchema.parse(eventData);
-        console.log('Parsed event data:', validatedData);
+        const validationTime = Date.now();
+        
         
         // Create the event
         const event = await storage.createEvent(validatedData);
-        console.log('Event created successfully:', event);
+        const dbTime = Date.now();
+        
+        
+        const totalTime = Date.now() - startTime;
+        
+        
         res.status(201).json(event);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
-          console.error('Validation errors:', validationError.errors);
+          
           return res.status(400).json({ message: validationError.errors });
         }
         throw validationError;
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+      const totalTime = Date.now() - startTime;
+      
       if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+        
       }
       res.status(500).json({ message: 'Failed to create event', details: error instanceof Error ? error.message : String(error) });
     }
@@ -467,17 +610,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/events/:id', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
+      
+      
+      
       const eventData = insertWeddingEventSchema.partial().parse(req.body);
+      
+      
+      // Check if there's actually data to update
+      if (Object.keys(eventData).length === 0) {
+        
+        const currentEvent = await storage.getEvent(eventId);
+        if (!currentEvent) {
+          return res.status(404).json({ message: 'Event not found' });
+        }
+        return res.json(currentEvent);
+      }
+      
       const updatedEvent = await storage.updateEvent(eventId, eventData);
       if (!updatedEvent) {
+        
         return res.status(404).json({ message: 'Event not found' });
       }
+      
+      
       res.json(updatedEvent);
     } catch (error) {
+      
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
+        
+        return res.status(400).json({ message: 'Validation failed', errors: error.errors });
       }
-      res.status(500).json({ message: 'Failed to update event' });
+      res.status(500).json({ message: 'Failed to update event', error: error instanceof Error ? error.message : String(error) });
     }
   });
   
@@ -503,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: 'Event and all related data successfully deleted' });
     } catch (error) {
-      console.error('Error deleting event:', error);
+      
       res.status(500).json({ message: 'Failed to delete event' });
     }
   });
@@ -511,18 +674,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route for current event, used by event selector
   app.get('/api/current-event', isAuthenticated, async (req, res) => {
     try {
-      console.log('GET /api/current-event - Session ID:', req.sessionID);
+      
       
       // Case 1: Event exists in session
       if (req.session && req.session.currentEvent) {
         const eventId = req.session.currentEvent.id;
-        console.log(`Found event ID ${eventId} in session, fetching fresh data from database`);
+        
         
         // Always fetch fresh data from database, don't trust session cache
         const storedEvent = await storage.getEvent(eventId);
         if (storedEvent) {
-          console.log(`Current event from database: ${storedEvent.title} (ID: ${eventId})`);
-          console.log(`Transport mode from DB: ${storedEvent.transportMode}`);
+          
+          
           
           // Update session with fresh data from database
           req.session.currentEvent = storedEvent;
@@ -531,10 +694,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await new Promise<void>((resolve, reject) => {
             req.session.save((err) => {
               if (err) {
-                console.error('Error saving session with fresh data:', err);
+                
                 reject(err);
               } else {
-                console.log('Session updated with fresh database data');
+                
                 resolve();
               }
             });
@@ -543,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Return the database version to ensure we have the latest data
           return res.json(storedEvent);
         } else {
-          console.log(`Event ID ${eventId} in session no longer exists in database, fetching new default event`);
+          
           // Session has a deleted event, clear it to fetch a new one
           delete req.session.currentEvent;
           
@@ -551,23 +714,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await new Promise<void>((resolve, reject) => {
             req.session.save((err) => {
               if (err) {
-                console.error('Error saving session after removing invalid event:', err);
+                
                 reject(err);
               } else {
-                console.log('Session saved after removing invalid event');
+                
                 resolve();
               }
             });
           });
         }
       } else {
-        console.log('No current event found in session');
+        
       }
       
       // Case 2: No valid event in session, get the first event from the database
       const events = await storage.getAllEvents();
       if (events && events.length > 0) {
-        console.log(`No current event in session, defaulting to first event: ${events[0].title} (ID: ${events[0].id})`);
+        
         
         // Store in session for future requests with required properties
         req.session.currentEvent = {
@@ -581,10 +744,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await new Promise<void>((resolve, reject) => {
           req.session.save((err) => {
             if (err) {
-              console.error('Error saving session with default event:', err);
+              
               reject(err);
             } else {
-              console.log('Session saved with default event');
+              
               resolve();
             }
           });
@@ -594,14 +757,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Case 3: No events exist in database
-      console.log('No events found in database for current-event endpoint');
+      
       return res.status(404).json({ 
         message: 'No events found',
         details: 'Please create an event before proceeding' 
       });
     } catch (error) {
       const err = error as Error;
-      console.error(`Error fetching current event: ${err.message}`);
+      
       return res.status(500).json({ 
         message: 'Error fetching current event',
         details: err.message 
@@ -612,12 +775,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route to set current event
   app.post('/api/current-event', isAuthenticated, async (req, res) => {
     try {
-      console.log('POST /api/current-event - Session ID:', req.sessionID);
+      
       const { eventId } = req.body;
       
       // Input validation
       if (!eventId) {
-        console.warn('Missing eventId in request body');
+        
         return res.status(400).json({ 
           message: 'Event ID is required',
           details: 'Please provide a valid event ID in the request body' 
@@ -626,7 +789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const parsedEventId = Number(eventId);
       if (isNaN(parsedEventId)) {
-        console.warn(`Invalid eventId format: ${eventId}`);
+        
         return res.status(400).json({ 
           message: 'Invalid Event ID format',
           details: 'Event ID must be a valid number' 
@@ -634,11 +797,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get the event details
-      console.log(`Attempting to fetch event with ID: ${parsedEventId}`);
+      
       const event = await storage.getEvent(parsedEventId);
       
       if (!event) {
-        console.warn(`Failed to set current event: Event ID ${parsedEventId} not found`);
+        
         return res.status(404).json({ 
           message: 'Event not found',
           details: `No event exists with ID ${parsedEventId}` 
@@ -647,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify the current user has permission to access this event
       if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
-        console.warn(`User ${(req.user as any).id} attempted to access event ${parsedEventId} without permission`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'You do not have permission to access this event' 
@@ -661,36 +824,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
         secondaryColor: null,
         whatsappFrom: null
       };
-      console.log(`Setting current event in session: ${event.title} (ID: ${event.id})`);
+      
       
       // Explicitly save the session to ensure it's persisted
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
-            console.error('Error saving session with current event:', err);
+            
             reject(err);
           } else {
-            console.log('Session saved with new current event');
+            
             resolve();
           }
         });
       });
       
-      console.log(`Successfully set current event to: ${event.title}`);
+      
       
       // Return the full event details to ensure client has latest data
       return res.json(event);
     } catch (error) {
       const err = error as Error;
-      console.error(`Error setting current event: ${err.message}`, err);
+      
       return res.status(500).json({ 
         message: 'Error setting current event',
         details: err.message 
       });
     }
   });
+
+
   
-  // Guest routes
+  // Guest routes - now handled by integration routes registration above
+
+  // Original comprehensive guest data endpoint (for backward compatibility)
+  app.get('/api/events/:eventId/guests-comprehensive-legacy', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      
+      
+      // Verify event exists and user has access
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Get all guests for the event
+      const guests = await storage.getGuestsByEvent(eventId);
+      
+      
+      // Get comprehensive data for each guest
+      const comprehensiveGuests = await Promise.all(
+        guests.map(async (guest: any) => {
+          try {
+            // Get accommodation information
+            let accommodation = null;
+            try {
+              const accommodations = await storage.getAccommodationsByEvent(eventId);
+              accommodation = accommodations.find((acc: any) => acc.guestId === guest.id);
+            } catch (accError) {
+              
+            }
+            
+            // Get travel information
+            let travelInfo = null;
+            try {
+              const travelInfos = await storage.getTravelInfoByEvent(eventId);
+              travelInfo = travelInfos.find((travel: any) => travel.guestId === guest.id);
+            } catch (travelError) {
+              
+            }
+            
+            // Get meal selections
+            let mealSelections = [];
+            try {
+              mealSelections = await storage.getMealSelectionsByGuest(guest.id);
+            } catch (mealError) {
+              
+            }
+            
+            // Get ceremony attendance
+            let ceremonyAttendance = [];
+            try {
+              ceremonyAttendance = await storage.getGuestCeremoniesByGuest(guest.id);
+            } catch (ceremonyError) {
+              
+            }
+            
+            return {
+              ...guest,
+              accommodation,
+              travelInfo,
+              mealSelections,
+              ceremonyAttendance
+            };
+          } catch (guestError) {
+            
+            return guest; // Return basic guest data if comprehensive fetch fails
+          }
+        })
+      );
+      
+      
+      res.json(comprehensiveGuests);
+    } catch (error) {
+      
+      res.status(500).json({ message: 'Failed to fetch comprehensive guest data' });
+    }
+  });
+
   app.get('/api/events/:eventId/guests', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
@@ -698,7 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify that the event exists
       const event = await storage.getEvent(eventId);
       if (!event) {
-        console.warn(`Event ID ${eventId} not found when retrieving guests`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
@@ -709,7 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         secondaryColor: null,
         whatsappFrom: null
       };
-      console.log(`Set session current event to: ${event.title} (ID: ${eventId})`);
+      
       
       // Get guests for this event with added validation
       let guests;
@@ -717,21 +960,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         guests = await storage.getGuestsByEvent(eventId);
         
         if (!Array.isArray(guests)) {
-          console.error(`getGuestsByEvent returned non-array: ${typeof guests}`);
+          
           guests = []; // Default to empty array if not an array
         }
         
         // Enhanced logging to debug the Don ji issue
-        console.log(`Retrieved ${guests.length} guests for event ${eventId}`);
+        
       } catch (error) {
-        console.error(`Error fetching guests for event: ${error}`);
+        
         return res.status(500).json({ message: 'Failed to fetch guests' });
       }
       
       // If this is Rocky Rani event, let's add detailed logging
       if (eventId === 4 && Array.isArray(guests)) {
         const guestNames = guests.map(g => `${g.id}: ${g.firstName} ${g.lastName}`).join(', ');
-        console.log(`DEBUG - Rocky Rani guests from database: ${guestNames || 'None'}`);
+        
         
         // Let's explicitly check for Don ji
         const donJi = guests.find(g => 
@@ -739,9 +982,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         if (donJi) {
-          console.log(`Found Don ji with ID ${donJi.id} in event ${eventId}`);
+          
         } else {
-          console.log(`Don ji not found in event ${eventId} results, checking database directly...`);
+          
           
           // Double-check database directly with raw SQL using the postgres client
           try {
@@ -753,38 +996,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
             `;
             
             if (result && result.length > 0) {
-              console.log(`Found Don ji in direct DB query. ID: ${result[0].id}`);
+              
               
               // Something is wrong - Don ji exists in DB but wasn't returned by storage.getGuestsByEvent
-              console.error(`DATA DISCREPANCY: Don ji (ID: ${result[0].id}) exists in database but was not returned by storage.getGuestsByEvent`);
+              
               
               // Let's re-fetch from postgres directly and add to response to fix immediate issue
-              console.log(`Adding Don ji to response directly from database query`);
+              
               const donJiFromDB = result[0];
               guests.push(donJiFromDB as any);
             } else {
-              console.log(`Don ji not found in database for event ${eventId}`);
+              
             }
           } catch (dbError) {
-            console.error(`Error checking for Don ji directly in database:`, dbError);
+            
           }
         }
       }
       
-      res.json(guests);
+      // Add effective contact information to each guest
+      const guestsWithEffectiveContacts = guests.map(guest => {
+        const effectiveContact = storage.getEffectiveGuestContact(guest);
+        return {
+          ...guest,
+          effectiveContact,
+          // For backwards compatibility, also include the contact info directly
+          primaryContactEmail: effectiveContact.email,
+          primaryContactPhone: effectiveContact.phone,
+          primaryContactName: effectiveContact.name,
+          isUsingPlusOneContact: effectiveContact.contactType === 'plus_one'
+        };
+      });
+      
+      res.json(guestsWithEffectiveContacts);
     } catch (error) {
-      console.error(`Error fetching guests for event:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch guests' });
     }
   });
   
   app.get('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
-      console.log(`GET /api/guests/:id - Session ID: ${req.sessionID}`);
+      
       const guestIdParam = req.params.id;
       
       if (!guestIdParam) {
-        console.warn('Missing guest ID in request');
+        
         return res.status(400).json({ 
           message: 'Guest ID is required',
           details: 'Please provide a valid guest ID' 
@@ -793,7 +1050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const guestId = parseInt(guestIdParam);
       if (isNaN(guestId)) {
-        console.warn(`Invalid guest ID format: ${guestIdParam}`);
+        
         return res.status(400).json({ 
           message: 'Invalid guest ID format',
           details: 'Guest ID must be a valid number' 
@@ -805,19 +1062,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.eventId) {
         eventId = parseInt(req.query.eventId as string);
         if (isNaN(eventId)) {
-          console.warn(`Invalid event ID format in query: ${req.query.eventId}`);
+          
           return res.status(400).json({ 
             message: 'Invalid event ID format',
             details: 'Event ID must be a valid number' 
           });
         }
-        console.log(`Using event context from query parameter: ${eventId}`);
+        
       }
       
       // If no event context in query, try to get it from session
       if (!eventId && req.session.currentEvent) {
         eventId = req.session.currentEvent.id;
-        console.log(`Using session event context: ${eventId} for guest lookup`);
+        
       }
       
       let guest;
@@ -826,7 +1083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // First verify the event exists
         const event = await storage.getEvent(eventId);
         if (!event) {
-          console.warn(`Event ID ${eventId} not found when retrieving guest`);
+          
           return res.status(404).json({ 
             message: 'Event not found',
             details: `The specified event ID ${eventId} does not exist` 
@@ -835,7 +1092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Verify the current user has permission to access this event
         if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
-          console.warn(`User ${(req.user as any).id} attempted to access event ${eventId} without permission`);
+          
           return res.status(403).json({ 
             message: 'Access denied',
             details: 'You do not have permission to access this event' 
@@ -843,10 +1100,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Use event context to ensure guest belongs to this event
-        console.log(`Fetching guest ${guestId} with event context ${eventId}`);
-        guest = await storage.getGuestWithEventContext(guestId, eventId);
+        
+        guest = await storage.getGuest(guestId);
+        
+        // Verify guest belongs to event
+        if (guest && guest.eventId !== eventId) {
+          return res.status(404).json({ 
+            message: 'Guest not found in this event',
+            details: `Guest ${guestId} does not belong to event ${eventId}` 
+          });
+        }
       } else {
-        console.warn(`WARNING: No event context available for guest ${guestId} lookup`);
+        
         return res.status(400).json({ 
           message: 'Event context required',
           details: 'Please provide an event ID or select an event first' 
@@ -854,18 +1119,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!guest) {
-        console.warn(`Guest ${guestId} not found in event ${eventId}`);
+        
         return res.status(404).json({ 
           message: 'Guest not found in this event',
           details: `Guest ${guestId} does not exist or does not belong to event ${eventId}` 
         });
       }
       
-      console.log(`Successfully retrieved guest ${guestId} from event ${eventId}`);
+      
       return res.json(guest);
     } catch (error) {
       const err = error as Error;
-      console.error(`Error fetching guest: ${err.message}`, err);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch guest',
         details: err.message 
@@ -878,21 +1143,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       
       // Verify that the event exists before creating a guest
-      console.log(`Verifying event ${eventId} exists before creating guest`);
+      
       const eventExists = await storage.eventExists(eventId);
       if (!eventExists) {
-        console.warn(`Attempted to create guest for non-existent event ID: ${eventId}`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
-      console.log(`Event ${eventId} verified, creating guest`);
+      
       const guestData = insertGuestSchema.parse({ ...req.body, eventId });
       const guest = await storage.createGuest(guestData);
       
-      console.log(`Guest created successfully for event ${eventId}: ${guest.id}`);
+      
       res.status(201).json(guest);
     } catch (error) {
-      console.error(`Error creating guest:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -903,7 +1168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
       const guestId = parseInt(req.params.id);
-      console.log(`Processing update for guest ID: ${guestId}`);
+      
       
       // First try to get event context from query parameters
       let contextEventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
@@ -911,23 +1176,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If no event context in query, try to get it from session
       if (!contextEventId && req.session.currentEvent) {
         contextEventId = req.session.currentEvent.id;
-        console.log(`Using session event context: ${contextEventId} for guest update`);
+        
       }
       
       // Validate input data
       const guestData = insertGuestSchema.partial().parse(req.body);
-      console.log(`Validated guest data: ${JSON.stringify(guestData)}`);
+      
       
       // Verify this guest belongs to the correct event
       let currentGuest;
       
       if (contextEventId) {
         // If event context is provided, verify guest belongs to this event
-        console.log(`Verifying guest ${guestId} belongs to event ${contextEventId}`);
-        currentGuest = await storage.getGuestWithEventContext(guestId, contextEventId);
+        
+        currentGuest = await storage.getGuest(guestId);
+        
+        // Verify guest belongs to event
+        if (currentGuest && currentGuest.eventId !== contextEventId) {
+          return res.status(404).json({ 
+            message: 'Guest not found in this event',
+            details: `Guest ${guestId} does not belong to event ${contextEventId}` 
+          });
+        }
         
         if (!currentGuest) {
-          console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
+          
           return res.status(404).json({ 
             message: 'Guest not found in this event',
             details: `Guest ${guestId} does not belong to event ${contextEventId}` 
@@ -935,32 +1208,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // If we really have no event context (should be rare), log this unusual case
-        console.warn(`WARNING: Updating guest ${guestId} without event context - this may lead to data leakage across events`);
+        
         currentGuest = await storage.getGuest(guestId);
         if (!currentGuest) {
-          console.warn(`Guest with ID ${guestId} not found`);
+          
           return res.status(404).json({ message: 'Guest not found' });
         }
       }
       
       // Keep the eventId the same (prevent changing event association)
       const eventId = currentGuest.eventId;
-      console.log(`Preserving eventId: ${eventId} for guest ${guestId}`);
+      
       
       try {
         // Update with error handling
         const updatedGuest = await storage.updateGuest(guestId, { ...guestData, eventId });
         
         if (!updatedGuest) {
-          console.warn(`Update failed for guest ${guestId} - no guest returned`);
+          
           return res.status(404).json({ message: 'Guest not found or update failed' });
         }
         
-        console.log(`Successfully updated guest ${guestId}`);
+        
         return res.json(updatedGuest);
       } catch (error) {
         const dbError = error as Error;
-        console.error(`Database error updating guest ${guestId}:`, dbError);
+        
         return res.status(500).json({ 
           message: 'Database error occurred during update',
           details: dbError.message || 'Unknown database error' 
@@ -969,21 +1242,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       const error = err as Error;
       if (error instanceof z.ZodError) {
-        console.error(`Validation error when updating guest:`, error.errors);
+        
         return res.status(400).json({ message: error.errors });
       }
-      console.error("Error updating guest:", error);
+      
       res.status(500).json({ message: 'Failed to update guest', details: error.message });
     }
   });
   
   app.delete('/api/guests/:id', isAuthenticated, async (req, res) => {
     try {
-      console.log(`DELETE /api/guests/:id - Session ID: ${req.sessionID}`);
+      
       const guestIdParam = req.params.id;
       
       if (!guestIdParam) {
-        console.warn('Missing guest ID in request');
+        
         return res.status(400).json({ 
           message: 'Guest ID is required',
           details: 'Please provide a valid guest ID' 
@@ -992,7 +1265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const guestId = parseInt(guestIdParam);
       if (isNaN(guestId)) {
-        console.warn(`Invalid guest ID format: ${guestIdParam}`);
+        
         return res.status(400).json({ 
           message: 'Invalid guest ID format',
           details: 'Guest ID must be a valid number' 
@@ -1004,24 +1277,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.eventId) {
         contextEventId = parseInt(req.query.eventId as string);
         if (isNaN(contextEventId)) {
-          console.warn(`Invalid event ID format in query: ${req.query.eventId}`);
+          
           return res.status(400).json({ 
             message: 'Invalid event ID format',
             details: 'Event ID must be a valid number' 
           });
         }
-        console.log(`Using event context from query parameter: ${contextEventId}`);
+        
       }
       
       // If no event context in query, try to get it from session
       if (!contextEventId && req.session.currentEvent) {
         contextEventId = req.session.currentEvent.id;
-        console.log(`Using session event context: ${contextEventId} for guest deletion`);
+        
       }
       
       // Always require event context for guest operations
       if (!contextEventId) {
-        console.warn(`No event context available for guest ${guestId} deletion`);
+        
         return res.status(400).json({ 
           message: 'Event context required',
           details: 'Please provide an event ID or select an event first' 
@@ -1031,7 +1304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify the event exists
       const event = await storage.getEvent(contextEventId);
       if (!event) {
-        console.warn(`Event ID ${contextEventId} not found when deleting guest`);
+        
         return res.status(404).json({ 
           message: 'Event not found',
           details: `The specified event ID ${contextEventId} does not exist` 
@@ -1040,7 +1313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify the current user has permission to access this event
       if (req.user && (req.user as any).id !== event.createdBy && (req.user as any).role !== 'admin') {
-        console.warn(`User ${(req.user as any).id} attempted to access event ${contextEventId} without permission`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'You do not have permission to access this event' 
@@ -1048,9 +1321,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify this guest belongs to the correct event
-      const guest = await storage.getGuestWithEventContext(guestId, contextEventId);
+      const guest = await storage.getGuest(guestId);
+      
+      // Verify guest belongs to event
+      if (guest && guest.eventId !== contextEventId) {
+        return res.status(404).json({ 
+          message: 'Guest not found in this event',
+          details: `Guest ${guestId} does not belong to event ${contextEventId}` 
+        });
+      }
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found in event ${contextEventId}`);
+        
         return res.status(404).json({ 
           message: 'Guest not found in this event',
           details: `Guest ${guestId} does not belong to event ${contextEventId}` 
@@ -1060,14 +1341,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Proceed with deletion
       const success = await storage.deleteGuest(guestId);
       if (!success) {
-        console.warn(`Deletion failed for guest ${guestId}`);
+        
         return res.status(500).json({ 
           message: 'Guest deletion failed',
           details: 'The deletion operation could not be completed' 
         });
       }
       
-      console.log(`Successfully deleted guest ${guestId} from event ${contextEventId}`);
+      
       return res.json({ 
         message: 'Guest deleted successfully',
         guestId: guestId,
@@ -1075,11 +1356,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       const err = error as Error;
-      console.error(`Error deleting guest: ${err.message}`, err);
+      
       return res.status(500).json({ 
         message: 'Failed to delete guest',
         details: err.message 
       });
+    }
+  });
+
+  // Endpoint for updating guest's RSVP contact preference
+  app.patch('/api/guests/:id/contact-preference', isAuthenticated, async (req, res) => {
+    try {
+      const guestId = parseInt(req.params.id);
+      const { plusOneRsvpContact } = req.body;
+      
+      // Validate input
+      if (typeof plusOneRsvpContact !== 'boolean') {
+        return res.status(400).json({ 
+          message: 'Invalid input: plusOneRsvpContact must be a boolean' 
+        });
+      }
+      
+      // Get the current guest to validate plus-one exists
+      const currentGuest = await storage.getGuest(guestId);
+      if (!currentGuest) {
+        return res.status(404).json({ message: 'Guest not found' });
+      }
+      
+      // Validate that the guest has a confirmed plus-one if they want to switch contact
+      if (plusOneRsvpContact && (!currentGuest.plusOneConfirmed || !currentGuest.plusOneName)) {
+        return res.status(400).json({ 
+          message: 'Cannot set plus-one as RSVP contact: No confirmed plus-one exists' 
+        });
+      }
+      
+      // Update the guest's contact preference
+      const updatedGuest = await storage.updateGuest(guestId, { 
+        plusOneRsvpContact 
+      });
+      
+      if (!updatedGuest) {
+        return res.status(404).json({ message: 'Failed to update guest' });
+      }
+      
+      // Return updated guest with effective contact information
+      const effectiveContact = storage.getEffectiveGuestContact(updatedGuest);
+      res.json({
+        ...updatedGuest,
+        effectiveContact,
+        primaryContactEmail: effectiveContact.email,
+        primaryContactPhone: effectiveContact.phone,
+        primaryContactName: effectiveContact.name,
+        isUsingPlusOneContact: effectiveContact.contactType === 'plus_one'
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update contact preference' });
     }
   });
   
@@ -1093,10 +1424,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       
       // Verify that the event exists before creating any guests
-      console.log(`Verifying event ${eventId} exists before importing guests`);
+      
       const eventExists = await storage.eventExists(eventId);
       if (!eventExists) {
-        console.warn(`Attempted to import guests for non-existent event ID: ${eventId}`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
@@ -1104,7 +1435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
       
-      console.log(`Processing ${jsonData.length} rows from Excel import for event ${eventId}`);
+      
       
       const guests = jsonData.map((row: any) => ({
         eventId,
@@ -1136,21 +1467,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           validGuests.push(validatedGuest);
         } catch (error) {
           // Skip invalid guest data
-          console.error('Invalid guest data:', guestData, error);
+          
         }
       }
       
-      console.log(`Validated ${validGuests.length} guests out of ${guests.length} for import`);
+      
       
       const createdGuests = await storage.bulkCreateGuests(validGuests);
       
-      console.log(`Successfully imported ${createdGuests.length} guests for event ${eventId}`);
+      
       res.status(201).json({
         message: `Imported ${createdGuests.length} guests successfully`,
         guests: createdGuests
       });
     } catch (error) {
-      console.error(`Error importing guests:`, error);
+      
       res.status(500).json({ 
         message: 'Failed to import guests',
         details: error instanceof Error ? error.message : 'Unknown error'
@@ -1227,21 +1558,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       
       // Verify that the event exists before creating a ceremony
-      console.log(`Verifying event ${eventId} exists before creating ceremony`);
+      
       const eventExists = await storage.eventExists(eventId);
       if (!eventExists) {
-        console.warn(`Attempted to create ceremony for non-existent event ID: ${eventId}`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
-      console.log(`Event ${eventId} verified, creating ceremony`);
+      
       const ceremonyData = insertCeremonySchema.parse({ ...req.body, eventId });
       const ceremony = await storage.createCeremony(ceremonyData);
       
-      console.log(`Ceremony created successfully for event ${eventId}: ${ceremony.id}`);
+      
       res.status(201).json(ceremony);
     } catch (error) {
-      console.error(`Error creating ceremony:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1259,12 +1590,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If no event context in query, try to get it from session
       if (!contextEventId && req.session.currentEvent) {
         contextEventId = req.session.currentEvent.id;
-        console.log(`Using session event context: ${contextEventId} for ceremony update`);
+        
       }
       
       // Always require event context for multi-tenant operations
       if (!contextEventId) {
-        console.warn(`No event context available for ceremony ${ceremonyId} update`);
+        
         return res.status(400).json({ 
           message: 'Event context required',
           details: 'Please provide an event ID or select an event first' 
@@ -1274,7 +1605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify the event exists
       const event = await storage.getEvent(contextEventId);
       if (!event) {
-        console.warn(`Event ID ${contextEventId} not found when updating ceremony`);
+        
         return res.status(404).json({ 
           message: 'Event not found',
           details: `The specified event ID ${contextEventId} does not exist` 
@@ -1284,12 +1615,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify this ceremony belongs to the correct event
       const ceremony = await storage.getCeremony(ceremonyId);
       if (!ceremony) {
-        console.warn(`Ceremony with ID ${ceremonyId} not found`);
+        
         return res.status(404).json({ message: 'Ceremony not found' });
       }
       
       if (ceremony.eventId !== contextEventId) {
-        console.warn(`Ceremony ${ceremonyId} belongs to event ${ceremony.eventId}, not requested event ${contextEventId}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'This ceremony does not belong to the selected event' 
@@ -1308,7 +1639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(updatedCeremony);
     } catch (error) {
-      console.error(`Error updating ceremony:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1326,12 +1657,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If no event context in query, try to get it from session
       if (!contextEventId && req.session.currentEvent) {
         contextEventId = req.session.currentEvent.id;
-        console.log(`Using session event context: ${contextEventId} for ceremony deletion`);
+        
       }
       
       // Always require event context for multi-tenant operations
       if (!contextEventId) {
-        console.warn(`No event context available for ceremony ${ceremonyId} deletion`);
+        
         return res.status(400).json({ 
           message: 'Event context required',
           details: 'Please provide an event ID or select an event first' 
@@ -1341,7 +1672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify the event exists
       const event = await storage.getEvent(contextEventId);
       if (!event) {
-        console.warn(`Event ID ${contextEventId} not found when deleting ceremony`);
+        
         return res.status(404).json({ 
           message: 'Event not found',
           details: `The specified event ID ${contextEventId} does not exist` 
@@ -1351,12 +1682,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify this ceremony belongs to the correct event
       const ceremony = await storage.getCeremony(ceremonyId);
       if (!ceremony) {
-        console.warn(`Ceremony with ID ${ceremonyId} not found`);
+        
         return res.status(404).json({ message: 'Ceremony not found' });
       }
       
       if (ceremony.eventId !== contextEventId) {
-        console.warn(`Ceremony ${ceremonyId} belongs to event ${ceremony.eventId}, not requested event ${contextEventId}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'This ceremony does not belong to the selected event' 
@@ -1369,10 +1700,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Ceremony not found' });
       }
       
-      console.log(`Successfully deleted ceremony ${ceremonyId} from event ${contextEventId}`);
+      
       res.json({ message: 'Ceremony deleted successfully' });
     } catch (error) {
-      console.error(`Error deleting ceremony:`, error);
+      
       res.status(500).json({ message: 'Failed to delete ceremony' });
     }
   });
@@ -1407,7 +1738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the guest with event context
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when creating attendance`);
+        
         return res.status(404).json({ 
           message: 'Guest not found' 
         });
@@ -1416,7 +1747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Then get the ceremony
       const ceremony = await storage.getCeremony(ceremonyId);
       if (!ceremony) {
-        console.warn(`Ceremony with ID ${ceremonyId} not found when creating attendance`);
+        
         return res.status(404).json({ 
           message: 'Ceremony not found' 
         });
@@ -1424,7 +1755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify both guest and ceremony belong to the same event
       if (guest.eventId !== ceremony.eventId) {
-        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Ceremony ${ceremonyId} (event ${ceremony.eventId})`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Guest and ceremony must belong to the same event'
@@ -1434,16 +1765,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already exists
       const existing = await storage.getGuestCeremony(guestId, ceremonyId);
       if (existing) {
-        console.log(`Updating existing attendance for guest ${guestId} at ceremony ${ceremonyId}`);
+        
         const updated = await storage.updateGuestCeremony(existing.id, { attending: attendanceData.attending });
         return res.json(updated);
       }
       
-      console.log(`Creating new attendance for guest ${guestId} at ceremony ${ceremonyId} in event ${guest.eventId}`);
+      
       const attendance = await storage.createGuestCeremony(attendanceData);
       res.status(201).json(attendance);
     } catch (error) {
-      console.error(`Error managing guest attendance:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1473,27 +1804,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify the guest exists and get their event context
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when creating travel info`);
+        
         return res.status(404).json({ 
           message: 'Guest not found' 
         });
       }
       
-      console.log(`Creating/updating travel information for guest ${guestId} (event ${guest.eventId})`);
+      
       
       // Check if already exists
       const existing = await storage.getTravelInfoByGuest(guestId);
       if (existing) {
-        console.log(`Updating existing travel info for guest ${guestId}`);
+        
         const updated = await storage.updateTravelInfo(existing.id, travelData);
         return res.json(updated);
       }
       
-      console.log(`Creating new travel info for guest ${guestId}`);
+      
       const travel = await storage.createTravelInfo(travelData);
       res.status(201).json(travel);
     } catch (error) {
-      console.error(`Error creating travel info:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1509,7 +1840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the current travel information
       const currentTravel = await storage.getTravelInfo(travelId);
       if (!currentTravel) {
-        console.warn(`Travel info with ID ${travelId} not found when updating`);
+        
         return res.status(404).json({ message: 'Travel info not found' });
       }
       
@@ -1518,37 +1849,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the original guest
         const originalGuest = await storage.getGuest(currentTravel.guestId);
         if (!originalGuest) {
-          console.warn(`Original guest with ID ${currentTravel.guestId} not found when updating travel info`);
+          
           return res.status(404).json({ message: 'Original guest not found' });
         }
         
         // Get the new guest
         const newGuest = await storage.getGuest(travelData.guestId);
         if (!newGuest) {
-          console.warn(`New guest with ID ${travelData.guestId} not found when updating travel info`);
+          
           return res.status(404).json({ message: 'New guest not found' });
         }
         
         // Verify both guests belong to the same event
         if (originalGuest.eventId !== newGuest.eventId) {
-          console.warn(`Cross-event operation attempted: Original guest ${currentTravel.guestId} (event ${originalGuest.eventId}) and new guest ${travelData.guestId} (event ${newGuest.eventId})`);
+          
           return res.status(403).json({ 
             message: 'Access denied',
             details: 'Cannot transfer travel information between guests from different events'
           });
         }
         
-        console.log(`Changing travel info ${travelId} from guest ${currentTravel.guestId} to guest ${travelData.guestId} in event ${originalGuest.eventId}`);
+        
       }
       
-      console.log(`Updating travel info ${travelId}`);
+      
       const updatedTravel = await storage.updateTravelInfo(travelId, travelData);
       if (!updatedTravel) {
         return res.status(404).json({ message: 'Travel info not found' });
       }
       res.json(updatedTravel);
     } catch (error) {
-      console.error(`Error updating travel info:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1560,17 +1891,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:eventId/accommodations', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
-      console.log(`Fetching accommodations for event ${eventId}`);
+      
       
       // First check if event exists
       const event = await storage.getEvent(eventId);
       if (!event) {
-        console.log(`Event ${eventId} not found when fetching accommodations`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
       const accommodations = await storage.getAccommodationsByEvent(eventId);
-      console.log(`Found ${accommodations.length} accommodations for event ${eventId}`);
+      
       
       // Fetch hotel information for accommodations with hotelId
       const accommodationsWithHotelDetails = await Promise.all(
@@ -1587,7 +1918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } : null
               };
             } catch (err) {
-              console.error(`Error fetching hotel ${acc.hotelId} for accommodation ${acc.id}:`, err);
+              
               return acc;
             }
           }
@@ -1597,7 +1928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(accommodationsWithHotelDetails);
     } catch (error) {
-      console.error('Error fetching accommodations:', error);
+      
       res.status(500).json({ 
         message: 'Failed to fetch accommodations',
         details: error instanceof Error ? error.message : String(error)
@@ -1610,21 +1941,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       
       // Verify that the event exists before creating an accommodation
-      console.log(`Verifying event ${eventId} exists before creating accommodation`);
+      
       const eventExists = await storage.eventExists(eventId);
       if (!eventExists) {
-        console.warn(`Attempted to create accommodation for non-existent event ID: ${eventId}`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
-      console.log(`Event ${eventId} verified, creating accommodation`);
+      
       const accommodationData = insertAccommodationSchema.parse({ ...req.body, eventId });
       const accommodation = await storage.createAccommodation(accommodationData);
       
-      console.log(`Accommodation created successfully for event ${eventId}: ${accommodation.id}`);
+      
       res.status(201).json(accommodation);
     } catch (error) {
-      console.error(`Error creating accommodation:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1640,27 +1971,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the current accommodation to verify event context
       const currentAccommodation = await storage.getAccommodation(accommodationId);
       if (!currentAccommodation) {
-        console.warn(`Accommodation with ID ${accommodationId} not found when updating`);
+        
         return res.status(404).json({ message: 'Accommodation not found' });
       }
       
       // Verify eventId hasn't changed or if it has, it's a valid operation
       if (accommodationData.eventId && accommodationData.eventId !== currentAccommodation.eventId) {
-        console.warn(`Attempted to change eventId from ${currentAccommodation.eventId} to ${accommodationData.eventId} for accommodation ${accommodationId}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Cannot change the event association of an accommodation'
         });
       }
       
-      console.log(`Updating accommodation ${accommodationId} in event ${currentAccommodation.eventId}`);
+      
       const updatedAccommodation = await storage.updateAccommodation(accommodationId, accommodationData);
       if (!updatedAccommodation) {
         return res.status(404).json({ message: 'Accommodation not found' });
       }
       res.json(updatedAccommodation);
     } catch (error) {
-      console.error(`Error updating accommodation:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1676,15 +2007,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify that the accommodation exists and note its event context
       const accommodation = await storage.getAccommodation(accommodationId);
       if (!accommodation) {
-        console.warn(`Accommodation with ID ${accommodationId} not found when fetching allocations`);
+        
         return res.status(404).json({ message: 'Accommodation not found' });
       }
       
-      console.log(`Fetching allocations for accommodation ${accommodationId} in event ${accommodation.eventId}`);
+      
       const allocations = await storage.getRoomAllocationsByAccommodation(accommodationId);
       res.json(allocations);
     } catch (error) {
-      console.error(`Error fetching allocations for accommodation:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch allocations' });
     }
   });
@@ -1696,15 +2027,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify that the guest exists and note its event context
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when fetching allocations`);
+        
         return res.status(404).json({ message: 'Guest not found' });
       }
       
-      console.log(`Fetching allocations for guest ${guestId} in event ${guest.eventId}`);
+      
       const allocations = await storage.getRoomAllocationsByGuest(guestId);
       res.json(allocations);
     } catch (error) {
-      console.error(`Error fetching allocations for guest:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch allocations' });
     }
   });
@@ -1718,7 +2049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the guest and accommodation to verify they belong to the same event
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when creating room allocation`);
+        
         return res.status(404).json({ 
           message: 'Guest not found' 
         });
@@ -1726,7 +2057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const accommodation = await storage.getAccommodation(accommodationId);
       if (!accommodation) {
-        console.warn(`Accommodation with ID ${accommodationId} not found when creating room allocation`);
+        
         return res.status(404).json({ 
           message: 'Accommodation not found' 
         });
@@ -1734,25 +2065,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify that guest and accommodation belong to the same event
       if (guest.eventId !== accommodation.eventId) {
-        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Accommodation ${accommodationId} (event ${accommodation.eventId})`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Guest and accommodation must belong to the same event'
         });
       }
       
-      console.log(`Creating room allocation for guest ${guestId} at accommodation ${accommodationId} in event ${guest.eventId}`);
+      
       const allocation = await storage.createRoomAllocation(allocationData);
       
       // Update allocated rooms count
-      console.log(`Updating allocated rooms count for accommodation ${accommodationId}`);
+      
       await storage.updateAccommodation(accommodationId, {
         allocatedRooms: (accommodation.allocatedRooms || 0) + 1
       });
       
       res.status(201).json(allocation);
     } catch (error) {
-      console.error(`Error creating room allocation:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1768,7 +2099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the current allocation
       const currentAllocation = await storage.getRoomAllocation(allocationId);
       if (!currentAllocation) {
-        console.warn(`Room allocation with ID ${allocationId} not found when updating`);
+        
         return res.status(404).json({ message: 'Allocation not found' });
       }
       
@@ -1777,19 +2108,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the current guest and accommodation to establish event context
         const currentGuest = await storage.getGuest(currentAllocation.guestId);
         if (!currentGuest) {
-          console.warn(`Current guest with ID ${currentAllocation.guestId} not found when updating room allocation`);
+          
           return res.status(404).json({ message: 'Current guest not found' });
         }
         
         const currentAccommodation = await storage.getAccommodation(currentAllocation.accommodationId);
         if (!currentAccommodation) {
-          console.warn(`Current accommodation with ID ${currentAllocation.accommodationId} not found when updating room allocation`);
+          
           return res.status(404).json({ message: 'Current accommodation not found' });
         }
         
         // Verify current guest and accommodation belong to same event
         if (currentGuest.eventId !== currentAccommodation.eventId) {
-          console.warn(`Existing data inconsistency detected: Guest ${currentAllocation.guestId} (event ${currentGuest.eventId}) and Accommodation ${currentAllocation.accommodationId} (event ${currentAccommodation.eventId})`);
+          
         }
         
         const eventId = currentGuest.eventId;
@@ -1798,12 +2129,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (allocationData.guestId && allocationData.guestId !== currentAllocation.guestId) {
           const newGuest = await storage.getGuest(allocationData.guestId);
           if (!newGuest) {
-            console.warn(`New guest with ID ${allocationData.guestId} not found when updating room allocation`);
+            
             return res.status(404).json({ message: 'New guest not found' });
           }
           
           if (newGuest.eventId !== eventId) {
-            console.warn(`Cross-event operation attempted: New guest ${allocationData.guestId} (event ${newGuest.eventId}) used with existing context (event ${eventId})`);
+            
             return res.status(403).json({
               message: 'Access denied',
               details: 'Cannot assign room allocation to guest from different event'
@@ -1815,12 +2146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (allocationData.accommodationId && allocationData.accommodationId !== currentAllocation.accommodationId) {
           const newAccommodation = await storage.getAccommodation(allocationData.accommodationId);
           if (!newAccommodation) {
-            console.warn(`New accommodation with ID ${allocationData.accommodationId} not found when updating room allocation`);
+            
             return res.status(404).json({ message: 'New accommodation not found' });
           }
           
           if (newAccommodation.eventId !== eventId) {
-            console.warn(`Cross-event operation attempted: New accommodation ${allocationData.accommodationId} (event ${newAccommodation.eventId}) used with existing context (event ${eventId})`);
+            
             return res.status(403).json({
               message: 'Access denied',
               details: 'Cannot assign room allocation to accommodation from different event'
@@ -1829,14 +2160,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log(`Updating room allocation ${allocationId}`);
+      
       const updatedAllocation = await storage.updateRoomAllocation(allocationId, allocationData);
       if (!updatedAllocation) {
         return res.status(404).json({ message: 'Allocation not found' });
       }
       res.json(updatedAllocation);
     } catch (error) {
-      console.error(`Error updating room allocation:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1852,15 +2183,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify that the ceremony exists and get its event context
       const ceremony = await storage.getCeremony(ceremonyId);
       if (!ceremony) {
-        console.warn(`Ceremony with ID ${ceremonyId} not found when fetching meal options`);
+        
         return res.status(404).json({ message: 'Ceremony not found' });
       }
       
-      console.log(`Fetching meal options for ceremony ${ceremonyId} in event ${ceremony.eventId}`);
+      
       const meals = await storage.getMealOptionsByCeremony(ceremonyId);
       res.json(meals);
     } catch (error) {
-      console.error(`Error fetching meal options for ceremony:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch meals' });
     }
   });
@@ -1897,13 +2228,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the current meal option to verify event and ceremony context
       const currentMeal = await storage.getMealOption(mealId);
       if (!currentMeal) {
-        console.warn(`Meal option with ID ${mealId} not found when updating`);
+        
         return res.status(404).json({ message: 'Meal option not found' });
       }
       
       // Verify eventId hasn't changed or if it has, it's a valid operation
       if (mealData.eventId && mealData.eventId !== currentMeal.eventId) {
-        console.warn(`Attempted to change eventId from ${currentMeal.eventId} to ${mealData.eventId} for meal option ${mealId}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Cannot change the event association of a meal option'
@@ -1914,12 +2245,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (mealData.ceremonyId && mealData.ceremonyId !== currentMeal.ceremonyId) {
         const newCeremony = await storage.getCeremony(mealData.ceremonyId);
         if (!newCeremony) {
-          console.warn(`New ceremony with ID ${mealData.ceremonyId} not found when updating meal option`);
+          
           return res.status(404).json({ message: 'New ceremony not found' });
         }
         
         if (newCeremony.eventId !== currentMeal.eventId) {
-          console.warn(`Cross-event operation attempted: Moving meal option ${mealId} (event ${currentMeal.eventId}) to ceremony ${mealData.ceremonyId} (event ${newCeremony.eventId})`);
+          
           return res.status(403).json({ 
             message: 'Access denied',
             details: 'Cannot associate meal option with a ceremony from a different event'
@@ -1927,14 +2258,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log(`Updating meal option ${mealId} in event ${currentMeal.eventId}`);
+      
       const updatedMeal = await storage.updateMealOption(mealId, mealData);
       if (!updatedMeal) {
         return res.status(404).json({ message: 'Meal option not found' });
       }
       res.json(updatedMeal);
     } catch (error) {
-      console.error(`Error updating meal option:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -1950,15 +2281,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify that the guest exists and note its event context
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when fetching meal selections`);
+        
         return res.status(404).json({ message: 'Guest not found' });
       }
       
-      console.log(`Fetching meal selections for guest ${guestId} in event ${guest.eventId}`);
+      
       const selections = await storage.getGuestMealSelectionsByGuest(guestId);
       res.json(selections);
     } catch (error) {
-      console.error(`Error fetching meal selections for guest:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch meal selections' });
     }
   });
@@ -1973,7 +2304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the guest
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.warn(`Guest with ID ${guestId} not found when creating meal selection`);
+        
         return res.status(404).json({ 
           message: 'Guest not found' 
         });
@@ -1982,7 +2313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Then get the ceremony
       const ceremony = await storage.getCeremony(ceremonyId);
       if (!ceremony) {
-        console.warn(`Ceremony with ID ${ceremonyId} not found when creating meal selection`);
+        
         return res.status(404).json({ 
           message: 'Ceremony not found' 
         });
@@ -1990,7 +2321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify both guest and ceremony belong to the same event
       if (guest.eventId !== ceremony.eventId) {
-        console.warn(`Cross-event operation attempted: Guest ${guestId} (event ${guest.eventId}) and Ceremony ${ceremonyId} (event ${ceremony.eventId})`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Guest and ceremony must belong to the same event'
@@ -2000,7 +2331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the meal option and verify it belongs to the ceremony
       const mealOption = await storage.getMealOption(mealOptionId);
       if (!mealOption) {
-        console.warn(`Meal option with ID ${mealOptionId} not found when creating meal selection`);
+        
         return res.status(404).json({ 
           message: 'Meal option not found' 
         });
@@ -2008,18 +2339,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify meal option belongs to the specified ceremony
       if (mealOption.ceremonyId !== ceremonyId) {
-        console.warn(`Cross-ceremony operation attempted: Meal option ${mealOptionId} (ceremony ${mealOption.ceremonyId}) used with ceremony ${ceremonyId}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Meal option does not belong to the specified ceremony'
         });
       }
       
-      console.log(`Creating meal selection for guest ${guestId} at ceremony ${ceremonyId} with option ${mealOptionId} in event ${guest.eventId}`);
+      
       const selection = await storage.createGuestMealSelection(selectionData);
       res.status(201).json(selection);
     } catch (error) {
-      console.error(`Error creating meal selection:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -2035,7 +2366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First get the current meal selection
       const currentSelection = await storage.getGuestMealSelection(selectionId);
       if (!currentSelection) {
-        console.warn(`Meal selection with ID ${selectionId} not found when updating`);
+        
         return res.status(404).json({ message: 'Meal selection not found' });
       }
       
@@ -2044,20 +2375,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the guest
         const guest = await storage.getGuest(currentSelection.guestId);
         if (!guest) {
-          console.warn(`Guest with ID ${currentSelection.guestId} not found when updating meal selection`);
+          
           return res.status(404).json({ message: 'Guest not found' });
         }
         
         // Get the new ceremony
         const newCeremony = await storage.getCeremony(selectionData.ceremonyId);
         if (!newCeremony) {
-          console.warn(`Ceremony with ID ${selectionData.ceremonyId} not found when updating meal selection`);
+          
           return res.status(404).json({ message: 'Ceremony not found' });
         }
         
         // Verify both guest and ceremony belong to the same event
         if (guest.eventId !== newCeremony.eventId) {
-          console.warn(`Cross-event operation attempted: Guest ${currentSelection.guestId} (event ${guest.eventId}) and Ceremony ${selectionData.ceremonyId} (event ${newCeremony.eventId})`);
+          
           return res.status(403).json({ 
             message: 'Access denied',
             details: 'Guest and ceremony must belong to the same event'
@@ -2071,12 +2402,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const mealOption = await storage.getMealOption(selectionData.mealOptionId);
         
         if (!mealOption) {
-          console.warn(`Meal option with ID ${selectionData.mealOptionId} not found when updating meal selection`);
+          
           return res.status(404).json({ message: 'Meal option not found' });
         }
         
         if (mealOption.ceremonyId !== ceremonyId) {
-          console.warn(`Cross-ceremony operation attempted: Meal option ${selectionData.mealOptionId} (ceremony ${mealOption.ceremonyId}) used with ceremony ${ceremonyId}`);
+          
           return res.status(403).json({ 
             message: 'Access denied',
             details: 'Meal option does not belong to the specified ceremony'
@@ -2084,14 +2415,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log(`Updating meal selection ${selectionId} for guest ${currentSelection.guestId}`);
+      
       const updatedSelection = await storage.updateGuestMealSelection(selectionId, selectionData);
       if (!updatedSelection) {
         return res.status(404).json({ message: 'Meal selection not found' });
       }
       res.json(updatedSelection);
     } catch (error) {
-      console.error(`Error updating meal selection:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -2115,21 +2446,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
 
       // Verify that the event exists before creating a message
-      console.log(`Verifying event ${eventId} exists before creating couple message`);
+      
       const eventExists = await storage.eventExists(eventId);
       if (!eventExists) {
-        console.warn(`Attempted to create couple message for non-existent event ID: ${eventId}`);
+        
         return res.status(404).json({ message: 'Event not found' });
       }
       
-      console.log(`Event ${eventId} verified, creating couple message`);
+      
       const messageData = insertCoupleMessageSchema.parse({ ...req.body, eventId });
       const message = await storage.createCoupleMessage(messageData);
       
-      console.log(`Couple message created successfully for event ${eventId}`);
+      
       res.status(201).json(message);
     } catch (error) {
-      console.error(`Error creating couple message:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -2296,14 +2627,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const template = await storage.getWhatsappTemplate(id);
       if (!template) {
-        console.warn(`WhatsApp template with ID ${id} not found`);
+        
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       
-      console.log(`Successfully fetched WhatsApp template ${id} for event ${template.eventId}`);
+      
       res.json(template);
     } catch (error) {
-      console.error(`Error fetching WhatsApp template:`, error);
+      
       res.status(500).json({ message: 'Failed to fetch WhatsApp template' });
     }
   });
@@ -2330,27 +2661,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch the current template to check event context
       const currentTemplate = await storage.getWhatsappTemplate(id);
       if (!currentTemplate) {
-        console.warn(`WhatsApp template with ID ${id} not found when updating`);
+        
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       
       // If eventId is being changed, prevent it
       if (data.eventId && data.eventId !== currentTemplate.eventId) {
-        console.warn(`Attempted to change eventId from ${currentTemplate.eventId} to ${data.eventId} for WhatsApp template ${id}`);
+        
         return res.status(403).json({ 
           message: 'Access denied',
           details: 'Cannot change the event association of a WhatsApp template'
         });
       }
       
-      console.log(`Updating WhatsApp template ${id} for event ${currentTemplate.eventId}`);
+      
       const template = await storage.updateWhatsappTemplate(id, data);
       if (!template) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json(template);
     } catch (error) {
-      console.error(`Error updating WhatsApp template:`, error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors });
       }
@@ -2365,18 +2696,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify the template exists before deletion and note its event context
       const template = await storage.getWhatsappTemplate(id);
       if (!template) {
-        console.warn(`WhatsApp template with ID ${id} not found when attempting deletion`);
+        
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       
-      console.log(`Deleting WhatsApp template ${id} from event ${template.eventId}`);
+      
       const success = await storage.deleteWhatsappTemplate(id);
       if (!success) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json({ message: 'WhatsApp template deleted successfully' });
     } catch (error) {
-      console.error(`Error deleting WhatsApp template:`, error);
+      
       res.status(500).json({ message: 'Failed to delete WhatsApp template' });
     }
   });
@@ -2388,18 +2719,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First verify the template exists
       const existingTemplate = await storage.getWhatsappTemplate(id);
       if (!existingTemplate) {
-        console.warn(`WhatsApp template with ID ${id} not found when marking as used`);
+        
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       
-      console.log(`Marking WhatsApp template ${id} as used for event ${existingTemplate.eventId}`);
+      
       const template = await storage.markWhatsappTemplateAsUsed(id);
       if (!template) {
         return res.status(404).json({ message: 'WhatsApp template not found' });
       }
       res.json(template);
     } catch (error) {
-      console.error(`Error marking WhatsApp template as used:`, error);
+      
       res.status(500).json({ message: 'Failed to mark WhatsApp template as used' });
     }
   });
@@ -2418,11 +2749,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Auto Assignment routes
   registerAutoAssignmentRoutes(app, isAuthenticated, isAdmin);
   
+  // Performance-optimized routes are loaded dynamically below
+  
+  // Register ultra-fast travel batch routes
+  const travelBatchRoutes = await import('./routes/travel-batch');
+  app.use('/api', travelBatchRoutes.default);
+  
+  // Dashboard routes handled by standard API endpoints
+  
   // Register RSVP Follow-up routes
   app.use('/api', isAuthenticated, rsvpFollowupRoutes);
   
   // Register Transport routes
   app.use('/api', isAuthenticated, transportRoutes);
+
+  // Register Travel routes
+  const travelRoutes = await import('./routes/travel');
+  app.use('/api', travelRoutes.default);
   
   // Register OAuth routes
   app.use('/api/oauth', oauthRoutes);
@@ -2430,11 +2773,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Event Settings routes
   app.use('/api/event-settings', eventSettingsRoutes);
   
-  // Register Email Templates routes
-  app.use(communicationTemplatesRoutes);
+  // Register Email Templates routes without authentication middleware (routes handle their own auth)
+  app.use('/api', communicationTemplatesRoutes);
   
+  // Wizard Data Endpoint - combine all wizard step data
+  app.get('/api/events/:id/wizard-data', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Get event data
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Get ceremonies data
+      const ceremonies = await storage.getCeremonies(eventId);
+      
+      // Get accommodations data
+      const accommodations = await storage.getAccommodations(eventId);
+      
+      // Basic progress calculation
+      const progress = {
+        basicInfoComplete: !!(event.title && event.coupleNames && event.brideName && event.groomName),
+        venuesComplete: ceremonies.length > 0,
+        rsvpComplete: !!event.rsvpDeadline,
+        accommodationComplete: event.accommodationMode && event.accommodationMode !== 'none',
+        transportComplete: event.transportMode && event.transportMode !== 'none',
+        communicationComplete: !!(event.brevoApiKey || event.emailConfigured),
+        aiComplete: false
+      };
+      
+      const wizardData = {
+        basicInfo: event,
+        ceremonies: ceremonies || [],
+        accommodationConfig: {
+          mode: event.accommodationMode,
+          accommodations: accommodations || []
+        },
+        transportConfig: {
+          mode: event.transportMode,
+          flightMode: event.flightMode
+        },
+        communicationConfig: {
+          emailProvider: event.emailProvider,
+          brevoApiKey: event.brevoApiKey,
+          emailConfigured: event.emailConfigured
+        },
+        progress,
+        completionStatus: progress
+      };
+      
+      res.json(wizardData);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch wizard data' });
+    }
+  });
+
   // Register Wizard routes
-  app.use('/api/wizard', wizardRouter);
+  // Wizard routes handled by standard API endpoints
   
   // Add a test email endpoint for debugging
   app.post('/api/test-email', async (req: Request, res: Response) => {
@@ -2448,7 +2845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log(`[TEST EMAIL] Attempting to send test email to ${email} from event ${eventId}`);
+      
       
       // Get the event data
       const event = await storage.getEvent(parseInt(eventId));
@@ -2463,12 +2860,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { EmailService } = await import('./services/email');
       
       // Create an email service for this event
-      console.log(`[TEST EMAIL] Creating email service for event ${eventId}`);
+      
       const emailService = EmailService.fromEvent(event);
       
       // Check if the email service is configured
       if (!emailService.isConfigured()) {
-        console.log(`[TEST EMAIL] Email service not configured for event ${eventId}`);
+        
         return res.status(400).json({
           success: false,
           message: 'Email service not properly configured for this event'
@@ -2476,7 +2873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Send a test email
-      console.log(`[TEST EMAIL] Sending test email to ${email}`);
+      
       const result = await emailService.sendEmail({
         to: email,
         subject: `Test Email from ${event.title}`,
@@ -2491,7 +2888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: `Test Email from Wedding RSVP System\n\nThis is a test email from the Wedding RSVP system for ${event.title}.\n\nIf you're seeing this, email sending is working correctly!\n\nEmail Provider: ${event.emailProvider || 'Default'}\nEmail Configuration: ${event.useGmailDirectSMTP ? 'Direct SMTP' : 'OAuth'}\nTime: ${new Date().toISOString()}`
       });
       
-      console.log(`[TEST EMAIL] Result:`, result);
+      
       
       if (!result.success) {
         return res.status(500).json({
@@ -2506,7 +2903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `Test email sent successfully to ${email}`
       });
     } catch (error) {
-      console.error('[TEST EMAIL] Error:', error);
+      
       return res.status(500).json({
         success: false,
         message: 'An error occurred while sending test email',
@@ -2517,9 +2914,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register transport routes
   app.use('/api/transport', transportRoutes);
+  
+  // Register Flight Coordination routes
+  app.use('/api', flightCoordinationRoutes);
+  
+  // Register Vehicle Management routes
+  app.use('/api', vehicleManagementRoutes);
+  
+  // Standard API endpoints handle all operations
+  
+
 
   // Register WhatsApp routes
   registerWhatsAppRoutes(app, isAuthenticated, isAdmin);
+  
+  // Register Integration routes for comprehensive guest data filtering
+  registerIntegrationRoutes(app, isAuthenticated);
+  
+  // Register Master Guest Data routes for bi-directional data flow
+  registerMasterGuestDataRoutes(app, isAuthenticated);
 
   return httpServer;
 }

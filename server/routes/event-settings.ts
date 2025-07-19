@@ -165,7 +165,7 @@ router.get("/:eventId/oauth-config", isAuthenticated, isAdmin, async (req: Reque
       emailReplyTo: event.emailReplyTo,
     });
   } catch (error) {
-    console.error("Failed to get OAuth configuration:", error);
+    
     res.status(500).json({ 
       message: "An error occurred while fetching OAuth configuration", 
       error: error instanceof Error ? error.message : String(error)
@@ -214,7 +214,7 @@ router.patch("/:eventId/oauth-config", isAuthenticated, isAdmin, async (req: Req
       }
     });
   } catch (error) {
-    console.error("Failed to update OAuth configuration:", error);
+    
     res.status(500).json({ 
       message: "An error occurred while updating OAuth configuration", 
       error: error instanceof Error ? error.message : String(error)
@@ -338,7 +338,7 @@ router.get("/:eventId/settings", isAuthenticated, isAdmin, async (req: Request, 
       settings
     });
   } catch (error) {
-    console.error("Failed to get event settings:", error);
+    
     res.status(500).json({ 
       success: false,
       message: "An error occurred while fetching event settings", 
@@ -412,7 +412,7 @@ router.patch("/:eventId/settings", isAuthenticated, isAdmin, async (req: Request
       }
     });
   } catch (error) {
-    console.error("Failed to update event settings:", error);
+    
     res.status(500).json({ 
       success: false,
       message: "An error occurred while updating event settings", 
@@ -464,7 +464,7 @@ router.patch("/:eventId/rsvp", isAuthenticated, isAdmin, async (req: Request, re
       }
     });
   } catch (error) {
-    console.error("Failed to update RSVP settings:", error);
+    
     res.status(500).json({ 
       success: false,
       message: "An error occurred while updating RSVP settings", 
@@ -497,7 +497,7 @@ router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (
       });
     }
 
-    console.log(`Testing email connection for event ${eventId} with provider ${event.emailProvider || 'unknown'}`);
+    
 
     try {
       // Create email service from event
@@ -512,7 +512,7 @@ router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (
       // Use Promise.race to implement timeout
       const result = await Promise.race([testPromise, timeoutPromise]) as { success: boolean, message: string };
       
-      console.log(`Email connection test result for event ${eventId}:`, result);
+      
       
       return res.json({
         success: result.success,
@@ -520,7 +520,7 @@ router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (
         provider: event.emailProvider || 'unknown'
       });
     } catch (testError) {
-      console.error(`Email test connection error for event ${eventId}:`, testError);
+      
       
       // Return a friendly error message based on the specific error
       const errorMessage = testError instanceof Error ? testError.message : String(testError);
@@ -534,7 +534,7 @@ router.post("/:eventId/test-email-connection", isAuthenticated, isAdmin, async (
     }
   } catch (error) {
     // This catches unexpected errors in the route handler itself
-    console.error("Unexpected error in test email connection endpoint:", error);
+    
     
     return res.status(500).json({ 
       success: false,
@@ -587,7 +587,7 @@ router.patch("/:eventId/travel-accommodation", isAuthenticated, isAdmin, async (
       }
     });
   } catch (error) {
-    console.error("Failed to update Travel & Accommodation settings:", error);
+    
     res.status(500).json({ 
       success: false,
       message: "An error occurred while updating Travel & Accommodation settings", 

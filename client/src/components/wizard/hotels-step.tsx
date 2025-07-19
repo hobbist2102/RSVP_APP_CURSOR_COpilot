@@ -188,7 +188,7 @@ export default function HotelsStep({
     enabled: !!eventId
   });
 
-  // Initialize hotels and room types from database when data loads
+  // Initialize hotels and room types from database when data loads - consistent with other wizard steps
   useEffect(() => {
     if (existingHotels && existingHotels.length > 0) {
       const mappedHotels = existingHotels.map((hotel: any) => ({
@@ -225,6 +225,25 @@ export default function HotelsStep({
       setRoomTypes(mappedRoomTypes);
     }
   }, [existingAccommodations]);
+
+  // Populate form with current event data when available - consistent useEffect + form.reset() pattern
+  useEffect(() => {
+    if (currentEvent && !hotelsLoading && !accommodationsLoading) {
+      form.reset({
+        accommodationMode: currentEvent.accommodationMode || PROVISION_MODES.BLOCK,
+        enableAutoAllocation: currentEvent.enableAutoAllocation ?? true,
+        enableGuestRoomPreferences: currentEvent.enableGuestRoomPreferences ?? true,
+        allocationStrategy: currentEvent.allocationStrategy || "family",
+        hotels: hotels,
+        roomTypes: roomTypes,
+        currency: currentEvent.currency || 'INR',
+        showPricing: currentEvent.showPricing ?? false,
+        accommodationAttachmentUrl: currentEvent.accommodationAttachmentUrl || '',
+        accommodationSpecialDeals: currentEvent.accommodationSpecialDeals || '',
+        accommodationInstructions: currentEvent.accommodationInstructions || '',
+      });
+    }
+  }, [currentEvent, hotelsLoading, accommodationsLoading, hotels, roomTypes, form]);
   
   // Set up form with default values 
   const form = useForm<AccommodationSettingsData>({
@@ -666,7 +685,7 @@ export default function HotelsStep({
                 Add Hotel
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingHotel ? "Edit Hotel" : "Add New Hotel"}</DialogTitle>
                 <DialogDescription>
@@ -947,7 +966,7 @@ export default function HotelsStep({
                 Add Room Type
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingRoomType ? "Edit Room Type" : "Add New Room Type"}</DialogTitle>
                 <DialogDescription>

@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useApiQuery, useApiMutation, apiRequest } from "@/lib/api-utils";
+import { useApiQuery, useApiMutation, post, put, patch, del } from "@/lib/api-utils";
 
 export function useEvents() {
   const [currentEventId, setCurrentEventId] = useState<number | null>(null);
@@ -31,11 +31,7 @@ export function useEvents() {
   // Create event mutation with standardized error handling
   const createEventMutation = useApiMutation({
     mutationFn: async (eventData: any) => {
-      const response = await apiRequest({
-        method: "POST",
-        url: "/api/events",
-        data: eventData
-      });
+      const response = await post("/api/events", eventData);
       return response;
     },
     successMessage: "Event created successfully",
@@ -50,11 +46,7 @@ export function useEvents() {
   // Update event mutation
   const updateEventMutation = useApiMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await apiRequest({
-        method: "PATCH",
-        url: `/api/events/${id}`,
-        data: data
-      });
+      const response = await patch(`/api/events/${id}`, data);
       return response;
     },
     successMessage: "Event updated successfully",
@@ -64,10 +56,7 @@ export function useEvents() {
   // Delete event mutation
   const deleteEventMutation = useApiMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest({
-        method: "DELETE",
-        url: `/api/events/${id}`
-      });
+      const response = await del(`/api/events/${id}`);
       return response;
     },
     successMessage: "Event deleted successfully",

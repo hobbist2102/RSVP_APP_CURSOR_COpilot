@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import RsvpStatusDisplay from "./rsvp-status-display";
 import { Loader2, Copy, Send, Check, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 
 interface RsvpLinkGeneratorProps {
@@ -81,7 +81,7 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
         });
       },
       (err) => {
-        console.error("Could not copy text: ", err);
+        // Could not copy text - handled silently
         toast({
           variant: "destructive",
           title: "Failed to Copy",
@@ -99,17 +99,12 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
       setIsGenerating(true);
       
       try {
-        const response = await apiRequest("POST", "/api/admin/rsvp/generate-links", {
+        const response = await post("/api/admin/rsvp/generate-links", {
           eventId,
           baseUrl,
         });
         
-        if (!response.ok) {
-          throw new Error("Failed to generate RSVP links");
-        }
-        
-        const data = await response.json();
-        return data;
+        return response.data;
       } finally {
         setIsGenerating(false);
       }
@@ -138,19 +133,14 @@ export default function RsvpLinkGenerator({ guests, onSuccess }: RsvpLinkGenerat
       if (!eventId) throw new Error("No event selected");
       if (selectedGuests.length === 0) throw new Error("No guests selected");
       
-      const response = await apiRequest("POST", "/api/admin/rsvp/send-invites", {
+      const response = await post("/api/admin/rsvp/send-invites", {
         eventId,
         guestIds: selectedGuests,
         baseUrl,
         channel: selectedChannel,
       });
       
-      if (!response.ok) {
-        throw new Error("Failed to send RSVP invitations");
-      }
-      
-      const data = await response.json();
-      return data;
+      return response.data;
     },
     onSuccess: (data) => {
       const successCount = data.results.filter((r: any) => r.success).length;

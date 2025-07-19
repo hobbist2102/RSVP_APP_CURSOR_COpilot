@@ -6,21 +6,27 @@ import {
   Reply,
   Calendar,
   Plane,
+  Car,
   Utensils,
   FileSpreadsheet,
   Settings,
   LogOut,
   Mail,
-  Wand2
+  Wand2,
+  ChevronLeft,
+  ChevronRight,
+  Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
 interface SidebarProps {
   isOpen: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export default function Sidebar({ isOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const [location] = useLocation();
   const { logout } = useAuth();
   
@@ -51,9 +57,14 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       path: "/rsvp"
     },
     {
-      name: "Travel Management",
+      name: "Flight Coordination",
       icon: <Plane className="mr-3 h-5 w-5" />,
-      path: "/travel"
+      path: "/travel-management"
+    },
+    {
+      name: "Transport Groups",
+      icon: <Car className="mr-3 h-5 w-5" />,
+      path: "/transport"
     },
     {
       name: "Meal Planning",
@@ -65,26 +76,38 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       icon: <FileSpreadsheet className="mr-3 h-5 w-5" />,
       path: "/reports"
     },
+
     {
       name: "Settings",
       icon: <Settings className="mr-3 h-5 w-5" />,
       path: "/settings"
     },
-    {
-      name: "Email Templates",
-      icon: <Mail className="mr-3 h-5 w-5" />,
-      path: "/email-templates"
-    }
+
   ];
 
   const sidebarClasses = cn(
-    "glass w-64 flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
-    isOpen ? "left-0" : "-left-64 lg:left-0"
+    "glass flex-shrink-0 fixed h-full z-10 transition-all duration-300 lg:static border-r border-border",
+    isCollapsed ? "w-16" : "w-56",
+    isOpen ? "left-0" : (isCollapsed ? "-left-16 lg:left-0" : "-left-56 lg:left-0")
   );
 
   return (
     <aside className={sidebarClasses}>
-      <nav className="mt-5 px-2 space-y-1">
+      {/* Collapse Toggle - Desktop Only */}
+      <div className="hidden lg:flex justify-end p-2">
+        <button
+          onClick={onToggleCollapse}
+          className="p-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+
+      <nav className="mt-2 px-2 space-y-1">
         {menuItems.map((item) => (
           <Link key={item.path} href={item.path}>
             <div
@@ -92,24 +115,34 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                 "group flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 hover:scale-105",
                 location === item.path
                   ? "bg-primary/10 text-primary border-l-4 border-primary font-semibold"
-                  : "text-foreground hover:bg-muted hover:text-primary"
+                  : "text-foreground hover:bg-muted hover:text-primary",
+                isCollapsed && "justify-center"
               )}
+              title={isCollapsed ? item.name : undefined}
             >
-              {item.icon}
-              {item.name}
+              <span className={cn("flex-shrink-0", !isCollapsed && "mr-3")}>
+                {React.cloneElement(item.icon, { className: "h-5 w-5" })}
+              </span>
+              {!isCollapsed && (
+                <span className="truncate">{item.name}</span>
+              )}
             </div>
           </Link>
         ))}
       </nav>
       
-      <div className="px-4 mt-6">
+      <div className={cn("mt-6", isCollapsed ? "px-2" : "px-4")}>
         <div className="pt-4 border-t border-border">
           <button
-            className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-muted hover:scale-105 transition-all duration-200"
+            className={cn(
+              "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-muted hover:scale-105 transition-all duration-200",
+              isCollapsed && "justify-center"
+            )}
             onClick={logout}
+            title={isCollapsed ? "Sign Out" : undefined}
           >
-            <LogOut className="mr-3 h-5 w-5" />
-            Sign Out
+            <LogOut className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
+            {!isCollapsed && "Sign Out"}
           </button>
         </div>
       </div>

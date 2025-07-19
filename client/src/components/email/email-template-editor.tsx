@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { get, post, put, del } from "@/lib/api-utils";
+import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,15 +63,14 @@ export default function EmailTemplateEditor({ eventId }: EmailTemplateEditorProp
   const { data: templatesData, isLoading } = useQuery({
     queryKey: ['/api/events', eventId, 'email-templates'],
     queryFn: async () => {
-      const res = await fetch(`/api/events/${eventId}/email-templates`);
-      if (!res.ok) throw new Error('Failed to fetch templates');
-      return res.json();
+      const res = await get(`/api/events/${eventId}/email-templates`);
+      return res.data;
     }
   });
 
   const createTemplateMutation = useMutation({
     mutationFn: (data: EmailTemplateFormValues) => 
-      apiRequest('POST', `/api/events/${eventId}/email-templates`, data),
+      post(`/api/events/${eventId}/email-templates`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Template created successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-templates'] });
@@ -87,7 +87,7 @@ export default function EmailTemplateEditor({ eventId }: EmailTemplateEditorProp
 
   const updateTemplateMutation = useMutation({
     mutationFn: (data: EmailTemplateFormValues & { id: number }) => 
-      apiRequest('PUT', `/api/events/${eventId}/email-templates/${data.id}`, data),
+      put(`/api/events/${eventId}/email-templates/${data.id}`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Template updated successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-templates'] });
@@ -104,7 +104,7 @@ export default function EmailTemplateEditor({ eventId }: EmailTemplateEditorProp
 
   const deleteTemplateMutation = useMutation({
     mutationFn: (id: number) => 
-      apiRequest('DELETE', `/api/events/${eventId}/email-templates/${id}`),
+      del(`/api/events/${eventId}/email-templates/${id}`).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Template deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-templates'] });

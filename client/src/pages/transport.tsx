@@ -1,9 +1,35 @@
+import React from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { TransportGroup, Guest } from '@shared/schema';
-import { queryClient, apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { get, post, put, del } from '@/lib/api-utils';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, RefreshCw, AlertTriangle } from "lucide-react";
+import { 
+  Loader2, 
+  Plus, 
+  RefreshCw, 
+  AlertTriangle, 
+  Car, 
+  Bus, 
+  Users, 
+  Clock, 
+  MapPin, 
+  Route,
+  Building,
+  Phone,
+  Mail,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  Filter,
+  Download,
+  Send,
+  Edit3,
+  Trash2,
+  Eye
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -34,6 +60,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { format } from "date-fns";
+import DashboardLayout from '@/components/layout/dashboard-layout';
+import { useCurrentEvent } from '@/hooks/use-current-event';
+import VehicleFleetManagement from '@/components/transport/vehicle-fleet-management';
 
 // Transport Group Component
 const TransportGroupCard = ({ group, onEdit, onDelete }: { 
@@ -44,9 +73,8 @@ const TransportGroupCard = ({ group, onEdit, onDelete }: {
   const { data: allocations, isLoading } = useQuery({
     queryKey: ['/api/transport-groups', group.id, 'allocations'],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/transport-groups/${group.id}`);
-      const data = await res.json();
-      return data.allocations;
+      const res = await get(`/api/transport-groups/${group.id}`);
+      return res.data.allocations;
     }
   });
 
@@ -386,15 +414,10 @@ export default function TransportPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<TransportGroup | undefined>(undefined);
   const [selectedTab, setSelectedTab] = useState('all');
-  
-  // Get current event ID from session
-  const { data: currentEvent } = useQuery({
-    queryKey: ['/api/current-event'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/current-event');
-      return res.json();
-    }
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [showVendorManagement, setShowVendorManagement] = useState(false);
+  const { currentEvent } = useCurrentEvent();
   
   const eventId = currentEvent?.id;
   
@@ -407,8 +430,36 @@ export default function TransportPage() {
     queryKey: ['/api/events', eventId, 'transport-groups'],
     queryFn: async () => {
       if (!eventId) return [];
-      const res = await apiRequest('GET', `/api/events/${eventId}/transport-groups`);
-      return res.json();
+      const res = await get(`/api/events/${eventId}/transport-groups`);
+      return res.data;
+    },
+    enabled: !!eventId
+  });
+
+  // Get transport vendors
+  const { 
+    data: transportVendors = [], 
+    isLoading: isLoadingVendors 
+  } = useQuery({
+    queryKey: ['/api/transport/vendors', eventId],
+    queryFn: async () => {
+      if (!eventId) return [];
+      const res = await get('/api/transport/vendors');
+      return res.data;
+    },
+    enabled: !!eventId
+  });
+
+  // Get guests for transport coordination
+  const { 
+    data: guests = [],
+    isLoading: isLoadingGuests 
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'guests'],
+    queryFn: async () => {
+      if (!eventId) return [];
+      const res = await get(`/api/events/${eventId}/guests`);
+      return res.data;
     },
     enabled: !!eventId
   });
@@ -422,8 +473,8 @@ export default function TransportPage() {
     queryKey: ['/api/events', eventId, 'check-transport-updates'],
     queryFn: async () => {
       if (!eventId) return { needsUpdate: false, modifiedGuests: [] };
-      const res = await apiRequest('GET', `/api/events/${eventId}/check-transport-updates`);
-      return res.json();
+      const res = await get(`/api/events/${eventId}/check-transport-updates`);
+      return res.data;
     },
     enabled: !!eventId
   });
@@ -431,11 +482,11 @@ export default function TransportPage() {
   // Create transport group
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest('POST', '/api/transport-groups', {
+      const res = await post('/api/transport-groups', {
         ...data,
         eventId
       });
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -457,8 +508,8 @@ export default function TransportPage() {
   // Update transport group
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest('PUT', `/api/transport-groups/${selectedGroup?.id}`, data);
-      return res.json();
+      const res = await put(`/api/transport-groups/${selectedGroup?.id}`, data);
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -481,8 +532,8 @@ export default function TransportPage() {
   // Delete transport group
   const deleteMutation = useMutation({
     mutationFn: async (groupId: number) => {
-      const res = await apiRequest('DELETE', `/api/transport-groups/${groupId}`);
-      return res.json();
+      const res = await del(`/api/transport-groups/${groupId}`);
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -504,8 +555,8 @@ export default function TransportPage() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       if (!eventId) throw new Error("No event selected");
-      const res = await apiRequest('POST', `/api/events/${eventId}/generate-transport-groups`);
-      return res.json();
+      const res = await post(`/api/events/${eventId}/generate-transport-groups`, {});
+      return res.data;
     },
     onSuccess: (data) => {
       toast({
@@ -563,6 +614,46 @@ export default function TransportPage() {
     setSelectedGroup(undefined);
   };
 
+  // Calculate comprehensive transport statistics (moved above early return)
+  const stats = React.useMemo(() => {
+    if (!transportGroups.length && !guests.length && !transportVendors.length) {
+      return {
+        totalGroups: 0,
+        confirmedGroups: 0,
+        pendingGroups: 0,
+        draftGroups: 0,
+        totalVehicles: 0,
+        totalCapacity: 0,
+        guestsNeedingTransport: 0,
+        activeVendors: 0,
+        confirmationRate: 0
+      };
+    }
+    const totalGroups = transportGroups.length;
+    const confirmedGroups = transportGroups.filter((g: TransportGroup) => g.status === 'confirmed').length;
+    const pendingGroups = transportGroups.filter((g: TransportGroup) => g.status === 'pending').length;
+    const draftGroups = transportGroups.filter((g: TransportGroup) => g.status === 'draft').length;
+    
+    const totalVehicles = transportGroups.reduce((sum: number, g: TransportGroup) => sum + (g.vehicleCount || 1), 0);
+    const totalCapacity = transportGroups.reduce((sum: number, g: TransportGroup) => 
+      sum + ((g.vehicleCapacity || 4) * (g.vehicleCount || 1)), 0);
+    
+    const guestsNeedingTransport = guests.filter((g: any) => g.needsTransportation).length;
+    const activeVendors = transportVendors.filter((v: any) => v.status === 'active').length;
+
+    return {
+      totalGroups,
+      confirmedGroups,
+      pendingGroups,
+      draftGroups,
+      totalVehicles,
+      totalCapacity,
+      guestsNeedingTransport,
+      activeVendors,
+      confirmationRate: totalGroups > 0 ? Math.round((confirmedGroups / totalGroups) * 100) : 0
+    };
+  }, [transportGroups, guests, transportVendors]);
+
   if (!eventId) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
@@ -575,13 +666,74 @@ export default function TransportPage() {
   }
 
   return (
-    <div className="container py-6">
+    <DashboardLayout>
+      {/* Transport Management Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="glass">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Transport Groups</p>
+                <p className="text-2xl font-bold">{stats.totalGroups}</p>
+                <p className="text-xs text-green-600">
+                  {stats.confirmationRate}% confirmed
+                </p>
+              </div>
+              <Route className="h-8 w-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Vehicles</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalVehicles}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stats.totalCapacity} total seats
+                </p>
+              </div>
+              <Car className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Need Transport</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.guestsNeedingTransport}</p>
+                <p className="text-xs text-muted-foreground">guests requiring pickup</p>
+              </div>
+              <Users className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Active Vendors</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.activeVendors}</p>
+                <p className="text-xs text-muted-foreground">transport providers</p>
+              </div>
+              <Building className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Transport Groups</h1>
-          <p className="text-muted-foreground mt-1">Manage transportation for all guests</p>
+          <h2 className="text-3xl font-serif font-bold text-foreground">Transport Management</h2>
+          <p className="text-sm text-muted-foreground">
+            Coordinate transportation for {currentEvent?.title || 'your event'}
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
           {transportUpdates?.needsUpdate && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2 text-amber-700 max-w-md">
               <AlertTriangle className="h-5 w-5" />
@@ -607,34 +759,54 @@ export default function TransportPage() {
               </Button>
             </div>
           )}
-          <Button onClick={handleAddGroup}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Group
-          </Button>
-          <Button 
-            onClick={() => generateMutation.mutate()} 
-            variant="outline" 
-            disabled={generateMutation.isPending}
-          >
-            {generateMutation.isPending ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-1" />
-            )}
-            Auto-Generate
-          </Button>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowVendorManagement(!showVendorManagement)}
+            >
+              <Building className="h-4 w-4 mr-2" />
+              Vendors
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button 
+              onClick={() => generateMutation.mutate()} 
+              variant="outline" 
+              size="sm"
+              disabled={generateMutation.isPending}
+            >
+              {generateMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-1" />
+              )}
+              Auto-Generate
+            </Button>
+            <Button onClick={handleAddGroup} className="gold-gradient">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Group
+            </Button>
+          </div>
         </div>
       </div>
 
       <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 glass">
           <TabsTrigger value="all">All Groups</TabsTrigger>
           <TabsTrigger value="draft">Draft</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
+          <TabsTrigger value="fleet">Vehicle Fleet</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={selectedTab}>
+        <TabsContent value="all">
           {isLoadingGroups ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -643,9 +815,7 @@ export default function TransportPage() {
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <h3 className="text-xl font-semibold mb-2">No transport groups found</h3>
               <p className="text-muted-foreground mb-4">
-                {selectedTab === 'all' ? 
-                  "You haven't created any transport groups yet." : 
-                  `You don't have any ${selectedTab} transport groups.`}
+                You haven't created any transport groups yet.
               </p>
               <Button onClick={handleAddGroup}>Create a Transport Group</Button>
             </div>
@@ -661,6 +831,91 @@ export default function TransportPage() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="draft">
+          {isLoadingGroups ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredGroups.filter((g: TransportGroup) => g.status === 'draft').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <h3 className="text-xl font-semibold mb-2">No draft transport groups</h3>
+              <p className="text-muted-foreground mb-4">
+                You don't have any draft transport groups.
+              </p>
+              <Button onClick={handleAddGroup}>Create a Transport Group</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredGroups.filter((g: TransportGroup) => g.status === 'draft').map((group: TransportGroup) => (
+                <TransportGroupCard 
+                  key={group.id} 
+                  group={group} 
+                  onEdit={handleEditGroup}
+                  onDelete={handleDeleteGroup}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pending">
+          {isLoadingGroups ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredGroups.filter((g: TransportGroup) => g.status === 'pending').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <h3 className="text-xl font-semibold mb-2">No pending transport groups</h3>
+              <p className="text-muted-foreground mb-4">
+                You don't have any pending transport groups.
+              </p>
+              <Button onClick={handleAddGroup}>Create a Transport Group</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredGroups.filter((g: TransportGroup) => g.status === 'pending').map((group: TransportGroup) => (
+                <TransportGroupCard 
+                  key={group.id} 
+                  group={group} 
+                  onEdit={handleEditGroup}
+                  onDelete={handleDeleteGroup}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="confirmed">
+          {isLoadingGroups ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredGroups.filter((g: TransportGroup) => g.status === 'confirmed').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <h3 className="text-xl font-semibold mb-2">No confirmed transport groups</h3>
+              <p className="text-muted-foreground mb-4">
+                You don't have any confirmed transport groups.
+              </p>
+              <Button onClick={handleAddGroup}>Create a Transport Group</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredGroups.filter((g: TransportGroup) => g.status === 'confirmed').map((group: TransportGroup) => (
+                <TransportGroupCard 
+                  key={group.id} 
+                  group={group} 
+                  onEdit={handleEditGroup}
+                  onDelete={handleDeleteGroup}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="fleet">
+          <VehicleFleetManagement />
         </TabsContent>
       </Tabs>
 
@@ -683,6 +938,84 @@ export default function TransportPage() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
+
+      {/* Vendor Management Panel */}
+      {showVendorManagement && (
+        <Card className="glass mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Transport Vendor Management
+            </CardTitle>
+            <CardDescription>
+              Manage your transport service providers and their contact information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingVendors ? (
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : transportVendors.length === 0 ? (
+              <div className="text-center py-8">
+                <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No vendors configured</h3>
+                <p className="text-gray-500 mb-4">Add transport vendors to coordinate services</p>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Vendor
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {transportVendors.map((vendor: any) => (
+                  <Card key={vendor.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-medium">{vendor.companyName}</h4>
+                          <p className="text-sm text-muted-foreground">{vendor.serviceType}</p>
+                        </div>
+                        <Badge variant={vendor.status === 'active' ? 'default' : 'secondary'}>
+                          {vendor.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <span>{vendor.contactPhone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <span>{vendor.contactEmail}</span>
+                        </div>
+                        {vendor.fleetSize && (
+                          <div className="flex items-center gap-2">
+                            <Car className="h-3 w-3 text-muted-foreground" />
+                            <span>{vendor.fleetSize} vehicles</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-4">
+                        <Button variant="ghost" size="sm">
+                          <Edit3 className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Send className="h-3 w-3 mr-1" />
+                          Contact
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </DashboardLayout>
   );
 }

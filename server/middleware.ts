@@ -17,7 +17,6 @@ declare global {
 }
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // Standard authentication check only
   if (req.isAuthenticated()) {
     next();
   } else {
@@ -38,15 +37,13 @@ export const rsvpLinkHandler = (req: Request, res: Response, next: NextFunction)
   // Check if this is an RSVP link path
   // Only handle /guest-rsvp/TOKEN format (removing support for duplicate paths)
   if (req.path.startsWith('/guest-rsvp/')) {
-    log(`RSVP link handler processing: ${req.path}`);
-    console.log(`[RSVP Debug] Request path: ${req.path}, Query:`, req.query);
     
     // In production, we need to serve the index.html
     if (process.env.NODE_ENV === 'production') {
       try {
         const indexPath = path.join(process.cwd(), 'dist/public/index.html');
         if (fs.existsSync(indexPath)) {
-          log(`Serving index.html for RSVP path: ${req.path}`);
+          // Serving index.html for RSVP path
           
           // Extract the token from the URL, simplified to handle only the standard format
           // This prevents the duplicate path issue entirely
@@ -61,7 +58,7 @@ export const rsvpLinkHandler = (req: Request, res: Response, next: NextFunction)
             `<head>
             <script>
               window.rsvpToken = "${token}";
-              console.log("RSVP token loaded from direct URL:", "${token}");
+              
               // Also save to localStorage as a fallback
               localStorage.setItem("rsvp_token", "${token}");
             </script>`
@@ -71,7 +68,7 @@ export const rsvpLinkHandler = (req: Request, res: Response, next: NextFunction)
           return res.send(injectedHtml);
         }
       } catch (error) {
-        console.error('Error serving RSVP page:', error);
+        
       }
     } else {
       // In development, check if we have a duplicate path issue

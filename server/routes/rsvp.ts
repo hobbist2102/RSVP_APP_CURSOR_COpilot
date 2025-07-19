@@ -1,5 +1,5 @@
 /**
- * RSVP API routes
+ * RSVP API routes (Simplified without WhatsApp)
  */
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
@@ -11,7 +11,6 @@ import {
   RSVPCombinedSchema
 } from '../services/rsvp-schema';
 import { EmailService } from '../services/email';
-import { WhatsAppService } from '../services/whatsapp';
 
 const router = Router();
 
@@ -43,114 +42,63 @@ router.get('/verify', async (req: Request, res: Response) => {
   const tokenData = RSVPService.verifyToken(token);
   
   if (!tokenData) {
-    return res.status(400).json({ 
+    return res.status(401).json({ 
       success: false, 
       message: 'Invalid or expired token' 
     });
   }
   
-  const { guestId, eventId } = tokenData;
-  
   try {
     // Get guest and event information
-    const guest = await storage.getGuest(guestId);
-    if (!guest) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Guest not found' 
-      });
-    }
+    const guest = await storage.getGuest(tokenData.guestId);
+    const event = await storage.getEvent(tokenData.eventId);
     
-    const event = await storage.getEvent(eventId);
-    if (!event) {
+    if (!guest || !event) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Event not found' 
+        message: 'Guest or event not found' 
       });
     }
     
     // Get ceremonies for this event
-    const ceremonies = await storage.getCeremoniesByEvent(eventId);
+    const ceremonies = await storage.getCeremonies(tokenData.eventId);
     
-    // Get guest's ceremony selections
-    const guestCeremonies = await storage.getGuestCeremoniesByGuest(guestId);
-    
-    // Get meal options for each ceremony
-    const mealOptionsByCeremony: Record<number, any[]> = {};
-    for (const ceremony of ceremonies) {
-      const options = await storage.getMealOptionsByCeremony(ceremony.id);
-      if (options.length > 0) {
-        mealOptionsByCeremony[ceremony.id] = options;
-      }
-    }
-    
-    // Return guest, event and ceremony information
     return res.json({
       success: true,
       guest: {
         id: guest.id,
-        name: `${guest.firstName} ${guest.lastName}`,
         firstName: guest.firstName,
         lastName: guest.lastName,
         email: guest.email,
         phone: guest.phone,
-        rsvpStatus: guest.rsvpStatus,
-        plusOneAllowed: guest.plusOneAllowed,
-        plusOneConfirmed: guest.plusOneConfirmed,
-        plusOneName: guest.plusOneName,
-        accommodationPreference: guest.accommodationPreference,
-        dietaryRestrictions: guest.dietaryRestrictions,
-        childrenDetails: guest.childrenDetails,
+        currentRsvpStatus: guest.rsvpStatus
       },
       event: {
         id: event.id,
         title: event.title,
         coupleNames: event.coupleNames,
-        startDate: event.startDate,
-        endDate: event.endDate,
+        date: event.date,
         location: event.location,
-        description: event.description,
-        rsvpDeadline: event.rsvpDeadline,
+        allowPlusOnes: event.allowPlusOnes
       },
-      ceremonies: ceremonies.map(ceremony => ({
-        id: ceremony.id,
-        name: ceremony.name,
-        date: ceremony.date,
-        startTime: ceremony.startTime,
-        endTime: ceremony.endTime,
-        location: ceremony.location,
-        description: ceremony.description,
-        attireCode: ceremony.attireCode,
-        attending: guestCeremonies.find(gc => gc.ceremonyId === ceremony.id)?.attending || false,
-        mealOptions: mealOptionsByCeremony[ceremony.id] || []
-      }))
+      ceremonies,
+      tokenData
     });
   } catch (error) {
-    console.error('Error verifying RSVP token:', error);
+    
     return res.status(500).json({ 
       success: false, 
-      message: 'Error processing RSVP verification' 
+      message: 'Error verifying token' 
     });
   }
 });
 
 /**
- * Submit RSVP response
+ * Submit RSVP response (Stage 1)
  */
 router.post('/submit', async (req: Request, res: Response) => {
   try {
-    // Validate request body against schema
-    const validationResult = RSVPResponseSchema.safeParse(req.body);
-    
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid RSVP data', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    const response = validationResult.data;
+    const response = RSVPResponseSchema.parse(req.body);
     
     // Process RSVP response
     const result = await RSVPService.processRSVPResponse(response);
@@ -176,29 +124,12 @@ router.post('/submit', async (req: Request, res: Response) => {
       }
     }
     
-    // Send confirmation WhatsApp if guest has phone number
-    if (guest && event && guest.phone) {
-      const whatsappService = WhatsAppService.fromEvent(event);
-      
-      if (whatsappService.isConfigured()) {
-        await whatsappService.sendMessage(
-          guest, 
-          response.attending ? 'rsvp_confirmation' : 'rsvp_declined',
-          {
-            event_name: event.title,
-            couple_names: event.coupleNames,
-            rsvp_status: response.attending ? 'confirmed' : 'declined'
-          }
-        );
-      }
-    }
-    
     return res.json({
       success: true,
       message: 'RSVP response submitted successfully'
     });
   } catch (error) {
-    console.error('Error submitting RSVP:', error);
+    
     return res.status(500).json({ 
       success: false, 
       message: 'Error processing RSVP submission' 
@@ -206,757 +137,11 @@ router.post('/submit', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * Generate RSVP links for guests
- */
-router.post('/generate-links', async (req: Request, res: Response) => {
-  try {
-    const { eventId, baseUrl } = req.body;
-    
-    if (!eventId || !baseUrl) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Event ID and base URL are required' 
-      });
-    }
-    
-    // Check if event exists
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Get all guests for this event
-    const guests = await storage.getGuestsByEvent(eventId);
-    
-    // Generate RSVP links for each guest
-    const guestLinks = guests.map(guest => {
-      const rsvpLink = RSVPService.generateRSVPLink(baseUrl, guest, event);
-      return {
-        id: guest.id,
-        name: `${guest.firstName} ${guest.lastName}`,
-        email: guest.email || undefined,
-        phone: guest.phone || undefined,
-        rsvpLink
-      };
-    });
-    
-    return res.json({
-      success: true,
-      guests: guestLinks
-    });
-  } catch (error) {
-    console.error('Error generating RSVP links:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error generating RSVP links' 
-    });
-  }
-});
-
-/**
- * Send RSVP invites to guests
- */
-router.post('/send-invites', async (req: Request, res: Response) => {
-  try {
-    const { eventId, guestIds, baseUrl, channel } = req.body;
-    
-    if (!eventId || !baseUrl || !guestIds || !Array.isArray(guestIds) || !channel) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Event ID, guest IDs, channel, and base URL are required' 
-      });
-    }
-    
-    // Validate channel
-    if (!['email', 'whatsapp', 'both'].includes(channel)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid channel. Must be "email", "whatsapp", or "both"' 
-      });
-    }
-    
-    // Check if event exists
-    const event = await storage.getEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Event not found' 
-      });
-    }
-    
-    // Initialize services
-    const emailService = channel !== 'whatsapp' ? EmailService.fromEvent(event) : null;
-    const whatsappService = channel !== 'email' ? WhatsAppService.fromEvent(event) : null;
-    
-    // Check if services are configured
-    if (channel === 'email' && !emailService?.isConfigured()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Email service is not configured for this event' 
-      });
-    }
-    
-    if (channel === 'whatsapp' && !whatsappService?.isConfigured()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'WhatsApp service is not configured for this event' 
-      });
-    }
-    
-    // Get guests
-    const results: Array<{
-      guestId: number;
-      name?: string;
-      email?: string;
-      phone?: string;
-      success: boolean;
-      message?: string;
-      emailSent?: boolean;
-      whatsappSent?: boolean;
-      rsvpLink?: string;
-    }> = [];
-    for (const guestId of guestIds) {
-      const guest = await storage.getGuest(guestId);
-      
-      if (!guest) {
-        results.push({
-          guestId,
-          success: false,
-          message: 'Guest not found'
-        });
-        continue;
-      }
-      
-      // Generate RSVP link
-      const rsvpLink = RSVPService.generateRSVPLink(baseUrl, guest, event);
-      let emailSent = false;
-      let whatsappSent = false;
-      
-      // Send email if configured and guest has email
-      if (emailService?.isConfigured() && guest.email && (channel === 'email' || channel === 'both')) {
-        const emailResult = await emailService.sendRSVPEmail(guest, event, rsvpLink);
-        emailSent = emailResult.success;
-      }
-      
-      // Send WhatsApp if configured and guest has phone
-      if (whatsappService?.isConfigured() && guest.phone && (channel === 'whatsapp' || channel === 'both')) {
-        const whatsappResult = await whatsappService.sendRSVPInvitation(guest, event, rsvpLink);
-        whatsappSent = whatsappResult.success;
-      }
-      
-      results.push({
-        guestId: guest.id,
-        name: `${guest.firstName} ${guest.lastName}`,
-        email: guest.email || undefined,
-        phone: guest.phone || undefined,
-        success: true,
-        emailSent,
-        whatsappSent,
-        rsvpLink
-      });
-    }
-    
-    return res.json({
-      success: true,
-      results
-    });
-  } catch (error) {
-    console.error('Error sending RSVP invites:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error sending RSVP invites' 
-    });
-  }
-});
-
-/**
- * Function to register RSVP routes with the Express app
- * @param app Express application
- * @param isAuthenticated Authentication middleware
- * @param isAdmin Admin authentication middleware
- */
-export function registerRSVPRoutes(
-  app: any, // Using any temporarily to avoid type errors 
-  isAuthenticated: (req: Request, res: Response, next: any) => void,
-  isAdmin: (req: Request, res: Response, next: any) => void
-) {
-  // Public endpoints for RSVP verification and submission
-  // Using specific routes instead of router to ensure proper API handling
-  
-  // Test endpoint
-  app.get('/api/rsvp/test', (req: Request, res: Response) => {
-    res.json({ 
-      success: true, 
-      message: 'RSVP API is working correctly',
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  // Verify token endpoint
-  app.get('/api/rsvp/verify', async (req: Request, res: Response) => {
-    try {
-      const { token } = req.query;
-      
-      if (!token || typeof token !== 'string') {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid token format' 
-        });
-      }
-      
-      // Verify token
-      const tokenData = RSVPService.verifyToken(token);
-      
-      if (!tokenData) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid or expired token' 
-        });
-      }
-      
-      const { guestId, eventId } = tokenData;
-      
-      // Get guest with event context to enforce isolation
-      const guest = await storage.getGuestWithEventContext(guestId, eventId);
-      if (!guest) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Guest not found or does not belong to this event' 
-        });
-      }
-      
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Event not found' 
-        });
-      }
-      
-      // Get ceremonies for this event
-      const ceremonies = await storage.getCeremoniesByEvent(eventId);
-      
-      // Get guest's ceremony selections
-      const guestCeremonies = await storage.getGuestCeremoniesByGuest(guestId);
-      
-      // Get meal options for each ceremony
-      const mealOptionsByCeremony: Record<number, any[]> = {};
-      for (const ceremony of ceremonies) {
-        const options = await storage.getMealOptionsByCeremony(ceremony.id);
-        if (options.length > 0) {
-          mealOptionsByCeremony[ceremony.id] = options;
-        }
-      }
-      
-      // Return guest, event and ceremony information
-      return res.json({
-        success: true,
-        guest: {
-          id: guest.id,
-          name: `${guest.firstName} ${guest.lastName}`,
-          firstName: guest.firstName,
-          lastName: guest.lastName,
-          email: guest.email,
-          phone: guest.phone,
-          rsvpStatus: guest.rsvpStatus,
-          plusOneAllowed: guest.plusOneAllowed,
-          plusOneName: guest.plusOneName,
-          dietaryRestrictions: guest.dietaryRestrictions,
-          childrenDetails: guest.childrenDetails,
-        },
-        event: {
-          id: event.id,
-          title: event.title,
-          coupleNames: event.coupleNames,
-          startDate: event.startDate,
-          endDate: event.endDate,
-          location: event.location,
-          description: event.description,
-        },
-        ceremonies: ceremonies.map(ceremony => ({
-          id: ceremony.id,
-          name: ceremony.name,
-          date: ceremony.date,
-          startTime: ceremony.startTime,
-          endTime: ceremony.endTime,
-          location: ceremony.location,
-          description: ceremony.description,
-          attireCode: ceremony.attireCode,
-          attending: guestCeremonies.find(gc => gc.ceremonyId === ceremony.id)?.attending || false,
-          mealOptions: mealOptionsByCeremony[ceremony.id] || []
-        }))
-      });
-    } catch (error) {
-      console.error('Error verifying RSVP token:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error processing RSVP verification' 
-      });
-    }
-  });
-  
-  // Submit RSVP Stage 1 (Basic attendance) endpoint
-  app.post('/api/rsvp/stage1', async (req: Request, res: Response) => {
-    try {
-      // Validate request body against Stage 1 schema
-      const validationResult = RSVPStage1Schema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid RSVP data', 
-          errors: validationResult.error.errors 
-        });
-      }
-      
-      const response = validationResult.data;
-      
-      // Process RSVP Stage 1 response
-      const result = await RSVPService.processRSVPStage1(response);
-      
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-      
-      // Send confirmation communication based on stage 1 result
-      const guest = result.guest;
-      const event = await storage.getEvent(response.eventId);
-      
-      if (guest && event) {
-        // Send email if guest has email
-        if (guest.email) {
-          const emailService = EmailService.fromEvent(event);
-          
-          if (emailService.isConfigured()) {
-            await emailService.sendEmail({
-              to: guest.email,
-              subject: `Your RSVP for ${event.title} - ${response.rsvpStatus === 'confirmed' ? 'Confirmed' : 'Declined'}`,
-              text: `Dear ${guest.firstName},\n\nThank you for your RSVP response for ${event.title}.\n\nYour response: ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}\n\n${response.rsvpStatus === 'confirmed' && result.requiresStage2 ? 'We will send you a follow-up form for additional travel details soon.\n\n' : ''}We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}\n\nRegards,\n${event.coupleNames}`,
-              html: `<p>Dear ${guest.firstName},</p><p>Thank you for your RSVP response for ${event.title}.</p><p><strong>Your response:</strong> ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}</p>${response.rsvpStatus === 'confirmed' && result.requiresStage2 ? '<p>We will send you a follow-up form for additional travel details soon.</p>' : ''}<p>We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}</p><p>Regards,<br>${event.coupleNames}</p>`
-            });
-          }
-        }
-        
-        // Send WhatsApp if guest has phone number
-        if (guest.phone) {
-          const whatsappService = WhatsAppService.fromEvent(event);
-          
-          if (whatsappService.isConfigured()) {
-            await whatsappService.sendMessage(
-              guest, 
-              response.rsvpStatus === 'confirmed' ? 'rsvp_confirmation_stage1' : 'rsvp_declined',
-              {
-                event_name: event.title,
-                couple_names: event.coupleNames,
-                rsvp_status: response.rsvpStatus,
-                requires_stage2: result.requiresStage2 ? 'yes' : 'no'
-              }
-            );
-          }
-        }
-      }
-      
-      return res.json({
-        success: true,
-        message: 'RSVP response submitted successfully',
-        requiresStage2: result.requiresStage2,
-        guest: result.guest
-      });
-    } catch (error) {
-      console.error('Error submitting RSVP stage 1:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error processing RSVP submission' 
-      });
-    }
-  });
-
-  // Submit RSVP Stage 2 (Travel details) endpoint
-  app.post('/api/rsvp/stage2', async (req: Request, res: Response) => {
-    try {
-      // Validate request body against Stage 2 schema
-      const validationResult = RSVPStage2Schema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid RSVP travel data', 
-          errors: validationResult.error.errors 
-        });
-      }
-      
-      const response = validationResult.data;
-      
-      // Process RSVP Stage 2 response
-      const result = await RSVPService.processRSVPStage2(response);
-      
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-      
-      // Send confirmation for Stage 2
-      const guest = result.guest;
-      const event = await storage.getEvent(response.eventId);
-      
-      if (guest && event) {
-        // Send confirmation email if guest has email address
-        if (guest.email) {
-          const emailService = EmailService.fromEvent(event);
-          
-          if (emailService.isConfigured()) {
-            await emailService.sendEmail({
-              to: guest.email,
-              subject: `Travel Details Confirmed for ${event.title}`,
-              text: `Dear ${guest.firstName},\n\nThank you for providing your travel details for ${event.title}.\n\nYour preferences have been recorded successfully. We will use this information to make your experience as smooth as possible.\n\nRegards,\n${event.coupleNames}`,
-              html: `<p>Dear ${guest.firstName},</p><p>Thank you for providing your travel details for ${event.title}.</p><p>Your preferences have been recorded successfully. We will use this information to make your experience as smooth as possible.</p><p>Regards,<br>${event.coupleNames}</p>`
-            });
-          }
-        }
-        
-        // Send WhatsApp confirmation if guest has phone number
-        if (guest.phone) {
-          const whatsappService = WhatsAppService.fromEvent(event);
-          
-          if (whatsappService.isConfigured()) {
-            await whatsappService.sendMessage(
-              guest, 
-              'rsvp_confirmation_stage2',
-              {
-                event_name: event.title,
-                couple_names: event.coupleNames
-              }
-            );
-          }
-        }
-      }
-      
-      return res.json({
-        success: true,
-        message: 'Travel details submitted successfully',
-        guest: result.guest
-      });
-    } catch (error) {
-      console.error('Error submitting RSVP stage 2:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error processing travel details' 
-      });
-    }
-  });
-
-  // Submit combined RSVP response (both stages at once) endpoint
-  app.post('/api/rsvp/combined', async (req: Request, res: Response) => {
-    try {
-      // Validate request body against combined schema
-      const validationResult = RSVPCombinedSchema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid RSVP data', 
-          errors: validationResult.error.errors 
-        });
-      }
-      
-      const response = validationResult.data;
-      
-      // Process combined RSVP response
-      const result = await RSVPService.processRSVPCombined(response);
-      
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-      
-      // Send confirmation
-      const guest = result.guest;
-      const event = await storage.getEvent(response.eventId);
-      
-      if (guest && event) {
-        // Send confirmation email
-        if (guest.email) {
-          const emailService = EmailService.fromEvent(event);
-          
-          if (emailService.isConfigured()) {
-            await emailService.sendEmail({
-              to: guest.email,
-              subject: `Your RSVP for ${event.title} - ${response.rsvpStatus === 'confirmed' ? 'Confirmed' : 'Declined'}`,
-              text: `Dear ${guest.firstName},\n\nThank you for your RSVP response for ${event.title}.\n\nYour response: ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}\n\nWe ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}\n\nRegards,\n${event.coupleNames}`,
-              html: `<p>Dear ${guest.firstName},</p><p>Thank you for your RSVP response for ${event.title}.</p><p><strong>Your response:</strong> ${response.rsvpStatus === 'confirmed' ? 'Attending' : 'Not attending'}</p><p>We ${response.rsvpStatus === 'confirmed' ? 'look forward to seeing you!' : 'will miss you at the event.'}</p><p>Regards,<br>${event.coupleNames}</p>`
-            });
-          }
-        }
-        
-        // Send WhatsApp confirmation
-        if (guest.phone) {
-          const whatsappService = WhatsAppService.fromEvent(event);
-          
-          if (whatsappService.isConfigured()) {
-            await whatsappService.sendMessage(
-              guest, 
-              response.rsvpStatus === 'confirmed' ? 'rsvp_confirmation_combined' : 'rsvp_declined',
-              {
-                event_name: event.title,
-                couple_names: event.coupleNames,
-                rsvp_status: response.rsvpStatus
-              }
-            );
-          }
-        }
-      }
-      
-      return res.json({
-        success: true,
-        message: 'RSVP response submitted successfully',
-        guest: result.guest
-      });
-    } catch (error) {
-      console.error('Error submitting combined RSVP:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error processing RSVP submission' 
-      });
-    }
-  });
-
-  // Legacy RSVP submission endpoint (for backward compatibility)
-  app.post('/api/rsvp/submit', async (req: Request, res: Response) => {
-    try {
-      // Validate request body against schema
-      const validationResult = RSVPResponseSchema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid RSVP data', 
-          errors: validationResult.error.errors 
-        });
-      }
-      
-      const response = validationResult.data;
-      
-      // Process RSVP response
-      const result = await RSVPService.processRSVPResponse(response);
-      
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-      
-      // Send confirmation email if guest has email
-      // Use event context verification to maintain isolation
-      const guest = await storage.getGuestWithEventContext(response.guestId, response.eventId);
-      const event = await storage.getEvent(response.eventId);
-      
-      if (guest && event && guest.email) {
-        const emailService = EmailService.fromEvent(event);
-        
-        if (emailService.isConfigured()) {
-          await emailService.sendEmail({
-            to: guest.email,
-            subject: `Your RSVP for ${event.title} - ${response.attending ? 'Confirmed' : 'Declined'}`,
-            text: `Dear ${guest.firstName},\n\nThank you for your RSVP response for ${event.title}.\n\nYour response: ${response.attending ? 'Attending' : 'Not attending'}\n\nWe ${response.attending ? 'look forward to seeing you!' : 'will miss you at the event.'}\n\nRegards,\n${event.coupleNames}`,
-            html: `<p>Dear ${guest.firstName},</p><p>Thank you for your RSVP response for ${event.title}.</p><p><strong>Your response:</strong> ${response.attending ? 'Attending' : 'Not attending'}</p><p>We ${response.attending ? 'look forward to seeing you!' : 'will miss you at the event.'}</p><p>Regards,<br>${event.coupleNames}</p>`
-          });
-        }
-      }
-      
-      // Send confirmation WhatsApp if guest has phone
-      if (guest && event && guest.phone) {
-        const whatsappService = WhatsAppService.fromEvent(event);
-        
-        if (whatsappService.isConfigured()) {
-          await whatsappService.sendMessage(
-            guest, 
-            response.attending ? 'rsvp_confirmation' : 'rsvp_declined',
-            {
-              event_name: event.title,
-              couple_names: event.coupleNames,
-              rsvp_status: response.attending ? 'confirmed' : 'declined'
-            }
-          );
-        }
-      }
-      
-      return res.json({
-        success: true,
-        message: 'RSVP response submitted successfully'
-      });
-    } catch (error) {
-      console.error('Error submitting RSVP:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error processing RSVP submission' 
-      });
-    }
-  });
-  
-  // Admin-only endpoints for generating and sending RSVP links
-  app.post('/api/admin/rsvp/generate-links', isAuthenticated, async (req: Request, res: Response) => {
-    console.log('Admin RSVP link generation request received:', req.body);
-    try {
-      const { eventId, baseUrl } = req.body;
-      
-      if (!eventId || !baseUrl) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Event ID and base URL are required' 
-        });
-      }
-      
-      // Check if event exists
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Event not found' 
-        });
-      }
-      
-      // Get all guests for this event
-      const guests = await storage.getGuestsByEvent(eventId);
-      
-      // Generate RSVP links for each guest
-      const guestLinks = guests.map(guest => {
-        const rsvpLink = RSVPService.generateRSVPLink(baseUrl, guest, event);
-        return {
-          id: guest.id,
-          name: `${guest.firstName} ${guest.lastName}`,
-          email: guest.email || undefined,
-          phone: guest.phone || undefined,
-          rsvpLink
-        };
-      });
-      
-      return res.json({
-        success: true,
-        guests: guestLinks
-      });
-    } catch (error) {
-      console.error('Error generating RSVP links:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error generating RSVP links' 
-      });
-    }
-  });
-  
-  app.post('/api/admin/rsvp/send-invites', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { eventId, guestIds, baseUrl, channel } = req.body;
-      
-      if (!eventId || !baseUrl || !guestIds || !Array.isArray(guestIds) || !channel) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Event ID, guest IDs, channel, and base URL are required' 
-        });
-      }
-      
-      // Validate channel
-      if (!['email', 'whatsapp', 'both'].includes(channel)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid channel. Must be "email", "whatsapp", or "both"' 
-        });
-      }
-      
-      // Check if event exists
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Event not found' 
-        });
-      }
-      
-      // Initialize services
-      const emailService = channel !== 'whatsapp' ? EmailService.fromEvent(event) : null;
-      const whatsappService = channel !== 'email' ? WhatsAppService.fromEvent(event) : null;
-      
-      // Check if services are configured
-      if (channel === 'email' && !emailService?.isConfigured()) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Email service is not configured for this event' 
-        });
-      }
-      
-      if (channel === 'whatsapp' && !whatsappService?.isConfigured()) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'WhatsApp service is not configured for this event' 
-        });
-      }
-      
-      // Get guests
-      const results: Array<{
-        guestId: number;
-        name?: string;
-        email?: string;
-        phone?: string;
-        success: boolean;
-        message?: string;
-        emailSent?: boolean;
-        whatsappSent?: boolean;
-        rsvpLink?: string;
-      }> = [];
-      for (const guestId of guestIds) {
-        // Use event context verification to maintain isolation
-        const guest = await storage.getGuestWithEventContext(guestId, eventId);
-        
-        if (!guest) {
-          results.push({
-            guestId,
-            success: false,
-            message: 'Guest not found or does not belong to this event'
-          });
-          continue;
-        }
-        
-        // Generate RSVP link
-        const rsvpLink = RSVPService.generateRSVPLink(baseUrl, guest, event);
-        let emailSent = false;
-        let whatsappSent = false;
-        
-        // Send email if configured and guest has email
-        if (emailService?.isConfigured() && guest.email && (channel === 'email' || channel === 'both')) {
-          const emailResult = await emailService.sendRSVPEmail(guest, event, rsvpLink);
-          emailSent = emailResult.success;
-        }
-        
-        // Send WhatsApp if configured and guest has phone
-        if (whatsappService?.isConfigured() && guest.phone && (channel === 'whatsapp' || channel === 'both')) {
-          const whatsappResult = await whatsappService.sendRSVPInvitation(guest, event, rsvpLink);
-          whatsappSent = whatsappResult.success;
-        }
-        
-        results.push({
-          guestId: guest.id,
-          name: `${guest.firstName} ${guest.lastName}`,
-          email: guest.email || undefined,
-          phone: guest.phone || undefined,
-          success: true,
-          emailSent,
-          whatsappSent,
-          rsvpLink
-        });
-      }
-      
-      return res.json({
-        success: true,
-        results
-      });
-    } catch (error) {
-      console.error('Error sending RSVP invites:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error sending RSVP invites' 
-      });
-    }
-  });
-}
-
-// Also export the router as default for more flexible usage
 export default router;
+
+/**
+ * Register RSVP routes with Express app
+ */
+export function registerRSVPRoutes(app: any, isAuthenticated: any, isAdmin: any) {
+  app.use('/api/rsvp', router);
+}

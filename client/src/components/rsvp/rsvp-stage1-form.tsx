@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,17 +17,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Heart, Users, MessageSquare, CheckCircle } from "lucide-react";
+import AppleFormCard from "./apple-form-card";
+
+interface Ceremony {
+  id: number;
+  name: string;
+  date: string;
+  time: string;
+  venue: string;
+  eventId: number;
+}
 
 interface RsvpStage1FormProps {
   eventId: number;
   guestId: number;
   defaultValues?: Partial<FormValues>;
-  ceremonies: any[];
-  onSuccess?: (data: any) => void;
-  onProceedToStage2?: (data: any) => void;
+  ceremonies: Ceremony[];
+  onSuccess?: (data: FormValues) => void;
+  onProceedToStage2?: (data: FormValues) => void;
 }
 
 const formSchema = z.object({
@@ -84,6 +94,31 @@ export default function RsvpStage1Form({
       message: defaultValues?.message || "",
     },
   });
+
+  // RELIABLE form pre-population - fixed setTimeout anti-pattern
+  useEffect(() => {
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      const formData = {
+        guestId,
+        eventId,
+        firstName: defaultValues.firstName || "",
+        lastName: defaultValues.lastName || "",
+        email: defaultValues.email || "",
+        phone: defaultValues.phone || "",
+        rsvpStatus: defaultValues.rsvpStatus || "confirmed",
+        isLocalGuest: defaultValues.isLocalGuest || false,
+        plusOneAttending: defaultValues.plusOneAttending || false,
+        plusOneName: defaultValues.plusOneName || "",
+        dietaryRestrictions: defaultValues.dietaryRestrictions || "",
+        allergies: defaultValues.allergies || "",
+        ceremonies: defaultValues.ceremonies || [],
+        message: defaultValues.message || "",
+      };
+      
+      // IMMEDIATE form reset - no setTimeout needed
+      form.reset(formData);
+    }
+  }, [defaultValues, form, guestId, eventId]);
   
   const rsvpStatus = form.watch("rsvpStatus");
   const plusOneAttending = form.watch("plusOneAttending");
@@ -94,9 +129,9 @@ export default function RsvpStage1Form({
     
     try {
       // Submit RSVP Stage 1
-      const rsvpResponse = await apiRequest("POST", "/api/rsvp/stage1", values);
+      const rsvpResponse = await post("/api/rsvp/stage1", values);
       
-      const data = await rsvpResponse.json();
+      const data = rsvpResponse.data;
       
       if (!data.success) {
         throw new Error(data.message || "Failed to submit RSVP");
@@ -120,7 +155,7 @@ export default function RsvpStage1Form({
         onSuccess(data);
       }
     } catch (error) {
-      console.error("RSVP submission error:", error);
+      // Silent error handling
       toast({
         variant: "destructive",
         title: "RSVP Submission Failed",
@@ -151,19 +186,25 @@ export default function RsvpStage1Form({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4 font-playfair">Your Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <AppleFormCard 
+          title="Your Information" 
+          subtitle="Please provide your contact details"
+          icon={<User className="w-4 h-4 text-primary" />}
+          variant="elegant"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
+                      <Input 
+                        placeholder="your.email@example.com" 
+                        {...field} 
+                        className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                      />
                     </FormControl>
                     <FormDescription>
                       Please enter the email address your invitation was sent to
@@ -178,9 +219,13 @@ export default function RsvpStage1Form({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground">Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 (555) 123-4567" {...field} />
+                      <Input 
+                        placeholder="+1 (555) 123-4567" 
+                        {...field} 
+                        className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                      />
                     </FormControl>
                     <FormDescription>
                       Optional, for WhatsApp updates
@@ -190,15 +235,19 @@ export default function RsvpStage1Form({
                 )}
               />
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="md:col-span-2 grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input 
+                          placeholder="John" 
+                          {...field} 
+                          className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -210,9 +259,13 @@ export default function RsvpStage1Form({
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                        <Input 
+                          placeholder="Doe" 
+                          {...field} 
+                          className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,202 +273,251 @@ export default function RsvpStage1Form({
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </AppleFormCard>
         
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4 font-playfair">RSVP Response</h3>
-            
-            <FormField
-              control={form.control}
-              name="rsvpStatus"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Will you be attending?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="confirmed" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Yes, I will attend</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="declined" />
-                        </FormControl>
-                        <FormLabel className="font-normal">No, I cannot attend</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {rsvpStatus === "confirmed" && (
-              <>
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="isLocalGuest"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-6">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            I live locally (within 50km of the venue)
-                          </FormLabel>
-                          <FormDescription>
-                            This helps us plan transportation and accommodation
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+        <AppleFormCard 
+          title="RSVP Response" 
+          subtitle="Will you be joining us for our special day?"
+          icon={<Heart className="w-4 h-4 text-primary" />}
+          variant="elegant"
+        >
+          <FormField
+            control={form.control}
+            name="rsvpStatus"
+            render={({ field }) => (
+              <FormItem className="space-y-4">
+                <FormLabel className="text-base font-medium text-foreground">Will you be attending?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0 bg-background/30 border border-border/50 rounded-xl p-4 hover:bg-background/50 transition-all duration-200 hover:border-primary/50">
+                      <FormControl>
+                        <RadioGroupItem value="confirmed" className="border-2" />
+                      </FormControl>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <FormLabel className="font-medium cursor-pointer">Yes, I will attend</FormLabel>
+                      </div>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0 bg-background/30 border border-border/50 rounded-xl p-4 hover:bg-background/50 transition-all duration-200 hover:border-primary/50">
+                      <FormControl>
+                        <RadioGroupItem value="declined" className="border-2" />
+                      </FormControl>
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-muted-foreground" />
+                        <FormLabel className="font-medium cursor-pointer">No, I cannot attend</FormLabel>
+                      </div>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </AppleFormCard>
+        
+        {rsvpStatus === "confirmed" && (
+          <AppleFormCard 
+            title="Additional Details" 
+            subtitle="Help us plan better for your attendance"
+            icon={<Users className="w-4 h-4 text-primary" />}
+            variant="minimal"
+          >
+            <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="isLocalGuest"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 bg-background/30 border border-border/50 rounded-xl p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="font-medium">
+                          I live locally (within 50km of the venue)
+                        </FormLabel>
+                        <FormDescription>
+                          This helps us plan transportation and accommodation
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
                 
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name="plusOneAttending"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-6">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            I'm bringing a plus one/partner
-                          </FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="plusOneAttending"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 bg-background/30 border border-border/50 rounded-xl p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="font-medium">
+                          I'm bringing a plus one/partner
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
                 
                 {plusOneAttending && (
-                  <div className="mt-4">
-                    <FormField
-                      control={form.control}
-                      name="plusOneName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Plus One Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. Jane Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-                
-                <div className="mt-6">
-                  <h4 className="text-md font-medium mb-2">Events You Will Attend</h4>
-                  
-                  {ceremonyFields.map((ceremony, index) => (
-                    <div key={ceremony.ceremonyId} className="mb-4">
-                      <FormField
-                        control={form.control}
-                        name={`ceremonies.${index}.attending`}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-2">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="text-base">
-                                {ceremony.name} - {new Date(ceremony.date).toLocaleDateString()}
-                              </FormLabel>
-                              <p className="text-sm text-muted-foreground">
-                                {ceremony.startTime} - {ceremony.endTime} | {ceremony.location}
-                              </p>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <input 
-                        type="hidden" 
-                        {...form.register(`ceremonies.${index}.ceremonyId` as const, {
-                          valueAsNumber: true
-                        })}
-                        value={ceremony.ceremonyId} 
-                      />
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-4">
                   <FormField
                     control={form.control}
-                    name="dietaryRestrictions"
+                    name="plusOneName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Dietary Restrictions</FormLabel>
+                        <FormLabel className="text-sm font-medium text-foreground">Plus One Name</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Please list any dietary restrictions or allergies..."
-                            className="resize-none"
-                            {...field}
+                          <Input 
+                            placeholder="Name of your plus one" 
+                            {...field} 
+                            className="h-11 bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
                           />
                         </FormControl>
+                        <FormDescription>
+                          Who will be accompanying you?
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                )}
+                
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h4 className="text-base font-medium text-foreground">Which events will you attend?</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const allSelected = ceremonyFields.every((_, index) => 
+                          form.getValues(`ceremonies.${index}.attending`)
+                        );
+                        
+                        ceremonyFields.forEach((_, index) => {
+                          form.setValue(`ceremonies.${index}.attending`, !allSelected);
+                        });
+                      }}
+                      className="text-xs px-3 py-1 h-auto bg-primary/10 hover:bg-primary/20 text-primary border-primary/30 whitespace-nowrap"
+                    >
+                      {ceremonyFields.every((_, index) => form.watch(`ceremonies.${index}.attending`)) ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {ceremonyFields.map((ceremony, index) => (
+                      <div key={ceremony.ceremonyId} className="group">
+                        <FormField
+                          control={form.control}
+                          name={`ceremonies.${index}.attending`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-4 space-y-0 bg-gradient-to-r from-background/40 to-background/30 border border-border/50 rounded-xl p-5 hover:bg-gradient-to-r hover:from-background/60 hover:to-background/50 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                />
+                              </FormControl>
+                              <div className="space-y-2 leading-none flex-1">
+                                <FormLabel className="text-base font-semibold text-foreground cursor-pointer group-hover:text-primary transition-colors duration-200">
+                                  {ceremony.name}
+                                </FormLabel>
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium text-muted-foreground">
+                                    📅 {new Date(ceremony.date).toLocaleDateString('en-US', { 
+                                      weekday: 'long', 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    🕐 {ceremony.startTime} - {ceremony.endTime}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    📍 {ceremony.location}
+                                  </p>
+                                </div>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <input 
+                          type="hidden" 
+                          {...form.register(`ceremonies.${index}.ceremonyId` as const, {
+                            valueAsNumber: true
+                          })}
+                          value={ceremony.ceremonyId} 
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                
+                <FormField
+                  control={form.control}
+                  name="dietaryRestrictions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-foreground">Dietary Restrictions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Please list any dietary restrictions or allergies..."
+                          className="min-h-[80px] bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
+          </AppleFormCard>
+        )}
         
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4 font-playfair">Message for the Couple</h3>
-            
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Message (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Send your wishes and congratulations to the couple..."
-                      className="resize-none min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-        
-        <Button 
-          type="submit" 
-          className="w-full gold-gradient text-white py-3"
-          disabled={isSubmitting}
+        <AppleFormCard 
+          title="Message for the Couple" 
+          subtitle="Share your wishes and congratulations (optional)"
+          icon={<MessageSquare className="w-4 h-4 text-primary" />}
+          variant="minimal"
         >
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-foreground">Your Message (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Send your wishes and congratulations to the couple..."
+                    className="min-h-[100px] bg-background/50 border-border/50 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </AppleFormCard>
+        
+        <div className="flex justify-center pt-4">
+          <Button 
+            type="submit" 
+            className="w-full max-w-md h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            disabled={isSubmitting}
+          >
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
@@ -426,7 +528,8 @@ export default function RsvpStage1Form({
           ) : (
             "Submit RSVP"
           )}
-        </Button>
+          </Button>
+        </div>
       </form>
     </Form>
   );

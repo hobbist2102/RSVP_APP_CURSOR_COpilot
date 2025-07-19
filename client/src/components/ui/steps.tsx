@@ -33,7 +33,7 @@ export function Steps({
       )}
     >
       {steps.map((step, index) => (
-        <React.Fragment key={step.id}>
+        <div key={step.id} className="flex items-center">
           {/* Step */}
           <div className={cn(
             "flex",
@@ -88,7 +88,7 @@ export function Steps({
                 : "h-0.5 mt-4 flex-1"
             )}></div>
           )}
-        </React.Fragment>
+        </div>
       ))}
     </div>
   );

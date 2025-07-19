@@ -18,17 +18,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils";
-import EventSelector from "../event/event-selector";
+import EventDropdownSelector from "../event/event-dropdown-selector";
 
 interface HeaderProps {
   toggleSidebar: () => void;
+  toggleSidebarCollapse?: () => void;
+  sidebarCollapsed?: boolean;
   currentEvent?: {
     title: string;
     date: string;
   };
 }
 
-export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
+export default function Header({ toggleSidebar, toggleSidebarCollapse, sidebarCollapsed, currentEvent }: HeaderProps) {
   const { user, logout } = useAuth();
   const [notifications] = useState(2); // Example notification count
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -182,7 +184,7 @@ export default function Header({ toggleSidebar, currentEvent }: HeaderProps) {
         
         {/* EventSelector loads here */}
         <div className="flex-1 max-w-sm ml-auto">
-          <EventSelector />
+          <EventDropdownSelector />
         </div>
       </div>
     </header>

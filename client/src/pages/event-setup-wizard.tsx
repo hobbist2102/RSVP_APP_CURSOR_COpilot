@@ -13,12 +13,15 @@ import HotelsStep from "@/components/wizard/hotels-step";
 import TransportSetupStep from "@/components/wizard/transport-setup-step";
 import CommunicationStep from "@/components/wizard/communication-step";
 import AiAssistantStep from "@/components/wizard/ai-assistant-step";
-import EventSelector from "@/components/wizard/event-selector";
+import EventCardSelector from "@/components/wizard/event-card-selector";
 import { WIZARD_STEPS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { put } from "@/lib/api-utils";
 import { Spinner } from "@/components/ui/spinner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { useWizardData } from "@/hooks/use-wizard-data";
+import { DeploymentErrorBoundary } from "@/components/deployment-error-boundary";
+import { WizardLoadingState } from "@/components/deployment-loading-state";
 
 // Define the wizard steps
 const steps = [
@@ -31,7 +34,11 @@ const steps = [
   { id: WIZARD_STEPS.AI_ASSISTANT, label: "AI Assistant" },
 ];
 
-export default function EventSetupWizard() {
+interface EventSetupWizardProps {
+  initialStep?: string;
+}
+
+export default function EventSetupWizard({ initialStep }: EventSetupWizardProps = {}) {
   const [activeStep, setActiveStep] = useState(WIZARD_STEPS.BASIC_INFO);
   const [currentStep, setCurrentStep] = useState<string | null>(WIZARD_STEPS.BASIC_INFO);
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
@@ -55,29 +62,23 @@ export default function EventSetupWizard() {
     }>;
   }
 
-  // Fetch the current event
-  const { data: currentEvent, isLoading } = useQuery<any>({
-    queryKey: [`/api/events/${eventId}`],
-    enabled: !!eventId && eventId !== 'new',
-    retry: 1,
-    staleTime: 10000,
-    refetchOnWindowFocus: false
-  });
-
-  // Fetch the event setup progress
-  const { data: setupProgress, isLoading: isLoadingProgress } = useQuery<WizardProgress>({
-    queryKey: [`/api/wizard/${eventId}/progress`],
-    enabled: !!eventId && eventId !== 'new',
-    retry: 1,
-    staleTime: 10000,
-    refetchOnWindowFocus: false
-  });
+  // Use wizard data hook
+  const { 
+    data: wizardData,
+    isLoading 
+  } = useWizardData(eventId);
+  
+  // Extract data from wizard response
+  const currentEvent = wizardData?.basicInfo;
+  const ceremonies = wizardData?.ceremonies || [];
+  const accommodations = wizardData?.accommodationConfig;
+  const setupProgress = wizardData?.progress;
 
   // Create new event mutation
   const createEventMutation = useMutation({
     mutationFn: async (eventData: any) => {
-      const response = await apiRequest("POST", `/api/events`, eventData);
-      return await response.json();
+      const response = await post(`/api/events`, eventData);
+      return response.data;
     },
     onSuccess: (data) => {
       // Redirect to the wizard with the newly created event ID
@@ -98,58 +99,27 @@ export default function EventSetupWizard() {
     }
   });
 
-  // Save step data mutation
-  const saveStepMutation = useMutation({
-    mutationFn: async (data: { stepId: string; stepData: any }) => {
-      // If this is a new event creation and we're on the first step
-      if (isNewEventCreation && data.stepId === WIZARD_STEPS.BASIC_INFO) {
-        // Create the event with the basic info data
-        return createEventMutation.mutate({
-          title: data.stepData.title,
-          coupleNames: data.stepData.coupleNames,
-          brideName: data.stepData.brideName,
-          groomName: data.stepData.groomName,
-          startDate: data.stepData.startDate,
-          endDate: data.stepData.endDate,
-          location: data.stepData.location,
-          description: data.stepData.description || null
-        });
-      }
-      
 
+
+  // Handle initial step from URL parameter
+  useEffect(() => {
+    if (initialStep) {
+      // Map URL step names to step constants
+      const stepMap: Record<string, string> = {
+        'communication': WIZARD_STEPS.COMMUNICATION,
+        'basic-info': WIZARD_STEPS.BASIC_INFO,
+        'venues': WIZARD_STEPS.VENUES,
+        'rsvp-config': WIZARD_STEPS.RSVP_CONFIG,
+        'hotels': WIZARD_STEPS.HOTELS,
+        'transport': WIZARD_STEPS.TRANSPORT,
+        'ai-assistant': WIZARD_STEPS.AI_ASSISTANT,
+      };
       
-      // Otherwise, save the step data as usual
-      const response = await apiRequest("POST", `/api/wizard/${eventId}/steps/${data.stepId}`, data.stepData);
-      return await response.json();
-    },
-    onSuccess: (data, variables) => {
-      if (!isNewEventCreation) {
-        queryClient.invalidateQueries({ queryKey: [`/api/wizard/${eventId}/progress`] });
-        
-        // Invalidate specific queries based on the step
-        if (variables.stepId === 'hotels') {
-          queryClient.invalidateQueries({ queryKey: ['hotels', eventId] });
-          queryClient.invalidateQueries({ queryKey: ['accommodations', eventId] });
-        } else if (variables.stepId === 'venues') {
-          queryClient.invalidateQueries({ queryKey: ['ceremonies', eventId] });
-        } else if (variables.stepId === 'transport') {
-          queryClient.invalidateQueries({ queryKey: ['transport-groups', eventId] });
-          queryClient.invalidateQueries({ queryKey: ['transport-vendors', eventId] });
-        }
-        
-        // Always invalidate the main event query to refresh display data
-        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
-      }
-    },
-    onError: (error: Error) => {
-      console.error("Failed to save current step:", error);
-      toast({
-        title: "Failed to save step data",
-        description: error.message,
-        variant: "destructive",
-      });
+      const mappedStep = stepMap[initialStep] || WIZARD_STEPS.BASIC_INFO;
+      setActiveStep(mappedStep);
+      setCurrentStep(mappedStep);
     }
-  });
+  }, [initialStep]);
 
   // Initialize completed steps and step data from fetched progress
   useEffect(() => {
@@ -171,24 +141,45 @@ export default function EventSetupWizard() {
       setCompletedSteps(completed);
       setStepData(data);
       
-      // Set current step if available
-      if (setupProgress.currentStep && (!currentStep || currentStep === WIZARD_STEPS.BASIC_INFO)) {
+      // Set current step if available (only if not overridden by initialStep)
+      if (setupProgress.currentStep && (!currentStep || currentStep === WIZARD_STEPS.BASIC_INFO) && !initialStep) {
         setCurrentStep(setupProgress.currentStep);
         setActiveStep(setupProgress.currentStep);
       }
     }
-  }, [setupProgress, currentStep, setCurrentStep, setActiveStep]);
+  }, [setupProgress, currentStep, setCurrentStep, setActiveStep, initialStep]);
 
   // Save current step mutation
   const saveCurrentStepMutation = useMutation({
     mutationFn: async (stepId: string) => {
-      const response = await apiRequest("POST", `/api/wizard/${eventId}/current-step`, { 
+      const response = await put(`/api/events/${eventId}`, { 
         currentStep: stepId 
       });
-      return await response.json();
+      return response.data;
     },
     onError: (error: Error) => {
       console.error("Failed to save current step:", error);
+    }
+  });
+
+  // Save step data mutation
+  const saveStepMutation = useMutation({
+    mutationFn: async ({ stepId, stepData }: { stepId: string, stepData: any }) => {
+      const response = await put(`/api/events/${eventId}`, stepData);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/wizard-data', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to save step data:", error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your data. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -257,12 +248,12 @@ export default function EventSetupWizard() {
     setLocation('/events');
   };
 
-  // If loading and not creating a new event, show a simple loading state
-  if ((isLoading || isLoadingProgress) && !isNewEventCreation) {
+  // If loading and not creating a new event, show deployment-aware loading state
+  if (isLoading && !isNewEventCreation) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-      </div>
+      <DashboardLayout>
+        <WizardLoadingState step="event configuration" />
+      </DashboardLayout>
     );
   }
 
@@ -276,7 +267,7 @@ export default function EventSetupWizard() {
         return (
           <BasicInfoStep
             eventId={eventId}
-            currentEvent={isNewEventCreation ? undefined : (currentEvent as any)}
+            currentEvent={isNewEventCreation ? undefined : wizardData?.basicInfo}
             onComplete={(data) => {
               if (isNewEventCreation) {
                 // For new events, we create the event first
@@ -409,22 +400,23 @@ export default function EventSetupWizard() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-playfair font-bold text-neutral">
-            Event Setup Wizard
-          </h2>
-          <p className="text-sm text-gray-500">
-            {isNewEventCreation 
-              ? "Create your event and configure all settings in one place" 
-              : `Configure all aspects of ${currentEvent?.title || "your event"} in one place`}
-          </p>
+      <DeploymentErrorBoundary>
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-playfair font-bold text-neutral">
+              Event Setup Wizard
+            </h2>
+            <p className="text-sm text-gray-500">
+              {isNewEventCreation 
+                ? "Create your event and configure all settings in one place" 
+                : `Configure all aspects of ${currentEvent?.title || "your event"} in one place`}
+            </p>
+          </div>
         </div>
-      </div>
       
       {/* Show Event Selector when accessed directly without an event ID */}
       {isDirectAccess && !isNewEventCreation ? (
-        <EventSelector onSelectEvent={(selectedEventId) => {
+        <EventCardSelector onSelectEvent={(selectedEventId) => {
           // Set a loading state
           toast({
             title: "Loading event...",
@@ -536,6 +528,7 @@ export default function EventSetupWizard() {
           </div>
         </Card>
       )}
+      </DeploymentErrorBoundary>
     </DashboardLayout>
   );
 }

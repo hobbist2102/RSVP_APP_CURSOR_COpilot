@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Guest, TransportGroup } from '@shared/schema';
-import { queryClient, apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { get } from '@/lib/api-utils';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { 
@@ -129,8 +130,8 @@ export default function TransportAssignmentsPage() {
   const { data: currentEvent } = useQuery({
     queryKey: ['/api/current-event'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/current-event');
-      return res.json();
+      const res = await get('/api/current-event');
+      return res.data;
     }
   });
   

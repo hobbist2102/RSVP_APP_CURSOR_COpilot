@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { WeddingEvent } from "@shared/schema";
 import { Check, Mail, Plus, MessageSquare } from "lucide-react";
@@ -29,6 +30,12 @@ export default function RsvpConfigStep({
   isCompleted
 }: RsvpConfigStepProps) {
   const [isEditing, setIsEditing] = useState(!isCompleted);
+
+  // Load existing RSVP configuration from database
+  const { data: existingRsvpConfig, isLoading: rsvpLoading } = useQuery({
+    queryKey: [`/api/events/${eventId}`],
+    enabled: !!eventId,
+  });
   
   // RSVP settings with correct accommodation modes and transport option
   const [rsvpSettings, setRsvpSettings] = useState({
@@ -43,6 +50,24 @@ export default function RsvpConfigStep({
     transportMode: "draft", // Only one mode - draft
   });
 
+  // Populate form with existing data when available
+  useEffect(() => {
+    if (existingRsvpConfig && !rsvpLoading) {
+      console.log('Loading existing RSVP config:', existingRsvpConfig);
+      setRsvpSettings({
+        enablePlusOne: existingRsvpConfig.allowPlusOne ?? true,
+        enableMealSelection: existingRsvpConfig.enableMealSelection ?? true,
+        enableCustomMessages: existingRsvpConfig.enableCustomMessages ?? true,
+        rsvpDeadlineDays: existingRsvpConfig.rsvpDeadlineDays ?? 30,
+        autoReminderDays: existingRsvpConfig.autoReminderDays ?? [14, 7, 3],
+        requiredFields: existingRsvpConfig.requiredFields ?? ["email", "phone", "dietaryRestrictions"],
+        rsvpStatuses: existingRsvpConfig.rsvpStatuses ?? ["Attending", "Not Attending", "Maybe"],
+        accommodationMode: existingRsvpConfig.accommodationMode ?? "all",
+        transportMode: existingRsvpConfig.transportMode ?? "draft",
+      });
+    }
+  }, [existingRsvpConfig, rsvpLoading]);
+
   // Handle changes to RSVP settings
   const handleSettingChange = (setting: string, value: any) => {
     setRsvpSettings({
@@ -53,7 +78,7 @@ export default function RsvpConfigStep({
 
   // Save RSVP settings
   const handleComplete = () => {
-    console.log('Saving RSVP settings:', rsvpSettings);
+    // Save RSVP settings without logging
     onComplete(rsvpSettings);
     setIsEditing(false);
   };

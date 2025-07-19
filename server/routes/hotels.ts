@@ -31,11 +31,11 @@ export function registerHotelRoutes(
       }
 
       const hotelsList = await storage.getHotelsByEvent(eventId);
-      console.log(`Retrieved ${hotelsList.length} hotels for event ${eventId}`);
+      
 
       return res.status(200).json(hotelsList);
     } catch (error) {
-      console.error(`Error fetching hotels for event ${req.params.eventId}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch hotels',
         details: error instanceof Error ? error.message : String(error)
@@ -58,7 +58,7 @@ export function registerHotelRoutes(
 
       return res.status(200).json(hotel);
     } catch (error) {
-      console.error(`Error fetching hotel ${req.params.id}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch hotel',
         details: error instanceof Error ? error.message : String(error)
@@ -88,11 +88,11 @@ export function registerHotelRoutes(
 
       // Create the hotel
       const hotel = await storage.createHotel(hotelData);
-      console.log(`Created new hotel: ${hotel.name} (ID: ${hotel.id}) for event ${hotelData.eventId}`);
+      
 
       return res.status(201).json(hotel);
     } catch (error) {
-      console.error('Error creating hotel:', error);
+      
       return res.status(500).json({ 
         message: 'Failed to create hotel',
         details: error instanceof Error ? error.message : String(error)
@@ -138,10 +138,10 @@ export function registerHotelRoutes(
         return res.status(404).json({ message: 'Hotel not found' });
       }
 
-      console.log(`Updated hotel: ${updatedHotel.name} (ID: ${updatedHotel.id})`);
+      
       return res.status(200).json(updatedHotel);
     } catch (error) {
-      console.error(`Error updating hotel ${req.params.id}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to update hotel',
         details: error instanceof Error ? error.message : String(error)
@@ -193,10 +193,10 @@ export function registerHotelRoutes(
         return res.status(500).json({ message: 'Failed to delete hotel' });
       }
 
-      console.log(`Deleted hotel ID: ${hotelId}`);
+      
       return res.status(200).json({ message: 'Hotel deleted successfully' });
     } catch (error) {
-      console.error(`Error deleting hotel ${req.params.id}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to delete hotel',
         details: error instanceof Error ? error.message : String(error)
@@ -226,10 +226,10 @@ export function registerHotelRoutes(
         accommodationsList = accommodationsList.filter(acc => acc.hotelId === hotelId);
       }
 
-      console.log(`Retrieved ${accommodationsList.length} accommodations${hotelId ? ` for hotel ${hotelId}` : ''} in event ${eventId}`);
+      
       return res.status(200).json(accommodationsList);
     } catch (error) {
-      console.error(`Error fetching accommodations for event ${req.params.eventId}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch accommodations',
         details: error instanceof Error ? error.message : String(error)
@@ -289,20 +289,20 @@ export function registerHotelRoutes(
           globalRoomTypeId = newGlobalRoomType.id;
           accommodationData.globalRoomTypeId = globalRoomTypeId;
           
-          console.log(`Created new global room type: ${newGlobalRoomType.name} (ID: ${newGlobalRoomType.id}) for hotel ${hotel.name}`);
+          
         } catch (error) {
-          console.error('Error creating global room type:', error);
+          
           // Continue with accommodation creation even if global room type creation fails
         }
       }
 
       // Create the accommodation
       const accommodation = await storage.createAccommodation(accommodationData);
-      console.log(`Created new accommodation: ${accommodation.name} (ID: ${accommodation.id}) for hotel ${accommodationData.hotelId}`);
+      
 
       return res.status(201).json(accommodation);
     } catch (error) {
-      console.error('Error creating accommodation:', error);
+      
       return res.status(500).json({ 
         message: 'Failed to create accommodation',
         details: error instanceof Error ? error.message : String(error)
@@ -318,7 +318,7 @@ export function registerHotelRoutes(
       const roomTypes = await storage.getAllGlobalRoomTypes();
       return res.status(200).json(roomTypes);
     } catch (error) {
-      console.error('Error fetching global room types:', error);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch global room types',
         details: error instanceof Error ? error.message : String(error)
@@ -333,7 +333,7 @@ export function registerHotelRoutes(
       const roomTypes = await storage.getGlobalRoomTypesByHotelName(hotelName);
       return res.status(200).json(roomTypes);
     } catch (error) {
-      console.error(`Error fetching global room types for hotel ${req.params.hotelName}:`, error);
+      
       return res.status(500).json({ 
         message: 'Failed to fetch global room types',
         details: error instanceof Error ? error.message : String(error)
@@ -357,10 +357,10 @@ export function registerHotelRoutes(
       const roomTypeData = validationResult.data;
       const roomType = await storage.createGlobalRoomType(roomTypeData);
       
-      console.log(`Created new global room type: ${roomType.name} (ID: ${roomType.id}) for hotel ${roomType.hotelName}`);
+      
       return res.status(201).json(roomType);
     } catch (error) {
-      console.error('Error creating global room type:', error);
+      
       return res.status(500).json({ 
         message: 'Failed to create global room type',
         details: error instanceof Error ? error.message : String(error)
@@ -441,7 +441,7 @@ export function registerHotelRoutes(
       
       return res.json(assignments);
     } catch (error) {
-      console.error(`Error fetching hotel assignments for event ${req.params.eventId}:`, error);
+      
       return res.status(500).json({
         message: 'Failed to fetch hotel assignments',
         details: error instanceof Error ? error.message : String(error)

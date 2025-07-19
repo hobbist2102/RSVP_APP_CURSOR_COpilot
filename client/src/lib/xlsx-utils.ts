@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import * as XLSX from "sheetjs-style";
 
 /**
  * Format hotel assignments for Excel export
@@ -8,7 +8,7 @@ import * as XLSX from "xlsx";
 export async function formatHotelAssignmentsForExport(eventId: number) {
   try {
     // Fetch hotel assignments data
-    const response = await fetch(`/api/events/${eventId}/hotel-assignments`);
+    const response = await fetch('/api/events/' + eventId + '/hotel-assignments');
     if (!response.ok) {
       throw new Error('Failed to fetch hotel assignments');
     }
@@ -18,7 +18,7 @@ export async function formatHotelAssignmentsForExport(eventId: number) {
     const assignments = Array.isArray(data) ? data : [];
     
     return assignments.map(assignment => ({
-      'Guest Name': `${assignment.guest?.firstName || ''} ${assignment.guest?.lastName || ''}`,
+      'Guest Name': (assignment.guest?.firstName || '') + ' ' + (assignment.guest?.lastName || ''),
       'Email': assignment.guest?.email || '',
       'RSVP Status': assignment.guest?.rsvpStatus || 'Pending',
       'Hotel': assignment.hotel?.name || '',
@@ -29,7 +29,7 @@ export async function formatHotelAssignmentsForExport(eventId: number) {
       'Special Requests': assignment.specialRequests || ''
     }));
   } catch (error) {
-    console.error('Error formatting hotel data:', error);
+    console.error('Failed to format hotel assignments for export:', error);
     throw error;
   }
 }
@@ -51,7 +51,7 @@ export function exportToExcel<T>(data: T[], filename: string, sheetName: string 
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   
   // Generate Excel file and trigger download
-  XLSX.writeFile(workbook, `${filename}.xlsx`);
+  XLSX.writeFile(workbook, filename + ".xlsx");
 }
 
 /**

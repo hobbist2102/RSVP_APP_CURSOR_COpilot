@@ -42,8 +42,8 @@ export default function RsvpPage({ params }: { params?: { token?: string } }) {
       
       try {
         // Use the token to verify, regardless of how it was passed
-        const response = await apiRequest("GET", `/api/rsvp/verify?token=${token}`);
-        const data = await response.json();
+        const response = await get(`/api/rsvp/verify?token=${token}`);
+        const data = response.data;
         
         if (!data.success) {
           throw new Error(data.message || "Invalid or expired token");

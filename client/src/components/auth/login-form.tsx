@@ -39,8 +39,10 @@ export default function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
+      // Attempting login
       await login(values.username, values.password);
     } catch (error) {
+      // Login error handled
       toast({
         variant: "destructive",
         title: "Login Failed",

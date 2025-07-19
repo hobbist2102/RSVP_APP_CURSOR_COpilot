@@ -57,7 +57,7 @@ router.get('/api/events/:eventId/email-config', isAuthenticated, async (req: Req
 
     res.json({ success: true, config });
   } catch (error) {
-    console.error('Error fetching email configuration:', error);
+    
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
@@ -117,7 +117,7 @@ router.post('/api/events/:eventId/email-config', isAuthenticated, async (req: Re
 
     res.json({ success: true, message: 'Email configuration updated successfully' });
   } catch (error) {
-    console.error('Error updating email configuration:', error);
+    
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
@@ -161,7 +161,7 @@ router.post('/api/events/:eventId/test-email', isAuthenticated, async (req: Requ
       res.status(400).json({ success: false, message: `Failed to send test email: ${result.error}` });
     }
   } catch (error) {
-    console.error('Error sending test email:', error);
+    
     res.status(500).json({ success: false, message: `Internal server error: ${error.message}` });
   }
 });

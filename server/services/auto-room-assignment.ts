@@ -1,3 +1,4 @@
+
 import { storage } from "../storage";
 import { Guest, RoomAllocation, insertRoomAllocationSchema } from "@shared/schema";
 import { parseISO, isAfter, isBefore, format, addHours } from "date-fns";
@@ -28,12 +29,12 @@ export class AutoRoomAssignmentService {
    */
   static async processForGuest(guestId: number, eventId: number): Promise<RoomAssignmentResult> {
     try {
-      console.log(`Processing auto room assignment for guest ${guestId} in event ${eventId}`);
+      
       
       // Get the guest with all their details
       const guest = await storage.getGuest(guestId);
       if (!guest) {
-        console.error(`Guest ${guestId} not found`);
+        
         return {
           success: false,
           message: 'Guest not found',
@@ -44,7 +45,7 @@ export class AutoRoomAssignmentService {
       
       // Verify the guest belongs to the specified event
       if (guest.eventId !== eventId) {
-        console.error(`Guest ${guestId} does not belong to event ${eventId}`);
+        
         return {
           success: false,
           message: 'Guest does not belong to specified event',
@@ -56,7 +57,7 @@ export class AutoRoomAssignmentService {
       // Check if the guest has already been assigned a room
       const existingAllocations = await storage.getRoomAllocationsByGuest(guestId);
       if (existingAllocations && existingAllocations.length > 0) {
-        console.log(`Guest ${guestId} already has ${existingAllocations.length} room allocations`);
+        
         return {
           success: true,
           allocation: existingAllocations[0],
@@ -70,7 +71,7 @@ export class AutoRoomAssignmentService {
       const suggestedRoom = await this.findSuitableRoom(guest, eventId);
       
       if (!suggestedRoom) {
-        console.error(`No suitable rooms available for guest ${guestId}`);
+        
         return {
           success: false,
           message: 'No suitable rooms available',
@@ -133,7 +134,7 @@ export class AutoRoomAssignmentService {
       };
       
     } catch (error) {
-      console.error('Error in auto room assignment:', error);
+      
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error in room assignment',
@@ -246,7 +247,7 @@ export class AutoRoomAssignmentService {
       // Early check-in needed if arriving before standard check-in but after early morning
       return isBefore(arrivalDateTime, standardCheckinTime) && isAfter(arrivalDateTime, earlyMorningTime);
     } catch (error) {
-      console.error('Error parsing arrival date/time:', error);
+      
       return false;
     }
   }

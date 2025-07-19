@@ -83,13 +83,13 @@ export default function VenuesStep({
 
   // Load existing ceremonies from database
   const { data: ceremonies = [] } = useQuery<any[]>({
-    queryKey: [`/api/ceremonies/by-event/${eventId}`],
+    queryKey: [`/api/events/${eventId}/ceremonies`],
     enabled: !!eventId,
   });
 
   // Convert ceremonies to venue format and populate venues state
   useEffect(() => {
-    if (ceremonies.length > 0 && venues.length === 0) {
+    if (ceremonies.length > 0) {
       const ceremoniesAsVenues = ceremonies.map(ceremony => ({
         name: ceremony.name,
         location: ceremony.location,
@@ -98,11 +98,12 @@ export default function VenuesStep({
         endTime: ceremony.endTime,
         description: ceremony.description || "",
         attireCode: ceremony.attireCode || "",
-        ceremonyType: ceremony.ceremonyType || "Other"
+        ceremonyType: ceremony.ceremonyType || ceremony.type || "Wedding"
       }));
       setVenues(ceremoniesAsVenues);
+      console.log('Loaded ceremonies as venues:', ceremoniesAsVenues);
     }
-  }, [ceremonies, venues.length]);
+  }, [ceremonies]);
   
   // Setup form for managing venues
   const venueForm = useForm<VenueData>({

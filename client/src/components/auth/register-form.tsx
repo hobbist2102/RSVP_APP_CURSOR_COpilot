@@ -13,7 +13,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 import { useLocation } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -46,8 +46,8 @@ export default function RegisterForm() {
 
   const onSubmit = async (values: RegisterFormValues) => {
     try {
-      const response = await apiRequest("POST", "/api/auth/register", values);
-      const data = await response.json();
+      const response = await post("/api/auth/register", values);
+      const data = response.data;
       
       toast({
         title: "Registration Successful",
@@ -57,7 +57,7 @@ export default function RegisterForm() {
       // Redirect to dashboard
       setLocation("/dashboard");
     } catch (error) {
-      console.error("Registration error:", error);
+      // Registration error - handled silently
       toast({
         variant: "destructive",
         title: "Registration Failed",

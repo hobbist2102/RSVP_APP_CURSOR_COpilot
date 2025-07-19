@@ -1,52 +1,48 @@
 /**
- * WhatsApp Provider Enum - Defines which implementation to use
+ * WhatsApp Factory
+ * Creates WhatsApp service instances based on provider type
  */
+
 export enum WhatsAppProvider {
-  WebJS = 'webjs',
-  BusinessAPI = 'business-api'
+  BusinessAPI = 'business-api',
+  WebJS = 'web-js'
 }
 
-/**
- * Configuration for WhatsApp services
- */
 export interface WhatsAppConfig {
-  eventId: number;
-  accessToken?: string;
-  phoneNumberId?: string;
-  phoneNumber?: string;
-  businessAccountId?: string;
+  provider: WhatsAppProvider;
+  businessAPI?: {
+    accessToken: string;
+    phoneNumberId: string;
+    accountId?: string;
+  };
+  webJS?: {
+    session?: string;
+    puppeteer?: any;
+  };
 }
 
-export default class WhatsAppFactory {
-  /**
-   * Create a WhatsApp service instance based on the provider
-   * @param provider WhatsApp provider type
-   * @param config Configuration for the WhatsApp service
-   * @returns Promise resolving to a WhatsApp service instance
-   */
-  static async createService(provider: WhatsAppProvider, config: WhatsAppConfig) {
-    // Dynamic imports to avoid circular dependencies
-    const { WhatsAppWebJSService, WhatsAppBusinessAPIService } = await import('./index');
-    
-    switch (provider) {
-      case WhatsAppProvider.WebJS:
-        return new WhatsAppWebJSService(config.eventId);
-      
+export interface WhatsAppServiceInterface {
+  isClientReady(): boolean;
+  getQRCode?(): string | null;
+  sendTextMessage(to: string, message: string): Promise<string>;
+  sendMediaMessage(to: string, mediaPath: string, caption?: string): Promise<string>;
+  sendTemplateMessage(to: string, templateName: string, languageCode: string, components: any[]): Promise<string>;
+  disconnect(): Promise<void>;
+}
+
+export class WhatsAppFactory {
+  static async createService(config: WhatsAppConfig): Promise<WhatsAppServiceInterface> {
+    switch (config.provider) {
       case WhatsAppProvider.BusinessAPI:
-        if (!config.accessToken || !config.phoneNumberId) {
-          throw new Error('Access token and phone number ID are required for WhatsApp Business API');
-        }
-        // Pass only necessary parameters to match constructor
-        return new WhatsAppBusinessAPIService(
-          config.eventId,
-          config.accessToken,
-          config.phoneNumberId,
-          config.phoneNumber,
-          config.businessAccountId
-        );
+        const { BusinessAPIService } = await import('./business-api-service');
+        return new BusinessAPIService(config.businessAPI!);
+      
+      case WhatsAppProvider.WebJS:
+        const { WebJSService } = await import('./webjs-service');
+        return new WebJSService(config.webJS || {});
       
       default:
-        throw new Error(`Unsupported WhatsApp provider: ${provider}`);
+        throw new Error(`Unsupported WhatsApp provider: ${config.provider}`);
     }
   }
 }

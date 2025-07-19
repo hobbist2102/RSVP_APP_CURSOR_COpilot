@@ -43,7 +43,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { apiRequest } from "@/lib/queryClient";
+import { post } from "@/lib/api-utils";
 
 // Form schema for room assignment
 const roomAssignmentSchema = z.object({
@@ -166,7 +166,7 @@ export function RoomAssignmentDialog({
   // Create room allocation mutation
   const createAllocationMutation = useMutation({
     mutationFn: async (data: RoomAssignmentForm) => {
-      return apiRequest("POST", "/api/allocations", {
+      return post("/api/allocations", {
         ...data,
         accommodationId,
         checkInDate: data.checkInDate.toISOString(),
@@ -195,7 +195,7 @@ export function RoomAssignmentDialog({
   // Update room allocation mutation
   const updateAllocationMutation = useMutation({
     mutationFn: async (data: RoomAssignmentForm) => {
-      return apiRequest("PUT", `/api/allocations/${existingAllocation.id}`, {
+      return post(`/api/allocations/${existingAllocation.id}`, {
         ...data,
         accommodationId,
         checkInDate: data.checkInDate.toISOString(),

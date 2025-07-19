@@ -30,7 +30,7 @@ router.get('/vendors', isAuthenticated, async (req: Request, res: Response) => {
 
     res.json(vendors);
   } catch (error) {
-    console.error('Error fetching transport vendors:', error);
+    
     res.status(500).json({ error: 'Failed to fetch transport vendors' });
   }
 });
@@ -54,7 +54,7 @@ router.post('/vendors', isAuthenticated, async (req: Request, res: Response) => 
 
     res.status(201).json(vendor);
   } catch (error) {
-    console.error('Error creating transport vendor:', error);
+    
     res.status(500).json({ error: 'Failed to create transport vendor' });
   }
 });
@@ -84,7 +84,7 @@ router.put('/vendors/:id', isAuthenticated, async (req: Request, res: Response) 
 
     res.json(updatedVendor);
   } catch (error) {
-    console.error('Error updating transport vendor:', error);
+    
     res.status(500).json({ error: 'Failed to update transport vendor' });
   }
 });
@@ -107,7 +107,7 @@ router.delete('/vendors/:id', isAuthenticated, async (req: Request, res: Respons
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting transport vendor:', error);
+    
     res.status(500).json({ error: 'Failed to delete transport vendor' });
   }
 });
@@ -127,7 +127,7 @@ router.get('/representatives', isAuthenticated, async (req: Request, res: Respon
 
     res.json(representatives);
   } catch (error) {
-    console.error('Error fetching location representatives:', error);
+    
     res.status(500).json({ error: 'Failed to fetch location representatives' });
   }
 });
@@ -151,7 +151,7 @@ router.post('/representatives', isAuthenticated, async (req: Request, res: Respo
 
     res.status(201).json(representative);
   } catch (error) {
-    console.error('Error creating location representative:', error);
+    
     res.status(500).json({ error: 'Failed to create location representative' });
   }
 });
@@ -181,7 +181,7 @@ router.put('/representatives/:id', isAuthenticated, async (req: Request, res: Re
 
     res.json(updatedRep);
   } catch (error) {
-    console.error('Error updating location representative:', error);
+    
     res.status(500).json({ error: 'Failed to update location representative' });
   }
 });
@@ -204,7 +204,7 @@ router.delete('/representatives/:id', isAuthenticated, async (req: Request, res:
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting location representative:', error);
+    
     res.status(500).json({ error: 'Failed to delete location representative' });
   }
 });
@@ -224,7 +224,7 @@ router.get('/vehicles', isAuthenticated, async (req: Request, res: Response) => 
 
     res.json(vehicles);
   } catch (error) {
-    console.error('Error fetching vehicles:', error);
+    
     res.status(500).json({ error: 'Failed to fetch vehicles' });
   }
 });
@@ -249,7 +249,7 @@ router.post('/vehicles', isAuthenticated, async (req: Request, res: Response) =>
 
     res.status(201).json(vehicle);
   } catch (error) {
-    console.error('Error creating vehicle:', error);
+    
     res.status(500).json({ error: 'Failed to create vehicle' });
   }
 });
@@ -279,7 +279,7 @@ router.put('/vehicles/:id', isAuthenticated, async (req: Request, res: Response)
 
     res.json(updatedVehicle);
   } catch (error) {
-    console.error('Error updating vehicle:', error);
+    
     res.status(500).json({ error: 'Failed to update vehicle' });
   }
 });
@@ -302,7 +302,7 @@ router.delete('/vehicles/:id', isAuthenticated, async (req: Request, res: Respon
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting vehicle:', error);
+    
     res.status(500).json({ error: 'Failed to delete vehicle' });
   }
 });
@@ -322,7 +322,7 @@ router.get('/travel-info', isAuthenticated, async (req: Request, res: Response) 
 
     res.json(travelInfo);
   } catch (error) {
-    console.error('Error fetching travel info:', error);
+    
     res.status(500).json({ error: 'Failed to fetch travel info' });
   }
 });
@@ -346,7 +346,7 @@ router.post('/travel-info', isAuthenticated, async (req: Request, res: Response)
 
     res.status(201).json(travelInfo);
   } catch (error) {
-    console.error('Error creating travel info:', error);
+    
     res.status(500).json({ error: 'Failed to create travel info' });
   }
 });

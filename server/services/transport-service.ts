@@ -38,7 +38,7 @@ function generateTimeSlots(guestArrivalTimes: string[]): string[] {
         timeSlots.push(timeSlot);
       }
     } catch (error) {
-      console.error("Error parsing time:", timeStr, error);
+      
     }
   });
   
@@ -273,7 +273,7 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
     
     return transportGroups;
   } catch (error) {
-    console.error("Error generating transport groups:", error);
+    
     throw error;
   }
 }
@@ -352,7 +352,7 @@ export async function checkForTransportUpdates(eventId: number): Promise<{
     
     return { needsUpdate, modifiedGuests };
   } catch (error) {
-    console.error("Error checking for transport updates:", error);
+    
     throw error;
   }
 }

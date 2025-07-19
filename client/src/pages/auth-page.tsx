@@ -38,16 +38,16 @@ export default function AuthPage() {
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
             <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <div className="text-4xl font-bold mb-2">300+</div>
-              <div className="text-sm">Guests Managed</div>
+              <div className="text-4xl font-bold mb-2">Elegant</div>
+              <div className="text-sm">Guest Management</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <div className="text-4xl font-bold mb-2">15+</div>
-              <div className="text-sm">Ceremonies</div>
+              <div className="text-4xl font-bold mb-2">Complete</div>
+              <div className="text-sm">Event Planning</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <div className="text-4xl font-bold mb-2">100%</div>
-              <div className="text-sm">Stress Reduction</div>
+              <div className="text-4xl font-bold mb-2">Seamless</div>
+              <div className="text-sm">Experience</div>
             </div>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import { storage } from '../storage';
 import { RsvpFollowupTemplate, RsvpFollowupLog, Guest, WeddingEvent } from '@shared/schema';
-import { WhatsAppService } from './whatsapp';
 
 export class RsvpFollowupService {
   /**
@@ -10,30 +9,30 @@ export class RsvpFollowupService {
   async processRsvpFollowup(guestId: number, eventId: number): Promise<boolean> {
     try {
       // Get the guest and verify event context
-      const guest = await storage.getGuestWithEventContext(guestId, eventId);
-      if (!guest) {
-        console.error(`Cannot process RSVP follow-up: Guest ${guestId} not found in event ${eventId}`);
+      const guest = await storage.getGuest(guestId);
+      if (!guest || guest.eventId !== eventId) {
+        
         return false;
       }
 
       // Get the event
       const event = await storage.getEvent(eventId);
       if (!event) {
-        console.error(`Cannot process RSVP follow-up: Event ${eventId} not found`);
+        
         return false;
       }
 
       // Determine appropriate follow-up template based on RSVP status
       const templateType = this.determineFollowupTemplateType(guest.rsvpStatus);
       if (!templateType) {
-        console.log(`No follow-up needed for guest ${guestId} with RSVP status ${guest.rsvpStatus}`);
+        
         return false;
       }
 
       // Get the appropriate template
       const template = await storage.getRsvpFollowupTemplateByType(eventId, templateType);
       if (!template) {
-        console.warn(`Template type ${templateType} not found for event ${eventId}`);
+        
         // Create default template if it doesn't exist
         const defaultTemplate = await this.createDefaultTemplate(eventId, templateType);
         if (!defaultTemplate) {
@@ -45,7 +44,7 @@ export class RsvpFollowupService {
       // Send the follow-up message
       return this.sendFollowupMessage(guest, event, template);
     } catch (error) {
-      console.error('Error processing RSVP follow-up:', error);
+      
       return false;
     }
   }
@@ -86,7 +85,7 @@ export class RsvpFollowupService {
       
       return template;
     } catch (error) {
-      console.error(`Error creating default template for ${templateType}:`, error);
+      
       return null;
     }
   }
@@ -215,7 +214,7 @@ Warm regards,
 
       return sent;
     } catch (error) {
-      console.error('Error sending follow-up message:', error);
+      
       
       // Log the failed attempt
       await storage.createRsvpFollowupLog({
@@ -269,6 +268,19 @@ Warm regards,
    */
   private async sendWhatsAppMessage(guest: Guest, message: string): Promise<boolean> {
     try {
+      // **CRITICAL INTEGRATION FIX**: Check if guest is available on WhatsApp before sending
+      if (!guest.whatsappAvailable) {
+        console.log(`Skipping WhatsApp message to ${guest.firstName} ${guest.lastName} - not available on WhatsApp`);
+        return false;
+      }
+
+      // Verify guest has WhatsApp number (either same as phone or separate)
+      const whatsappNumber = guest.whatsappSame ? guest.phone : guest.whatsappNumber;
+      if (!whatsappNumber) {
+        console.log(`Skipping WhatsApp message to ${guest.firstName} ${guest.lastName} - no WhatsApp number available`);
+        return false;
+      }
+
       // Create WhatsApp service for the guest's event
       const whatsappService = new WhatsAppService(guest.eventId);
       
@@ -281,9 +293,10 @@ Warm regards,
       
       // Send the message
       const result = await whatsappService.sendMessage(guest, templateName, parameters);
+      console.log(`WhatsApp message sent to ${guest.firstName} ${guest.lastName}: ${result.success}`);
       return result.success;
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error);
+      console.error(`Failed to send WhatsApp message to ${guest.firstName} ${guest.lastName}:`, error);
       return false;
     }
   }
@@ -293,15 +306,33 @@ Warm regards,
    */
   private async sendEmailMessage(guest: Guest, subject: string, message: string): Promise<boolean> {
     try {
-      // TODO: Implement email sending functionality
-      // For now, just log the attempt and return success
-      console.log(`[EMAIL] To: ${guest.email}, Subject: ${subject}`);
-      console.log(`[EMAIL] Message: ${message}`);
-      
-      // Mock successful email sending
-      return true;
+      // Get event details for email service initialization
+      const event = await storage.getEvent(guest.eventId);
+      if (!event) {
+        throw new Error(`Event not found for guest ${guest.id}`);
+      }
+
+      // Initialize email service with event configuration
+      const emailService = new EmailService(
+        guest.eventId,
+        event.emailProvider || 'smtp',
+        event.emailApiKey,
+        event.emailFrom || '',
+        event.title || 'Wedding Event',
+        event
+      );
+
+      // Send the email
+      const result = await emailService.sendEmail({
+        to: guest.email,
+        subject,
+        html: message,
+        text: message.replace(/<[^>]*>/g, '') // Strip HTML for text version
+      });
+
+      return result.success;
     } catch (error) {
-      console.error('Error sending email message:', error);
+      
       return false;
     }
   }

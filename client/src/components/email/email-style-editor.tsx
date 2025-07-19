@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { get, post, put } from "@/lib/api-utils";
+import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -78,15 +79,14 @@ export default function EmailStyleEditor({ eventId }: EmailStyleEditorProps) {
   const { data: stylesData, isLoading } = useQuery({
     queryKey: ['/api/events', eventId, 'email-styles'],
     queryFn: async () => {
-      const res = await fetch(`/api/events/${eventId}/email-styles`);
-      if (!res.ok) throw new Error('Failed to fetch styles');
-      return res.json();
+      const res = await get(`/api/events/${eventId}/email-styles`);
+      return res.data;
     }
   });
 
   const createStyleMutation = useMutation({
     mutationFn: (data: EmailStyleFormValues) => 
-      apiRequest('POST', `/api/events/${eventId}/email-styles`, data),
+      post(`/api/events/${eventId}/email-styles`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Style created successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-styles'] });
@@ -103,7 +103,7 @@ export default function EmailStyleEditor({ eventId }: EmailStyleEditorProps) {
 
   const updateStyleMutation = useMutation({
     mutationFn: (data: EmailStyleFormValues & { id: number }) => 
-      apiRequest('PUT', `/api/events/${eventId}/email-styles/${data.id}`, data),
+      put(`/api/events/${eventId}/email-styles/${data.id}`, data).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Style updated successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-styles'] });
@@ -120,7 +120,7 @@ export default function EmailStyleEditor({ eventId }: EmailStyleEditorProps) {
 
   const deleteStyleMutation = useMutation({
     mutationFn: (id: number) => 
-      apiRequest('DELETE', `/api/events/${eventId}/email-styles/${id}`),
+      del(`/api/events/${eventId}/email-styles/${id}`).then(r => r.data),
     onSuccess: () => {
       toast({ title: "Style deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'email-styles'] });

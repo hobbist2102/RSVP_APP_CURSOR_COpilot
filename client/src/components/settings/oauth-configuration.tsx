@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { put } from "@/lib/api-utils";
 import { AlertCircle, CheckCircle2, Mail, HelpCircle, Loader2, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -117,18 +117,8 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
     mutationFn: async (data: OAuthCredentials) => {
       if (!eventId) throw new Error("Event ID is required");
 
-      const res = await apiRequest(
-        "PATCH",
-        `/api/event-settings/${eventId}/settings`,
-        { oauth: data }
-      );
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update OAuth credentials");
-      }
-
-      return await res.json();
+      const res = await put(`/api/event-settings/${eventId}/settings`, { oauth: data });
+      return res.data;
     },
     onSuccess: () => {
       // Determine which providers were enabled
@@ -286,7 +276,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
       }, 1000);
 
     } catch (error) {
-      console.error(`${provider} OAuth setup error:`, error);
+      // OAuth setup error - handled silently
       toast({
         title: `${provider === 'gmail' ? 'Gmail' : 'Outlook'} Configuration Failed`,
         description: error instanceof Error ? error.message : `Failed to configure ${provider}`,
@@ -384,7 +374,7 @@ export default function OAuthConfiguration({ settings, eventId }: OAuthConfigura
         });
       }
     } catch (error) {
-      console.error(`${provider} connection test error:`, error);
+      // Connection test error - handled silently
       setTestResult({
         success: false,
         message: error instanceof Error ? error.message : `Failed to test ${provider} connection`,

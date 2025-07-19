@@ -141,32 +141,39 @@ export default function ImmersiveLanding() {
     const ctx = gsap.context(() => {
       // Hero animations - combined into a single timeline
       if (heroRef.current) {
-        // Hero animations in sequence - more efficient than separate animations
-        masterTimeline
-          // Hero title animation with optimized values
-          .from(".hero-title .char", {
+        // Hero animations with element existence checks - prevents console errors
+        const heroTitleChars = document.querySelectorAll(".hero-title .char");
+        const heroSubtitle = document.querySelector(".hero-subtitle");
+        const heroButtons = document.querySelector(".hero-buttons");
+        
+        // Only animate elements that exist
+        if (heroTitleChars.length > 0) {
+          masterTimeline.from(".hero-title .char", {
             opacity: 0,
-            y: 50, // Reduced movement distance
-            stagger: 0.02, // Less stagger time
-            duration: 0.8, // Shorter duration
-            ease: "power3.out", // Simpler ease function
-          }, 0.5) // Delay as position parameter for better performance
-          
-          // Hero subtitle animation
-          .from(".hero-subtitle", {
+            y: 50,
+            stagger: 0.02,
+            duration: 0.8,
+            ease: "power3.out",
+          }, 0.5);
+        }
+        
+        if (heroSubtitle) {
+          masterTimeline.from(".hero-subtitle", {
             opacity: 0,
-            y: 20, // Reduced movement
+            y: 20,
             duration: 0.7,
-            ease: "power2.out" // Simpler ease function
-          }, 1.3) // Start after title animation
-          
-          // Hero buttons animation
-          .from(".hero-buttons", {
+            ease: "power2.out"
+          }, heroTitleChars.length > 0 ? 1.3 : 0.5);
+        }
+        
+        if (heroButtons) {
+          masterTimeline.from(".hero-buttons", {
             opacity: 0,
-            y: 15, // Reduced movement
+            y: 15,
             duration: 0.6,
-            ease: "power2.out" // Simpler ease function
-          }, 1.6); // Start after subtitle animation
+            ease: "power2.out"
+          }, (heroTitleChars.length > 0 || heroSubtitle) ? 1.6 : 0.5);
+        }
 
         // Optimized background parallax - using a single scrollTrigger for better performance
         const parallaxTimeline = gsap.timeline({
@@ -179,24 +186,34 @@ export default function ImmersiveLanding() {
           }
         });
           
-        // Combine multiple animations into one timeline for better performance
-        parallaxTimeline
-          .to(".bg-element-1", { y: "-15%" }, 0) // Reduced movement amount
-          .to(".bg-element-2", { y: "-25%" }, 0); // Reduced movement amount
+        // Background parallax with element existence checks
+        const bgElement1 = document.querySelector(".bg-element-1");
+        const bgElement2 = document.querySelector(".bg-element-2");
+        
+        if (bgElement1) {
+          parallaxTimeline.to(".bg-element-1", { y: "-15%" }, 0);
+        }
+        if (bgElement2) {
+          parallaxTimeline.to(".bg-element-2", { y: "-25%" }, 0);
+        }
       }
 
-      // Problem section animations - optimized for better performance
+      // Problem section animations with element existence checks
       if (problemRef.current) {
-        // Floating papers animation - optimized with longer durations and less movement
-        gsap.to(".floating-paper", {
-          y: "-15px", // Reduced movement distance
-          rotation: 3, // Reduced rotation amount
-          duration: 3, // Longer duration = fewer animation cycles
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut", // Simpler ease function
-          stagger: 0.1, // Reduced stagger time
-        });
+        const floatingPapers = document.querySelectorAll(".floating-paper");
+        
+        // Only animate floating papers if they exist
+        if (floatingPapers.length > 0) {
+          gsap.to(".floating-paper", {
+            y: "-15px",
+            rotation: 3,
+            duration: 3,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            stagger: 0.1,
+          });
+        }
 
         // Combine section animations into a timeline for better performance
         const problemTimeline = gsap.timeline({
@@ -207,12 +224,15 @@ export default function ImmersiveLanding() {
           }
         });
 
-        // Section title reveal - added to timeline
-        problemTimeline.from(".problem-title", {
-          opacity: 0,
-          y: 30, // Reduced movement distance
-          duration: 0.7, // Slightly faster animation
-        }, 0);
+        // Section title reveal with element check
+        const problemTitle = document.querySelector(".problem-title");
+        if (problemTitle) {
+          problemTimeline.from(".problem-title", {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
+          }, 0);
+        }
 
         // Chaotic elements - optimized by using a single timeline instead of individual animations
         const chaosElements = document.querySelectorAll(".chaos-element");
@@ -247,12 +267,15 @@ export default function ImmersiveLanding() {
           }
         });
         
-        // Section title reveal - added to timeline
-        solutionTimeline.from(".solution-title", {
-          opacity: 0,
-          y: 30, // Reduced movement
-          duration: 0.7, // Shorter duration
-        }, 0);
+        // Section title reveal with element check
+        const solutionTitle = document.querySelector(".solution-title");
+        if (solutionTitle) {
+          solutionTimeline.from(".solution-title", {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
+          }, 0);
+        }
 
         // Organized elements - using timeline instead of individual animations
         const solutionElements = document.querySelectorAll(".solution-element");
@@ -349,13 +372,16 @@ export default function ImmersiveLanding() {
           }
         });
         
-        // Simple fade-in animation
-        ctaTimeline.from(".cta-content", {
-          opacity: 0,
-          y: 20,
-          duration: 0.6,
-          ease: "power2.out"
-        });
+        // CTA content animation with element existence check
+        const ctaContent = document.querySelector(".cta-content");
+        if (ctaContent) {
+          ctaTimeline.from(".cta-content", {
+            opacity: 0,
+            y: 20,
+            duration: 0.6,
+            ease: "power2.out"
+          });
+        }
         
         // Add class for CSS animation instead of GSAP animation for button pulse
         document.querySelectorAll(".cta-button").forEach(button => {

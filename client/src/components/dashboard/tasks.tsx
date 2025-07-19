@@ -52,7 +52,7 @@ export default function Tasks({ initialTasks = [] }: TasksProps) {
     const newTask: Task = {
       id: Date.now(),
       title: newTaskTitle,
-      dueDate: newTaskDueDate || `in ${Math.floor(Math.random() * 7) + 1} days`,
+      dueDate: newTaskDueDate || "No due date",
       completed: false
     };
 

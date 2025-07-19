@@ -1,7 +1,8 @@
 import { useCurrentEvent } from './use-current-event';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from './use-toast';
-import { queryClient, apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { post } from '@/lib/api-utils';
 import { Guest } from './use-guest-with-context';
 
 export function useGuestsByEvent() {
@@ -44,12 +45,8 @@ export function useGuestsByEvent() {
     mutationFn: async (guestData: Omit<Guest, 'id'>) => {
       if (!currentEvent?.id) throw new Error('No event selected');
       
-      const res = await apiRequest(
-        'POST',
-        `/api/events/${currentEvent.id}/guests`,
-        guestData
-      );
-      return await res.json();
+      const res = await post(`/api/events/${currentEvent.id}/guests`, guestData);
+      return res.data;
     },
     onSuccess: () => {
       // Invalidate guests query to refresh the list

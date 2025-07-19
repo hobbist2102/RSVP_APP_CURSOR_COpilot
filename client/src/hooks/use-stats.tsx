@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { get } from "@/lib/api-utils";
 import { format, subDays, subMonths } from "date-fns";
 
 export interface EventStats {

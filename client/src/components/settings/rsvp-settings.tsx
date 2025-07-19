@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { put } from "@/lib/api-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentEvent } from "@/hooks/use-current-event";
 import {
@@ -60,12 +60,8 @@ export default function RsvpSettings({ settings, eventId }: RsvpSettingsProps) {
     mutationFn: async (data: RsvpSettingsData) => {
       if (!eventId) throw new Error("No event selected");
       setIsSaving(true);
-      const response = await apiRequest(
-        "PATCH",
-        `/api/event-settings/${eventId}/rsvp`,
-        data
-      );
-      return response.json();
+      const response = await put(`/api/event-settings/${eventId}/rsvp`, data);
+      return response.data;
     },
     onSuccess: () => {
       toast({

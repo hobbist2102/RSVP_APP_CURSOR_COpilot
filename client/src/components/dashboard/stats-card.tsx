@@ -15,7 +15,7 @@ interface StatsCardProps {
   change?: {
     value: number;
     text: string;
-  };
+  } | null;
   icon: "confirmed" | "declined" | "pending" | "total";
   className?: string;
   onClick?: () => void;
