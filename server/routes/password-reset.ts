@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { storage } from '../storage';
+import { adminEmailService } from '../services/admin-email-service';
 
 // Password reset schemas
 const forgotPasswordSchema = z.object({
@@ -67,12 +68,21 @@ export default function registerPasswordResetRoutes(app: Express) {
         email: user.email
       });
       
-      // In a real app, send email here
+      // Send password reset email
       console.log(`Password reset token for ${user.email}: ${resetToken}`);
       console.log(`Reset link: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`);
       
-      // TODO: Implement email sending
-      // await emailService.sendPasswordReset(user.email, resetToken);
+      try {
+        const emailSent = await adminEmailService.sendPasswordResetEmail(user.email, resetToken);
+        if (emailSent) {
+          console.log(`Password reset email sent successfully to ${user.email}`);
+        } else {
+          console.warn(`Failed to send password reset email to ${user.email}, but continuing...`);
+        }
+      } catch (emailError) {
+        console.error('Password reset email error:', emailError);
+        // Continue even if email fails - user will see success message
+      }
       
       res.json(successResponse);
     } catch (error) {

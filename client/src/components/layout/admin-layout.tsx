@@ -9,7 +9,8 @@ import {
   Database,
   UserCog,
   Crown,
-  LogOut
+  LogOut,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +39,12 @@ const adminNavItems = [
     href: "/admin/users",
     icon: Users,
     description: "Manage all system users"
+  },
+  {
+    label: "Email Settings",
+    href: "/admin/email-settings",
+    icon: Mail,
+    description: "Configure system email settings"
   },
   {
     label: "System Settings",

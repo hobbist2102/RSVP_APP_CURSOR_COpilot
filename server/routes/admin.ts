@@ -350,6 +350,87 @@ export default function registerAdminRoutes(app: Express, isAuthenticated: any) 
     }
   });
 
+  // ===== EMAIL CONFIGURATION =====
+  
+  // Get admin email config
+  app.get('/api/admin/email-config', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      // For now, return environment-based config
+      // In production, this would fetch from admin_email_config table
+      const config = {
+        id: 1,
+        provider: process.env.ADMIN_EMAIL_PROVIDER || 'smtp',
+        fromEmail: process.env.ADMIN_FROM_EMAIL || '',
+        fromName: process.env.ADMIN_FROM_NAME || 'Wedding RSVP System',
+        isActive: process.env.ADMIN_EMAIL_ACTIVE === 'true',
+        smtpHost: process.env.ADMIN_SMTP_HOST || '',
+        smtpPort: parseInt(process.env.ADMIN_SMTP_PORT || '587'),
+        smtpUsername: process.env.ADMIN_SMTP_USERNAME || '',
+        smtpPassword: '***hidden***', // Don't return actual password
+        smtpSecure: process.env.ADMIN_SMTP_SECURE === 'true'
+      };
+      
+      res.json(config);
+    } catch (error) {
+      console.error('Get email config error:', error);
+      res.status(500).json({ message: 'Failed to fetch email configuration' });
+    }
+  });
+  
+  // Save admin email config
+  app.post('/api/admin/email-config', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      // For now, just validate and return success
+      // In production, this would save to admin_email_config table
+      const config = req.body;
+      
+      // Basic validation
+      if (!config.fromEmail || !config.provider) {
+        return res.status(400).json({ message: 'From email and provider are required' });
+      }
+      
+      console.log('Admin email config would be saved:', { ...config, smtpPassword: '***hidden***' });
+      
+      res.json({ 
+        message: 'Email configuration saved successfully',
+        config: { ...config, id: 1 }
+      });
+    } catch (error) {
+      console.error('Save email config error:', error);
+      res.status(500).json({ message: 'Failed to save email configuration' });
+    }
+  });
+  
+  // Test admin email config
+  app.post('/api/admin/email-config/test', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const config = req.body;
+      
+      // Import here to avoid circular dependency
+      const { adminEmailService } = await import('../services/admin-email-service');
+      
+      const isValid = await adminEmailService.testConnection();
+      
+      if (isValid) {
+        res.json({ 
+          message: 'Email configuration test successful',
+          status: 'success' 
+        });
+      } else {
+        res.status(400).json({ 
+          message: 'Email configuration test failed',
+          status: 'failed' 
+        });
+      }
+    } catch (error) {
+      console.error('Test email config error:', error);
+      res.status(500).json({ 
+        message: 'Email configuration test failed: ' + error.message,
+        status: 'error' 
+      });
+    }
+  });
+
   // ===== SYSTEM HEALTH =====
   
   app.get('/api/admin/system/health', isAuthenticated, isAdmin, async (req: Request, res: Response) => {

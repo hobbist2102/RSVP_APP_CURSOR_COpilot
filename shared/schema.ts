@@ -1,5 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json, decimal } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json, decimal, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Users table for authentication
@@ -997,3 +997,44 @@ export type InsertBrandSetting = z.infer<typeof insertBrandSettingSchema>;
 
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
 export type InsertCommunicationLog = z.infer<typeof insertCommunicationLogSchema>;
+
+// Global Admin Email Configuration (separate from event-specific email)
+export const adminEmailConfigTable = pgTable("admin_email_config", {
+  id: serial("id").primaryKey(),
+  provider: varchar("provider", { length: 50 }).notNull(), // 'gmail', 'outlook', 'smtp', 'sendgrid'
+  
+  // Gmail OAuth Configuration
+  gmailClientId: varchar("gmail_client_id", { length: 255 }),
+  gmailClientSecret: varchar("gmail_client_secret", { length: 255 }),
+  gmailRefreshToken: varchar("gmail_refresh_token", { length: 512 }),
+  gmailAccessToken: varchar("gmail_access_token", { length: 512 }),
+  gmailTokenExpiry: timestamp("gmail_token_expiry"),
+  
+  // Outlook OAuth Configuration  
+  outlookClientId: varchar("outlook_client_id", { length: 255 }),
+  outlookClientSecret: varchar("outlook_client_secret", { length: 255 }),
+  outlookRefreshToken: varchar("outlook_refresh_token", { length: 512 }),
+  outlookAccessToken: varchar("outlook_access_token", { length: 512 }),
+  outlookTokenExpiry: timestamp("outlook_token_expiry"),
+  
+  // SMTP Configuration
+  smtpHost: varchar("smtp_host", { length: 255 }),
+  smtpPort: integer("smtp_port"),
+  smtpUsername: varchar("smtp_username", { length: 255 }),
+  smtpPassword: varchar("smtp_password", { length: 255 }),
+  smtpSecure: boolean("smtp_secure").default(true),
+  
+  // SendGrid Configuration
+  sendgridApiKey: varchar("sendgrid_api_key", { length: 255 }),
+  
+  // Common Configuration
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 255 }).notNull().default("Wedding RSVP System"),
+  isActive: boolean("is_active").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdminEmailConfigSchema = createInsertSchema(adminEmailConfigTable);
+export const selectAdminEmailConfigSchema = createSelectSchema(adminEmailConfigTable);

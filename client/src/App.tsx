@@ -9,6 +9,15 @@ import { Spinner } from "@/components/ui/spinner";
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 
+// Auth flows - separate chunk
+const ForgotPassword = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/forgot-password"));
+const ResetPassword = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/reset-password"));
+
+// Admin portal - separate chunk
+const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/admin-dashboard"));
+const UserManagement = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/user-management"));
+const AdminEmailSettings = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/admin-email-settings"));
+
 // Core dashboard - high priority preload
 const Dashboard = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/dashboard"));
 const GuestList = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/guest-list"));
@@ -63,6 +72,15 @@ function App() {
           </Route>
           <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
           <Route path="/rsvp-demo" component={RsvpDemo} />
+          
+          {/* Auth Routes */}
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/reset-password" component={ResetPassword} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/users" component={UserManagement} />
+          <Route path="/admin/email-settings" component={AdminEmailSettings} />
           <Route path="/">
             {() => (
               

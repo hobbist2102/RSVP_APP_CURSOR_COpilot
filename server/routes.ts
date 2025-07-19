@@ -238,6 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register all domain routes
   registerAuthRoutes(app);
+  registerPasswordResetRoutes(app);
   registerStatisticsRoutes(app, isAuthenticated);
   registerRelationshipTypeRoutes(app, isAuthenticated);
   registerEventRoutes(app, isAuthenticated);
