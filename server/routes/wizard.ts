@@ -581,12 +581,12 @@ router.post('/transport', isAuthenticated, async (req: Request, res: Response) =
         // Inserting new progress data
         const initialValues = {
           eventId,
-          currentStep: step,
+          currentStep: 'transport',
           basicInfoComplete: false,
           venuesComplete: false,
           rsvpComplete: false,
           accommodationComplete: false,
-          transportComplete: step === 'transport',
+          transportComplete: false,
           communicationComplete: false,
           stylingComplete: false,
           createdAt: new Date(),

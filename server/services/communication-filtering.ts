@@ -114,6 +114,97 @@ class CommunicationFilteringService {
       };
     }
   }
+
+  /**
+   * Filter guests for WhatsApp communication (alias method)
+   */
+  static async filterGuestsForWhatsApp(eventId: number, filters: any) {
+    return this.getWhatsAppEnabledGuests(eventId);
+  }
+
+  /**
+   * Get guests by filter criteria
+   */
+  static async getGuestsByFilter(eventId: number, filters: any) {
+    try {
+      const allGuests = await storage.getGuestsByEvent(eventId);
+      let filteredGuests = allGuests;
+
+      // Apply filters
+      if (filters.confirmedOnly) {
+        filteredGuests = filteredGuests.filter(g => g.rsvpStatus === 'confirmed');
+      }
+      if (filters.pendingOnly) {
+        filteredGuests = filteredGuests.filter(g => g.rsvpStatus === 'pending');
+      }
+      if (filters.side) {
+        filteredGuests = filteredGuests.filter(g => g.side === filters.side);
+      }
+
+      return {
+        success: true,
+        guests: filteredGuests.map(guest => ({
+          id: guest.id,
+          name: `${guest.firstName} ${guest.lastName}`,
+          email: guest.email,
+          phone: guest.phone,
+          rsvpStatus: guest.rsvpStatus,
+          side: guest.side
+        })),
+        total: filteredGuests.length
+      };
+    } catch (error) {
+      console.error('Error filtering guests:', error);
+      return {
+        success: false,
+        error: 'Failed to filter guests'
+      };
+    }
+  }
+
+  /**
+   * Get meal planning data
+   */
+  static async getMealPlanningData(eventId: number) {
+    try {
+      const guests = await storage.getGuestsByEvent(eventId);
+      const mealSelections = await storage.getGuestMealSelectionsByEvent(eventId);
+
+      const requirements = guests.map(guest => {
+        const guestMeals = mealSelections.filter(ms => ms.guestId === guest.id);
+        return {
+          guestId: guest.id,
+          guestName: `${guest.firstName} ${guest.lastName}`,
+          dietaryRestrictions: guest.dietaryRestrictions,
+          allergies: guest.allergies,
+          notes: guest.notes,
+          rsvpStatus: guest.rsvpStatus,
+          plusOneDietary: guest.plusOneDietary ? {
+            name: guest.plusOneName,
+            dietary: guest.plusOneDietary
+          } : null
+        };
+      });
+
+      return {
+        success: true,
+        requirements,
+        summary: {
+          totalGuests: guests.length,
+          confirmedGuests: guests.filter(g => g.rsvpStatus === 'confirmed').length,
+          dietaryRestrictions: guests.filter(g => g.dietaryRestrictions).length,
+          allergies: guests.filter(g => g.allergies).length
+        },
+        total: requirements.length
+      };
+    } catch (error) {
+      console.error('Error getting meal planning data:', error);
+      return {
+        success: false,
+        error: 'Failed to get meal planning data'
+      };
+    }
+  }
 }
 
 export default CommunicationFilteringService;
