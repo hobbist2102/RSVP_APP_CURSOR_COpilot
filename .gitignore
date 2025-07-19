@@ -11,6 +11,11 @@ vite.config.ts.*
 .env.development
 .env.production
 
+# WhatsApp authentication data
+.wwebjs_auth/
+.wwebjs_cache/
+session-*/
+
 # Attached assets (contain sensitive data)
 attached_assets/
 
