@@ -84,6 +84,34 @@ export const weddingEvents = pgTable("wedding_events", {
   sendGridApiKey: text("sendgrid_api_key"),
   // Brevo settings
   brevoApiKey: text("brevo_api_key"),
+  
+  // Communication Configuration Settings
+  communicationStyle: text("communication_style").default("modern"), // 'traditional', 'modern', 'minimal'
+  approvalRequired: boolean("approval_required").default(false),
+  disablePreAssignmentNotifications: boolean("disable_pre_assignment_notifications").default(false),
+  language: text("language").default("english"), // 'english', 'hindi', 'mixed'
+  
+  // RSVP Communication Settings
+  rsvpReminderFrequency: integer("rsvp_reminder_frequency").default(7), // days
+  maxRsvpReminders: integer("max_rsvp_reminders").default(3),
+  stage2AutoTrigger: boolean("stage2_auto_trigger").default(true),
+  
+  // Accommodation Communication Settings
+  checkInReminders: boolean("checkin_reminders").default(true),
+  preAssignmentNotificationDays: integer("pre_assignment_notification_days").default(0),
+  checkInReminderHours: integer("checkin_reminder_hours").default(24),
+  
+  // Transport Communication Settings
+  driverAssignmentNotifications: boolean("driver_assignment_notifications").default(true),
+  pickupConfirmations: boolean("pickup_confirmations").default(true),
+  driverAssignmentDays: integer("driver_assignment_days").default(2),
+  pickupConfirmationHours: integer("pickup_confirmation_hours").default(24),
+  
+  // Venue Communication Settings
+  ceremonyUpdates: boolean("ceremony_updates").default(true),
+  weatherAlerts: boolean("weather_alerts").default(false),
+  finalDetailsPackage: boolean("final_details_package").default(true),
+  
   // Travel & Accommodation Settings
   
   // Accommodation Settings

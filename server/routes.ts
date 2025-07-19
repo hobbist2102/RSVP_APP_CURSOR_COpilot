@@ -2899,6 +2899,355 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Email Templates routes without authentication middleware (routes handle their own auth)
   app.use('/api', communicationTemplatesRoutes);
+
+  // Communication Configuration and Stats Endpoints
+  app.get('/api/events/:eventId/communication/config', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+
+      const event = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId)).limit(1);
+      if (event.length === 0) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      const eventData = event[0];
+      
+      // Return communication configuration with sensible defaults
+      const communicationConfig = {
+        eventId,
+        familySettings: {
+          communicationStyle: eventData.communicationStyle || 'modern',
+          approvalRequired: eventData.approvalRequired || false,
+          disablePreAssignmentNotifications: eventData.disablePreAssignmentNotifications || false,
+          language: eventData.language || 'english'
+        },
+        moduleConfigurations: {
+          rsvp: {
+            enabled: true,
+            reminderFrequency: eventData.rsvpReminderFrequency || 7,
+            maxReminders: eventData.maxRsvpReminders || 3,
+            stage2AutoTrigger: eventData.stage2AutoTrigger !== false
+          },
+          accommodation: {
+            enabled: eventData.accommodationMode !== 'disabled',
+            preAssignmentNotifications: !eventData.disablePreAssignmentNotifications,
+            checkInReminders: eventData.checkInReminders !== false,
+            notificationTiming: {
+              preAssignment: eventData.preAssignmentNotificationDays || 0,
+              checkInReminder: eventData.checkInReminderHours || 24
+            }
+          },
+          transport: {
+            enabled: eventData.transportMode !== 'disabled',
+            driverAssignmentNotifications: eventData.driverAssignmentNotifications !== false,
+            pickupConfirmations: eventData.pickupConfirmations !== false,
+            notificationTiming: {
+              driverAssignment: eventData.driverAssignmentDays || 2,
+              pickupConfirmation: eventData.pickupConfirmationHours || 24
+            }
+          },
+          venue: {
+            enabled: true,
+            ceremonyUpdates: eventData.ceremonyUpdates !== false,
+            weatherAlerts: eventData.weatherAlerts || false,
+            finalDetailsPackage: eventData.finalDetailsPackage !== false
+          }
+        }
+      };
+
+      res.json(communicationConfig);
+    } catch (error) {
+      console.error('Error fetching communication config:', error);
+      res.status(500).json({ message: 'Failed to fetch communication configuration' });
+    }
+  });
+
+  app.put('/api/events/:eventId/communication/config', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+
+      const { familySettings, moduleConfigurations } = req.body;
+
+      // Update event with communication settings
+      const updateData: any = {};
+      
+      if (familySettings) {
+        if (familySettings.communicationStyle) updateData.communicationStyle = familySettings.communicationStyle;
+        if (familySettings.approvalRequired !== undefined) updateData.approvalRequired = familySettings.approvalRequired;
+        if (familySettings.disablePreAssignmentNotifications !== undefined) updateData.disablePreAssignmentNotifications = familySettings.disablePreAssignmentNotifications;
+        if (familySettings.language) updateData.language = familySettings.language;
+      }
+
+      if (moduleConfigurations) {
+        const { rsvp, accommodation, transport, venue } = moduleConfigurations;
+        
+        if (rsvp) {
+          if (rsvp.reminderFrequency) updateData.rsvpReminderFrequency = rsvp.reminderFrequency;
+          if (rsvp.maxReminders) updateData.maxRsvpReminders = rsvp.maxReminders;
+          if (rsvp.stage2AutoTrigger !== undefined) updateData.stage2AutoTrigger = rsvp.stage2AutoTrigger;
+        }
+
+        if (accommodation) {
+          if (accommodation.preAssignmentNotifications !== undefined) updateData.disablePreAssignmentNotifications = !accommodation.preAssignmentNotifications;
+          if (accommodation.checkInReminders !== undefined) updateData.checkInReminders = accommodation.checkInReminders;
+          if (accommodation.notificationTiming?.preAssignment) updateData.preAssignmentNotificationDays = accommodation.notificationTiming.preAssignment;
+          if (accommodation.notificationTiming?.checkInReminder) updateData.checkInReminderHours = accommodation.notificationTiming.checkInReminder;
+        }
+
+        if (transport) {
+          if (transport.driverAssignmentNotifications !== undefined) updateData.driverAssignmentNotifications = transport.driverAssignmentNotifications;
+          if (transport.pickupConfirmations !== undefined) updateData.pickupConfirmations = transport.pickupConfirmations;
+          if (transport.notificationTiming?.driverAssignment) updateData.driverAssignmentDays = transport.notificationTiming.driverAssignment;
+          if (transport.notificationTiming?.pickupConfirmation) updateData.pickupConfirmationHours = transport.notificationTiming.pickupConfirmation;
+        }
+
+        if (venue) {
+          if (venue.ceremonyUpdates !== undefined) updateData.ceremonyUpdates = venue.ceremonyUpdates;
+          if (venue.weatherAlerts !== undefined) updateData.weatherAlerts = venue.weatherAlerts;
+          if (venue.finalDetailsPackage !== undefined) updateData.finalDetailsPackage = venue.finalDetailsPackage;
+        }
+      }
+
+      await db.update(weddingEvents).set(updateData).where(eq(weddingEvents.id, eventId));
+
+      res.json({ message: 'Communication configuration updated successfully' });
+    } catch (error) {
+      console.error('Error updating communication config:', error);
+      res.status(500).json({ message: 'Failed to update communication configuration' });
+    }
+  });
+
+  app.get('/api/events/:eventId/communication/stats', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+
+      // Get all guests for the event
+      const allGuests = await db.select().from(guests).where(eq(guests.eventId, eventId));
+      
+      // Calculate stats
+      const totalGuests = allGuests.length;
+      
+      const rsvpStatus = {
+        confirmed: allGuests.filter(g => g.rsvpStatus === 'confirmed').length,
+        pending: allGuests.filter(g => g.rsvpStatus === 'pending').length,
+        declined: allGuests.filter(g => g.rsvpStatus === 'declined').length
+      };
+
+      const accommodationStatus = {
+        assigned: allGuests.filter(g => g.accommodationStatus === 'assigned' || g.accommodationStatus === 'confirmed').length,
+        pending: allGuests.filter(g => g.needsAccommodation && (!g.accommodationStatus || g.accommodationStatus === 'pending')).length
+      };
+
+      const transportStatus = {
+        assigned: allGuests.filter(g => g.transportAssigned === true).length,
+        pending: allGuests.filter(g => g.needsTransport && !g.transportAssigned).length
+      };
+
+      const communicationStatus = {
+        emailAvailable: allGuests.filter(g => g.email && g.email.includes('@')).length,
+        whatsappAvailable: allGuests.filter(g => g.whatsappNumber && g.isWhatsAppAvailable).length,
+        unreachable: allGuests.filter(g => (!g.email || !g.email.includes('@')) && (!g.whatsappNumber || !g.isWhatsAppAvailable)).length
+      };
+
+      const stats = {
+        totalGuests,
+        rsvpStatus,
+        accommodationStatus,
+        transportStatus,
+        communicationStatus
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching communication stats:', error);
+      res.status(500).json({ message: 'Failed to fetch communication statistics' });
+    }
+  });
+
+  app.get('/api/events/:eventId/communication/automations', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+
+      // For now, return mock automation data
+      // TODO: Implement real automation tracking
+      const mockAutomations = [
+        {
+          id: 'rsvp-reminder-1',
+          name: 'RSVP Reminder - Pending Guests',
+          module: 'RSVP',
+          type: 'time_based',
+          status: 'active',
+          nextRun: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+          guestsAffected: 15,
+          lastRun: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+        },
+        {
+          id: 'stage2-trigger',
+          name: 'Stage 2 Details Collection',
+          module: 'RSVP',
+          type: 'status_based',
+          status: 'active',
+          guestsAffected: 8,
+          lastRun: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+        }
+      ];
+
+             res.json(mockAutomations);
+     } catch (error) {
+       console.error('Error fetching automations:', error);
+       res.status(500).json({ message: 'Failed to fetch automations' });
+     }
+   });
+
+   // Unified Messaging Endpoint
+   app.post('/api/events/:eventId/communication/send-message', isAuthenticated, async (req, res) => {
+     try {
+       const eventId = parseInt(req.params.eventId);
+       if (isNaN(eventId)) {
+         return res.status(400).json({ message: "Invalid event ID" });
+       }
+
+       const { 
+         audienceFilter, 
+         channel, 
+         subject, 
+         message, 
+         urgency = 'normal',
+         guestIds 
+       } = req.body;
+
+       if (!message) {
+         return res.status(400).json({ message: "Message content is required" });
+       }
+
+       // Get target guests based on audience filter
+       let targetGuests;
+       if (guestIds && guestIds.length > 0) {
+         // Specific guest IDs provided
+         targetGuests = await db
+           .select()
+           .from(guests)
+           .where(
+             and(
+               eq(guests.eventId, eventId),
+               or(...guestIds.map((id: number) => eq(guests.id, id)))
+             )
+           );
+       } else {
+         // Apply audience filter
+         targetGuests = await db.select().from(guests).where(eq(guests.eventId, eventId));
+         
+         // Apply filters based on audienceFilter
+         switch (audienceFilter) {
+           case 'confirmed':
+             targetGuests = targetGuests.filter(g => g.rsvpStatus === 'confirmed');
+             break;
+           case 'pending':
+             targetGuests = targetGuests.filter(g => g.rsvpStatus === 'pending');
+             break;
+           case 'bride-side':
+             targetGuests = targetGuests.filter(g => g.side === 'bride');
+             break;
+           case 'groom-side':
+             targetGuests = targetGuests.filter(g => g.side === 'groom');
+             break;
+           case 'accommodation-needed':
+             targetGuests = targetGuests.filter(g => g.needsAccommodation);
+             break;
+           case 'transport-needed':
+             targetGuests = targetGuests.filter(g => g.needsTransport);
+             break;
+           default:
+             // 'all' - no additional filtering
+             break;
+         }
+       }
+
+       if (targetGuests.length === 0) {
+         return res.status(400).json({ message: "No guests match the specified criteria" });
+       }
+
+       // Send messages based on channel preference
+       const results = {
+         sent: 0,
+         failed: 0,
+         errors: [] as string[]
+       };
+
+       for (const guest of targetGuests) {
+         try {
+           let sent = false;
+
+           // Determine which channels to use
+           const useEmail = channel === 'email' || channel === 'smart';
+           const useWhatsApp = channel === 'whatsapp' || channel === 'smart';
+
+           // Try WhatsApp first if enabled and available
+           if (useWhatsApp && guest.whatsappNumber && guest.isWhatsAppAvailable) {
+             try {
+               // Use existing WhatsApp service
+               const whatsappManager = (await import('../services/whatsapp/whatsapp-manager')).default;
+               const manager = whatsappManager.getInstance();
+               await manager.sendTextMessage(eventId, guest.whatsappNumber, message);
+               sent = true;
+             } catch (whatsappError) {
+               console.error(`WhatsApp failed for guest ${guest.id}:`, whatsappError);
+               // Continue to try email if smart mode
+             }
+           }
+
+           // Try email if WhatsApp failed or not available (in smart mode) or if email mode
+           if (!sent && useEmail && guest.email && guest.email.includes('@')) {
+             try {
+               // Use existing email service
+               const { emailService } = await import('../services/email/email-service');
+               await emailService.sendEmail({
+                 to: guest.email,
+                 from: 'wedding@example.com', // TODO: Use event's configured from address
+                 subject: subject || 'Wedding Update',
+                 text: message,
+                 html: message.replace(/\n/g, '<br>')
+               });
+               sent = true;
+             } catch (emailError) {
+               console.error(`Email failed for guest ${guest.id}:`, emailError);
+             }
+           }
+
+           if (sent) {
+             results.sent++;
+           } else {
+             results.failed++;
+             results.errors.push(`Failed to reach guest ${guest.firstName} ${guest.lastName}`);
+           }
+         } catch (error) {
+           results.failed++;
+           results.errors.push(`Error processing guest ${guest.firstName} ${guest.lastName}: ${error}`);
+         }
+       }
+
+       res.json({
+         message: `Message processing complete. Sent: ${results.sent}, Failed: ${results.failed}`,
+         results,
+         targetGuestsCount: targetGuests.length
+       });
+     } catch (error) {
+       console.error('Error sending messages:', error);
+       res.status(500).json({ message: 'Failed to send messages' });
+     }
+   });
   
   // Wizard Data Endpoint - combine all wizard step data
   app.get('/api/events/:id/wizard-data', isAuthenticated, async (req, res) => {

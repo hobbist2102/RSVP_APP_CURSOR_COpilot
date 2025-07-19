@@ -143,6 +143,16 @@ export default function Communications() {
   const [selectedModule, setSelectedModule] = useState<string>("all");
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  
+  // Quick message form state
+  const [messageForm, setMessageForm] = useState({
+    audienceFilter: 'all',
+    channel: 'smart',
+    urgency: 'normal',
+    subject: '',
+    message: ''
+  });
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   // Fetch communication configuration
   const { data: commConfig, isLoading: configLoading } = useQuery({
@@ -177,6 +187,49 @@ export default function Communications() {
       toast({ title: "Failed to update settings", variant: "destructive" });
     },
   });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: (messageData: any) =>
+      post(`/api/events/${currentEventId}/communication/send-message`, messageData),
+    onSuccess: (data) => {
+      toast({ 
+        title: "Message sent successfully", 
+        description: `Sent to ${data.results.sent} guests, ${data.results.failed} failed`
+      });
+      setMessageForm({
+        audienceFilter: 'all',
+        channel: 'smart',
+        urgency: 'normal',
+        subject: '',
+        message: ''
+      });
+      setShowMessageDialog(false);
+      // Refresh stats
+      queryClient.invalidateQueries({ queryKey: ['communication-stats'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to send message", 
+        description: error.message || "Unknown error occurred",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const handleSendMessage = async () => {
+    if (!messageForm.message.trim()) {
+      toast({ title: "Message content is required", variant: "destructive" });
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      await sendMessageMutation.mutateAsync(messageForm);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
 
   if (!currentEventId) {
     return <div>Please select an event first</div>;
@@ -449,7 +502,9 @@ export default function Communications() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="audience-filter">Audience Filter</Label>
-              <Select>
+              <Select value={messageForm.audienceFilter} onValueChange={(value) => 
+                setMessageForm(prev => ({ ...prev, audienceFilter: value }))
+              }>
                 <SelectTrigger>
                   <SelectValue placeholder="Select audience" />
                 </SelectTrigger>
@@ -467,7 +522,9 @@ export default function Communications() {
 
             <div>
               <Label htmlFor="communication-channel">Channel</Label>
-              <Select>
+              <Select value={messageForm.channel} onValueChange={(value) => 
+                setMessageForm(prev => ({ ...prev, channel: value }))
+              }>
                 <SelectTrigger>
                   <SelectValue placeholder="Select channel" />
                 </SelectTrigger>
@@ -481,7 +538,9 @@ export default function Communications() {
 
             <div>
               <Label htmlFor="message-urgency">Urgency</Label>
-              <Select>
+              <Select value={messageForm.urgency} onValueChange={(value) => 
+                setMessageForm(prev => ({ ...prev, urgency: value }))
+              }>
                 <SelectTrigger>
                   <SelectValue placeholder="Select urgency" />
                 </SelectTrigger>
@@ -498,7 +557,11 @@ export default function Communications() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="subject">Subject</Label>
-              <Input placeholder="Message subject..." />
+              <Input 
+                placeholder="Message subject..." 
+                value={messageForm.subject}
+                onChange={(e) => setMessageForm(prev => ({ ...prev, subject: e.target.value }))}
+              />
             </div>
             
             <div>
@@ -506,6 +569,8 @@ export default function Communications() {
               <Textarea 
                 placeholder="Type your message here..."
                 rows={6}
+                value={messageForm.message}
+                onChange={(e) => setMessageForm(prev => ({ ...prev, message: e.target.value }))}
               />
               <p className="text-sm text-muted-foreground mt-2">
                 Use variables: {{guest_name}}, {{bride_name}}, {{groom_name}}, {{wedding_date}}
@@ -513,9 +578,16 @@ export default function Communications() {
             </div>
 
             <div className="flex items-center gap-4">
-              <Button>
-                <Send className="h-4 w-4 mr-2" />
-                Send Now
+              <Button 
+                onClick={handleSendMessage}
+                disabled={sendingMessage || !messageForm.message.trim()}
+              >
+                {sendingMessage ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {sendingMessage ? 'Sending...' : 'Send Now'}
               </Button>
               <Button variant="outline">
                 <Eye className="h-4 w-4 mr-2" />
