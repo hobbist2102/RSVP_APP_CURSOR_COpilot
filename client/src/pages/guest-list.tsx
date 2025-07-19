@@ -1111,6 +1111,7 @@ function GuestList() {
   ];
 
   return (
+    <GuestListErrorBoundary>
     <DashboardLayout
       currentPage="guest-list"
       title="Guest Management"
