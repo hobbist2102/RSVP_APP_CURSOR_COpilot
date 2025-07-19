@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { db } from '../db';
-import { events } from '@shared/schema';
+import { weddingEvents } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { isAuthenticated, isAdmin } from '../middleware';
 import { UnifiedEmailService, EmailProvider } from '../services/unified-email';

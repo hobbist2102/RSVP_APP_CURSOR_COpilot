@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from 'nodemailer';
 import { google } from 'googleapis';
 import { storage } from '../storage';
 import { db } from '../db';
-import { events } from '@shared/schema';
+import { weddingEvents } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 
@@ -108,7 +108,7 @@ export class UnifiedEmailService {
         this.transport = await this.createTransport(this.provider, event);
         primarySuccess = !!this.transport;
       } catch (error) {
-        this.lastError = `Failed to create primary transport (${this.provider}): ${error.message}`;
+        this.lastError = `Failed to create primary transport (${this.provider}): ${(error as Error).message}`;
         
       }
 
@@ -124,7 +124,7 @@ export class UnifiedEmailService {
       this.initialized = primarySuccess || !!this.fallbackTransport;
       return this.initialized;
     } catch (error) {
-      this.lastError = `Error initializing email service: ${error.message}`;
+      this.lastError = `Error initializing email service: ${(error as Error).message}`;
       
       return false;
     }
@@ -135,7 +135,7 @@ export class UnifiedEmailService {
    */
   private async getEventData() {
     try {
-      const [event] = await db.select().from(events).where(eq(events.id, this.eventId));
+      const [event] = await db.select().from(weddingEvents).where(eq(weddingEvents.id, this.eventId));
       return event;
     } catch (error) {
       
@@ -223,16 +223,16 @@ export class UnifiedEmailService {
         
         // Update token in database
         const expiryTime = oauth2Client.credentials.expiry_date;
-        await db.update(events)
+        await db.update(weddingEvents)
           .set({
             gmailAccessToken: accessToken,
             gmailTokenExpiry: expiryTime ? new Date(expiryTime) : null
           })
-          .where(eq(events.id, this.eventId));
+          .where(eq(weddingEvents.id, this.eventId));
         
         
       } catch (error) {
-        throw new Error(`Error refreshing Gmail access token: ${error.message}`);
+        throw new Error(`Error refreshing Gmail access token: ${(error as Error).message}`);
       }
     }
     
@@ -299,16 +299,16 @@ export class UnifiedEmailService {
         const expiryTime = Date.now() + (tokenData.expires_in * 1000);
         
         // Update token in database
-        await db.update(events)
+        await db.update(weddingEvents)
           .set({
             outlookAccessToken: accessToken,
             outlookTokenExpiry: new Date(expiryTime)
           })
-          .where(eq(events.id, this.eventId));
+          .where(eq(weddingEvents.id, this.eventId));
         
         
       } catch (error) {
-        throw new Error(`Error refreshing Outlook access token: ${error.message}`);
+        throw new Error(`Error refreshing Outlook access token: ${(error as Error).message}`);
       }
     }
     
@@ -372,7 +372,7 @@ export class UnifiedEmailService {
       } catch (error) {
         return {
           success: false,
-          error: `Failed to initialize email service: ${error.message}`
+          error: `Failed to initialize email service: ${(error as Error).message}`
         };
       }
     }
@@ -404,7 +404,7 @@ export class UnifiedEmailService {
         if (!this.fallbackTransport) {
           return {
             success: false,
-            error: `Failed to send email: ${error.message}`
+            error: `Failed to send email: ${(error as Error).message}`
           };
         }
       }
@@ -432,7 +432,7 @@ export class UnifiedEmailService {
       } catch (error) {
         return {
           success: false,
-          error: `Failed to send email with fallback transport (${this.fallbackProvider}): ${error.message}`
+          error: `Failed to send email with fallback transport (${this.fallbackProvider}): ${(error as Error).message}`
         };
       }
     }
@@ -502,7 +502,7 @@ export class UnifiedEmailService {
   public static async fromEvent(eventId: number): Promise<UnifiedEmailService | null> {
     try {
       // Get event data
-      const [event] = await db.select().from(events).where(eq(events.id, eventId));
+      const [event] = await db.select().from(weddingEvents).where(eq(weddingEvents.id, eventId));
       if (!event) {
         
         return null;

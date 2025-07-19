@@ -1,5 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json, decimal } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, json, decimal, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Users table for authentication
@@ -9,6 +9,13 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  bio: text("bio"),
+  phone: text("phone"),
+  company: text("company"),
+  website: text("website"),
+  location: text("location"),
+  avatar: text("avatar"),
+  lastLogin: timestamp("last_login"),
   role: text("role").notNull().default("staff"), // staff, admin, couple
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -84,6 +91,34 @@ export const weddingEvents = pgTable("wedding_events", {
   sendGridApiKey: text("sendgrid_api_key"),
   // Brevo settings
   brevoApiKey: text("brevo_api_key"),
+  
+  // Communication Configuration Settings
+  communicationStyle: text("communication_style").default("modern"), // 'traditional', 'modern', 'minimal'
+  approvalRequired: boolean("approval_required").default(false),
+  disablePreAssignmentNotifications: boolean("disable_pre_assignment_notifications").default(false),
+  language: text("language").default("english"), // 'english', 'hindi', 'mixed'
+  
+  // RSVP Communication Settings
+  rsvpReminderFrequency: integer("rsvp_reminder_frequency").default(7), // days
+  maxRsvpReminders: integer("max_rsvp_reminders").default(3),
+  stage2AutoTrigger: boolean("stage2_auto_trigger").default(true),
+  
+  // Accommodation Communication Settings
+  checkInReminders: boolean("checkin_reminders").default(true),
+  preAssignmentNotificationDays: integer("pre_assignment_notification_days").default(0),
+  checkInReminderHours: integer("checkin_reminder_hours").default(24),
+  
+  // Transport Communication Settings
+  driverAssignmentNotifications: boolean("driver_assignment_notifications").default(true),
+  pickupConfirmations: boolean("pickup_confirmations").default(true),
+  driverAssignmentDays: integer("driver_assignment_days").default(2),
+  pickupConfirmationHours: integer("pickup_confirmation_hours").default(24),
+  
+  // Venue Communication Settings
+  ceremonyUpdates: boolean("ceremony_updates").default(true),
+  weatherAlerts: boolean("weather_alerts").default(false),
+  finalDetailsPackage: boolean("final_details_package").default(true),
+  
   // Travel & Accommodation Settings
   
   // Accommodation Settings
@@ -131,7 +166,42 @@ export const weddingEvents = pgTable("wedding_events", {
   defaultHotelWebsite: text("default_hotel_website"),
   specialHotelRates: text("special_hotel_rates"),
   bookingInstructions: text("booking_instructions"),
-  // General metadata
+  // General metadata  
+  // Wizard completion tracking
+  sendRsvpReminders: boolean("send_rsvp_reminders").default(true),
+  whatsappEnabled: boolean("whatsapp_enabled").default(false), 
+  primaryColor: text("primary_color").default("#7A51E1"),
+  secondaryColor: text("secondary_color").default("#E3C76F"),
+  whatsappFrom: text("whatsapp_from"),
+  
+  // Missing fields for communication and integration
+  allowPlusOne: boolean("allow_plus_one").default(true),
+  allowChildren: boolean("allow_children").default(true),
+  hasMehendi: boolean("has_mehendi").default(false),
+  hasSangam: boolean("has_sangam").default(false),
+  hasOutdoorVenue: boolean("has_outdoor_venue").default(false),
+  hasEngagement: boolean("has_engagement").default(false),
+  
+  // Email service fields (additional fields)
+  smtpHost: text("smtp_host"),
+  smtpPort: integer("smtp_port"),
+  emailFromName: text("email_from_name"),
+  
+  // WhatsApp Business API fields
+  whatsappPhoneNumberId: text("whatsapp_phone_number_id"),
+  twilioAccountSid: text("twilio_account_sid"),
+  twilioAuthToken: text("twilio_auth_token"),
+  twilioPhoneNumber: text("twilio_phone_number"),
+  
+  // Flight coordination fields
+  flightListExported: boolean("flight_list_exported").default(false),
+  flightNotificationsSent: integer("flight_notifications_sent").default(0),
+  flightListExportDate: timestamp("flight_list_export_date"),
+  
+  // Communication and RSVP settings
+  sendRsvpConfirmations: boolean("send_rsvp_confirmations").default(true),
+  fontFamily: text("font_family").default("Inter"),
+  
   createdBy: integer("created_by").notNull(),
 });
 
@@ -181,6 +251,19 @@ export const guests = pgTable("guests", {
   giftTracking: text("gift_tracking"),
   needsAccommodation: boolean("needs_accommodation").default(false),
   accommodationPreference: text("accommodation_preference"), // Guest's preference for accommodation type
+  // Travel and arrival information
+  arrivalDate: date("arrival_date"),
+  arrivalTime: text("arrival_time"),
+  departureDate: date("departure_date"),
+  departureTime: text("departure_time"),
+  needsFlightAssistance: boolean("needs_flight_assistance").default(false),
+  // Computed/derived fields
+  plusOneAttending: boolean("plus_one_attending").default(false), // Whether plus one is actually attending
+  plusOneDietary: text("plus_one_dietary"), // Plus one dietary restrictions
+  // Travel and transportation fields
+  travelMode: text("travel_mode"), // flight, train, car, bus
+  specialRequests: text("special_requests"), // Special accommodation requests
+  flightStatus: text("flight_status"), // confirmed, pending, cancelled
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -201,6 +284,7 @@ export const ceremonies = pgTable("ceremonies", {
   location: text("location").notNull(),
   description: text("description"),
   attireCode: text("attire_code"),
+  ceremonyType: text("ceremony_type"), // Additional ceremony type information
 });
 
 export const insertCeremonySchema = createInsertSchema(ceremonies).omit({
@@ -655,6 +739,12 @@ export const eventVehicles = pgTable("event_vehicles", {
   availableCount: integer("available_count").notNull(),
   hourlyRate: text("hourly_rate"), // Store as text for now
   features: text("features").array(), // ['ac', 'luggage_space', 'wheelchair_accessible']
+  plateNumber: text("plate_number"),
+  driverName: text("driver_name"),
+  driverPhone: text("driver_phone"),
+  currentLocation: text("current_location"),
+  route: text("route"),
+  notes: text("notes"),
   status: text("status").default("available").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -675,6 +765,10 @@ export const guestTravelInfo = pgTable("guest_travel_info", {
   terminalGate: text("terminal_gate"),
   luggageCount: integer("luggage_count"),
   specialAssistance: boolean("special_assistance").default(false),
+  // Additional flight coordination fields
+  originAirport: text("origin_airport"),
+  destinationAirport: text("destination_airport"),
+  needsTransportation: boolean("needs_transportation").default(false),
   lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -707,6 +801,7 @@ export const transportGroups = pgTable("transport_groups", {
   pickupStatus: text("pickup_status").default("pending"),
   guestsPickedUp: integer("guests_picked_up").default(0),
   totalGuests: integer("total_guests").default(0),
+  guestCount: integer("guest_count").default(0), // Total number of guests in group
   delayNotifications: jsonb("delay_notifications"),
   realTimeUpdates: jsonb("real_time_updates"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -732,6 +827,7 @@ export const transportAllocations = pgTable("transport_allocations", {
   confirmedByGuest: boolean("confirmed_by_guest").default(false), // If the guest has confirmed
   flightDelayed: boolean("flight_delayed").default(false), // Flag for delayed flights
   delayInformation: text("delay_information"), // Details about the delay
+  assignedAt: timestamp("assigned_at"), // When the allocation was made
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -854,6 +950,8 @@ export const brandSettings = pgTable("brand_settings", {
   accentColor: text("accent_color").default("#FEF3C7"), // Hex color code
   primaryFont: text("primary_font").default("serif"), // Font family for headings
   secondaryFont: text("secondary_font").default("sans-serif"), // Font family for body
+  headingFont: text("heading_font").default("serif"), // Alternative heading font
+  bodyFont: text("body_font").default("sans-serif"), // Body text font
   logoUrl: text("logo_url"), // Logo asset URL
   emailBannerUrl: text("email_banner_url"), // Email header banner URL
   whatsappProfileUrl: text("whatsapp_profile_url"), // WhatsApp profile picture URL
@@ -906,3 +1004,61 @@ export type InsertBrandSetting = z.infer<typeof insertBrandSettingSchema>;
 
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
 export type InsertCommunicationLog = z.infer<typeof insertCommunicationLogSchema>;
+
+// Global Admin Email Configuration (separate from event-specific email)
+export const adminEmailConfigTable = pgTable("admin_email_config", {
+  id: serial("id").primaryKey(),
+  provider: varchar("provider", { length: 50 }).notNull(), // 'gmail', 'outlook', 'smtp', 'sendgrid'
+  
+  // Gmail OAuth Configuration
+  gmailClientId: varchar("gmail_client_id", { length: 255 }),
+  gmailClientSecret: varchar("gmail_client_secret", { length: 255 }),
+  gmailRefreshToken: varchar("gmail_refresh_token", { length: 512 }),
+  gmailAccessToken: varchar("gmail_access_token", { length: 512 }),
+  gmailTokenExpiry: timestamp("gmail_token_expiry"),
+  
+  // Outlook OAuth Configuration  
+  outlookClientId: varchar("outlook_client_id", { length: 255 }),
+  outlookClientSecret: varchar("outlook_client_secret", { length: 255 }),
+  outlookRefreshToken: varchar("outlook_refresh_token", { length: 512 }),
+  outlookAccessToken: varchar("outlook_access_token", { length: 512 }),
+  outlookTokenExpiry: timestamp("outlook_token_expiry"),
+  
+  // SMTP Configuration
+  smtpHost: varchar("smtp_host", { length: 255 }),
+  smtpPort: integer("smtp_port"),
+  smtpUsername: varchar("smtp_username", { length: 255 }),
+  smtpPassword: varchar("smtp_password", { length: 255 }),
+  smtpSecure: boolean("smtp_secure").default(true),
+  
+  // SendGrid Configuration
+  sendgridApiKey: varchar("sendgrid_api_key", { length: 255 }),
+  
+  // Common Configuration
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 255 }).notNull().default("Wedding RSVP System"),
+  isActive: boolean("is_active").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdminEmailConfigSchema = createInsertSchema(adminEmailConfigTable);
+export const selectAdminEmailConfigSchema = createSelectSchema(adminEmailConfigTable);
+
+// Password Reset Tokens - for secure password reset functionality
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  token: text("token").notNull().unique(), // Hashed token
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

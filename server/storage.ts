@@ -5,20 +5,24 @@ import {
   travelInfo, accommodations, roomAllocations, mealOptions, 
   guestMealSelections, coupleMessages, relationshipTypes,
   whatsappTemplates, rsvpFollowupTemplates, rsvpFollowupLogs,
-  hotels, globalRoomTypes, type User, type WeddingEvent, type Guest,
+  hotels, globalRoomTypes, transportVendors, transportGroups, 
+  transportAllocations, passwordResetTokens, type User, type WeddingEvent, type Guest,
   type Ceremony, type GuestCeremony, type TravelInfo, type Accommodation,
   type RoomAllocation, type MealOption, type GuestMealSelection,
   type CoupleMessage, type RelationshipType, type WhatsappTemplate,
   type RsvpFollowupTemplate, type RsvpFollowupLog, type Hotel,
-  type GlobalRoomType, type InsertUser, type InsertWeddingEvent,
+  type GlobalRoomType, type TransportVendor, type TransportGroup,
+  type TransportAllocation, type PasswordResetToken, type InsertPasswordResetToken,
+  type InsertUser, type InsertWeddingEvent,
   type InsertGuest, type InsertCeremony, type InsertGuestCeremony,
   type InsertTravelInfo, type InsertAccommodation, type InsertRoomAllocation,
   type InsertMealOption, type InsertGuestMealSelection, type InsertCoupleMessage,
   type InsertRelationshipType, type InsertWhatsappTemplate,
   type InsertRsvpFollowupTemplate, type InsertRsvpFollowupLog,
-  type InsertHotel, type InsertGlobalRoomType
+  type InsertHotel, type InsertGlobalRoomType, type InsertTransportVendor,
+  type InsertTransportGroup, type InsertTransportAllocation
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 
 // Email configuration interface
 interface EmailConfig {
@@ -47,10 +51,12 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(userId: number, updates: Partial<User>): Promise<void>;
   updateUserPassword(userId: number, hashedPassword: string): Promise<void>;
 
   // Event operations
   getEvent(id: number): Promise<WeddingEvent | undefined>;
+  getWeddingEvent(id: number): Promise<WeddingEvent | undefined>;
   eventExists(id: number): Promise<boolean>;
   getAllEvents(): Promise<WeddingEvent[]>;
   getEventsByUser(userId: number): Promise<WeddingEvent[]>;
@@ -224,6 +230,12 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async updateUser(userId: number, updates: Partial<User>): Promise<void> {
+    await db.update(users)
+      .set(updates)
+      .where(eq(users.id, userId));
+  }
+
   async updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
     await db.update(users)
       .set({ password: hashedPassword })
@@ -234,6 +246,10 @@ export class DatabaseStorage implements IStorage {
   async getEvent(id: number): Promise<WeddingEvent | undefined> {
     const result = await db.select().from(weddingEvents).where(eq(weddingEvents.id, id));
     return result[0];
+  }
+
+  async getWeddingEvent(id: number): Promise<WeddingEvent | undefined> {
+    return this.getEvent(id);
   }
 
   async eventExists(id: number): Promise<boolean> {
@@ -515,7 +531,7 @@ export class DatabaseStorage implements IStorage {
         stats.plusOnes++;
       }
       
-      if (guest.numberOfChildren > 0) {
+      if (guest.numberOfChildren && guest.numberOfChildren > 0) {
         stats.children += guest.numberOfChildren;
       }
     }
@@ -859,6 +875,72 @@ export class DatabaseStorage implements IStorage {
   async deleteTransportAllocation(id: number): Promise<boolean> {
     const result = await db.delete(transportAllocations).where(eq(transportAllocations.id, id));
     return !!result;
+  }
+
+  // Missing methods for compatibility
+  async getCoupleMessagesByEvent(eventId: number): Promise<CoupleMessage[]> {
+    return await db.select().from(coupleMessages).where(eq(coupleMessages.eventId, eventId));
+  }
+
+  async getCeremonies(eventId: number): Promise<Ceremony[]> {
+    return await this.getCeremoniesByEvent(eventId);
+  }
+
+  async getAccommodations(eventId: number): Promise<Accommodation[]> {
+    return await db.select().from(accommodations).where(eq(accommodations.eventId, eventId));
+  }
+
+  async getRoomAllocationsByEvent(eventId: number): Promise<RoomAllocation[]> {
+    return await db.select().from(roomAllocations)
+      .innerJoin(guests, eq(roomAllocations.guestId, guests.id))
+      .where(eq(guests.eventId, eventId));
+  }
+
+  // User management methods
+  async getUserById(id: number): Promise<User | undefined> {
+    const userList = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return userList[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(userId: number, token: string, expiresAt: Date): Promise<void> {
+    await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt
+    });
+  }
+
+  async getPasswordResetTokenByToken(token: string): Promise<PasswordResetToken | undefined> {
+    const tokenList = await db.select().from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+    return tokenList[0];
+  }
+
+  async deletePasswordResetTokensByUserId(userId: number): Promise<void> {
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, userId));
+  }
+
+  async deleteExpiredPasswordResetTokens(): Promise<{ deletedCount: number }> {
+    try {
+      const result = await db.delete(passwordResetTokens)
+        .where(lt(passwordResetTokens.expiresAt, new Date()));
+      return { deletedCount: 1 }; // Simplified return
+    } catch (error) {
+      console.error('Error deleting expired tokens:', error);
+      return { deletedCount: 0 };
+    }
   }
   
   // Transaction support for atomic operations

@@ -347,6 +347,59 @@ export default function GuestForm({ eventId, guest, initialData, onSubmit, onCan
           </FormItem>
         )}
       />
+
+      {/* Conditional WhatsApp fields */}
+      {form.watch("whatsappAvailable") && (
+        <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <FormField
+            control={form.control}
+            name="whatsappSame"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Use same number for WhatsApp</FormLabel>
+                  <FormDescription>WhatsApp number is the same as phone number above</FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {!form.watch("whatsappSame") && (
+            <div className="grid grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="whatsappCountryCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>WhatsApp Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+91" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="whatsappNumber"
+                render={({ field }) => (
+                  <FormItem className="col-span-3">
+                    <FormLabel>WhatsApp Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="9876543210" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormDescription>Enter the WhatsApp number if different from phone</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 

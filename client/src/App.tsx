@@ -9,6 +9,15 @@ import { Spinner } from "@/components/ui/spinner";
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 
+// Auth flows - separate chunk
+const PasswordReset = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/password-reset"));
+const ResetPassword = lazy(() => import(/* webpackChunkName: "auth" */ "@/pages/reset-password"));
+
+// Admin portal - separate chunk
+const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/admin-dashboard"));
+const UserManagement = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/user-management"));
+const AdminEmailSettings = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/admin/admin-email-settings"));
+
 // Core dashboard - high priority preload
 const Dashboard = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/dashboard"));
 const GuestList = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/guest-list"));
@@ -18,6 +27,9 @@ const Events = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core"
 const RsvpManagement = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-management"));
 const RsvpPage = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-page"));
 const RsvpDemo = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-demo"));
+
+// Communication module - separate chunk
+const Communications = lazy(() => import(/* webpackChunkName: "communication" */ "@/pages/communications"));
 
 // Travel and accommodation - separate chunk  
 const Travel = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/travel"));
@@ -60,6 +72,15 @@ function App() {
           </Route>
           <Route path="/oauth/callback/:provider" component={OAuthCallbackSuccess} />
           <Route path="/rsvp-demo" component={RsvpDemo} />
+          
+          {/* Auth Routes */}
+          <Route path="/password-reset" component={PasswordReset} />
+          <Route path="/reset-password" component={ResetPassword} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/users" component={UserManagement} />
+          <Route path="/admin/email-settings" component={AdminEmailSettings} />
           <Route path="/">
             {() => (
               
@@ -82,6 +103,13 @@ function App() {
           {() => (
             
               <RsvpManagement />
+            
+          )}
+        </Route>
+        <Route path="/communications">
+          {() => (
+            
+              <Communications />
             
           )}
         </Route>

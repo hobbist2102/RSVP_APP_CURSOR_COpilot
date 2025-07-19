@@ -27,7 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoomAssignmentDialog } from "./room-assignment-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { post } from "@/lib/api-utils";
+import { post, del } from "@/lib/api-utils";
 
 // Function to get initials from name
 const getInitials = (name: string) => {

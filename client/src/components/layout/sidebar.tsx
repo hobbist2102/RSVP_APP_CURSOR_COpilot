@@ -15,7 +15,8 @@ import {
   Wand2,
   ChevronLeft,
   ChevronRight,
-  Hotel
+  Hotel,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -55,6 +56,11 @@ export default function Sidebar({ isOpen, isCollapsed = false, onToggleCollapse 
       name: "RSVP Management",
       icon: <Reply className="mr-3 h-5 w-5" />,
       path: "/rsvp"
+    },
+    {
+      name: "Communications",
+      icon: <MessageSquare className="mr-3 h-5 w-5" />,
+      path: "/communications"
     },
     {
       name: "Flight Coordination",

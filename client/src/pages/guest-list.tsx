@@ -844,7 +844,7 @@ function GuestList() {
             
             {/* Communication Methods */}
             <div className="flex items-center space-x-1">
-              {guest.communication?.whatsappEnabled && (
+              {guest.whatsappAvailable && (
                 <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
                   WhatsApp ✓
                 </Badge>

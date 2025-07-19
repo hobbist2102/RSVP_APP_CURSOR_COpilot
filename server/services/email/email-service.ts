@@ -99,7 +99,7 @@ export class EmailService {
         to: message.to,
         from: message.from,
         subject: message.subject,
-        text: message.text,
+        text: message.text || '',
         html: message.html,
         cc: message.cc,
         bcc: message.bcc,
@@ -118,7 +118,7 @@ export class EmailService {
    */
   private async sendViaSMTP(message: EmailMessage): Promise<boolean> {
     try {
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
@@ -170,7 +170,7 @@ export class EmailService {
    */
   private async sendViaSMTPProvider(message: EmailMessage, config: any): Promise<boolean> {
     try {
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: config.host,
         port: config.port || 587,
         secure: config.secure || false,
@@ -210,7 +210,7 @@ export class EmailService {
         to: message.to,
         from: message.from,
         subject: message.subject,
-        text: message.text,
+        text: message.text || '',
         html: message.html,
         cc: message.cc,
         bcc: message.bcc,
@@ -271,7 +271,7 @@ export class EmailService {
         const provider = this.providers.get(providerId)!;
         
         if (provider.type === 'smtp') {
-          const transporter = nodemailer.createTransporter({
+          const transporter = nodemailer.createTransport({
             host: provider.config.host,
             port: provider.config.port || 587,
             secure: provider.config.secure || false,

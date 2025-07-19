@@ -44,8 +44,8 @@ router.get('/events/:eventId/flights', isAuthenticated, async (req: Request, res
       return {
         id: guest.id,
         guestId: guest.id,
-        guestName: `${guest.first_name} ${guest.last_name}`,
-        name: `${guest.first_name} ${guest.last_name}`,
+        guestName: `${guest.firstName} ${guest.lastName}`,
+        name: `${guest.firstName} ${guest.lastName}`,
         email: guest.email,
         phone: guest.phone,
         travelId: travel?.id || null,
@@ -117,13 +117,14 @@ router.post('/events/:eventId/travel/export-for-agent', isAuthenticated, async (
     // Get all guests for the event
     const guestList = await db
       .select({
-        name: guests.name,
+        firstName: guests.firstName,
+        lastName: guests.lastName,
         email: guests.email,
         phone: guests.phone,
         plusOneAllowed: guests.plusOneAllowed,
         plusOneConfirmed: guests.plusOneConfirmed,
         plusOneName: guests.plusOneName,
-        specialRequirements: guests.specialRequirements,
+        notes: guests.notes,
         arrivalDate: travelInfo.arrivalDate,
         arrivalLocation: travelInfo.arrivalLocation,
         departureDate: travelInfo.departureDate,
@@ -232,7 +233,11 @@ router.post('/events/:eventId/travel/import-flights', isAuthenticated, async (re
         const guest = await db
           .select()
           .from(guests)
-          .where(and(eq(guests.eventId, eventId), eq(guests.name, guestName)))
+          .where(and(
+            eq(guests.eventId, eventId), 
+            eq(guests.firstName, guestName.split(' ')[0]),
+            eq(guests.lastName, guestName.split(' ').slice(1).join(' ') || guestName.split(' ')[0])
+          ))
           .limit(1);
 
         if (guest.length === 0) {
@@ -425,7 +430,7 @@ router.post('/events/:eventId/generate-transport-from-flights', isAuthenticated,
     const flightGuests = await db
       .select({
         guestId: guests.id,
-        guestName: guests.name,
+        guestName: guests.firstName,
         arrivalDate: travelInfo.arrivalDate,
         arrivalTime: travelInfo.arrivalTime,
         arrivalLocation: travelInfo.arrivalLocation,
@@ -496,8 +501,9 @@ router.post('/events/:eventId/generate-transport-from-flights', isAuthenticated,
           dropoffLocation: event[0].accommodationHotelName || event[0].location || 'Hotel',
           vehicleType,
           vehicleCount,
-          capacity: vehicleCount * (vehicleType === 'bus' ? 15 : vehicleType === 'suv' ? 6 : 4),
-          status: 'draft'
+          vehicleCapacity: vehicleType === 'bus' ? 15 : vehicleType === 'suv' ? 6 : 4,
+          status: 'draft',
+          transportMode: 'shuttle'
         })
         .returning();
 

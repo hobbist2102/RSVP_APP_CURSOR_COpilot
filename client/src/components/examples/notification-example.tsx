@@ -39,7 +39,8 @@ export default function NotificationExample() {
   };
   
   const showCustomNotification = () => {
-    notification.custom({
+    // notification.custom({
+    notification.success({
       title: "Custom Notification",
       description: "This is a custom notification with longer duration and action.",
       duration: 8000,

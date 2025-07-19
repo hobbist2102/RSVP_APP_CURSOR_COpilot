@@ -79,7 +79,7 @@ async function areGuestsConnected(guest1: Guest, guest2: Guest): Promise<boolean
 export async function generateTransportGroups(eventId: number): Promise<TransportGroup[]> {
   try {
     // Get all guests with confirmed RSVP for this event
-    const guests = await storage.getConfirmedGuestsByEvent(eventId);
+    const guests = await storage.getGuestsByEvent(eventId);
     
     if (!guests || guests.length === 0) {
       return [];
@@ -88,7 +88,7 @@ export async function generateTransportGroups(eventId: number): Promise<Transpor
     // Fetch travel info for all guests
     const guestsWithTravelInfo: GuestWithTravelInfo[] = [];
     for (const guest of guests) {
-      const travelInfo = await storage.getTravelInfoByGuestId(guest.id);
+      const travelInfo = await storage.getTravelInfoByGuest(guest.id);
       if (travelInfo && travelInfo.needsTransportation) {
         guestsWithTravelInfo.push({ guest, travelInfo });
       }
@@ -334,7 +334,7 @@ export async function checkForTransportUpdates(eventId: number): Promise<{
         const guest = await storage.getGuest(allocation.guestId);
         if (!guest) continue;
         
-        const travelInfo = await storage.getTravelInfoByGuestId(guest.id);
+        const travelInfo = await storage.getTravelInfoByGuest(guest.id);
         if (!travelInfo) continue;
         
         // Check if travel info still matches the group

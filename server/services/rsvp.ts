@@ -24,6 +24,62 @@ import { rsvpFollowupService } from './rsvp-followup';
 import { AutoRoomAssignmentService } from './auto-room-assignment';
 
 export class RSVPService {
+  // Helper methods to use storage directly
+  static async getGuest(id: number) {
+    return await storage.getGuest(id);
+  }
+  
+  static async getEvent(id: number) {
+    return await storage.getWeddingEvent(id);
+  }
+  
+  static async updateGuest(id: number, data: any) {
+    return await storage.updateGuest(id, data);
+  }
+  
+  static async getGuestCeremony(guestId: number, ceremonyId: number) {
+    return await storage.getGuestCeremony(guestId, ceremonyId);
+  }
+  
+  static async updateGuestCeremony(id: number, data: any) {
+    return await storage.updateGuestCeremony(id, data);
+  }
+  
+  static async createGuestCeremony(data: any) {
+    return await storage.createGuestCeremony(data);
+  }
+  
+  static async createCoupleMessage(data: any) {
+    return await storage.createCoupleMessage(data);
+  }
+  
+  static async getGuestMealSelectionsByGuest(guestId: number) {
+    return await storage.getGuestMealSelectionsByGuest(guestId);
+  }
+  
+  static async updateGuestMealSelection(id: number, data: any) {
+    return await storage.updateGuestMealSelection(id, data);
+  }
+  
+  static async createGuestMealSelection(data: any) {
+    return await storage.createGuestMealSelection(data);
+  }
+  
+  static async getTravelInfoByGuest(guestId: number) {
+    return await storage.getTravelInfoByGuest(guestId);
+  }
+  
+  static async updateTravelInfo(id: number, data: any) {
+    return await storage.updateTravelInfo(id, data);
+  }
+  
+  static async createTravelInfo(data: any) {
+    return await storage.createTravelInfo(data);
+  }
+  
+  static async transaction(callback: any) {
+    return await callback.call(storage);
+  }
   private static readonly TOKEN_EXPIRY_DAYS = 90; // 90 days expiry for RSVP tokens
   private static readonly SECRET_KEY = process.env.RSVP_SECRET_KEY || 'wedding_rsvp_default_secret_key';
   

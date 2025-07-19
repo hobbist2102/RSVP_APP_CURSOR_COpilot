@@ -4,7 +4,7 @@
  * This file provides standardized notification functions to ensure consistent
  * user feedback throughout the application.
  */
-import { useToast, type Toast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
 
 // Common notification types
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -61,7 +61,7 @@ export function useNotification() {
       title: config.title || "Warning",
       description: config.description,
       duration: config.duration || 4000,
-      className: "bg-amber-50 border-amber-300 text-amber-900",
+      className: "bg-amber-50 border-amber-300 text-amber-900 dark:bg-amber-900/20 dark:border-amber-500 dark:text-amber-300",
     });
   };
 
@@ -74,7 +74,7 @@ export function useNotification() {
       title: config.title || "Information",
       description: config.description,
       duration: config.duration || 3000,
-      className: "bg-blue-50 border-blue-300 text-blue-900",
+      className: "bg-blue-50 border-blue-300 text-blue-900 dark:bg-blue-900/20 dark:border-blue-500 dark:text-blue-300",
     });
   };
 
@@ -161,6 +161,59 @@ export function useNotification() {
     createOperation,
   };
 }
+
+/**
+ * Standalone toast functions that can be used outside of React components
+ * These are convenient wrappers around the toast function
+ */
+
+/**
+ * Show a success toast notification
+ */
+export const showSuccessToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 3000,
+  });
+};
+
+/**
+ * Show an error toast notification
+ */
+export const showErrorToast = (title: string, description?: string) => {
+  toast({
+    variant: "destructive", 
+    title,
+    description: description || "An error occurred. Please try again.",
+    duration: 5000,
+  });
+};
+
+/**
+ * Show a warning toast notification
+ */
+export const showWarningToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 4000,
+  });
+};
+
+/**
+ * Show an info toast notification
+ */
+export const showInfoToast = (title: string, description?: string) => {
+  toast({
+    variant: "default",
+    title,
+    description,
+    duration: 3000,
+  });
+};
 
 /**
  * Constants for standard notification messages
