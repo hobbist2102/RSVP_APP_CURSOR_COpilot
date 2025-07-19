@@ -118,9 +118,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     color: hsl(var(--foreground));
-    font-family: var(--font-serif);
     font-weight: 600;
-    letter-spacing: -0.025em;
   }
 
   /* Ensure all input elements follow design system */
@@ -285,37 +283,11 @@
 @layer utilities {
   /* Typography utilities from design system */
   .font-serif {
-    font-family: var(--font-serif) !important;
+    font-family: var(--font-serif);
   }
   
   .font-sans {
-    font-family: var(--font-sans) !important;
-  }
-
-  /* Brand typography for dashboard titles */
-  .font-playfair,
-  .font-display {
-    font-family: var(--font-serif) !important;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  /* Force font family application with highest specificity */
-  * {
-    font-family: var(--font-sans) !important;
-  }
-
-  h1, h2, h3, h4, h5, h6,
-  .font-serif,
-  .font-playfair,
-  .font-display {
-    font-family: var(--font-serif) !important;
-  }
-
-  /* Specific override for dashboard title */
-  .dashboard-title,
-  [class*="font-serif"] {
-    font-family: 'Cormorant Garamond', serif !important;
+    font-family: var(--font-sans);
   }
   
   /* Border utilities */

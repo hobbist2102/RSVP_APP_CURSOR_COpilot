@@ -74,7 +74,7 @@ export default function EventSettings() {
     <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-foreground">Event Settings</h1>
+          <h2 className="text-3xl font-playfair font-bold text-neutral">Event Settings</h2>
           <p className="text-sm text-gray-500">
             Manage settings for {currentEvent?.title || "your event"}
           </p>

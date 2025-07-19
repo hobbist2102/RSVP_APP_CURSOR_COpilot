@@ -423,9 +423,9 @@ export default function EventSetupWizard({ initialStep }: EventSetupWizardProps 
       <DeploymentErrorBoundary>
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground">
+            <h2 className="text-3xl font-playfair font-bold text-neutral">
               Event Setup Wizard
-            </h1>
+            </h2>
             <p className="text-sm text-gray-500">
               {isNewEventCreation 
                 ? "Create your event and configure all settings in one place" 

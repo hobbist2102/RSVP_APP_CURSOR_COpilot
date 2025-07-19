@@ -6,7 +6,7 @@ export default function Settings() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-4xl font-serif font-bold text-foreground">Settings</h1>
+        <h2 className="text-3xl font-playfair font-bold text-neutral">Settings</h2>
         <p className="text-sm text-gray-500">
           Manage application settings and preferences
         </p>

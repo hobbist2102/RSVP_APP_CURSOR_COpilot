@@ -728,7 +728,7 @@ export default function TransportPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-foreground">Transport Management</h1>
+          <h2 className="text-3xl font-serif font-bold text-foreground">Transport Management</h2>
           <p className="text-sm text-muted-foreground">
             Coordinate transportation for {currentEvent?.title || 'your event'}
           </p>

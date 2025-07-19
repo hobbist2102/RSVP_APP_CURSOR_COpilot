@@ -44,7 +44,7 @@ export default function Reports() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-4xl font-serif font-bold text-foreground">Reports & Analytics</h1>
+        <h2 className="text-3xl font-playfair font-bold text-neutral">Reports & Analytics</h2>
         <p className="text-sm text-gray-500">
           View event statistics and track progress
         </p>

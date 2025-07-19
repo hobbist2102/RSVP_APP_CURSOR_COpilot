@@ -94,7 +94,7 @@ export default function AccommodationsSimple() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-4xl font-serif font-bold text-foreground">Accommodations</h1>
+        <h2 className="text-3xl font-bold text-foreground">Accommodations</h2>
         <p className="text-sm text-muted-foreground">
           Manage hotel accommodations and room allocations
         </p>

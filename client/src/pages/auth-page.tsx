@@ -31,7 +31,7 @@ export default function AuthPage() {
       <div className="w-0 md:w-1/2 lg:w-2/3 bg-gradient-to-r from-purple-800 via-purple-900 to-indigo-900 hidden md:flex md:flex-col md:justify-center md:items-center text-white p-10">
         <div className="max-w-2xl text-center">
           <h1 className="font-script text-5xl mb-6">Eternally Yours</h1>
-          <h2 className="font-serif text-3xl mb-6">Wedding Management Suite</h2>
+          <h2 className="font-playfair text-3xl mb-6">Wedding Management Suite</h2>
           <p className="text-xl mb-8">
             Manage your Indian wedding events with ease. From guest lists to ceremonies, 
             accommodations to meal preferences - all in one beautiful platform.
@@ -58,7 +58,7 @@ export default function AuthPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="font-script text-5xl text-primary mb-2">Eternally Yours</h1>
-            <p className="font-serif text-foreground text-xl">Wedding Management Suite</p>
+            <p className="font-playfair text-neutral text-xl">Wedding Management Suite</p>
           </div>
           
           <Tabs defaultValue="login" className="w-full">

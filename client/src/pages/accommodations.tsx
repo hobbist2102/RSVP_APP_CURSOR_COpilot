@@ -117,7 +117,7 @@ export default function Accommodations() {
       <DashboardLayout>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-foreground">Accommodations</h1>
+          <h2 className="text-3xl font-bold text-foreground">Accommodations</h2>
           <p className="text-sm text-gray-500">
             Manage hotel accommodations and room allocations
           </p>
