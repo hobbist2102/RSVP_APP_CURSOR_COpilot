@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
@@ -7,8 +8,35 @@ import { rsvpLinkHandler } from "./middleware";
 
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Enable lightweight compression for all responses (fixed configuration)
+app.use(compression({
+  level: 1, // Reduced compression level to fix decoding issues
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    // Don't compress development assets to prevent ERR_CONTENT_DECODING_FAILED
+    if (process.env.NODE_ENV !== 'production' && req.url.includes('src/')) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
+// Performance optimizations for faster parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Add cache headers for static assets only (removed problematic Content-Encoding header)
+app.use((req, res, next) => {
+  if (req.url.startsWith('/assets/') || req.url.endsWith('.js') || req.url.endsWith('.css')) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (req.url.startsWith('/api/')) {
+    // No caching for API during development to prevent errors
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
 
 // Production-ready CORS configuration for deployed environment
 app.use((req, res, next) => {

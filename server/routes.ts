@@ -91,9 +91,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize authentication system on startup
   await ensureAdminUserExists();
   
-  // Apply comprehensive logging middleware early in the pipeline (DISABLED - causing memory exhaustion)
-  // app.use(loggingMiddleware);
-  // app.use(authLoggingMiddleware);
+  // Performance monitoring middleware
+  app.use((req, res, next) => {
+    const start = Date.now();
+    
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (duration > 1000) { // Log only slow requests (>1s)
+        console.log(`SLOW: ${req.method} ${req.path} took ${duration}ms`);
+      }
+    });
+    
+    next();
+  });
   
   // Special handling for client-side routes that should be handled by React router
   app.get('/guest-rsvp/:token', (req, res, next) => {

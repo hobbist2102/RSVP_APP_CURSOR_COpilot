@@ -5,38 +5,46 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Suspense, lazy } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
-// Lazy load components with preloading for high-traffic pages
+// Smart bundle splitting - group by functionality for optimal loading
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
-const Dashboard = lazy(() => import(/* @vite-preload */ "@/pages/dashboard"));
-const GuestList = lazy(() => import(/* @vite-preload */ "@/pages/guest-list"));
-const RsvpManagement = lazy(() => import(/* @vite-preload */ "@/pages/rsvp-management"));
-const RsvpPage = lazy(() => import("@/pages/rsvp-page"));
-const Events = lazy(() => import(/* @vite-preload */ "@/pages/events"));
-const Travel = lazy(() => import("@/pages/travel"));
-const TravelManagement = lazy(() => import("@/pages/travel-management"));
-const Accommodations = lazy(() => import(/* @vite-preload */ "@/pages/accommodations-simple"));
-const Hotels = lazy(() => import("@/pages/hotels"));
-const Meals = lazy(() => import("@/pages/meals"));
-const Reports = lazy(() => import("@/pages/reports"));
-const Settings = lazy(() => import("@/pages/settings"));
-const EventSettings = lazy(() => import("@/pages/event-settings"));
 
-const TransportPage = lazy(() => import(/* @vite-preload */ "@/pages/transport"));
-const TransportAssignmentsPage = lazy(() => import("@/pages/transport-assignments"));
-const EventSetupWizard = lazy(() => import(/* @vite-preload */ "@/pages/event-setup-wizard"));
-const RsvpDemo = lazy(() => import("@/pages/rsvp-demo"));
-// Removed immersive-storytelling import as it's no longer used
-const ImmersiveLanding = lazy(() => import("@/pages/immersive-landing")); // New cinematic landing page
-const MessageSection = lazy(() => import("@/pages/message-section")); // Multichannel engagement section
-const OAuthCallbackSuccess = lazy(() => import("@/components/auth/oauth-callback-success"));
+// Core dashboard - high priority preload
+const Dashboard = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/dashboard"));
+const GuestList = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/guest-list"));
+const Events = lazy(() => import(/* @vite-preload */ /* webpackChunkName: "core" */ "@/pages/events"));
+
+// RSVP module - separate chunk
+const RsvpManagement = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-management"));
+const RsvpPage = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-page"));
+const RsvpDemo = lazy(() => import(/* webpackChunkName: "rsvp" */ "@/pages/rsvp-demo"));
+
+// Travel and accommodation - separate chunk  
+const Travel = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/travel"));
+const TravelManagement = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/travel-management"));
+const Accommodations = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/accommodations-simple"));
+const Hotels = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/hotels"));
+const TransportPage = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/transport"));
+const TransportAssignmentsPage = lazy(() => import(/* webpackChunkName: "travel" */ "@/pages/transport-assignments"));
+
+// Admin and settings - separate chunk
+const Meals = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/meals"));
+const Reports = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/reports"));
+const Settings = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/settings"));
+const EventSettings = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/event-settings"));
+const EventSetupWizard = lazy(() => import(/* webpackChunkName: "admin" */ "@/pages/event-setup-wizard"));
+
+// Landing and marketing - temporarily direct imports to fix loading issues
+import ImmersiveLanding from "@/pages/immersive-landing";
+import MessageSection from "@/pages/message-section";
+const OAuthCallbackSuccess = lazy(() => import(/* webpackChunkName: "auth" */ "@/components/auth/oauth-callback-success"));
 
 
 
-// Loading component for Suspense fallback
+// Optimized loading component with minimal render cost
 const LoadingSpinner = () => (
-  <div className="h-screen w-screen flex items-center justify-center">
-    <Spinner size="lg" />
+  <div className="h-screen w-screen flex items-center justify-center bg-background">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
 );
 

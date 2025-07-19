@@ -9,9 +9,9 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       
       // Production-optimized configuration for deployment stability
-      gcTime: 5 * 60 * 1000, // 5 minutes for better caching
-      staleTime: 30 * 1000, // 30 seconds fresh data window
-      refetchOnWindowFocus: false, // Prevent unnecessary refetches
+      gcTime: 10 * 60 * 1000, // 10 minutes for better caching
+      staleTime: 2 * 60 * 1000, // 2 minutes fresh data window for faster navigation
+      refetchOnWindowFocus: false, // Prevent unnecessary refetches for speed
       refetchOnReconnect: true, // Refetch on reconnect for consistency
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors
@@ -20,7 +20,7 @@ export const queryClient = new QueryClient({
         return failureCount < 3;
       },
       retryDelay: attemptIndex => Math.min(500 * 2 ** attemptIndex, 10000),
-      refetchOnMount: 'always', // Always refetch on mount for consistency
+      refetchOnMount: false, // Use cached data for faster navigation
       refetchInterval: false, // No automatic refetching
       networkMode: 'online', // Only attempt requests when online
     },

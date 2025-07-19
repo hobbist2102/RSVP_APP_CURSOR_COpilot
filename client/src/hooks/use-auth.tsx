@@ -32,7 +32,10 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    // Start with false if we have cached user to prevent unnecessary loading states
+    return !sessionStorage.getItem('auth_user');
+  });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -45,14 +48,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (cachedUser) {
           try {
             const user = JSON.parse(cachedUser);
-            setUser(user);
-            setIsLoading(false);
-            // Still verify with server in background but don't block UI
-            verifyUserInBackground();
-            return;
+            // Check if cached user is not too old (max 1 hour)
+            const cacheTime = sessionStorage.getItem('auth_user_time');
+            const isValidCache = cacheTime && (Date.now() - parseInt(cacheTime)) < 3600000; // 1 hour
+            
+            if (isValidCache) {
+              setUser(user);
+              setIsLoading(false);
+              // Still verify with server in background but don't block UI
+              verifyUserInBackground();
+              return;
+            } else {
+              // Clear expired cache
+              sessionStorage.removeItem('auth_user');
+              sessionStorage.removeItem('auth_user_time');
+            }
           } catch (e) {
             // Clear invalid cache
             sessionStorage.removeItem('auth_user');
+            sessionStorage.removeItem('auth_user_time');
           }
         }
 
@@ -74,8 +88,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const data = await response.json();
           if (data.user) {
             setUser(data.user);
-            // Cache user in sessionStorage
+            // Cache user in sessionStorage with timestamp
             sessionStorage.setItem('auth_user', JSON.stringify(data.user));
+            sessionStorage.setItem('auth_user_time', Date.now().toString());
           }
         }
       } finally {
@@ -115,8 +130,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(response.data.user);
       
-      // Cache user in sessionStorage
+      // Cache user in sessionStorage with timestamp
       sessionStorage.setItem('auth_user', JSON.stringify(response.data.user));
+      sessionStorage.setItem('auth_user_time', Date.now().toString());
       
       // Force a page reload to ensure cookies are properly set
       window.location.href = "/dashboard";
@@ -139,8 +155,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await post("/api/auth/logout", {});
       setUser(null);
       
-      // Clear cached user
+      // Clear cached user and timestamp
       sessionStorage.removeItem('auth_user');
+      sessionStorage.removeItem('auth_user_time');
       
       // Redirect to auth page
       setLocation("/auth");
