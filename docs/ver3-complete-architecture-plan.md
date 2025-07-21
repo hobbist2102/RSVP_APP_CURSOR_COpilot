@@ -450,6 +450,7 @@ graph LR
 - [ ] Implement JWT token validation middleware
 - [ ] Build core authentication flows (login, OTP, logout)
 - [ ] Create basic dashboard layout with route protection
+- [ ] **1.8** Admin Onboarding UI Screen (email providers, WhatsApp, branding setup)
 
 #### Phase 2: Core APIs (Week 3-4)  
 **Priority: CRITICAL**
@@ -697,5 +698,50 @@ The platform will maintain all existing luxury aesthetics and functionality whil
 - **True multi-tenant architecture**
 - **Modern development experience**
 - **Scalable serverless infrastructure**
+
+---
+
+## 🔒 MANDATORY ADDITIONS & FINAL REQUIREMENTS
+
+### ✅ Documentation Parsing Confirmation
+All `/docs/` files recursively parsed including:
+- `/docs/features/` - 5 feature specification files
+- `/docs/implementation/` - 5 implementation status files  
+- `/docs/architecture/` - System architecture documentation
+- `/docs/api/` - API specifications and transport documentation
+- `/docs/design-system/` - Colors, typography, and design tokens
+- `/docs/development/` - Development workflows and standards
+- `/docs/system-design/` - Multi-stakeholder communication flows
+- `/docs/archive/` - Legacy files and historical documentation
+- `/docs/archive/legacy-root-files/` - Original luxury UI specifications
+- `/docs/rebuild-checklist.md` - Current rebuild planning document
+- **Total**: 50+ documentation files comprehensively analyzed
+
+### 📋 Checklist Process Integration
+Each task will be marked as ✅ complete inside `rebuild-checklist.md` as part of each commit, with status logs updated per module.
+
+### 🔧 Technology Version Requirements  
+*All dependencies and frameworks must use the latest stable versions (React 18+, Next.js 14+, Supabase SDK v2+, Drizzle latest, etc.).*
+
+### 🚀 Admin Onboarding UI Screen
+**Phase 1.8** - Simple Admin Onboarding UI for first-time setup:
+- [ ] **1.8.1** Configure email providers (SendGrid, Brevo, Gmail OAuth2, Outlook OAuth2)
+- [ ] **1.8.2** Connect WhatsApp Business API via Facebook/Meta App
+- [ ] **1.8.3** Add admin profile details and contact information
+- [ ] **1.8.4** Upload logo and branding assets via Supabase Storage
+- [ ] **1.8.5** Configure per-event settings (domain, email reply-to, RSVP preferences)
+- [ ] **1.8.6** Test communication provider connections
+
+### 📱 WhatsApp Cloud Integration References
+Integration resources included in implementation:
+- [Meta WhatsApp Cloud Setup Guide](https://developers.facebook.com/docs/whatsapp/cloud-api)
+- [WhatsApp Business Onboarding](https://www.twilio.com/docs/whatsapp/tutorial/connect-whatsapp-business)  
+- [Generate QR code for WhatsApp Web login](https://github.com/pedroslopez/whatsapp-web.js)
+- [Node.js Business API SDK](https://www.npmjs.com/package/whatsapp-business-api)
+
+### 🎨 UI Styling Approach
+Use existing Tailwind + ShadCN UI setup unless critical UI changes are required for onboarding or new modules.
+
+---
 
 **Next Step**: Initiate `ver3` branch and begin Phase 1 implementation with Supabase setup and authentication foundation.
