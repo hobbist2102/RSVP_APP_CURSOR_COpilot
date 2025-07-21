@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message
+          error: error.message,
+          code: 'LOGOUT_FAILED'
         },
         { status: 400 }
       )
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Logout failed'
+        error: error instanceof Error ? error.message : 'Logout failed',
+        code: 'INTERNAL_ERROR'
       },
       { status: 500 }
     )

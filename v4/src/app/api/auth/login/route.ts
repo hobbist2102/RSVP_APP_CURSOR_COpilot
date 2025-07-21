@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Login failed'
+        error: error instanceof Error ? error.message : 'Login failed',
+        code: 'INTERNAL_ERROR'
       },
       { status: 500 }
     )
@@ -42,7 +43,8 @@ async function handlePasswordLogin(body: any) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message
+          error: error.message,
+          code: 'LOGIN_FAILED'
         },
         { status: 400 }
       )
@@ -52,7 +54,8 @@ async function handlePasswordLogin(body: any) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Authentication failed'
+          error: 'Authentication failed',
+          code: 'INVALID_CREDENTIALS'
         },
         { status: 400 }
       )
@@ -92,6 +95,7 @@ async function handlePasswordLogin(body: any) {
         {
           success: false,
           error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
           details: error.errors
         },
         { status: 400 }
@@ -119,7 +123,8 @@ async function handleOtpLogin(body: any) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message
+          error: error.message,
+          code: 'OTP_VERIFICATION_FAILED'
         },
         { status: 400 }
       )
@@ -129,7 +134,8 @@ async function handleOtpLogin(body: any) {
       return NextResponse.json(
         {
           success: false,
-          error: 'OTP verification failed'
+          error: 'OTP verification failed',
+          code: 'INVALID_OTP'
         },
         { status: 400 }
       )
@@ -168,6 +174,7 @@ async function handleOtpLogin(body: any) {
         {
           success: false,
           error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
           details: error.errors
         },
         { status: 400 }

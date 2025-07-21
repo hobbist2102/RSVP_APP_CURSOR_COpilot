@@ -91,23 +91,23 @@
 **Priority: CRITICAL**
 
 ### 2.1 Authentication API Routes
-- [ ] **2.1.1** `/api/auth/login` - Email/OTP login
-- [ ] **2.1.2** `/api/auth/verify` - OTP verification
-- [ ] **2.1.3** `/api/auth/logout` - Token invalidation
-- [ ] **2.1.4** `/api/auth/profile` - Get/update user profile
-- [ ] **2.1.5** `/api/auth/refresh` - Token refresh
-- [ ] **2.1.6** Add comprehensive error handling
+- [x] **2.1.1** `/api/auth/login` - Email/OTP login ✅
+- [x] **2.1.2** `/api/auth/verify` - OTP verification ✅
+- [x] **2.1.3** `/api/auth/logout` - Token invalidation ✅
+- [x] **2.1.4** `/api/auth/profile` - Get/update user profile ✅
+- [x] **2.1.5** `/api/auth/refresh` - Token refresh ✅
+- [x] **2.1.6** Add comprehensive error handling ✅
 
 ### 2.2 Event Management API Routes
-- [ ] **2.2.1** `/api/events` - GET/POST for event CRUD
-- [ ] **2.2.2** `/api/events/[id]` - GET/PUT/DELETE individual events
-- [ ] **2.2.3** `/api/events/[id]/guests` - Event-specific guest management
-- [ ] **2.2.4** `/api/events/[id]/settings` - Event configuration
-- [ ] **2.2.5** `/api/events/[id]/stats` - Event statistics
-- [ ] **2.2.6** Implement RLS enforcement for all routes
+- [x] **2.2.1** `/api/events` - GET/POST for event CRUD ✅
+- [x] **2.2.2** `/api/events/[id]` - GET/PUT/DELETE individual events ✅
+- [x] **2.2.3** `/api/events/[id]/guests` - Event-specific guest management ✅
+- [x] **2.2.4** `/api/events/[id]/settings` - Event configuration ✅
+- [x] **2.2.5** `/api/events/[id]/stats` - Event statistics ✅
+- [x] **2.2.6** Implement RLS enforcement for all routes ✅
 
 ### 2.3 Guest Management API Routes
-- [ ] **2.3.1** `/api/guests` - Full CRUD operations
+- [x] **2.3.1** `/api/guests` - Full CRUD operations ✅
 - [ ] **2.3.2** `/api/guests/import` - CSV/Excel import
 - [ ] **2.3.3** `/api/guests/export` - CSV/Excel export
 - [ ] **2.3.4** `/api/guests/[id]/family` - Family relationships
