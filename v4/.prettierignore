@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.git/
+package-lock.json
+drizzle/
+public/
+*.md
+*.yml
+*.yaml
+dist/
+build/

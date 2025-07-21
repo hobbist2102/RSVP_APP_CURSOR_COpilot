@@ -62,7 +62,7 @@ export function useRealtimeRsvp(eventId?: number) {
       .subscribe((status) => {
         setIsConnected(status === 'SUBSCRIBED')
         if (status === 'SUBSCRIBED') {
-          console.log(`Connected to real-time RSVP updates for event ${eventId}`)
+          // Connected to real-time RSVP updates
           fetchCurrentStats()
         }
       })

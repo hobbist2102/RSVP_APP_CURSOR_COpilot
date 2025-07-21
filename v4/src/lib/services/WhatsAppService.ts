@@ -60,7 +60,7 @@ class WebJSProvider implements WhatsAppProvider {
     try {
       // This would be implemented server-side with whatsapp-web.js
       // For now, simulating the integration
-      console.log('Initializing WhatsApp Web.js client...')
+      // Initializing WhatsApp Web.js client (simulation)
       
       // In production, this would initialize the actual client:
       /*
@@ -82,12 +82,12 @@ class WebJSProvider implements WhatsAppProvider {
 
       this.client.on('ready', () => {
         this.isReady = true;
-        console.log('WhatsApp client is ready!');
+        // WhatsApp client is ready
       });
 
       this.client.on('disconnected', () => {
         this.isReady = false;
-        console.log('WhatsApp client disconnected');
+        // WhatsApp client disconnected
       });
 
       await this.client.initialize();

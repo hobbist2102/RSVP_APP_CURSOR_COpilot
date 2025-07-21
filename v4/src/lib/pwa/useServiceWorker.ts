@@ -52,7 +52,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
         updateViaCache: 'none'
       })
 
-      console.log('[PWA] Service worker registered:', reg.scope)
+      // Service worker registered successfully
       setRegistration(reg)
 
       // Check if service worker is already installed
@@ -64,7 +64,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing
         if (newWorker) {
-          console.log('[PWA] New service worker found')
+          // New service worker detected
           setIsUpdateAvailable(true)
 
           newWorker.addEventListener('statechange', () => {
@@ -72,18 +72,18 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
               if (navigator.serviceWorker.controller) {
                 // New service worker installed, update available
                 setIsWaitingUpdate(true)
-                console.log('[PWA] New service worker installed, waiting to activate')
+                // New service worker installed, waiting to activate
               } else {
                 // First time install
                 setIsInstalled(true)
-                console.log('[PWA] Service worker installed for the first time')
+                // Service worker installed for the first time
               }
             }
 
             if (newWorker.state === 'activated') {
               setIsInstalled(true)
               setIsWaitingUpdate(false)
-              console.log('[PWA] New service worker activated')
+              // New service worker activated
             }
           })
         }
@@ -91,7 +91,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
 
       // Listen for controller change (new service worker took control)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[PWA] New service worker took control')
+        // New service worker took control, reload for updates
         setIsWaitingUpdate(false)
         window.location.reload()
       })
@@ -270,14 +270,14 @@ export function useInstallPrompt() {
       e.preventDefault()
       setDeferredPrompt(e)
       setIsInstallable(true)
-      console.log('[PWA] Install prompt available')
+              // Install prompt available
     }
 
     const handleAppInstalled = () => {
       setIsInstalled(true)
       setIsInstallable(false)
       setDeferredPrompt(null)
-      console.log('[PWA] App installed')
+              // App installed successfully
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -295,9 +295,9 @@ export function useInstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice
       
       if (outcome === 'accepted') {
-        console.log('[PWA] User accepted install prompt')
-      } else {
-        console.log('[PWA] User dismissed install prompt')
+                  // User accepted install prompt
+        } else {
+          // User dismissed install prompt
       }
 
       setDeferredPrompt(null)
