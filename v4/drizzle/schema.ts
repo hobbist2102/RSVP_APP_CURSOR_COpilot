@@ -13,6 +13,15 @@ export const profiles = pgTable("profiles", {
   avatar: text("avatar"),
   bio: text("bio"),
   lastLogin: timestamp("last_login"),
+  
+  // Admin onboarding configuration
+  emailConfig: jsonb("email_config"), // EmailProviderConfig
+  whatsappConfig: jsonb("whatsapp_config"), // WhatsAppConfig
+  brandingConfig: jsonb("branding_config"), // BrandingConfig
+  eventDefaults: jsonb("event_defaults"), // EventDefaults
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
