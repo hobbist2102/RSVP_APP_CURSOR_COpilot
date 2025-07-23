@@ -53,23 +53,20 @@ Add these environment variables in your Vercel dashboard or via CLI:
 
 ```bash
 # Required environment variables
-vercel env add NEXTAUTH_URL production
-vercel env add NEXTAUTH_SECRET production
+vercel env add NEXT_PUBLIC_SUPABASE_URL production
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
 vercel env add DATABASE_URL production
 
 # Optional (for development)
-vercel env add NEXTAUTH_URL development
-vercel env add NEXTAUTH_SECRET development
+vercel env add NEXT_PUBLIC_SUPABASE_URL development
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY development
 vercel env add DATABASE_URL development
 ```
 
 **Environment Variable Values:**
 
-1. **NEXTAUTH_URL**: Your production domain (e.g., `https://your-app.vercel.app`)
-2. **NEXTAUTH_SECRET**: Generate a secure random string:
-   ```bash
-   openssl rand -base64 32
-   ```
+1. **NEXT_PUBLIC_SUPABASE_URL**: Your Supabase project URL
+2. **NEXT_PUBLIC_SUPABASE_ANON_KEY**: Supabase anon key
 3. **DATABASE_URL**: Your PostgreSQL connection string
 
 ## Step 5: Deploy

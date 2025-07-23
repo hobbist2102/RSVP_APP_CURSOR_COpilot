@@ -18,7 +18,7 @@ A complete, production-ready wedding RSVP management platform built with Next.js
 
 - **Framework**: Next.js 15 with App Router
 - **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: NextAuth.js with JWT
+- **Authentication**: Supabase Auth
 - **UI**: ShadCN UI components with Tailwind CSS
 - **Type Safety**: TypeScript with Zod validation
 - **Charts**: Recharts for analytics
@@ -68,8 +68,8 @@ cp .env.local.example .env.local
 
 Required environment variables:
 - `DATABASE_URL`: PostgreSQL connection string
-- `NEXTAUTH_URL`: Your app URL
-- `NEXTAUTH_SECRET`: Random secret for JWT
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anon key
 
 ### 3. Database Setup
 
@@ -139,9 +139,9 @@ DATABASE_URL="postgresql://username:password@host:port/database"
 
 ### Authentication
 
-NextAuth.js is configured for:
-- Credentials (email/password)
-- OAuth providers (Google, Microsoft)
+The app uses Supabase Auth for:
+- Email/password sign-in
+- OAuth via Google
 
 ### Email Providers
 

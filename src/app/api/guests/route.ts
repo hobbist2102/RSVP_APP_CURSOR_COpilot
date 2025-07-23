@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/db'
 import { guests, events } from '@/lib/db/schema'
 import { CreateGuestSchema, UpdateGuestSchema } from '@/lib/validations/schemas'
 import { RSVPTokenService } from '@/lib/services/rsvp-tokens'
 import { eq, and, like, or, desc, asc } from 'drizzle-orm'
 import { z } from 'zod'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+async function requireUser(request: NextRequest) {
+  const token = request.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) return null
+  const { data } = await supabase.auth.getUser(token)
+  return data.user
+}
 
 const GuestQuerySchema = z.object({
   eventId: z.string().uuid().optional(),
@@ -22,8 +33,8 @@ const GuestQuerySchema = z.object({
 // GET /api/guests - List guests with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const user = await requireUser(request)
+    if (!user) {
       return NextResponse.json({
         success: false,
         error: 'Unauthorized'
@@ -151,8 +162,8 @@ export async function GET(request: NextRequest) {
 // POST /api/guests - Create new guest
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const user = await requireUser(request)
+    if (!user) {
       return NextResponse.json({
         success: false,
         error: 'Unauthorized'
@@ -202,7 +213,7 @@ export async function POST(request: NextRequest) {
           updatedAt: newGuest.updated_at
         },
         rsvpToken: rsvpToken,
-        rsvpUrl: `${process.env.NEXTAUTH_URL}/rsvp/${rsvpToken}`
+        rsvpUrl: `${process.env.NEXT_PUBLIC_APP_URL}/rsvp/${rsvpToken}`
       }
     })
 
