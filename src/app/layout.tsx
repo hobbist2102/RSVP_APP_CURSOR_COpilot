@@ -1,20 +1,6 @@
 import type { Metadata } from 'next'
-import { Inter, Cormorant_Garamond } from 'next/font/google'
 import { Providers } from '@/components/providers'
 import './globals.css'
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const cormorant = Cormorant_Garamond({ 
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-cormorant',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: {
@@ -93,12 +79,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.className} antialiased min-h-screen bg-background font-sans`}>
+      <body className="antialiased min-h-screen bg-background font-sans">
         <Providers>
           {children}
         </Providers>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSupabaseSession } from '@/hooks/useSupabaseSession'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -44,7 +44,7 @@ interface Event {
 }
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSupabaseSession()
   const router = useRouter()
   const [events, setEvents] = useState<Event[]>([])
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null)

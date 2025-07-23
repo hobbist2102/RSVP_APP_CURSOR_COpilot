@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { supabase } from '@/lib/supabaseClient'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,19 +35,15 @@ function LoginForm() {
     setError('')
 
     try {
-      const result = await signIn('credentials', {
+      const { data: result, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
-        redirect: false,
       })
 
-      if (result?.error) {
+      if (error || !result.user) {
         setError('Invalid email or password')
       } else {
-        // Successful login
-        await getSession() // Refresh session
         router.push(callbackUrl)
-        router.refresh()
       }
     } catch (error) {
       setError('An unexpected error occurred')
@@ -57,7 +53,7 @@ function LoginForm() {
   }
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl })
+    supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + callbackUrl } })
   }
 
   return (

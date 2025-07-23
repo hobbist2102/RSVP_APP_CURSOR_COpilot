@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSupabaseSession } from '@/hooks/useSupabaseSession'
 import Link from 'next/link'
 import { 
   Users, 
@@ -123,7 +123,7 @@ const mockGuests: Guest[] = [
 ]
 
 export default function GuestsPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSupabaseSession()
   const { toast } = useToast()
   const [guests, setGuests] = useState<Guest[]>(mockGuests)
   const [filteredGuests, setFilteredGuests] = useState<Guest[]>(mockGuests)
