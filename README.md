@@ -70,6 +70,8 @@ Required environment variables:
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_URL`: Your app URL
 - `NEXTAUTH_SECRET`: Random secret for JWT
+- `NEXT_PUBLIC_USE_SUPABASE_AUTH`: `true` to use Supabase Auth, `false` for NextAuth (default)
+- `NEXT_PUBLIC_USE_SUPABASE_DB`: `true` to use Supabase Postgres, `false` for standard Postgres
 
 ### 3. Database Setup
 
@@ -139,9 +141,9 @@ DATABASE_URL="postgresql://username:password@host:port/database"
 
 ### Authentication
 
-NextAuth.js is configured for:
-- Credentials (email/password)
-- OAuth providers (Google, Microsoft)
+Authentication supports two providers. Choose the provider at build time using the `NEXT_PUBLIC_USE_SUPABASE_AUTH` flag:
+- `false` (default) uses NextAuth.js with credentials and OAuth
+- `true` uses Supabase Auth
 
 ### Email Providers
 

@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { users } from '@/lib/db/schema'
+import { authProvider } from '@/lib/config'
 
 export const authOptions: NextAuthOptions = {
   // adapter: DrizzleAdapter(db), // Temporarily disabled for build
@@ -152,6 +153,10 @@ export const authOptions: NextAuthOptions = {
       console.log(`User signed out`)
     },
   },
+}
+
+export function getAuthOptions(): NextAuthOptions | null {
+  return authProvider === 'nextauth' ? authOptions : null;
 }
 
 // Type augmentation for NextAuth

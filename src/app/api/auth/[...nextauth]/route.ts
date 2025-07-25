@@ -1,19 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server'
+import NextAuth from 'next-auth'
+import { getAuthOptions } from '@/lib/auth'
+import { authProvider } from '@/lib/config'
+import { createClient } from '@supabase/supabase-js'
 
-// Initialize Supabase client with environment variables
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+)
 
-export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+const nextAuthHandler = getAuthOptions() ? NextAuth(getAuthOptions()!) : null
 
-  if (error) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 401 });
-  }
+export const GET = authProvider === 'nextauth'
+  ? (nextAuthHandler as any).GET
+  : async () => NextResponse.json({ success: false, message: 'Not implemented' }, { status: 404 })
 
-  return NextResponse.json({ success: true, user: data.user });
-}
+export const POST = authProvider === 'nextauth'
+  ? (nextAuthHandler as any).POST
+  : async (req: NextRequest) => {
+      const { email, password } = await req.json()
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        return NextResponse.json({ success: false, message: error.message }, { status: 401 })
+      }
+      return NextResponse.json({ success: true, user: data.user })
+    }
