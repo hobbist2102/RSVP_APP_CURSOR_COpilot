@@ -2,6 +2,8 @@
 
 import { useState, Suspense } from 'react'
 import { signIn, getSession } from 'next-auth/react'
+import { createClient } from '@supabase/supabase-js'
+import { authProviderClient } from '@/lib/config'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +15,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, Lock, Heart } from 'lucide-react'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 function LoginForm() {
   const router = useRouter()
@@ -35,19 +42,31 @@ function LoginForm() {
     setError('')
 
     try {
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
+      if (authProviderClient === 'nextauth') {
+        const result = await signIn('credentials', {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        })
 
-      if (result?.error) {
-        setError('Invalid email or password')
+        if (result?.error) {
+          setError('Invalid email or password')
+        } else {
+          await getSession()
+          router.push(callbackUrl)
+          router.refresh()
+        }
       } else {
-        // Successful login
-        await getSession() // Refresh session
-        router.push(callbackUrl)
-        router.refresh()
+        const { data: res, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
+        if (error) {
+          setError('Invalid email or password')
+        } else {
+          router.push(callbackUrl)
+          router.refresh()
+        }
       }
     } catch (error) {
       setError('An unexpected error occurred')
@@ -57,7 +76,11 @@ function LoginForm() {
   }
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl })
+    if (authProviderClient === 'nextauth') {
+      signIn('google', { callbackUrl })
+    } else {
+      supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callbackUrl } })
+    }
   }
 
   return (
